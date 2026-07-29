@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "Emmanuel Kingsford Owusu — Complex ideas. Unforgettable form.";
+  "Kingxford Studio — Complex ideas. Unforgettable form.";
 export const size = {
   width: 1200,
   height: 630,
@@ -116,11 +116,11 @@ export default function OpenGraphImage() {
                 letterSpacing: "0.02em",
               }}
             >
-              EK
+              KX
             </div>
-            <span>Emmanuel Kingsford Owusu</span>
+            <span>Kingxford Studio</span>
           </div>
-          <span style={{ color: "#86a0ff" }}>Portfolio / 2026</span>
+          <span style={{ color: "#86a0ff" }}>The Living Room / 2026</span>
         </div>
 
         <div
@@ -173,8 +173,8 @@ export default function OpenGraphImage() {
               color: "rgba(244,241,233,0.7)",
             }}
           >
-            Digital products · Visual systems · Research experiences ·
-            Intelligent platforms
+            By Emmanuel Kingsford Owusu · Digital products · Visual systems ·
+            Research experiences
           </div>
           <div
             style={{

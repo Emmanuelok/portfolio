@@ -5,9 +5,9 @@ import { ArrowUpRight, Plus } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
-  title: "Lab",
+  title: "Kingxford Lab",
   description:
-    "An open notebook of visual, interaction, and intelligent-system experiments by Emmanuel Kingsford Owusu.",
+    "The experimental wing of Kingxford Studio—visual, interaction, motion, and intelligent-system studies by Emmanuel Kingsford Owusu.",
   alternates: {
     canonical: "/lab",
   },
@@ -63,12 +63,14 @@ export default function LabPage() {
         aria-labelledby="lab-heading"
       >
         <div className="page-hero__index" aria-hidden="true">
-          03 / Lab
+          03 / Kingxford Lab
         </div>
 
         <div className="page-hero__content">
           <Reveal>
-            <p className="eyebrow">Open notebook · Experiments in progress</p>
+            <p className="eyebrow">
+              Kingxford Studio · Experimental wing
+            </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="lab-heading">
@@ -91,7 +93,7 @@ export default function LabPage() {
         <div className="lab-constellation" aria-hidden="true">
           <span className="lab-constellation__ring lab-constellation__ring--one" />
           <span className="lab-constellation__ring lab-constellation__ring--two" />
-          <span className="lab-constellation__core">EK</span>
+          <span className="lab-constellation__core">KX</span>
           <span className="lab-constellation__node lab-constellation__node--one" />
           <span className="lab-constellation__node lab-constellation__node--two" />
           <span className="lab-constellation__node lab-constellation__node--three" />

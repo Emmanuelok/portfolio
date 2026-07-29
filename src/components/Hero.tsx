@@ -35,7 +35,7 @@ export function Hero() {
         <m.div className="hero__kicker" {...reveal(16, 0.05)}>
           <LivingMark className="hero__mark" decorative />
           <span className="hero__eyebrow">
-            Design systems · Digital products · Visual stories
+            Kingxford Studio · The Living Room
           </span>
         </m.div>
 
@@ -54,8 +54,9 @@ export function Hero() {
 
         <div className="hero__footer">
           <m.p className="hero__lede" {...reveal(24, 0.3)}>
-            I turn ambitious research, intelligent platforms, and meaningful
-            brands into experiences people can understand, feel, and remember.
+            An evolving, motion-led portfolio by Emmanuel Kingsford Owusu,
+            where graphic design, intelligent products, websites, research,
+            and visual systems take unforgettable form.
           </m.p>
 
           <m.div className="hero__actions" {...reveal(22, 0.38)}>
@@ -64,7 +65,7 @@ export function Hero() {
               <ArrowUpRight aria-hidden="true" />
             </Link>
             <Link className="button button--quiet" href="/about">
-              <span>Meet the designer</span>
+              <span>Meet Emmanuel</span>
               <ArrowDownRight aria-hidden="true" />
             </Link>
           </m.div>
@@ -74,7 +75,7 @@ export function Hero() {
           <span className="hero__signal-dot" aria-hidden="true" />
           <span>Available for select collaborations</span>
           <span className="hero__signal-rule" aria-hidden="true" />
-          <span>Canada · Working worldwide</span>
+          <a href="#living-room">Scroll to enter The Living Room</a>
         </m.div>
       </div>
     </section>

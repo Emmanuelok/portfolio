@@ -5,9 +5,9 @@ import { ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
-  title: "About",
+  title: "About Emmanuel",
   description:
-    "Meet Emmanuel Kingsford Owusu—a multidisciplinary designer, researcher, educator, and product builder working across digital products, visual systems, and complex knowledge.",
+    "Meet Emmanuel Kingsford Owusu, the multidisciplinary designer, researcher, educator, and product builder behind Kingxford Studio.",
   alternates: {
     canonical: "/about",
   },
@@ -75,7 +75,9 @@ export default function AboutPage() {
         </div>
         <div className="page-hero__content">
           <Reveal>
-            <p className="eyebrow">Emmanuel Kingsford Owusu</p>
+            <p className="eyebrow">
+              Emmanuel Kingsford Owusu · Kingxford Studio
+            </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="about-heading">

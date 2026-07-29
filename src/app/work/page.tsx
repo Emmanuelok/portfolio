@@ -9,7 +9,7 @@ import { projectCategories, projects } from "@/data/projects";
 export const metadata: Metadata = {
   title: "Selected work",
   description:
-    "Selected digital products, research platforms, visual systems, and intelligent web experiences by Emmanuel Kingsford Owusu.",
+    "Selected work from Kingxford Studio, the multidisciplinary practice of Emmanuel Kingsford Owusu—digital products, research platforms, visual systems, and intelligent web experiences.",
   alternates: {
     canonical: "/work",
   },
@@ -28,7 +28,7 @@ export default function WorkPage() {
 
         <div className="page-hero__content">
           <Reveal>
-            <p className="eyebrow">A living archive · 2026</p>
+            <p className="eyebrow">Kingxford Studio archive · 2026</p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="work-heading">

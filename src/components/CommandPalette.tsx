@@ -3,6 +3,7 @@
 import {
   ArrowUpRight,
   BriefcaseBusiness,
+  FlaskConical,
   House,
   Mail,
   Search,
@@ -28,10 +29,10 @@ type CommandItem = {
 
 const commands: readonly CommandItem[] = [
   {
-    label: "Home",
+    label: "The Living Room",
     description: "Return to the opening experience",
     href: "/",
-    keywords: "start index living loom",
+    keywords: "start index kingxford studio living room",
     icon: House,
   },
   {
@@ -47,6 +48,13 @@ const commands: readonly CommandItem[] = [
     href: "/about",
     keywords: "designer profile biography experience",
     icon: UserRound,
+  },
+  {
+    label: "Kingxford Lab",
+    description: "Enter the experimental wing",
+    href: "/lab",
+    keywords: "experiments motion generative interaction studio",
+    icon: FlaskConical,
   },
   {
     label: "Start a conversation",

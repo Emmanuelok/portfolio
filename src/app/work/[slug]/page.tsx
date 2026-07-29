@@ -52,7 +52,7 @@ export async function generateMetadata({
     description: project.summary,
     alternates: { canonical },
     openGraph: {
-      title: `${project.title} — Emmanuel Kingsford Owusu`,
+      title: `${project.title} — Kingxford Studio`,
       description: project.summary,
       type: "article",
       url: canonical,
@@ -67,7 +67,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${project.title} — Emmanuel Kingsford Owusu`,
+      title: `${project.title} — Kingxford Studio`,
       description: project.summary,
       images: [coverUrl],
     },
@@ -173,7 +173,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               className="project-hero__image"
             />
             <span className="project-hero__media-index" aria-hidden="true">
-              EK / {String(projectIndex + 1).padStart(2, "0")}
+              KX / {String(projectIndex + 1).padStart(2, "0")}
             </span>
           </Reveal>
         </header>

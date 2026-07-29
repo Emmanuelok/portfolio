@@ -48,8 +48,20 @@ async function inspectPage(name, route, viewport, options = {}) {
   const consoleErrors = [];
   const pageErrors = [];
 
+  if (options.blockMotionVideo !== false) {
+    await page.route(
+      "https://d8j0ntlcm91z4.cloudfront.net/**",
+      (route) => route.abort("blockedbyclient"),
+    );
+  }
+
   page.on("console", (message) => {
-    if (message.type() === "error") consoleErrors.push(message.text());
+    if (
+      message.type() === "error" &&
+      !message.text().includes("ERR_BLOCKED_BY_CLIENT")
+    ) {
+      consoleErrors.push(message.text());
+    }
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -186,6 +198,67 @@ if (!commandSearchFocus) {
   failures.push({ interaction: "command-search-focus" });
 }
 await desktop.page.keyboard.press("Escape");
+
+const storyMetrics = await desktop.page.locator(".studio-story").evaluate((story) => {
+  const stage = story.querySelector(".studio-story__stage");
+  const poster = story.querySelector(".studio-story__poster");
+  const rect = story.getBoundingClientRect();
+  return {
+    top: rect.top + window.scrollY,
+    height: rect.height,
+    viewportHeight: window.innerHeight,
+    chapterCount: story.querySelectorAll(".studio-story__chapter").length,
+    stagePosition: stage ? getComputedStyle(stage).position : null,
+    posterReady:
+      poster instanceof HTMLImageElement &&
+      poster.complete &&
+      poster.naturalWidth > 0,
+  };
+});
+const storyStructurePassed =
+  storyMetrics.chapterCount === 4 &&
+  storyMetrics.stagePosition === "sticky" &&
+  storyMetrics.posterReady &&
+  storyMetrics.height > storyMetrics.viewportHeight * 3;
+results.push({
+  interaction: "living-room-story-structure",
+  passed: storyStructurePassed,
+  ...storyMetrics,
+});
+if (!storyStructurePassed) {
+  failures.push({
+    interaction: "living-room-story-structure",
+    ...storyMetrics,
+  });
+}
+
+for (const [chapter, progress] of [
+  ["threshold", 0.08],
+  ["signal", 0.34],
+  ["point-of-view", 0.61],
+  ["gallery", 0.88],
+]) {
+  await desktop.page.evaluate(
+    ({ top, height, viewportHeight, progress }) => {
+      window.scrollTo({
+        top: top + (height - viewportHeight) * progress,
+        behavior: "instant",
+      });
+    },
+    {
+      top: storyMetrics.top,
+      height: storyMetrics.height,
+      viewportHeight: storyMetrics.viewportHeight,
+      progress,
+    },
+  );
+  await desktop.page.waitForTimeout(180);
+  await desktop.page.screenshot({
+    path: path.join(outputDir, `living-room-${chapter}.png`),
+    fullPage: false,
+  });
+}
+
 await desktop.context.close();
 
 const work = await inspectPage(
@@ -260,6 +333,31 @@ await mobile.page.screenshot({
   path: path.join(outputDir, "home-mobile-menu.png"),
   fullPage: false,
 });
+await menuSummary.click();
+const mobileStoryMetrics = await mobile.page
+  .locator(".studio-story")
+  .evaluate((story) => {
+    const rect = story.getBoundingClientRect();
+    return {
+      top: rect.top + window.scrollY,
+      height: rect.height,
+      viewportHeight: window.innerHeight,
+    };
+  });
+await mobile.page.evaluate(
+  ({ top, height, viewportHeight }) => {
+    window.scrollTo({
+      top: top + (height - viewportHeight) * 0.34,
+      behavior: "instant",
+    });
+  },
+  mobileStoryMetrics,
+);
+await mobile.page.waitForTimeout(180);
+await mobile.page.screenshot({
+  path: path.join(outputDir, "living-room-mobile-signal.png"),
+  fullPage: false,
+});
 await mobile.context.close();
 
 const mobileWork = await inspectPage(
@@ -291,6 +389,32 @@ results.push({
 });
 if (!reducedMotionMatches) {
   failures.push({ interaction: "reduced-motion-emulation" });
+}
+await reduced.page.locator(".studio-story").scrollIntoViewIfNeeded();
+await reduced.page.waitForTimeout(500);
+const reducedStory = await reduced.page.locator(".studio-story").evaluate((story) => {
+  const stage = story.querySelector(".studio-story__stage");
+  return {
+    markedReduced: story.getAttribute("data-reduced-motion") === "true",
+    sourceCount: story.querySelectorAll("video source").length,
+    stagePosition: stage ? getComputedStyle(stage).position : null,
+    chapterCount: story.querySelectorAll(".studio-story__chapter").length,
+  };
+});
+const reducedStoryPassed =
+  reducedStory.sourceCount === 0 &&
+  reducedStory.stagePosition !== "sticky" &&
+  reducedStory.chapterCount === 4;
+results.push({
+  interaction: "living-room-reduced-motion-fallback",
+  passed: reducedStoryPassed,
+  ...reducedStory,
+});
+if (!reducedStoryPassed) {
+  failures.push({
+    interaction: "living-room-reduced-motion-fallback",
+    ...reducedStory,
+  });
 }
 await reduced.context.close();
 

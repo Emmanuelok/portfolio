@@ -9,7 +9,7 @@ import { LivingMark } from "@/components/LivingMark";
 import { ThemeControls } from "@/components/ThemeControls";
 
 const navigation = [
-  { href: "/", label: "Home" },
+  { href: "/", label: "Living Room" },
   { href: "/work", label: "Work" },
   { href: "/about", label: "About" },
   { href: "/lab", label: "Lab" },
@@ -81,15 +81,15 @@ export function SiteHeader() {
           <Link
             className="site-header__brand"
             href="/"
-            aria-label="Emmanuel Kingsford Owusu, home"
+            aria-label="Kingxford Studio by Emmanuel Kingsford Owusu, The Living Room"
           >
             <LivingMark
               className="site-header__mark"
               decorative
             />
             <span className="site-header__brand-copy">
-              <strong>Emmanuel Kingsford</strong>
-              <span>Living Loom</span>
+              <strong>Kingxford</strong>
+              <span>Studio</span>
             </span>
           </Link>
 
@@ -130,8 +130,8 @@ export function SiteHeader() {
                 />
               </nav>
               <p className="site-header__mobile-note">
-                Research, identity, and digital products—woven into
-                experiences people can use.
+                The Living Room of a multidisciplinary design practice by
+                Emmanuel Kingsford Owusu.
               </p>
               <div className="site-header__mobile-tools">
                 <p>Choose a color theme</p>

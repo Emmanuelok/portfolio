@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  ArrowDownRight,
   ArrowUpRight,
   Boxes,
   DraftingCompass,
@@ -9,6 +8,7 @@ import {
 
 import { Hero } from "@/components/Hero";
 import { Reveal } from "@/components/Reveal";
+import { StudioScrollStory } from "@/components/StudioScrollStory";
 import { WorkGrid } from "@/components/WorkGrid";
 import { projects } from "@/data/projects";
 
@@ -39,6 +39,7 @@ export default function HomePage() {
   return (
     <main className="page page--home">
       <Hero />
+      <StudioScrollStory />
 
       <section className="section selected-work" aria-labelledby="selected-title">
         <div className="section__heading">
@@ -76,41 +77,6 @@ export default function HomePage() {
             <ArrowUpRight aria-hidden="true" />
           </Link>
         </Reveal>
-      </section>
-
-      <section className="manifesto" aria-labelledby="manifesto-title">
-        <div className="manifesto__rail" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="manifesto__inner">
-          <Reveal className="manifesto__index">
-            <span>Design position</span>
-            <span>EK — 2026</span>
-          </Reveal>
-          <Reveal>
-            <h2 id="manifesto-title">
-              Design is how ambiguity
-              <span> earns a shape.</span>
-            </h2>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <p>
-              I work where design, technology, research, and enterprise
-              overlap—turning difficult systems into experiences that feel
-              inevitable once you see them.
-            </p>
-          </Reveal>
-          <Reveal delay={0.12}>
-            <Link href="/about" className="button button--inverted">
-              <span>Read the practice</span>
-              <ArrowDownRight aria-hidden="true" />
-            </Link>
-          </Reveal>
-        </div>
       </section>
 
       <section className="section capability-section" aria-labelledby="capability-title">
@@ -167,7 +133,9 @@ export default function HomePage() {
         </div>
         <div className="lab-window__copy">
           <Reveal>
-            <span className="lab-window__eyebrow">The experimental room</span>
+            <span className="lab-window__eyebrow">
+              Kingxford Lab · Experimental wing
+            </span>
           </Reveal>
           <Reveal delay={0.05}>
             <h2 id="lab-window-title">Some ideas need room to misbehave.</h2>

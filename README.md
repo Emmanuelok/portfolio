@@ -1,6 +1,11 @@
-# Emmanuel Kingsford Owusu — Portfolio
+# Kingxford Studio — The Living Room
 
-A motion-led portfolio for digital products, visual systems, web experiences, and design experiments.
+The motion-led portfolio and front room of Emmanuel Kingsford Owusu’s
+multidisciplinary design practice: graphic identities, digital products,
+websites, research experiences, intelligent interfaces, and experiments.
+
+The landing sequence is directed by scroll and uses a cinematic motion master
+with a lightweight still fallback for reduced-motion and data-saving contexts.
 
 ## Run locally
 

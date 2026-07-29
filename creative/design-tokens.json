@@ -1,0 +1,192 @@
+{
+  "schema_version": "1.0",
+  "name": "Living Loom",
+  "color": {
+    "canvas": "#F3EDDF",
+    "canvas_inverse": "#141617",
+    "surface": "#FFFDF7",
+    "surface_inverse": "#232728",
+    "text": "#141617",
+    "text_inverse": "#F3EDDF",
+    "muted_text": "#5B5F5E",
+    "muted_text_inverse": "#C9C0B1",
+    "border": "#D7CFC2",
+    "border_inverse": "#414646",
+    "accent": "#3157FF",
+    "accent_text": "#FFFDF7",
+    "focus": "#3157FF",
+    "success": "#227A52",
+    "warning": "#8D5B00",
+    "error": "#A5322B",
+    "brass": "#B47A2A",
+    "clay": "#A33D2E"
+  },
+  "themes": {
+    "bone": {
+      "canvas": "{color.canvas}",
+      "surface": "{color.surface}",
+      "text": "{color.text}",
+      "muted_text": "{color.muted_text}",
+      "border": "{color.border}",
+      "accent": "{color.accent}",
+      "accent_text": "{color.accent_text}"
+    },
+    "ink": {
+      "canvas": "{color.canvas_inverse}",
+      "surface": "{color.surface_inverse}",
+      "text": "{color.text_inverse}",
+      "muted_text": "{color.muted_text_inverse}",
+      "border": "{color.border_inverse}",
+      "accent": "#6F87FF",
+      "accent_text": "#141617"
+    }
+  },
+  "contrast_pairs": [
+    {
+      "name": "bone body text",
+      "foreground": "text",
+      "background": "canvas",
+      "minimum_ratio": 4.5
+    },
+    {
+      "name": "paper body text",
+      "foreground": "text",
+      "background": "surface",
+      "minimum_ratio": 4.5
+    },
+    {
+      "name": "ink body text",
+      "foreground": "text_inverse",
+      "background": "canvas_inverse",
+      "minimum_ratio": 4.5
+    },
+    {
+      "name": "dark surface body text",
+      "foreground": "text_inverse",
+      "background": "surface_inverse",
+      "minimum_ratio": 4.5
+    },
+    {
+      "name": "ultramarine control",
+      "foreground": "accent_text",
+      "background": "accent",
+      "minimum_ratio": 4.5
+    },
+    {
+      "name": "focus against bone",
+      "foreground": "focus",
+      "background": "canvas",
+      "minimum_ratio": 3
+    }
+  ],
+  "typography": {
+    "display": {
+      "family": "\"Newsreader Variable\"",
+      "fallback": "Georgia, \"Times New Roman\", serif",
+      "weight": 500,
+      "line_height": 0.9,
+      "letter_spacing": "-0.045em",
+      "size": "clamp(3.2rem, 1.6rem + 7vw, 9.5rem)"
+    },
+    "heading": {
+      "family": "\"Manrope Variable\"",
+      "fallback": "Arial, sans-serif",
+      "weight": 650,
+      "line_height": 1.05,
+      "letter_spacing": "-0.035em",
+      "size": "clamp(1.8rem, 1.35rem + 1.8vw, 3.25rem)"
+    },
+    "body": {
+      "family": "\"Manrope Variable\"",
+      "fallback": "Arial, sans-serif",
+      "weight": 450,
+      "line_height": 1.65,
+      "letter_spacing": "-0.01em",
+      "size": "clamp(1rem, 0.96rem + 0.2vw, 1.125rem)",
+      "measure": "70ch"
+    },
+    "label": {
+      "family": "\"Manrope Variable\"",
+      "fallback": "Arial, sans-serif",
+      "weight": 700,
+      "line_height": 1.2,
+      "letter_spacing": "0.08em",
+      "text_transform": "uppercase",
+      "size": "clamp(0.72rem, 0.7rem + 0.1vw, 0.78rem)"
+    },
+    "data": {
+      "family": "ui-monospace",
+      "fallback": "SFMono-Regular, Menlo, Consolas, monospace",
+      "weight": 500,
+      "line_height": 1.4,
+      "size": "0.78rem"
+    }
+  },
+  "spacing": {
+    "1": "0.25rem",
+    "2": "0.5rem",
+    "3": "0.75rem",
+    "4": "1rem",
+    "6": "1.5rem",
+    "8": "2rem",
+    "12": "3rem",
+    "16": "4rem",
+    "24": "6rem",
+    "36": "9rem"
+  },
+  "layout": {
+    "page": "min(100% - 2rem, 90rem)",
+    "reading": "min(100%, 70ch)",
+    "wide_media": "min(100%, 100rem)",
+    "header_height": "4.5rem",
+    "section_gap": "clamp(4.5rem, 10vw, 9rem)",
+    "grid_gap": "clamp(1rem, 2.2vw, 2rem)",
+    "minimum_viewport_width": "320px"
+  },
+  "breakpoints": {
+    "compact": "40rem",
+    "medium": "64rem",
+    "wide": "90rem"
+  },
+  "radius": {
+    "hairline": "2px",
+    "control": "10px",
+    "media": "18px",
+    "pill": "999px"
+  },
+  "border": {
+    "hairline": "1px",
+    "focus": "2px"
+  },
+  "shadow": {
+    "paper_lift": "0 18px 60px rgba(20, 22, 23, 0.14)",
+    "none": "none"
+  },
+  "target": {
+    "minimum_interactive": "44px"
+  },
+  "motion": {
+    "instant_ms": 80,
+    "fast_ms": 140,
+    "standard_ms": 240,
+    "slow_ms": 560,
+    "ambient_max_ms": 1200,
+    "easing_standard": "cubic-bezier(0.22, 1, 0.36, 1)",
+    "easing_enter": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "easing_exit": "cubic-bezier(0.4, 0, 1, 1)",
+    "reduced_motion": "Remove path drawing, cursor following, parallax, and large translation; preserve immediate opacity, color, and state feedback."
+  },
+  "z_index": {
+    "base": 0,
+    "media": 10,
+    "header": 50,
+    "popover": 70,
+    "dialog": 90,
+    "skip_link": 100
+  },
+  "verification": {
+    "status": "tokens declared; rendered contrast and full accessibility audit pending",
+    "legal_review": "not performed",
+    "updated_at": "2026-07-29"
+  }
+}

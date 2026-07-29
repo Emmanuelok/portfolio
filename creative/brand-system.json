@@ -1,0 +1,424 @@
+{
+  "schema_version": "1.0",
+  "brand": {
+    "name": "Emmanuel Kingsford Owusu / Living Loom",
+    "purpose": "Make a multidisciplinary design and digital-product practice immediately understandable without reducing it to a generic gallery.",
+    "positioning": "A research-led designer and builder who connects visual craft, rigorous systems thinking, and production software.",
+    "audiences": [
+      "Founders and product leaders",
+      "Institutional and research partners",
+      "Prospective design and digital-product clients",
+      "Collaborators and recruiters"
+    ],
+    "attributes": [
+      "tactile",
+      "editorial",
+      "intelligent",
+      "generous",
+      "precise",
+      "quietly audacious"
+    ],
+    "anti_attributes": [
+      "generic",
+      "opaque",
+      "noisy",
+      "cyberpunk",
+      "self-congratulatory",
+      "template-like"
+    ]
+  },
+  "identity": {
+    "concept": {
+      "name": "Living Loom",
+      "thesis": "Every project is a distinct thread; a responsive blue strand reveals how Emmanuel connects evidence, imagination, and engineering into useful systems.",
+      "dominant_feeling": "energized confidence",
+      "memorable_mechanism": "one electric-ultramarine strand crossing tactile editorial compositions",
+      "recognition_signals": [
+        "woven K symbol",
+        "bone-and-graphite editorial fields",
+        "ultramarine route",
+        "Newsreader and Manrope contrast",
+        "paper, thread, graphite, brass, and fabric material cues"
+      ]
+    },
+    "logo_assets": [
+      {
+        "id": "logo-woven-k",
+        "path": "src/app/icon.svg",
+        "format": "svg",
+        "status": "original implementation asset; legal and trademark review not performed"
+      }
+    ],
+    "logo_rules": {
+      "clear_space": "At least one quarter of the mark's outer width on every side.",
+      "minimum_size": "16 CSS px for favicon use; 24 CSS px for interface use.",
+      "backgrounds": [
+        "warm bone",
+        "paper white",
+        "graphite",
+        "solid ultramarine when the mark is reversed to bone"
+      ],
+      "prohibited_uses": [
+        "Do not rotate, skew, outline, or add glow.",
+        "Do not replace the controlled SVG geometry with generated lettering.",
+        "Do not place over a detailed image without a solid contrast field.",
+        "Do not imply trademark clearance or exclusivity."
+      ]
+    },
+    "colors": {
+      "primary": [
+        {
+          "name": "graphite",
+          "value": "#141617",
+          "role": "dark canvas and primary text"
+        },
+        {
+          "name": "warm bone",
+          "value": "#F3EDDF",
+          "role": "light canvas and reversed text"
+        },
+        {
+          "name": "electric ultramarine",
+          "value": "#3157FF",
+          "role": "strand, active states, and primary accent"
+        }
+      ],
+      "secondary": [
+        {
+          "name": "paper",
+          "value": "#FFFDF7",
+          "role": "raised light surface"
+        },
+        {
+          "name": "charcoal",
+          "value": "#232728",
+          "role": "raised dark surface"
+        }
+      ],
+      "accent": [
+        {
+          "name": "brass",
+          "value": "#B47A2A",
+          "role": "measured warm detail"
+        },
+        {
+          "name": "clay",
+          "value": "#A33D2E",
+          "role": "rare editorial punctuation"
+        },
+        {
+          "name": "leaf",
+          "value": "#227A52",
+          "role": "success confirmation"
+        }
+      ],
+      "neutral": [
+        {
+          "name": "graphite muted",
+          "value": "#5B5F5E"
+        },
+        {
+          "name": "bone muted",
+          "value": "#C9C0B1"
+        },
+        {
+          "name": "hairline light",
+          "value": "#D7CFC2"
+        },
+        {
+          "name": "hairline dark",
+          "value": "#414646"
+        }
+      ],
+      "semantic": [
+        {
+          "name": "focus",
+          "value": "#3157FF"
+        },
+        {
+          "name": "success",
+          "value": "#227A52"
+        },
+        {
+          "name": "warning",
+          "value": "#8D5B00"
+        },
+        {
+          "name": "error",
+          "value": "#A5322B"
+        }
+      ]
+    },
+    "typography": {
+      "display": {
+        "family": "Newsreader Variable",
+        "source": "@fontsource-variable/newsreader",
+        "weights": "300–800",
+        "fallback": "Georgia, Times New Roman, serif",
+        "behavior": "Editorial, compact tracking, responsive optical scale; reserve italics for a single meaningful turn."
+      },
+      "heading": {
+        "family": "Manrope Variable",
+        "source": "@fontsource-variable/manrope",
+        "weights": "500–800",
+        "fallback": "Arial, sans-serif",
+        "behavior": "Short, direct, and structurally aligned."
+      },
+      "body": {
+        "family": "Manrope Variable",
+        "source": "@fontsource-variable/manrope",
+        "weights": "400–650",
+        "fallback": "Arial, sans-serif",
+        "behavior": "Readable at 16px or larger with a 1.55–1.7 line height and 55–72 character measure."
+      },
+      "mono_or_data": {
+        "family": "ui-monospace",
+        "fallback": "SFMono-Regular, Menlo, Consolas, monospace",
+        "behavior": "Use only for coordinates, issue IDs, and compact metadata."
+      },
+      "scale": [
+        "caption: clamp(0.72rem, 0.7rem + 0.1vw, 0.78rem)",
+        "body-small: clamp(0.84rem, 0.82rem + 0.12vw, 0.92rem)",
+        "body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem)",
+        "heading-small: clamp(1.25rem, 1.1rem + 0.65vw, 1.75rem)",
+        "heading: clamp(1.8rem, 1.35rem + 1.8vw, 3.25rem)",
+        "display: clamp(3.2rem, 1.6rem + 7vw, 9.5rem)"
+      ],
+      "fallbacks": [
+        "Georgia for editorial display",
+        "Arial and system sans-serif for interface and body",
+        "system monospace for compact metadata"
+      ]
+    },
+    "grid_and_spacing": {
+      "base_unit": 4,
+      "spacing_scale": [
+        "4",
+        "8",
+        "12",
+        "16",
+        "24",
+        "32",
+        "48",
+        "64",
+        "96",
+        "144"
+      ],
+      "layout_grids": [
+        "Mobile: 4 columns, 16px gutters, 16px minimum side margin.",
+        "Intermediate: 8 columns, 20px gutters, 24–40px side margin.",
+        "Wide: 12 columns, 24px gutters, fluid side margins, 1440px primary content cap.",
+        "Long-form copy: 55–72 characters per line."
+      ]
+    },
+    "shape_and_material": {
+      "geometry": [
+        "Controlled rectangular editorial fields",
+        "One continuous curved strand",
+        "Occasional clipped or offset edge",
+        "Circular controls only when the control behavior warrants the shape"
+      ],
+      "radii": [
+        "2px hairline details",
+        "10px controls",
+        "18px media frames",
+        "999px only for compact pills and status tags"
+      ],
+      "borders": [
+        "1px semantic hairline",
+        "2px visible focus outline",
+        "No decorative multi-border stacks"
+      ],
+      "shadows": [
+        "Ambient paper lift: 0 18px 60px rgba(20,22,23,0.14)",
+        "Controls rely on contrast and border before shadow"
+      ],
+      "textures": [
+        "subtle print grain",
+        "paper fiber",
+        "woven-thread line"
+      ],
+      "materials": [
+        "uncoated paper",
+        "matte graphite",
+        "brushed brass",
+        "tailored fabric"
+      ]
+    },
+    "imagery": {
+      "subjects": [
+        "Conceptual physical models of systems, learning, architecture, and value.",
+        "Fictional adult creative professionals shown with agency and natural variation.",
+        "Age-appropriate collaborative learners only where education context requires people."
+      ],
+      "composition": [
+        "3:2 editorial landscape",
+        "clear focal subject or model",
+        "deliberate negative space for adjacent HTML type",
+        "visible ultramarine route"
+      ],
+      "camera": [
+        "grounded eye-level or tabletop view",
+        "restrained editorial wide or normal perspective",
+        "no drone-like or impossible viewpoint unless the object is explicitly a scale model"
+      ],
+      "lighting": [
+        "directional studio light",
+        "legible material shadows",
+        "controlled highlight on brass or fabric",
+        "no undirected digital glow"
+      ],
+      "color_treatment": [
+        "warm-bone and graphite foundation",
+        "electric-ultramarine continuity accent",
+        "rare project-specific red, gold, and green punctuation",
+        "natural skin tones"
+      ],
+      "exclusions": [
+        "embedded words, logos, or watermarks",
+        "cyberpunk interfaces",
+        "glowing HUD graphics",
+        "identifiable real people",
+        "fabricated documentary evidence",
+        "stereotyped or exoticized cultural styling"
+      ]
+    },
+    "illustration_and_icons": {
+      "construction": [
+        "2px optical stroke at 24px",
+        "open geometry",
+        "woven overlap used only for brand-specific symbols"
+      ],
+      "line_weight": "1.75–2 CSS px at the 24px reference size",
+      "perspective": "orthographic for interface icons; shallow physical perspective for system diagrams",
+      "color_behavior": "inherit currentColor; accent only active or directional segments",
+      "exclusions": [
+        "multicolor emoji in primary navigation",
+        "unlabeled novelty icons",
+        "generated wordmarks"
+      ]
+    },
+    "motion": {
+      "principles": [
+        "Reveal relationship, not decoration.",
+        "State changes begin immediately and remain interruptible.",
+        "The strand may draw once as orientation, then settle.",
+        "Content never waits for a cinematic intro.",
+        "Hover and focus communicate the same hierarchy."
+      ],
+      "duration_bands_ms": {
+        "micro": "100–160",
+        "standard": "180–280",
+        "section": "420–700",
+        "ambient_max": "1200"
+      },
+      "easing": {
+        "standard": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "enter": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "exit": "cubic-bezier(0.4, 0, 1, 1)"
+      },
+      "transition_families": [
+        "thread draw",
+        "paper reveal",
+        "direct crossfade",
+        "short vertical settle"
+      ],
+      "reduced_motion": "Remove path drawing, parallax, cursor following, and large spatial translation; preserve immediate opacity or color feedback and all content."
+    }
+  },
+  "voice": {
+    "principles": [
+      "Outcome first",
+      "Specific over inflated",
+      "Warm but unsentimental",
+      "Show systems depth without hiding behind jargon",
+      "Separate shipped work, active work, and concept work"
+    ],
+    "headline_behavior": "Short editorial statements with one unexpected but concrete verb.",
+    "body_behavior": "Explain context, decision, and consequence in compact paragraphs; avoid unsupported superlatives.",
+    "calls_to_action": [
+      "Explore the work",
+      "Open case study",
+      "Visit project",
+      "See the process",
+      "Start a conversation"
+    ],
+    "terms_to_use": [
+      "design",
+      "system",
+      "evidence",
+      "experience",
+      "case study",
+      "prototype",
+      "production",
+      "collaboration"
+    ],
+    "terms_to_avoid": [
+      "revolutionary",
+      "world-changing",
+      "1000x",
+      "magic",
+      "synergy",
+      "nexus",
+      "command center",
+      "AI-powered" 
+    ]
+  },
+  "interface_tokens": {
+    "breakpoints": {
+      "compact": "0–639px",
+      "medium": "640–1023px",
+      "wide": "1024–1439px",
+      "max": "1440px and above"
+    },
+    "containers": {
+      "page": "min(100% - 2rem, 90rem)",
+      "reading": "min(100%, 70ch)",
+      "wide_media": "min(100%, 100rem)"
+    },
+    "component_states": [
+      "default",
+      "hover",
+      "focus-visible",
+      "active",
+      "selected",
+      "disabled",
+      "loading",
+      "empty",
+      "error",
+      "success",
+      "reduced-motion"
+    ],
+    "focus_style": "2px solid var(--focus), 3px offset; never remove without an equivalent.",
+    "accessibility_targets": [
+      "Semantic landmarks and logical headings",
+      "Keyboard operation and visible focus",
+      "44x44px primary touch targets",
+      "4.5:1 contrast for normal text and 3:1 for large text and essential graphics",
+      "200% zoom and text reflow",
+      "Reduced-motion behavior",
+      "Purpose-based alt text"
+    ]
+  },
+  "governance": {
+    "owners": [
+      "Emmanuel Kingsford Owusu — brand and content owner"
+    ],
+    "approval_rules": [
+      "Project claims, external URLs, and contact details require owner verification.",
+      "A production release requires build, route, keyboard, responsive, and outbound-link checks.",
+      "Generated-image provenance must remain attached to every derived cover.",
+      "Formal accessibility conformance, copyright, font, and trademark clearance require qualified review; none is claimed here."
+    ],
+    "asset_sources_and_licenses": [
+      "Eight project covers: generated with OpenAI built-in image generation on 2026-07-29; model not exposed; converted from PNG to stripped WebP quality 82.",
+      "Woven K icon: original vector geometry created for this repository on 2026-07-29.",
+      "Manrope and Newsreader: loaded through @fontsource packages; license metadata must be preserved and verified before redistribution.",
+      "Lucide interface icons: package dependency; retain its license and notices."
+    ],
+    "version": "1.0.0",
+    "updated_at": "2026-07-29",
+    "legal_review": "not performed",
+    "accessibility_conformance_audit": "not performed"
+  }
+}

@@ -1,0 +1,28 @@
+# dependencies
+/node_modules
+
+# next
+/.next
+/out
+
+# production
+/build
+
+# local environment
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# misc
+.DS_Store
+*.pem
+*.log
+
+# generated local source renders
+/generated_images
+/verification
+
+# local TypeScript cache
+*.tsbuildinfo

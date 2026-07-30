@@ -39,7 +39,6 @@ audience:
   regions:
     - "Global"
     - "Canada"
-    - "Ghana"
   languages:
     - en
   age_suitability: general
@@ -56,7 +55,7 @@ message:
   governing_idea: "X-Frame: Studio, the Living Room, and Lab cross inside one company and one standard of craft."
   single_minded_proposition: "Kingxford designs ambitious digital experiences with both visual conviction and systems depth."
   proof_points:
-    - "Eight named portfolio case studies spanning education, research integrity, finance, visual modelling, fashion, productivity, and megaproject intelligence."
+    - "Eight named portfolio case studies spanning connected consultancy, reflective learning, strategy games, education, research integrity, finance, productivity, and value management."
     - "Public source repository at https://github.com/Emmanuelok/portfolio."
     - "Functional case-study routes, project discovery, theme controls, and an accessible command palette in the implemented frontend."
   required_copy:
@@ -96,11 +95,11 @@ brand:
     - "public/work/aceplore-real.webp"
     - "public/work/ccai-global-live.webp"
     - "public/work/elkings-college-real.webp"
+    - "public/work/grandmaster-live.jpg"
     - "public/work/nkosuo-live.webp"
-    - "public/work/king-uml-live.webp"
-    - "public/work/kisuyo-studio-real.webp"
-    - "public/work/megaproject-intelligence-real.webp"
+    - "public/work/psyche-atlas-live.jpg"
     - "public/work/value-m-real.webp"
+    - "public/work/veridanth-live.jpg"
   verbal_rules:
     - "Lead with what the work changes, then explain how it was made."
     - "Use concrete nouns and active verbs."
@@ -126,9 +125,9 @@ world:
     - "Real film and design studios"
     - "Real contemporary living rooms"
     - "Real laboratory environments"
-    - "Real infrastructure and Ghanaian campus architecture"
+    - "Real campus architecture"
   time_period: "Contemporary"
-  geography: "Global company with Ghanaian and Canadian context; each documentary source is recorded in rights-provenance.csv."
+  geography: "Global company with Canadian context; each documentary source is recorded in rights-provenance.csv."
   season_weather_time: "Source photography retains its documented natural or production lighting."
   continuity_anchors:
     - "Warm bone, graphite, and electric ultramarine"

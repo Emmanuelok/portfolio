@@ -8,7 +8,7 @@
     "audience": "Product and design leaders, institutional and research partners, prospective clients, collaborators, and recruiters on mobile and desktop.",
     "repository": "https://github.com/Emmanuelok/portfolio",
     "hosting": "Vercel",
-    "updated_at": "2026-07-29"
+    "updated_at": "2026-07-30"
   },
   "creative_system": {
     "concept": "X-Frame",
@@ -48,12 +48,14 @@
       "id": "ast-live-product-captures-v2",
       "type": "first-party-interface-captures",
       "sources": [
-        "public/work/king-uml-live.webp",
         "public/work/ccai-global-live.webp",
-        "public/work/nkosuo-live.webp"
+        "public/work/grandmaster-live.jpg",
+        "public/work/nkosuo-live.webp",
+        "public/work/psyche-atlas-live.jpg",
+        "public/work/veridanth-live.jpg"
       ],
       "role": "Product evidence in the project archive and cinematic proof cards",
-      "dimensions": "2400x1600",
+      "dimensions": "1348x926 to 2400x1600",
       "rights_status": "approved for first-party portfolio use; restrictions recorded",
       "provenance": "creative/rights-provenance.csv"
     },
@@ -61,9 +63,7 @@
       "id": "ast-context-photography-v2",
       "type": "licensed-documentary-photography",
       "sources": [
-        "public/work/kisuyo-studio-real.webp",
         "public/work/aceplore-real.webp",
-        "public/work/megaproject-intelligence-real.webp",
         "public/work/value-m-real.webp",
         "public/work/elkings-college-real.webp"
       ],

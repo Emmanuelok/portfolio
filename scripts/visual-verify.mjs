@@ -446,8 +446,8 @@ const mobileWork = await inspectPage(
 await mobileWork.context.close();
 
 const project = await inspectPage(
-  "project-kisuyo-1440",
-  "/work/kisuyo",
+  "project-veridanth-1440",
+  "/work/veridanth",
   { width: 1440, height: 1000 },
 );
 await project.context.close();

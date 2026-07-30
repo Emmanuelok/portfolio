@@ -101,8 +101,8 @@ const chapters: readonly CinematicChapter[] = [
     evidence: "Documentary production environment",
     align: "end",
     proofs: [
-      { src: "/work/kisuyo-studio-real.webp", label: "KISUYO / Product" },
-      { src: "/work/king-uml-live.webp", label: "Glyph / Tool" },
+      { src: "/work/veridanth-live.jpg", label: "Veridanth / Platform" },
+      { src: "/work/grandmaster-live.jpg", label: "GrandMaster / Product" },
     ],
   },
   {
@@ -136,8 +136,8 @@ const chapters: readonly CinematicChapter[] = [
     proofs: [
       { src: "/work/ccai-global-live.webp", label: "CCAI / Knowledge" },
       {
-        src: "/work/megaproject-intelligence-real.webp",
-        label: "COMPSIS / Data",
+        src: "/work/psyche-atlas-live.jpg",
+        label: "Psyche Atlas / Learning",
       },
     ],
   },
@@ -155,9 +155,9 @@ const chapters: readonly CinematicChapter[] = [
       "Intersecting architectural beams representing Kingxford's connected worlds",
     evidence: "Studio / Living Room / Lab",
     proofs: [
-      { src: "/work/kisuyo-studio-real.webp", label: "Studio" },
+      { src: "/work/veridanth-live.jpg", label: "Studio" },
       { src: "/motion/kingxford-reality-living-room-portrait.webp", label: "Living Room" },
-      { src: "/work/king-uml-live.webp", label: "Lab" },
+      { src: "/work/psyche-atlas-live.jpg", label: "Lab" },
     ],
   },
   {

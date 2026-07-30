@@ -16,27 +16,26 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default:
-      "Kingxford — Design, Digital Products & Research Experiences by Emmanuel Kingsford Owusu",
+    default: "Kingxford — Design, Digital Products & Research Experiences",
     template: "%s | Kingxford",
   },
   description:
-    "Kingxford is the multidisciplinary creative platform of Emmanuel Kingsford Owusu—spanning digital design and development in the Studio, open-ended creative services in the Living Room, and scientific and academic work in the Lab.",
+    "Kingxford is a multidisciplinary creative company spanning digital design and development in the Studio, open-ended creative services in the Living Room, and scientific and academic work in the Lab.",
   keywords: [
     "Kingxford",
     "Studio",
     "Living Room",
     "Lab",
-    "Emmanuel Kingsford Owusu",
-    "multidisciplinary designer",
+    "multidisciplinary creative company",
+    "multidisciplinary design",
     "product design",
     "web design",
     "visual systems",
     "digital products",
     "research interfaces",
   ],
-  authors: [{ name: "Emmanuel Kingsford Owusu", url: siteUrl }],
-  creator: "Emmanuel Kingsford Owusu",
+  authors: [{ name: "Kingxford", url: siteUrl }],
+  creator: "Kingxford",
   publisher: "Kingxford",
   alternates: { canonical: "/" },
   openGraph: {
@@ -46,7 +45,7 @@ export const metadata: Metadata = {
     siteName: "Kingxford",
     title: "Complex ideas. Unforgettable form. | Kingxford",
     description:
-      "Studio, Living Room, and Lab: digital products, open-ended creative services, and research experiences by Emmanuel Kingsford Owusu.",
+      "Studio, Living Room, and Lab: digital products, open-ended creative services, and research experiences by Kingxford.",
     images: [
       {
         url: "/opengraph-image",
@@ -101,13 +100,14 @@ const themeBootstrap = `
 })();
 `;
 
-const personSchema = {
+const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "Person",
-  name: "Emmanuel Kingsford Owusu",
+  "@type": "Organization",
+  name: "Kingxford",
   url: siteUrl,
-  sameAs: ["https://github.com/Emmanuelok"],
-  jobTitle: "Multidisciplinary designer, researcher, and product builder",
+  sameAs: ["https://github.com/Emmanuelok/portfolio"],
+  description:
+    "A multidisciplinary creative company spanning digital design and development, open-ended creative services, and scientific and academic work.",
   knowsAbout: [
     "Digital product design",
     "Visual systems",
@@ -127,8 +127,8 @@ const websiteSchema = {
   name: "Kingxford",
   url: siteUrl,
   creator: {
-    "@type": "Person",
-    name: "Emmanuel Kingsford Owusu",
+    "@type": "Organization",
+    name: "Kingxford",
   },
   description:
     "A multidisciplinary creative platform spanning digital design and development, open-ended creative services, and scientific and academic work.",
@@ -146,9 +146,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}
         />
         <script
-          id="person-schema"
+          id="organization-schema"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         <script
           id="website-schema"

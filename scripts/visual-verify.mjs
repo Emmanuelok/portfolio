@@ -48,13 +48,6 @@ async function inspectPage(name, route, viewport, options = {}) {
   const consoleErrors = [];
   const pageErrors = [];
 
-  if (options.blockMotionVideo !== false) {
-    await page.route(
-      "https://d8j0ntlcm91z4.cloudfront.net/**",
-      (route) => route.abort("blockedbyclient"),
-    );
-  }
-
   page.on("console", (message) => {
     if (
       message.type() === "error" &&
@@ -203,24 +196,30 @@ await desktop.page.keyboard.press("Escape");
 
 const storyMetrics = await desktop.page.locator(".kx-cinematic").evaluate((story) => {
   const stage = story.querySelector(".kx-cinematic__stage");
-  const poster = story.querySelector(".kx-cinematic__poster img");
+  const arrival = story.querySelector(
+    ".kx-reality-plate[data-plate='arrival'] img",
+  );
   const rect = story.getBoundingClientRect();
   return {
     top: rect.top + window.scrollY,
     height: rect.height,
     viewportHeight: window.innerHeight,
     chapterCount: story.querySelectorAll(".kx-cinematic__chapter").length,
+    plateCount: story.querySelectorAll(".kx-reality-plate").length,
+    videoCount: story.querySelectorAll("video").length,
     stagePosition: stage ? getComputedStyle(stage).position : null,
-    posterReady:
-      poster instanceof HTMLImageElement &&
-      poster.complete &&
-      poster.naturalWidth > 0,
+    arrivalReady:
+      arrival instanceof HTMLImageElement &&
+      arrival.complete &&
+      arrival.naturalWidth > 0,
   };
 });
 const storyStructurePassed =
   storyMetrics.chapterCount === 6 &&
+  storyMetrics.plateCount === 6 &&
+  storyMetrics.videoCount === 0 &&
   storyMetrics.stagePosition === "sticky" &&
-  storyMetrics.posterReady &&
+  storyMetrics.arrivalReady &&
   storyMetrics.height > storyMetrics.viewportHeight * 6;
 results.push({
   interaction: "kingxford-cinematic-structure",
@@ -234,19 +233,23 @@ if (!storyStructurePassed) {
   });
 }
 
-for (const [chapter, progress] of [
-  ["arrival", 0.05],
-  ["studio", 0.27],
-  ["living-room", 0.49],
-  ["lab", 0.71],
-  ["one-practice", 0.87],
-  ["enter", 0.97],
+await desktop.page.addStyleTag({
+  content: "html, body { scroll-behavior: auto !important; }",
+});
+
+for (const [captureName, expectedChapter, progress] of [
+  ["arrival", "arrival", 0.05],
+  ["studio", "studio", 0.27],
+  ["living-room", "living-room", 0.49],
+  ["lab", "lab", 0.71],
+  ["one-practice", "one-practice", 0.87],
+  ["enter", "choose", 0.97],
 ]) {
   await desktop.page.evaluate(
     ({ top, height, viewportHeight, progress }) => {
       window.scrollTo({
         top: top + (height - viewportHeight) * progress,
-        behavior: "instant",
+        behavior: "auto",
       });
     },
     {
@@ -257,8 +260,34 @@ for (const [chapter, progress] of [
     },
   );
   await desktop.page.waitForTimeout(180);
+  const chapterVisibility = await desktop.page
+    .locator(".kx-cinematic__chapter")
+    .evaluateAll((chapters) =>
+      chapters.map((chapter) => ({
+        id: chapter.getAttribute("data-chapter"),
+        opacity: Number.parseFloat(getComputedStyle(chapter).opacity),
+      })),
+    );
+  const visibleChapters = chapterVisibility.filter(
+    (chapter) => chapter.opacity > 0.05,
+  );
+  const chapterIsolationPassed =
+    visibleChapters.length === 1 &&
+    visibleChapters[0].id === expectedChapter &&
+    visibleChapters[0].opacity > 0.95;
+  results.push({
+    interaction: `chapter-isolation-${expectedChapter}`,
+    passed: chapterIsolationPassed,
+    chapterVisibility,
+  });
+  if (!chapterIsolationPassed) {
+    failures.push({
+      interaction: `chapter-isolation-${expectedChapter}`,
+      chapterVisibility,
+    });
+  }
   await desktop.page.screenshot({
-    path: path.join(outputDir, `kingxford-${chapter}.png`),
+    path: path.join(outputDir, `kingxford-${captureName}.png`),
     fullPage: false,
   });
 }
@@ -380,6 +409,9 @@ await mobile.page.screenshot({
   fullPage: false,
 });
 await menuSummary.click();
+await mobile.page.addStyleTag({
+  content: "html, body { scroll-behavior: auto !important; }",
+});
 const mobileStoryMetrics = await mobile.page
   .locator(".kx-cinematic")
   .evaluate((story) => {
@@ -394,7 +426,7 @@ await mobile.page.evaluate(
   ({ top, height, viewportHeight }) => {
     window.scrollTo({
       top: top + (height - viewportHeight) * 0.34,
-      behavior: "instant",
+      behavior: "auto",
     });
   },
   mobileStoryMetrics,

@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 
-import { LivingMark } from "@/components/LivingMark";
+import { KingxfordMark } from "@/components/KingxfordLogo";
 
 export default function NotFound() {
   return (
     <main className="not-found">
       <div className="not-found__signal" aria-hidden="true">
-        <LivingMark decorative />
+        <KingxfordMark decorative />
         <span>404</span>
       </div>
       <div className="not-found__content">

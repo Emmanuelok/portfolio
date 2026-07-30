@@ -95,14 +95,14 @@ export default function HomePage() {
           </Reveal>
           <Reveal delay={0.1}>
             <p>
-              Kingxford is the multidisciplinary practice of Emmanuel
-              Kingsford Owusu—a designer, researcher, educator, and product
-              builder working from Canada across borders and disciplines.
+              Kingxford is a multidisciplinary creative company based in
+              Canada and working across borders and disciplines—uniting design,
+              research, education, and product building in one practice.
             </p>
           </Reveal>
           <Reveal className="kx-practice__actions" delay={0.15}>
             <Link className="button button--primary" href="/about">
-              Meet Emmanuel
+              Discover Kingxford
               <ArrowUpRight aria-hidden="true" />
             </Link>
             <Link className="button button--quiet" href="/work">

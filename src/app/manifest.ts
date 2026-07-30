@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Kingxford",
     short_name: "Kingxford",
     description:
-      "The multidisciplinary creative platform of Emmanuel Kingsford Owusu—Studio, Living Room, and Lab.",
+      "Kingxford is a multidisciplinary creative company spanning Studio, Living Room, and Lab.",
     start_url: "/",
     scope: "/",
     display: "standalone",

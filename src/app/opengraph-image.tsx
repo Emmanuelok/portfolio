@@ -56,40 +56,18 @@ export default function OpenGraphImage() {
         <div
           style={{
             position: "absolute",
-            right: "-135px",
-            top: "-165px",
-            width: "540px",
-            height: "540px",
-            border: "1px solid rgba(91,123,255,0.5)",
-            borderRadius: "50%",
+            right: "48px",
+            top: "68px",
             display: "flex",
+            color: "rgba(89,97,255,0.22)",
+            fontSize: "430px",
+            fontWeight: 780,
+            lineHeight: 0.82,
+            letterSpacing: "-0.14em",
           }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            right: "-55px",
-            top: "-85px",
-            width: "380px",
-            height: "380px",
-            border: "1px dashed rgba(91,123,255,0.42)",
-            borderRadius: "50%",
-            display: "flex",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            right: "96px",
-            top: "70px",
-            width: "70px",
-            height: "70px",
-            borderRadius: "50%",
-            display: "flex",
-            background: "#315dff",
-            boxShadow: "0 0 70px rgba(49,93,255,0.78)",
-          }}
-        />
+        >
+          X
+        </div>
 
         <div
           style={{
@@ -101,24 +79,29 @@ export default function OpenGraphImage() {
             textTransform: "uppercase",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              letterSpacing: "-0.07em",
+              textTransform: "none",
+              fontSize: "26px",
+              fontWeight: 720,
+            }}
+          >
+            <span>king</span>
+            <span
               style={{
-                width: "34px",
-                height: "34px",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px solid rgba(244,241,233,0.58)",
-                color: "#86a0ff",
-                fontSize: 14,
-                fontWeight: 700,
-                letterSpacing: "0.02em",
+                margin: "-12px -2px -10px",
+                color: "#5961ff",
+                fontSize: "48px",
+                lineHeight: 1,
               }}
             >
-              KX
-            </div>
-            <span>Kingxford</span>
+              X
+            </span>
+            <span>ford</span>
           </div>
           <span style={{ color: "#86a0ff" }}>
             Studio / Living Room / Lab
@@ -175,8 +158,8 @@ export default function OpenGraphImage() {
               color: "rgba(244,241,233,0.7)",
             }}
           >
-            By Emmanuel Kingsford Owusu · Digital products · Visual systems ·
-            Research experiences
+            Kingxford · Digital products · Visual systems · Research
+            experiences
           </div>
           <div
             style={{

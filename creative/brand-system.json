@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
   "brand": {
-    "name": "Emmanuel Kingsford Owusu / Living Loom",
-    "purpose": "Make a multidisciplinary design and digital-product practice immediately understandable without reducing it to a generic gallery.",
-    "positioning": "A research-led designer and builder who connects visual craft, rigorous systems thinking, and production software.",
+    "name": "Kingxford",
+    "purpose": "Make a multidisciplinary creative company immediately understandable without reducing it to a generic gallery.",
+    "positioning": "A creative company connecting visual craft, rigorous systems thinking, and production software through Studio, the Living Room, and Lab.",
     "audiences": [
       "Founders and product leaders",
       "Institutional and research partners",
@@ -29,21 +29,21 @@
   },
   "identity": {
     "concept": {
-      "name": "Living Loom",
-      "thesis": "Every project is a distinct thread; a responsive blue strand reveals how Emmanuel connects evidence, imagination, and engineering into useful systems.",
+      "name": "X-Frame",
+      "thesis": "The dominant X is a structural crossing: three distinct worlds meet inside one Kingxford standard.",
       "dominant_feeling": "energized confidence",
-      "memorable_mechanism": "one electric-ultramarine strand crossing tactile editorial compositions",
+      "memorable_mechanism": "an oversized electric-ultramarine X assembled from two architectural beams with a clear over-under seam",
       "recognition_signals": [
-        "woven K symbol",
+        "dominant X-Frame symbol",
         "bone-and-graphite editorial fields",
         "ultramarine route",
         "Newsreader and Manrope contrast",
-        "paper, thread, graphite, brass, and fabric material cues"
+        "real photography and live product evidence"
       ]
     },
     "logo_assets": [
       {
-        "id": "logo-woven-k",
+        "id": "logo-x-frame",
         "path": "src/app/icon.svg",
         "format": "svg",
         "status": "original implementation asset; legal and trademark review not performed"
@@ -60,6 +60,7 @@
       ],
       "prohibited_uses": [
         "Do not rotate, skew, outline, or add glow.",
+        "Do not make the surrounding letters compete with the dominant X.",
         "Do not replace the controlled SVG geometry with generated lettering.",
         "Do not place over a detailed image without a solid contrast field.",
         "Do not imply trademark clearance or exclusivity."
@@ -247,15 +248,15 @@
     },
     "imagery": {
       "subjects": [
-        "Conceptual physical models of systems, learning, architecture, and value.",
-        "Fictional adult creative professionals shown with agency and natural variation.",
-        "Age-appropriate collaborative learners only where education context requires people."
+        "Real production, architecture, interior, infrastructure, and research environments.",
+        "Live first-party interface captures for digital products.",
+        "Licensed documentary editorial photography when a project needs contextual imagery."
       ],
       "composition": [
         "3:2 editorial landscape",
-        "clear focal subject or model",
+        "clear photographic focal subject or legible live interface",
         "deliberate negative space for adjacent HTML type",
-        "visible ultramarine route"
+        "the X and ultramarine continuity are added through interface layers rather than fabricated into photographs"
       ],
       "camera": [
         "grounded eye-level or tabletop view",
@@ -263,10 +264,10 @@
         "no drone-like or impossible viewpoint unless the object is explicitly a scale model"
       ],
       "lighting": [
-        "directional studio light",
-        "legible material shadows",
-        "controlled highlight on brass or fabric",
-        "no undirected digital glow"
+        "natural or documented production light",
+        "legible material shadows and highlights",
+        "restrained grade that preserves photographic truth",
+        "no fabricated glow or synthetic cinematic relighting"
       ],
       "color_treatment": [
         "warm-bone and graphite foundation",
@@ -275,11 +276,11 @@
         "natural skin tones"
       ],
       "exclusions": [
-        "embedded words, logos, or watermarks",
+        "watermarks or unlicensed third-party assets",
         "cyberpunk interfaces",
         "glowing HUD graphics",
-        "identifiable real people",
         "fabricated documentary evidence",
+        "AI-generated people or environments presented as real",
         "stereotyped or exoticized cultural styling"
       ]
     },
@@ -287,7 +288,7 @@
       "construction": [
         "2px optical stroke at 24px",
         "open geometry",
-        "woven overlap used only for brand-specific symbols"
+        "architectural over-under intersection used only for the X-Frame symbol"
       ],
       "line_weight": "1.75–2 CSS px at the 24px reference size",
       "perspective": "orthographic for interface icons; shallow physical perspective for system diagrams",
@@ -302,7 +303,8 @@
       "principles": [
         "Reveal relationship, not decoration.",
         "State changes begin immediately and remain interruptible.",
-        "The strand may draw once as orientation, then settle.",
+        "The X may assemble once as orientation, then settle.",
+        "Scroll motion crossfades real environments and live product proof without scrubbing a short looping film.",
         "Content never waits for a cinematic intro.",
         "Hover and focus communicate the same hierarchy."
       ],
@@ -402,17 +404,18 @@
   },
   "governance": {
     "owners": [
-      "Emmanuel Kingsford Owusu — brand and content owner"
+      "Kingxford — brand and content authority"
     ],
     "approval_rules": [
       "Project claims, external URLs, and contact details require owner verification.",
       "A production release requires build, route, keyboard, responsive, and outbound-link checks.",
-      "Generated-image provenance must remain attached to every derived cover.",
+      "Photography and interface-capture provenance must remain attached to every derived cover.",
       "Formal accessibility conformance, copyright, font, and trademark clearance require qualified review; none is claimed here."
     ],
     "asset_sources_and_licenses": [
-      "Eight project covers: generated with OpenAI built-in image generation on 2026-07-29; model not exposed; converted from PNG to stripped WebP quality 82.",
-      "Woven K icon: original vector geometry created for this repository on 2026-07-29.",
+      "Three project covers are first-party live product interface captures made on 2026-07-29.",
+      "Five project covers and seven spatial plates are licensed Unsplash photographs with source pages and restrictions recorded in creative/rights-provenance.csv.",
+      "X-Frame icon and wordmark system: original vector geometry created for this repository on 2026-07-29.",
       "Manrope and Newsreader: loaded through @fontsource packages; license metadata must be preserved and verified before redistribution.",
       "Lucide interface icons: package dependency; retain its license and notices."
     ],

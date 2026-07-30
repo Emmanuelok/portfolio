@@ -5,9 +5,9 @@ import { ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
-  title: "About Emmanuel",
+  title: "About Kingxford",
   description:
-    "Meet Emmanuel Kingsford Owusu, the multidisciplinary designer, researcher, educator, and product builder behind Kingxford.",
+    "Discover Kingxford, a multidisciplinary creative company connecting design, research, technology, and education.",
   alternates: {
     canonical: "/about",
   },
@@ -76,12 +76,12 @@ export default function AboutPage() {
         <div className="page-hero__content">
           <Reveal>
             <p className="eyebrow">
-              Emmanuel Kingsford Owusu · Kingxford
+              Kingxford · Canada / Worldwide
             </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="about-heading">
-              <span className="page-hero__line">I design the bridge</span>
+              <span className="page-hero__line">We design the bridge</span>
               <span className="page-hero__line page-hero__line--accent">
                 between difficult ideas and everyday use.
               </span>
@@ -91,16 +91,16 @@ export default function AboutPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            A Ghanaian multidisciplinary designer, researcher, educator, and
-            product builder based in Canada—working wherever technology,
-            knowledge, and human ambition meet.
+            A Ghanaian-rooted, Canada-based multidisciplinary creative
+            company—working wherever technology, knowledge, and human ambition
+            meet.
           </p>
         </Reveal>
       </section>
 
       <section className="about-intro" aria-labelledby="about-intro-title">
         <Reveal className="about-intro__statement">
-          <p className="eyebrow">My point of view</p>
+          <p className="eyebrow">Our point of view</p>
           <h2 id="about-intro-title">
             The best design does more than decorate complexity. It gives
             complexity a shape people can enter.
@@ -110,20 +110,20 @@ export default function AboutPage() {
         <div className="about-intro__body">
           <Reveal>
             <p>
-              My work lives at the intersection of design, research,
-              technology, and entrepreneurship. I am drawn to projects with
+              Our work lives at the intersection of design, research,
+              technology, and entrepreneurship. We are drawn to projects with
               many moving parts: knowledge systems, intelligent platforms,
-              institutional services, data products, and new digital
-              categories that do not yet have an obvious visual language.
+              institutional services, data products, and new digital categories
+              that do not yet have an obvious visual language.
             </p>
           </Reveal>
           <Reveal delay={0.08}>
             <p>
-              A background spanning the built environment, economics,
-              education, analytics, and AI shapes how I work. I ask structural
-              questions, look for the hidden relationship, and then translate
-              that logic into an experience that feels clear, expressive, and
-              unmistakably considered.
+              Our perspective draws from the built environment, economics,
+              education, analytics, and AI. We ask structural questions, look
+              for the hidden relationship, and translate that logic into
+              experiences that feel clear, expressive, and unmistakably
+              considered.
             </p>
           </Reveal>
         </div>
@@ -155,7 +155,7 @@ export default function AboutPage() {
         aria-labelledby="capabilities-heading"
       >
         <div className="section-heading section-heading--split">
-          <p className="eyebrow">What I bring</p>
+          <p className="eyebrow">What we bring</p>
           <h2 id="capabilities-heading">
             One creative practice, expressed at different scales.
           </h2>
@@ -177,7 +177,7 @@ export default function AboutPage() {
 
       <section className="method" aria-labelledby="method-heading">
         <div className="section-heading section-heading--split">
-          <p className="eyebrow">How I work</p>
+          <p className="eyebrow">How we work</p>
           <h2 id="method-heading">Deep thinking. Clear moves. Relentless finish.</h2>
         </div>
         <ol className="method__track">
@@ -198,8 +198,8 @@ export default function AboutPage() {
           “
         </p>
         <blockquote>
-          I am interested in work that earns attention twice: first through
-          its presence, then through the quality of its thinking.
+          We pursue work that earns attention twice: first through its presence,
+          then through the quality of its thinking.
         </blockquote>
       </Reveal>
 

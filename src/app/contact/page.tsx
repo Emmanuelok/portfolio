@@ -7,7 +7,7 @@ import { Reveal } from "@/components/Reveal";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Start a collaboration with Kingxford and Emmanuel Kingsford Owusu across product design, visual systems, research experiences, and intelligent platforms.",
+    "Start a collaboration with Kingxford across product design, visual systems, research experiences, and intelligent platforms.",
   alternates: {
     canonical: "/contact",
   },
@@ -51,7 +51,7 @@ export default function ContactPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            I am open to ambitious digital products, visual systems, research
+            We are open to ambitious digital products, visual systems, research
             experiences, intelligent platforms, and creative partnerships
             where the thinking matters as much as the finish.
           </p>
@@ -65,7 +65,7 @@ export default function ContactPage() {
         <Reveal className="contact-stage__primary">
           <p className="eyebrow">The public channel</p>
           <h2 id="contact-stage-heading">
-            Tell me what you are trying to change.
+            Tell us what you are trying to change.
           </h2>
           <a
             className="contact-email"
@@ -94,7 +94,7 @@ export default function ContactPage() {
           <div className="contact-detail">
             <Github aria-hidden="true" />
             <div>
-              <p className="meta-label">Public profile & repositories</p>
+              <p className="meta-label">Kingxford on GitHub</p>
               <a
                 href={githubUrl}
                 target="_blank"

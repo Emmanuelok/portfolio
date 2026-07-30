@@ -1,11 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <title>Kingxford woven K</title>
-  <rect width="128" height="128" rx="24" fill="#141617"/>
-  <path d="M27 18h20v92H27z" fill="#F3EDDF"/>
-  <path d="M41 58 83 18h28L58 68z" fill="#3157FF"/>
-  <path d="m45 63 13-13 55 60H85z" fill="#B47A2A"/>
-  <path d="m41 58 13-12 14 15-13 13z" fill="#F3EDDF"/>
-  <path d="M27 18h20v40H27zm0 56h20v36H27z" fill="#F3EDDF"/>
-  <path d="M27 58h20v16H27z" fill="#3157FF"/>
-  <path d="M10 10h108v108H10z" fill="none" stroke="#F3EDDF" stroke-opacity=".28" stroke-width="2"/>
+  <title>Kingxford X</title>
+  <rect width="128" height="128" rx="24" fill="#09090B"/>
+  <path d="M21 32 32 21l75 75-11 11L21 32Z" fill="#5961FF"/>
+  <path d="m96 21 11 11-33 33-11-11 33-33ZM54 63l11 11-33 33-11-11 33-33Z" fill="#F3EFE5"/>
+  <path d="M10 10h108v108H10z" fill="none" stroke="#F3EFE5" stroke-opacity=".2" stroke-width="2"/>
 </svg>

@@ -9,7 +9,7 @@ import { projectCategories, projects } from "@/data/projects";
 export const metadata: Metadata = {
   title: "Selected work",
   description:
-    "Selected work from Kingxford—digital products, research platforms, visual systems, and intelligent web experiences by Emmanuel Kingsford Owusu.",
+    "Selected work from Kingxford—digital products, research platforms, visual systems, and intelligent web experiences.",
   alternates: {
     canonical: "/work",
   },

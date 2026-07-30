@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
-import { LivingMark } from "@/components/LivingMark";
+import { KingxfordLogo } from "@/components/KingxfordLogo";
 
 const footerNavigation = [
   { href: "/#studio", label: "Studio" },
@@ -22,13 +22,15 @@ export function SiteFooter() {
             href="/"
             aria-label="Kingxford home"
           >
-            <LivingMark className="site-footer__mark" decorative />
-            <span>Kingxford</span>
+            <KingxfordLogo
+              className="site-footer__logo"
+              decorative
+            />
           </Link>
           <p>
-            A multidisciplinary practice by Emmanuel Kingsford Owusu—where
-            digital craft, open-ended creativity, and research become
-            experiences with consequence.
+            Kingxford is a multidisciplinary creative company where digital
+            craft, open-ended creativity, and research become experiences with
+            consequence.
           </p>
           <Link className="site-footer__conversation" href="/contact">
             <span>Start a conversation</span>
@@ -68,7 +70,7 @@ export function SiteFooter() {
 
         <div className="site-footer__base">
           <p>
-            © {new Date().getFullYear()} Emmanuel Kingsford Owusu
+            © {new Date().getFullYear()} Kingxford
           </p>
           <p>Canada · Working worldwide</p>
           <a href="#main-content">Back to top</a>

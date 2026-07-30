@@ -63,10 +63,10 @@ const commands: readonly CommandItem[] = [
   },
   {
     id: "about",
-    label: "About Emmanuel",
+    label: "About Kingxford",
     description: "Practice, perspective, and capabilities",
     href: "/about",
-    keywords: "designer profile biography experience",
+    keywords: "company practice perspective capabilities",
     icon: UserRound,
   },
   {

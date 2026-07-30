@@ -393,35 +393,42 @@ a {
   width: fit-content;
   min-height: 2.75rem;
   align-items: center;
-  gap: 0.7rem;
-  font-size: 0.73rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  line-height: 1.2;
-  text-transform: uppercase;
+  line-height: 1;
 }
 
-.site-header__brand .living-mark {
-  width: 2.25rem;
-  height: 2.25rem;
+.site-header__logo {
+  font-size: clamp(1.05rem, 1.35vw, 1.28rem);
 }
 
-.site-header__brand-copy {
-  display: grid;
-  gap: 0.06rem;
+.kingxford-logo {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text);
+  font-weight: 760;
+  letter-spacing: -0.075em;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
 }
 
-.site-header__brand-copy strong {
-  font-size: 0.66rem;
-  font-weight: 700;
+.kingxford-logo__x {
+  width: 1.78em;
+  height: 1.78em;
+  margin: -0.36em -0.1em -0.34em -0.08em;
+  flex: none;
 }
 
-.site-header__brand-copy > span {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.53rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
+.kingxford-mark {
+  display: block;
+  overflow: visible;
+}
+
+.kingxford-mark__beam--back {
+  fill: var(--blue-bright);
+}
+
+.kingxford-mark__beam--front {
+  fill: currentColor;
 }
 
 .site-header__desktop-nav {
@@ -575,16 +582,10 @@ a {
 .site-footer__identity {
   display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
 }
 
-.site-footer__mark {
-  width: 2.8rem;
-  height: 2.8rem;
+.site-footer__logo {
+  font-size: clamp(1.55rem, 2.8vw, 2.25rem);
 }
 
 .site-footer__lead > p,
@@ -726,31 +727,6 @@ a {
 .hero__mark {
   width: 2.5rem;
   height: 2.5rem;
-}
-
-.living-mark {
-  overflow: visible;
-  color: var(--canvas);
-}
-
-.living-mark__stop--one {
-  stop-color: var(--blue);
-}
-
-.living-mark__stop--two {
-  stop-color: var(--paper);
-}
-
-.living-mark__stop--three {
-  stop-color: var(--gold);
-}
-
-.living-mark__orbit {
-  opacity: 0.58;
-}
-
-.living-mark__thread--back {
-  opacity: 0.72;
 }
 
 .hero__eyebrow {
@@ -2925,8 +2901,9 @@ a {
   border-radius: 50%;
 }
 
-.not-found__signal .living-mark {
+.not-found__signal .kingxford-mark {
   width: 40%;
+  color: var(--text);
 }
 
 .not-found__signal > span {
@@ -3636,13 +3613,6 @@ a {
 }
 
 @media (max-width: 430px) {
-  .site-header__brand-copy strong {
-    max-width: 7.2rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .hero__actions .button,
   .project-links .button,
   .page-cta__actions .button,
@@ -3795,9 +3765,7 @@ a {
   contain: paint style;
 }
 
-.kx-cinematic__media,
-.kx-cinematic__poster,
-.kx-cinematic__video,
+.kx-cinematic__plates,
 .kx-cinematic__loom,
 .kx-cinematic__veil,
 .kx-cinematic__grain {
@@ -3805,41 +3773,63 @@ a {
   inset: 0;
 }
 
-.kx-cinematic__media {
+.kx-cinematic__plates {
   z-index: 0;
-  transform-origin: 68% 52%;
+  overflow: hidden;
 }
 
-.kx-cinematic__poster,
-.kx-cinematic__video {
+.kx-reality-plate {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
+  overflow: hidden;
+  will-change: opacity;
 }
 
-.kx-cinematic__poster img,
-.kx-cinematic__video {
+.kx-reality-plate__image,
+.kx-reality-plate__grade {
+  position: absolute;
+  inset: 0;
+}
+
+.kx-reality-plate__image {
+  inset: -4%;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.kx-reality-plate__image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: 50% 50%;
 }
 
-.kx-cinematic__poster {
-  opacity: 1;
-  transition: opacity 650ms var(--ease-standard);
+.kx-reality-plate__grade {
+  background:
+    linear-gradient(90deg, rgba(2, 2, 3, 0.7), transparent 48%, rgba(2, 2, 3, 0.2)),
+    linear-gradient(180deg, rgba(2, 2, 3, 0.46), transparent 38%, rgba(2, 2, 3, 0.75));
+  mix-blend-mode: multiply;
 }
 
-.kx-cinematic__video {
-  opacity: 0;
-  transition: opacity 650ms var(--ease-standard);
-}
-
-.kx-cinematic[data-media-ready="true"] .kx-cinematic__poster {
-  opacity: 0;
-}
-
-.kx-cinematic[data-media-ready="true"] .kx-cinematic__video {
-  opacity: 1;
+.kx-reality-plate figcaption {
+  position: absolute;
+  right: var(--page-gutter);
+  bottom: 4.1rem;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(244, 239, 228, 0.22);
+  background: rgba(3, 3, 4, 0.46);
+  color: rgba(244, 239, 228, 0.7);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .kx-cinematic__loom {
@@ -3903,19 +3893,26 @@ a {
   top: 50%;
   left: 50%;
   width: 138%;
-  height: 1px;
+  height: 5px;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(92, 107, 255, 0.12),
-    rgba(110, 124, 255, 0.72),
+    rgba(92, 107, 255, 0.16),
+    rgba(110, 124, 255, 0.9),
     transparent
   );
-  box-shadow: 0 0 2rem rgba(78, 94, 255, 0.25);
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .kx-cinematic__x span:last-child {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(244, 239, 228, 0.12),
+    rgba(244, 239, 228, 0.72),
+    transparent
+  );
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
@@ -3937,12 +3934,21 @@ a {
   text-transform: uppercase;
 }
 
-.kx-cinematic__masthead span:nth-child(2) {
+.kx-cinematic__logo {
+  justify-self: start;
+  color: #f4efe4;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  letter-spacing: -0.075em;
+  text-transform: none;
+}
+
+.kx-cinematic__masthead > span:nth-child(2) {
   color: #8692ff;
   text-align: center;
 }
 
-.kx-cinematic__masthead span:last-child {
+.kx-cinematic__masthead > span:last-child {
   text-align: right;
 }
 
@@ -4006,6 +4012,53 @@ a {
   color: rgba(244, 239, 228, 0.72);
   font-size: clamp(1rem, 1.35vw, 1.28rem);
   line-height: 1.5;
+}
+
+.kx-cinematic__proofs {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.7rem;
+  margin-top: 1.3rem;
+}
+
+.kx-cinematic__chapter[data-align="end"] .kx-cinematic__proofs {
+  justify-content: flex-end;
+}
+
+.kx-cinematic__proofs figure {
+  position: relative;
+  width: clamp(8rem, 14vw, 14rem);
+  aspect-ratio: 3 / 2;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(244, 239, 228, 0.28);
+  background: #09090b;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.26);
+  transform: rotate(-1.2deg);
+}
+
+.kx-cinematic__proofs figure:nth-child(even) {
+  transform: translateY(0.45rem) rotate(1.2deg);
+}
+
+.kx-cinematic__proofs img {
+  object-fit: cover;
+  object-position: top center;
+}
+
+.kx-cinematic__proofs figcaption {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  left: 0.4rem;
+  padding: 0.3rem 0.4rem;
+  background: rgba(3, 3, 4, 0.8);
+  color: rgba(244, 239, 228, 0.82);
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
 }
 
 .kx-cinematic__chapter-actions {
@@ -4101,13 +4154,18 @@ a {
 }
 
 .kx-static__hero {
+  position: relative;
   display: grid;
   min-height: 100svh;
   align-content: space-between;
   padding: calc(var(--header-height) + 3rem) var(--page-gutter) 2rem;
   background:
     linear-gradient(90deg, rgba(3, 3, 4, 0.92), rgba(3, 3, 4, 0.12)),
-    url("/motion/kingxford-house-arrival.webp") center / cover;
+    url("/motion/kingxford-reality-arrival.webp") center / cover;
+}
+
+.kx-static__logo {
+  font-size: 1.3rem;
 }
 
 .kx-static__hero > p,
@@ -5021,9 +5079,8 @@ a {
     min-height: 100svh;
   }
 
-  .kx-cinematic__poster img,
-  .kx-cinematic__video {
-    object-position: 64% 50%;
+  .kx-reality-plate__image img {
+    object-position: 54% 50%;
   }
 
   .kx-cinematic__veil {
@@ -5037,13 +5094,17 @@ a {
     grid-template-columns: 1fr auto;
   }
 
-  .kx-cinematic__masthead span:nth-child(2) {
+  .kx-cinematic__masthead > span:nth-child(2) {
     text-align: right;
   }
 
-  .kx-cinematic__masthead span:last-child,
+  .kx-cinematic__masthead > span:last-child,
   .kx-cinematic__work-link {
     display: none;
+  }
+
+  .kx-cinematic__logo {
+    font-size: 0.86rem;
   }
 
   .kx-cinematic__chapter,
@@ -5073,6 +5134,22 @@ a {
 
   .kx-cinematic__chapter-actions {
     justify-content: flex-start;
+  }
+
+  .kx-cinematic__proofs,
+  .kx-cinematic__chapter[data-align="end"] .kx-cinematic__proofs {
+    justify-content: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .kx-cinematic__proofs figure {
+    width: min(34vw, 9.5rem);
+  }
+
+  .kx-cinematic__proofs figcaption,
+  .kx-reality-plate figcaption {
+    display: none;
   }
 
   .kx-cinematic__rail {

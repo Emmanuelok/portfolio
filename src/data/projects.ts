@@ -44,9 +44,9 @@ export const projects: readonly Project[] = [
     summary:
       "A wardrobe-aware fashion platform that moves from a real closet and event context to complete looks, virtual try-on, and motion.",
     statement: "Never wonder what to wear again.",
-    cover: "/work/kisuyo.webp",
+    cover: "/work/kisuyo-studio-real.webp",
     coverAlt:
-      "A fashion model in a sculptural midnight-blue suit standing inside a paper atelier set",
+      "Documentary photograph of a fashion model, photographer, and lighting setup during a real studio shoot",
     accent: "#315dff",
     featured: true,
     role: [
@@ -97,9 +97,9 @@ export const projects: readonly Project[] = [
     summary:
       "A multi-engine studio for turning code, data, and research logic into publication-ready diagrams across technical disciplines.",
     statement: "Complex knowledge, made visible.",
-    cover: "/work/king-uml.webp",
+    cover: "/work/king-uml-live.webp",
     coverAlt:
-      "A luminous architectural wireframe built from translucent planes, fine lines, and electric-blue nodes",
+      "Live Glyph interface showing a prompt-driven architecture diagram and visual editing canvas",
     accent: "#315dff",
     featured: true,
     role: [
@@ -150,9 +150,9 @@ export const projects: readonly Project[] = [
     summary:
       "A research interface and knowledge system for modelling corruption as connected events across the complete project lifecycle.",
     statement: "Trace the system, not just the incident.",
-    cover: "/work/ccai-global.webp",
+    cover: "/work/ccai-global-live.webp",
     coverAlt:
-      "A dark architectural model crossed by a vivid blue path that links fragmented concrete structures",
+      "Live CCAI Global interface introducing a research platform for corruption analytics",
     accent: "#315dff",
     featured: true,
     role: [
@@ -204,9 +204,9 @@ export const projects: readonly Project[] = [
     summary:
       "A coherent platform of focused digital tools designed to help students and professionals move from a difficult task to a clear result.",
     statement: "Less friction between the question and the work.",
-    cover: "/work/aceplore.webp",
+    cover: "/work/aceplore-real.webp",
     coverAlt:
-      "A designer seated at a warm studio desk while a blue line rises through sketches and prototypes behind him",
+      "Documentary photograph of a designer refining an architectural model at a working studio desk",
     accent: "#315dff",
     featured: false,
     role: [
@@ -257,9 +257,9 @@ export const projects: readonly Project[] = [
     summary:
       "A browser-based system that turns project evidence into an auditable success index, benchmark, trajectory, and intervention view.",
     statement: "Make performance evidence answerable.",
-    cover: "/work/megaproject-intelligence.webp",
+    cover: "/work/megaproject-intelligence-real.webp",
     coverAlt:
-      "A detailed infrastructure model of bridges, tunnels, and worksites connected by a continuous electric-blue route",
+      "Documentary photograph of an arched bridge under construction across a wide river",
     accent: "#315dff",
     featured: true,
     role: [
@@ -309,9 +309,9 @@ export const projects: readonly Project[] = [
     summary:
       "A Ghana-first, mobile-minded market intelligence and learning experience built around transparency, context, and data provenance.",
     statement: "Every number needs a source, a timestamp, and context.",
-    cover: "/work/ghana-sec.webp",
+    cover: "/work/ghana-sec-live.webp",
     coverAlt:
-      "A sculptural financial chart made from black columns, paper curves, and a rising electric-blue line",
+      "Live Nkosuo interface introducing its Ghanaian market intelligence command centre",
     accent: "#315dff",
     featured: true,
     role: [
@@ -362,9 +362,9 @@ export const projects: readonly Project[] = [
     summary:
       "A controlled-preview digital campus spanning public discovery, curriculum, admissions, learning, records, and institution operations.",
     statement: "One coherent campus, from first discovery to lifelong learning.",
-    cover: "/work/elkings-college.webp",
+    cover: "/work/elkings-college-real.webp",
     coverAlt:
-      "A group of students collaborating around a sculptural table on a sunlit contemporary campus",
+      "Documentary photograph of the University of Ghana clock tower and campus architecture in Accra",
     accent: "#315dff",
     featured: true,
     role: [
@@ -415,9 +415,9 @@ export const projects: readonly Project[] = [
     summary:
       "A unified workspace for the complete SAVE International Job Plan, held together by one value graph and an explainable agent layer.",
     statement: "One study. One value thread. Every decision connected.",
-    cover: "/work/value-m.webp",
+    cover: "/work/value-m-real.webp",
     coverAlt:
-      "A physical process model progressing from dark raw forms to precise pale architectural structures linked by blue thread",
+      "Documentary photograph of architectural drawings and a physical building model on a studio table",
     accent: "#315dff",
     featured: false,
     role: [

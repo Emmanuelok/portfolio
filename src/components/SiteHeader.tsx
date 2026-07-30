@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CommandPalette } from "@/components/CommandPalette";
-import { LivingMark } from "@/components/LivingMark";
+import { KingxfordLogo } from "@/components/KingxfordLogo";
 import { ThemeControls } from "@/components/ThemeControls";
 
 const navigation = [
@@ -84,13 +84,10 @@ export function SiteHeader() {
             href="/"
             aria-label="Kingxford home"
           >
-            <LivingMark
-              className="site-header__mark"
+            <KingxfordLogo
+              className="site-header__logo"
               decorative
             />
-            <span className="site-header__brand-copy">
-              <strong>Kingxford</strong>
-            </span>
           </Link>
 
           <nav

@@ -31,14 +31,10 @@ const motionMaster =
   "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/fd4b72d2-7a67-480a-9dd2-3a2a15170c59.mp4";
 const motionMasterMobile =
   "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/ef3a6efe-1145-4a99-800e-be527a13a45e.mp4";
-const arrivalPoster =
-  "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/42aaa904-11ba-4dfc-a0d8-46c4c593436f.webp";
-const studioPoster =
-  "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/dee4b362-2b48-4a72-81a6-d3ff88530a5c.webp";
-const livingRoomPoster =
-  "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/a1052327-b551-412a-bc51-7ee62f4bed41.webp";
-const labPoster =
-  "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/87b63a9d-b5a1-4ec1-ad27-3b1570ea875e.webp";
+const arrivalPoster = "/motion/kingxford-house-arrival.webp";
+const studioPoster = "/motion/kingxford-house-studio.webp";
+const livingRoomPoster = "/motion/kingxford-house-living-room.webp";
+const labPoster = "/motion/kingxford-house-lab.webp";
 
 const chapters: readonly CinematicChapter[] = [
   {

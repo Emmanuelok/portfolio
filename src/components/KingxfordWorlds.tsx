@@ -43,8 +43,7 @@ const worlds: readonly World[] = [
       "Brand & visual systems",
       "Digital development",
     ],
-    image:
-      "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/dee4b362-2b48-4a72-81a6-d3ff88530a5c.webp",
+    image: "/motion/kingxford-house-studio.webp",
     href: "/work",
     cta: "Enter Studio",
   },
@@ -65,8 +64,7 @@ const worlds: readonly World[] = [
       "Cross-disciplinary collaboration",
       "The useful unknown",
     ],
-    image:
-      "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/a1052327-b551-412a-bc51-7ee62f4bed41.webp",
+    image: "/motion/kingxford-house-living-room.webp",
     href: "/contact?world=living-room",
     cta: "Bring something different",
   },
@@ -87,8 +85,7 @@ const worlds: readonly World[] = [
       "Learning experiences",
       "Scientific communication",
     ],
-    image:
-      "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/87b63a9d-b5a1-4ec1-ad27-3b1570ea875e.webp",
+    image: "/motion/kingxford-house-lab.webp",
     href: "/lab",
     cta: "Enter Lab",
   },

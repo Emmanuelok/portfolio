@@ -4107,8 +4107,7 @@ a {
   padding: calc(var(--header-height) + 3rem) var(--page-gutter) 2rem;
   background:
     linear-gradient(90deg, rgba(3, 3, 4, 0.92), rgba(3, 3, 4, 0.12)),
-    url("https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/42aaa904-11ba-4dfc-a0d8-46c4c593436f.webp")
-      center / cover;
+    url("/motion/kingxford-house-arrival.webp") center / cover;
 }
 
 .kx-static__hero > p,

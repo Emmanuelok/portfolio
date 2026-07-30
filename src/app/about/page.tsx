@@ -91,9 +91,8 @@ export default function AboutPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            A Ghanaian-rooted, Canada-based multidisciplinary creative
-            company—working wherever technology, knowledge, and human ambition
-            meet.
+            A Canada-based multidisciplinary creative company—working wherever
+            technology, knowledge, and human ambition meet.
           </p>
         </Reveal>
       </section>
@@ -135,8 +134,8 @@ export default function AboutPage() {
               <dd>Canada</dd>
             </div>
             <div>
-              <dt>Roots</dt>
-              <dd>Ghana</dd>
+              <dt>Reach</dt>
+              <dd>Worldwide</dd>
             </div>
             <div>
               <dt>Range</dt>

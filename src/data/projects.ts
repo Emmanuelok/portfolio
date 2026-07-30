@@ -301,17 +301,17 @@ export const projects: readonly Project[] = [
     related: ["ccai-global", "value-m"],
   },
   {
-    slug: "ghana-sec-intelligence",
+    slug: "nkosuo",
     title: "Nkosuo",
-    eyebrow: "Ghana SEC Intelligence · Ghanaian capital markets",
+    eyebrow: "Market intelligence · Evidence-led investing",
     year: "2026",
     categories: ["Research & Data", "Digital Product", "Education"],
     summary:
-      "A Ghana-first, mobile-minded market intelligence and learning experience built around transparency, context, and data provenance.",
+      "A mobile-minded market intelligence and learning experience built around transparency, context, and data provenance.",
     statement: "Every number needs a source, a timestamp, and context.",
-    cover: "/work/ghana-sec-live.webp",
+    cover: "/work/nkosuo-live.webp",
     coverAlt:
-      "Live Nkosuo interface introducing its Ghanaian market intelligence command centre",
+      "Live Nkosuo interface introducing a market intelligence and learning platform",
     accent: "#315dff",
     featured: true,
     role: [
@@ -320,17 +320,16 @@ export const projects: readonly Project[] = [
       "UX writing",
       "Visual direction",
     ],
-    liveUrl: "https://ghana-sec-intelligence.vercel.app/portfolio",
     challenge:
-      "Ghanaian investors and learners need local market context, yet exchange data has licensing and freshness constraints. The interface needed to be useful without implying that illustrative or delayed information was live advice.",
+      "Investors and learners need meaningful market context, yet exchange data has licensing and freshness constraints. The interface needed to be useful without implying that illustrative or delayed information was live advice.",
     approach: [
       "Make source, freshness, instrument, and information-only boundaries visible wherever market data appears.",
-      "Bring GSE equities, Treasury bills, business news, learning, watchlists, and portfolio views into a Ghana-specific information architecture.",
+      "Bring listed equities, fixed-income instruments, business news, learning, watchlists, and portfolio views into a coherent information architecture.",
       "Design for mobile screens and constrained connections, with plain-language explanations close to the relevant data.",
       "Treat corrections, source attribution, and legal context as product features rather than footer material.",
     ],
     outcome:
-      "A live Ghana-focused intelligence experience with market, portfolio, learning, source, and correction surfaces, designed to distinguish illustrative, delayed, and externally sourced information clearly.",
+      "A focused intelligence experience with market, portfolio, learning, source, and correction surfaces, designed to distinguish illustrative, delayed, and externally sourced information clearly.",
     chapters: [
       {
         eyebrow: "01 · Trust",
@@ -340,9 +339,9 @@ export const projects: readonly Project[] = [
       },
       {
         eyebrow: "02 · Locality",
-        title: "Designed around Ghanaian capital",
+        title: "Designed around real market context",
         body:
-          "The product foregrounds local instruments, currencies, institutions, language, and learning needs instead of adapting a generic global terminal.",
+          "The product foregrounds relevant instruments, currencies, institutions, language, and learning needs instead of adapting a generic global terminal.",
       },
       {
         eyebrow: "03 · Learning",
@@ -364,7 +363,7 @@ export const projects: readonly Project[] = [
     statement: "One coherent campus, from first discovery to lifelong learning.",
     cover: "/work/elkings-college-real.webp",
     coverAlt:
-      "Documentary photograph of the University of Ghana clock tower and campus architecture in Accra",
+      "Documentary photograph of a university clock tower and campus architecture",
     accent: "#315dff",
     featured: true,
     role: [

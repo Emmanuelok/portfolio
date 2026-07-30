@@ -64,7 +64,7 @@ const worlds: readonly World[] = [
       "Cross-disciplinary collaboration",
       "The useful unknown",
     ],
-    image: "/motion/kingxford-reality-living-room-portrait.webp",
+    image: "/motion/kingxford-strategy-room-portrait.webp",
     href: "/contact?world=living-room",
     cta: "Bring something different",
   },
@@ -85,7 +85,7 @@ const worlds: readonly World[] = [
       "Learning experiences",
       "Scientific communication",
     ],
-    image: "/motion/kingxford-reality-lab-portrait.webp",
+    image: "/motion/kingxford-scientific-lab-portrait.webp",
     href: "/lab",
     cta: "Enter Lab",
   },
@@ -186,6 +186,7 @@ export function KingxfordWorlds() {
               src={world.image}
               alt=""
               fill
+              quality={94}
               sizes="(max-width: 760px) 100vw, 48vw"
             />
             <span className="world-panel__scrim" aria-hidden="true" />

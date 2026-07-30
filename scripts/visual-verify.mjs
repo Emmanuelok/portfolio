@@ -359,6 +359,81 @@ await work.page.screenshot({
 });
 await work.context.close();
 
+const media = await inspectPage(
+  "media-desktop-1440",
+  "/media",
+  { width: 1440, height: 1000 },
+);
+const mediaIndexState = await media.page.evaluate(() => {
+  const cover = document.querySelector(".media-card__image");
+  return {
+    cardCount: document.querySelectorAll(".media-card").length,
+    currentNav:
+      document
+        .querySelector(".site-header__nav-link[href='/media']")
+        ?.getAttribute("aria-current") === "page",
+    coverReady:
+      cover instanceof HTMLImageElement &&
+      cover.complete &&
+      cover.naturalWidth > 0,
+  };
+});
+const mediaIndexPassed =
+  mediaIndexState.cardCount >= 1 &&
+  mediaIndexState.currentNav &&
+  mediaIndexState.coverReady;
+results.push({
+  interaction: "media-index",
+  passed: mediaIndexPassed,
+  ...mediaIndexState,
+});
+if (!mediaIndexPassed) {
+  failures.push({ interaction: "media-index", ...mediaIndexState });
+}
+await media.context.close();
+
+const mediaArticle = await inspectPage(
+  "media-article-desktop-1440",
+  "/media/how-to-get-ahead-in-the-ai-era",
+  { width: 1440, height: 1000 },
+);
+const mediaArticleState = await mediaArticle.page.evaluate(() => {
+  const cover = document.querySelector(".media-article__cover img");
+  return {
+    title: document.querySelector("h1")?.textContent?.trim() ?? "",
+    sectionCount: document.querySelectorAll(
+      ".media-article__body > section",
+    ).length,
+    coverReady:
+      cover instanceof HTMLImageElement &&
+      cover.complete &&
+      cover.naturalWidth > 0,
+    articleTextLength:
+      document.querySelector(".media-article__body")?.textContent?.trim()
+        .length ?? 0,
+    audioCount: document.querySelectorAll("audio").length,
+    articleSchema: Boolean(
+      document.querySelector("script[type='application/ld+json']"),
+    ),
+  };
+});
+const mediaArticlePassed =
+  mediaArticleState.title === "How to Get Ahead in the AI Era" &&
+  mediaArticleState.sectionCount >= 7 &&
+  mediaArticleState.coverReady &&
+  mediaArticleState.articleTextLength > 7000 &&
+  mediaArticleState.audioCount === 0 &&
+  mediaArticleState.articleSchema;
+results.push({
+  interaction: "media-article",
+  passed: mediaArticlePassed,
+  ...mediaArticleState,
+});
+if (!mediaArticlePassed) {
+  failures.push({ interaction: "media-article", ...mediaArticleState });
+}
+await mediaArticle.context.close();
+
 const light = await inspectPage(
   "home-light-1024",
   "/",
@@ -444,6 +519,20 @@ const mobileWork = await inspectPage(
   { width: 390, height: 844 },
 );
 await mobileWork.context.close();
+
+const mobileMedia = await inspectPage(
+  "media-mobile-390",
+  "/media",
+  { width: 390, height: 844 },
+);
+await mobileMedia.context.close();
+
+const mobileMediaArticle = await inspectPage(
+  "media-article-mobile-390",
+  "/media/how-to-get-ahead-in-the-ai-era",
+  { width: 390, height: 844 },
+);
+await mobileMediaArticle.context.close();
 
 const project = await inspectPage(
   "project-veridanth-1440",

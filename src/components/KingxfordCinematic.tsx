@@ -38,8 +38,8 @@ type CinematicChapter = Readonly<{
 
 const arrivalImage = "/motion/kingxford-reality-arrival.webp";
 const studioImage = "/motion/kingxford-reality-studio.webp";
-const livingRoomImage = "/motion/kingxford-reality-living-room.webp";
-const labImage = "/motion/kingxford-reality-lab.webp";
+const livingRoomImage = "/motion/kingxford-strategy-room.webp";
+const labImage = "/motion/kingxford-scientific-lab.webp";
 
 const subscribeToHydration = () => () => {};
 
@@ -101,8 +101,8 @@ const chapters: readonly CinematicChapter[] = [
     evidence: "Documentary production environment",
     align: "end",
     proofs: [
-      { src: "/work/veridanth-live.jpg", label: "Veridanth / Platform" },
-      { src: "/work/grandmaster-live.jpg", label: "GrandMaster / Product" },
+      { src: "/work/veridanth-concept.webp", label: "Veridanth / Practice" },
+      { src: "/work/grandmaster-concept.webp", label: "GrandMaster / Learning" },
     ],
   },
   {
@@ -116,8 +116,8 @@ const chapters: readonly CinematicChapter[] = [
       "Special commissions, strategy, experiences, stories, and uncommon collaborations shaped around what the moment actually needs.",
     image: livingRoomImage,
     imageAlt:
-      "A real, warm living room arranged around furniture, art, and open space",
-    evidence: "Photographed space / Open possibility",
+      "Conceptual editorial image of a professional strategy room where a multidisciplinary team studies projects around a central table",
+    evidence: "Strategy room / Open possibility",
   },
   {
     id: "lab",
@@ -130,14 +130,14 @@ const chapters: readonly CinematicChapter[] = [
       "Research platforms, academic systems, data experiences, knowledge tools, and scientific communication built with depth and clarity.",
     image: labImage,
     imageAlt:
-      "A real laboratory researcher working with samples under a sterile hood",
-    evidence: "Documentary research environment",
+      "Conceptual editorial image of scientists collaborating with microscopy, materials testing, and analytical instruments in an advanced laboratory",
+    evidence: "Scientific laboratory / Research in practice",
     align: "end",
     proofs: [
-      { src: "/work/ccai-global-live.webp", label: "CCAI / Knowledge" },
+      { src: "/work/ccai-global-concept.webp", label: "CCAI / Knowledge" },
       {
-        src: "/work/psyche-atlas-live.jpg",
-        label: "Psyche Atlas / Learning",
+        src: "/work/psyche-atlas-concept.webp",
+        label: "Psyche Atlas / Reflection",
       },
     ],
   },
@@ -155,9 +155,12 @@ const chapters: readonly CinematicChapter[] = [
       "Intersecting architectural beams representing Kingxford's connected worlds",
     evidence: "Studio / Living Room / Lab",
     proofs: [
-      { src: "/work/veridanth-live.jpg", label: "Studio" },
-      { src: "/motion/kingxford-reality-living-room-portrait.webp", label: "Living Room" },
-      { src: "/work/psyche-atlas-live.jpg", label: "Lab" },
+      { src: "/work/veridanth-concept.webp", label: "Studio" },
+      {
+        src: "/motion/kingxford-strategy-room-portrait.webp",
+        label: "Living Room",
+      },
+      { src: "/work/psyche-atlas-concept.webp", label: "Lab" },
     ],
   },
   {
@@ -292,7 +295,7 @@ function Chapter({ chapter, progress }: ChapterProps) {
       {chapter.proofs ? (
         <div
           className="kx-cinematic__proofs"
-          aria-label="Real project interfaces"
+          aria-label="Editorial project concepts"
         >
           {chapter.proofs.map((proof) => (
             <figure key={`${chapter.id}-${proof.label}`}>
@@ -300,6 +303,7 @@ function Chapter({ chapter, progress }: ChapterProps) {
                 src={proof.src}
                 alt=""
                 fill
+                quality={90}
                 sizes="(max-width: 760px) 42vw, 18vw"
               />
               <figcaption>{proof.label}</figcaption>
@@ -459,7 +463,7 @@ export function KingxfordCinematic() {
             decorative
           />
           <span>Three worlds / One company</span>
-          <span>Real environments / Live product evidence</span>
+          <span>Operational worlds / Editorial project concepts</span>
         </div>
 
         <div className="kx-cinematic__chapters">

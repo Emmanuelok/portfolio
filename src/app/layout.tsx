@@ -33,6 +33,8 @@ export const metadata: Metadata = {
     "visual systems",
     "digital products",
     "research interfaces",
+    "artificial intelligence essays",
+    "design media",
   ],
   authors: [{ name: "Kingxford", url: siteUrl }],
   creator: "Kingxford",
@@ -114,6 +116,8 @@ const organizationSchema = {
     "Web experiences",
     "Research interfaces",
     "Information architecture",
+    "Artificial intelligence",
+    "Editorial publishing",
   ],
   address: {
     "@type": "PostalAddress",
@@ -131,7 +135,7 @@ const websiteSchema = {
     name: "Kingxford",
   },
   description:
-    "A multidisciplinary creative platform spanning digital design and development, open-ended creative services, and scientific and academic work.",
+    "A multidisciplinary creative platform spanning digital design and development, open-ended creative services, scientific and academic work, and original media.",
 };
 
 export default function RootLayout({

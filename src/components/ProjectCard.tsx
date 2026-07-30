@@ -45,6 +45,7 @@ export function ProjectCard({
             alt={project.coverAlt}
             width={1600}
             height={1080}
+            quality={90}
             priority={priority}
             sizes={
               featured
@@ -80,4 +81,3 @@ export function ProjectCard({
     </m.article>
   );
 }
-

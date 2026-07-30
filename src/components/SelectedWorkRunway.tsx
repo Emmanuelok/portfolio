@@ -51,6 +51,7 @@ export function SelectedWorkRunway({
                   src={project.cover}
                   alt={project.coverAlt}
                   fill
+                  quality={94}
                   priority={index === 0}
                   sizes="(max-width: 760px) 100vw, 86vw"
                 />

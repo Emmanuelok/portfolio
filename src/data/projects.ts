@@ -44,9 +44,9 @@ export const projects: readonly Project[] = [
     summary:
       "A connected consultancy and digital-tools platform that moves ambitious work from one brief to the right workflow, specialist, and deliverable.",
     statement: "One brief. The right tools and team already in motion.",
-    cover: "/work/veridanth-live.jpg",
+    cover: "/work/veridanth-concept.webp",
     coverAlt:
-      "Live Veridanth interface showing its connected consultancy, AI studio, and project-matching experience",
+      "Conceptual editorial image of a multidisciplinary consultancy team connecting research, design, and technical work around one brief",
     accent: "#6657e8",
     featured: true,
     role: [
@@ -98,9 +98,9 @@ export const projects: readonly Project[] = [
       "A privacy-minded self-reflection platform that turns a deep, source-referenced assessment library into a guided, searchable experience with growth-oriented reporting.",
     statement:
       "A map for reflection—structured, personal, and careful about what a test can and cannot say.",
-    cover: "/work/psyche-atlas-live.jpg",
+    cover: "/work/psyche-atlas-concept.webp",
     coverAlt:
-      "Live Psyche Atlas interface introducing a guided personality-assessment and self-reflection library",
+      "Conceptual editorial image of two adults arranging layered maps and reflection cards in a quiet research library",
     accent: "#c6934e",
     featured: true,
     role: [
@@ -151,9 +151,9 @@ export const projects: readonly Project[] = [
     summary:
       "A research interface and knowledge system for modelling corruption as connected events across the complete project lifecycle.",
     statement: "Trace the system, not just the incident.",
-    cover: "/work/ccai-global-live.webp",
+    cover: "/work/ccai-global-concept.webp",
     coverAlt:
-      "Live CCAI Global interface introducing a research platform for corruption analytics",
+      "Conceptual editorial image of integrity researchers tracing evidence across an infrastructure model and transparent relationship maps",
     accent: "#315dff",
     featured: true,
     role: [
@@ -258,9 +258,9 @@ export const projects: readonly Project[] = [
     summary:
       "An intelligent multi-game strategy centre combining adaptive opponents, playable 2D and 3D boards, plain-language move coaching, and post-game review.",
     statement: "Every move becomes a lesson, not just a result.",
-    cover: "/work/grandmaster-live.jpg",
+    cover: "/work/grandmaster-concept.webp",
     coverAlt:
-      "Live GrandMaster interface showing its strategy-game library, AI tutor, and visual game boards",
+      "Conceptual editorial image of an adult learner and coach studying a chess position with an optical analysis tool",
     accent: "#7758ff",
     featured: true,
     role: [
@@ -311,9 +311,9 @@ export const projects: readonly Project[] = [
     summary:
       "A mobile-minded market intelligence and learning experience built around transparency, context, and data provenance.",
     statement: "Every number needs a source, a timestamp, and context.",
-    cover: "/work/nkosuo-live.webp",
+    cover: "/work/nkosuo-concept.webp",
     coverAlt:
-      "Live Nkosuo interface introducing a market intelligence and learning platform",
+      "Conceptual editorial image of a researcher cross-checking market reports, source records, and an obscured mobile reference",
     accent: "#315dff",
     featured: true,
     role: [

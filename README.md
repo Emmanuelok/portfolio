@@ -11,9 +11,26 @@ bringing complex ideas into unforgettable form.
   data experiences, knowledge tools, and scientific communication.
 
 The landing page uses a long native-scroll cinematic built from high-resolution
-documentary photography, live product captures, and the dominant Kingxford
-X-Frame. A purpose-built static composition preserves the full story for
+licensed documentary photography, clearly disclosed photoreal conceptual
+editorial imagery, and the dominant Kingxford X-Frame. Conceptual imagery is
+never presented as documentary evidence, a measured outcome, or literal product
+UI. A purpose-built static composition preserves the full story for
 reduced-motion visitors.
+
+## Media
+
+`/media` publishes Kingxford field notes, essays, briefings, and future
+conversations. The first complete article is
+`/media/how-to-get-ahead-in-the-ai-era`, with a practical 30-day framework and
+institutional research notes.
+
+Articles support an optional narrated edition, but no audio asset is shipped in
+this release. A player appears only when an approved audio record exists;
+future narration must meet the consent, editorial, disclosure, transcript, and
+listening-review requirements in `creative/narration-policy.md`.
+
+The current build is expected to generate 22 public and framework routes,
+including eight case studies, the Media index, and the first Media article.
 
 ## Run locally
 

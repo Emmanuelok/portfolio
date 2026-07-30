@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Kingxford",
     short_name: "Kingxford",
     description:
-      "Kingxford is a multidisciplinary creative company spanning Studio, Living Room, and Lab.",
+      "Kingxford is a multidisciplinary creative company spanning Studio, Living Room, Lab, and Media.",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -14,6 +14,6 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#07090d",
     orientation: "any",
     lang: "en",
-    categories: ["design", "portfolio", "productivity"],
+    categories: ["design", "portfolio", "productivity", "education", "news"],
   };
 }

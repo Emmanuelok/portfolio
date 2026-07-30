@@ -83,6 +83,7 @@ function RelatedProjectCard({ project }: Readonly<{ project: Project }>) {
           alt={project.coverAlt}
           width={1536}
           height={1024}
+          quality={90}
           sizes="(max-width: 760px) 100vw, 50vw"
           className="related-card__image"
         />
@@ -168,6 +169,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               alt={project.coverAlt}
               width={1536}
               height={1024}
+              quality={94}
               sizes="100vw"
               priority
               className="project-hero__image"

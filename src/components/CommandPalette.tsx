@@ -6,6 +6,7 @@ import {
   FlaskConical,
   House,
   Mail,
+  Newspaper,
   Search,
   UserRound,
   X,
@@ -60,6 +61,14 @@ const commands: readonly CommandItem[] = [
     href: "/work",
     keywords: "portfolio projects case studies websites apps",
     icon: BriefcaseBusiness,
+  },
+  {
+    id: "media",
+    label: "Media",
+    description: "Essays, briefings, and future conversations",
+    href: "/media",
+    keywords: "blog podcast media artificial intelligence business finance design research",
+    icon: Newspaper,
   },
   {
     id: "about",

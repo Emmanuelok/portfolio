@@ -7,7 +7,7 @@ import { Reveal } from "@/components/Reveal";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Contact Emmanuel Kingsford Owusu about product design, visual systems, research experiences, intelligent platforms, and selected collaborations.",
+    "Start a collaboration with Kingxford and Emmanuel Kingsford Owusu across product design, visual systems, research experiences, and intelligent platforms.",
   alternates: {
     canonical: "/contact",
   },
@@ -35,7 +35,9 @@ export default function ContactPage() {
 
         <div className="page-hero__content">
           <Reveal>
-            <p className="eyebrow">Selected collaborations · Worldwide</p>
+            <p className="eyebrow">
+              Kingxford · Selected collaborations
+            </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="contact-heading">

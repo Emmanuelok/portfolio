@@ -4,9 +4,11 @@ import Link from "next/link";
 import { LivingMark } from "@/components/LivingMark";
 
 const footerNavigation = [
+  { href: "/#studio", label: "Studio" },
+  { href: "/#living-room", label: "The Living Room" },
+  { href: "/#lab", label: "Lab" },
   { href: "/work", label: "Selected work" },
   { href: "/about", label: "About" },
-  { href: "/lab", label: "Lab" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
@@ -18,14 +20,15 @@ export function SiteFooter() {
           <Link
             className="site-footer__identity"
             href="/"
-            aria-label="Emmanuel Kingsford Owusu, home"
+            aria-label="Kingxford home"
           >
             <LivingMark className="site-footer__mark" decorative />
-            <span>Emmanuel Kingsford Owusu</span>
+            <span>Kingxford</span>
           </Link>
           <p>
-            Research, strategy, visual design, and code—woven into
-            digital experiences with consequence.
+            A multidisciplinary practice by Emmanuel Kingsford Owusu—where
+            digital craft, open-ended creativity, and research become
+            experiences with consequence.
           </p>
           <Link className="site-footer__conversation" href="/contact">
             <span>Start a conversation</span>
@@ -58,8 +61,8 @@ export function SiteFooter() {
             <ArrowUpRight aria-hidden="true" />
           </a>
           <p>
-            Built as a living record of selected products, systems, and
-            visual experiments.
+            Kingxford is an evolving record of products, systems, visual
+            experiments, scientific work, and everything between.
           </p>
         </div>
 

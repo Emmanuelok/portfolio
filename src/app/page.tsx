@@ -1,187 +1,113 @@
 import Link from "next/link";
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Boxes,
-  DraftingCompass,
-  Sparkles,
-} from "lucide-react";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
-import { Hero } from "@/components/Hero";
+import { KingxfordCinematic } from "@/components/KingxfordCinematic";
+import {
+  IdeaRouter,
+  KingxfordWorlds,
+} from "@/components/KingxfordWorlds";
 import { Reveal } from "@/components/Reveal";
-import { WorkGrid } from "@/components/WorkGrid";
+import { SelectedWorkRunway } from "@/components/SelectedWorkRunway";
 import { projects } from "@/data/projects";
 
-const capabilityBands = [
+const method = [
   {
     number: "01",
-    title: "Digital products",
-    copy: "Useful systems with a point of view—from first decision to final state.",
-    icon: Boxes,
+    title: "Listen",
+    copy: "Find the real question beneath the brief.",
   },
   {
     number: "02",
-    title: "Visual systems",
-    copy: "Identity, image, motion, and interface made to speak one language.",
-    icon: Sparkles,
+    title: "Structure",
+    copy: "Turn complexity into a clear system of decisions.",
   },
   {
     number: "03",
-    title: "Complexity design",
-    copy: "Research, data, and difficult ideas translated into visible structure.",
-    icon: DraftingCompass,
+    title: "Compose",
+    copy: "Make language, image, motion, and interaction speak as one.",
+  },
+  {
+    number: "04",
+    title: "Release",
+    copy: "Build, test, and refine until the work can live in the world.",
   },
 ] as const;
 
 export default function HomePage() {
-  const featured = projects.filter((project) => project.featured);
+  const featured = projects
+    .filter((project) => project.featured)
+    .slice(0, 4);
 
   return (
     <main className="page page--home">
-      <Hero />
+      <KingxfordCinematic />
+      <KingxfordWorlds />
+      <SelectedWorkRunway items={featured} />
+      <IdeaRouter />
 
-      <section className="section selected-work" aria-labelledby="selected-title">
-        <div className="section__heading">
-          <Reveal>
-            <div className="section__eyebrow">
-              <span>Selected systems</span>
-              <span aria-hidden="true">08 / ∞</span>
-            </div>
-          </Reveal>
-          <Reveal delay={0.06}>
-            <div className="section__title-row">
-              <h2 id="selected-title">
-                Work built to be
-                <em> entered, not observed.</em>
-              </h2>
-              <p>
-                A selection of intelligent products, research platforms, and
-                visual worlds—each shaped around a real decision people need to
-                make.
-              </p>
-            </div>
-          </Reveal>
+      <section
+        className="kx-method"
+        aria-labelledby="kx-method-title"
+      >
+        <div className="kx-method__topline">
+          <span>04 / How Kingxford works</span>
+          <span>One thread from ambiguity to form</span>
         </div>
-
-        <WorkGrid
-          items={featured}
-          showLens={false}
-          limit={4}
-          className="work-grid--home"
-        />
-
-        <Reveal className="selected-work__all">
-          <Link href="/work" className="text-link text-link--large">
-            <span>Enter the complete archive</span>
-            <ArrowUpRight aria-hidden="true" />
-          </Link>
+        <Reveal className="kx-method__heading">
+          <h2 id="kx-method-title">
+            The work changes.
+            <em>The standard does not.</em>
+          </h2>
         </Reveal>
-      </section>
-
-      <section className="manifesto" aria-labelledby="manifesto-title">
-        <div className="manifesto__rail" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="manifesto__inner">
-          <Reveal className="manifesto__index">
-            <span>Design position</span>
-            <span>EK — 2026</span>
-          </Reveal>
-          <Reveal>
-            <h2 id="manifesto-title">
-              Design is how ambiguity
-              <span> earns a shape.</span>
-            </h2>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <p>
-              I work where design, technology, research, and enterprise
-              overlap—turning difficult systems into experiences that feel
-              inevitable once you see them.
-            </p>
-          </Reveal>
-          <Reveal delay={0.12}>
-            <Link href="/about" className="button button--inverted">
-              <span>Read the practice</span>
-              <ArrowDownRight aria-hidden="true" />
-            </Link>
-          </Reveal>
+        <div className="kx-method__steps">
+          {method.map((step, index) => (
+            <Reveal
+              className="kx-method__step"
+              delay={index * 0.06}
+              key={step.number}
+            >
+              <span>{step.number}</span>
+              <h3>{step.title}</h3>
+              <p>{step.copy}</p>
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      <section className="section capability-section" aria-labelledby="capability-title">
-        <div className="section__heading">
+      <section
+        className="kx-practice"
+        aria-labelledby="kx-practice-title"
+      >
+        <div className="kx-practice__architecture" aria-hidden="true">
+          <span>K</span>
+          <span>X</span>
+          <span>F</span>
+        </div>
+        <div className="kx-practice__copy">
           <Reveal>
-            <div className="section__eyebrow">
-              <span>Practice</span>
-              <span>One connected discipline</span>
-            </div>
-          </Reveal>
-          <Reveal delay={0.06}>
-            <h2 className="capability-section__title" id="capability-title">
-              Strategy with texture.
-              <br />
-              Technology with a pulse.
-            </h2>
-          </Reveal>
-        </div>
-
-        <div className="capability-list">
-          {capabilityBands.map((capability, index) => {
-            const Icon = capability.icon;
-            return (
-              <Reveal
-                className="capability-item"
-                delay={index * 0.07}
-                key={capability.number}
-              >
-                <div className="capability-item__number">
-                  <span>{capability.number}</span>
-                  <Icon aria-hidden="true" />
-                </div>
-                <h3>{capability.title}</h3>
-                <p>{capability.copy}</p>
-                <span className="capability-item__thread" aria-hidden="true" />
-              </Reveal>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="lab-window" aria-labelledby="lab-window-title">
-        <div className="lab-window__visual" aria-hidden="true">
-          <div className="lab-orbit lab-orbit--one" />
-          <div className="lab-orbit lab-orbit--two" />
-          <div className="lab-orbit lab-orbit--three" />
-          <div className="lab-window__core">K</div>
-          <span className="lab-window__coordinate lab-window__coordinate--one">
-            x.056
-          </span>
-          <span className="lab-window__coordinate lab-window__coordinate--two">
-            y.419
-          </span>
-        </div>
-        <div className="lab-window__copy">
-          <Reveal>
-            <span className="lab-window__eyebrow">The experimental room</span>
+            <p>05 / The practice</p>
           </Reveal>
           <Reveal delay={0.05}>
-            <h2 id="lab-window-title">Some ideas need room to misbehave.</h2>
+            <h2 id="kx-practice-title">
+              Built where design, research,
+              <em>and technology meet.</em>
+            </h2>
           </Reveal>
           <Reveal delay={0.1}>
             <p>
-              Generative marks, motion studies, spatial interfaces, and visual
-              provocations—small experiments that keep the larger work alive.
+              Kingxford is the multidisciplinary practice of Emmanuel
+              Kingsford Owusu—a designer, researcher, educator, and product
+              builder working from Canada across borders and disciplines.
             </p>
           </Reveal>
-          <Reveal delay={0.15}>
-            <Link href="/lab" className="button button--primary">
-              <span>Open the lab</span>
+          <Reveal className="kx-practice__actions" delay={0.15}>
+            <Link className="button button--primary" href="/about">
+              Meet Emmanuel
               <ArrowUpRight aria-hidden="true" />
+            </Link>
+            <Link className="button button--quiet" href="/work">
+              View the work
+              <ArrowDownRight aria-hidden="true" />
             </Link>
           </Reveal>
         </div>
@@ -196,12 +122,12 @@ export default function HomePage() {
         <Reveal>
           <h2 id="home-finale-title">
             Let&apos;s give it
-            <em> unforgettable form.</em>
+            <em>unforgettable form.</em>
           </h2>
         </Reveal>
         <Reveal className="home-finale__action" delay={0.08}>
           <Link href="/contact" className="circle-link">
-            <span>Start a project</span>
+            <span>Start something</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
         </Reveal>

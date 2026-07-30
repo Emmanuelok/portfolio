@@ -3,6 +3,7 @@
 import {
   ArrowUpRight,
   BriefcaseBusiness,
+  FlaskConical,
   House,
   Mail,
   Search,
@@ -19,6 +20,7 @@ import {
 } from "react";
 
 type CommandItem = {
+  id: string;
   label: string;
   description: string;
   href: string;
@@ -28,13 +30,31 @@ type CommandItem = {
 
 const commands: readonly CommandItem[] = [
   {
-    label: "Home",
-    description: "Return to the opening experience",
-    href: "/",
-    keywords: "start index living loom",
+    id: "studio",
+    label: "Studio",
+    description: "Digital tools, products, web apps, film, and creative technology",
+    href: "/#studio",
+    keywords: "kingxford digital products aceplore cinematography websites development",
+    icon: BriefcaseBusiness,
+  },
+  {
+    id: "living-room",
+    label: "The Living Room",
+    description: "Open-ended creative services and unexpected commissions",
+    href: "/#living-room",
+    keywords: "kingxford creative unending services ideas commissions",
     icon: House,
   },
   {
+    id: "lab",
+    label: "Lab",
+    description: "Research, science, and work for academic audiences",
+    href: "/#lab",
+    keywords: "kingxford research science academic experiments",
+    icon: FlaskConical,
+  },
+  {
+    id: "work",
     label: "Selected work",
     description: "Explore digital products and visual systems",
     href: "/work",
@@ -42,6 +62,7 @@ const commands: readonly CommandItem[] = [
     icon: BriefcaseBusiness,
   },
   {
+    id: "about",
     label: "About Emmanuel",
     description: "Practice, perspective, and capabilities",
     href: "/about",
@@ -49,6 +70,7 @@ const commands: readonly CommandItem[] = [
     icon: UserRound,
   },
   {
+    id: "contact",
     label: "Start a conversation",
     description: "Bring an ambitious idea into focus",
     href: "/contact",
@@ -229,7 +251,7 @@ export function CommandPalette({
               aria-controls="command-palette-results"
               aria-activedescendant={
                 filteredCommands[activeIndex]
-                  ? `command-${filteredCommands[activeIndex].href.replaceAll("/", "") || "home"}`
+                  ? `command-${filteredCommands[activeIndex].id}`
                   : undefined
               }
             />
@@ -243,7 +265,7 @@ export function CommandPalette({
           >
             {filteredCommands.map((command, index) => {
               const Icon = command.icon;
-              const commandId = `command-${command.href.replaceAll("/", "") || "home"}`;
+              const commandId = `command-${command.id}`;
 
               return (
                 <button

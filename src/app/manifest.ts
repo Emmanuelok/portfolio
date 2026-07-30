@@ -3,10 +3,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Emmanuel Kingsford Owusu — Design Portfolio",
-    short_name: "EK Portfolio",
+    name: "Kingxford",
+    short_name: "Kingxford",
     description:
-      "Digital products, visual systems, research experiences, and intelligent platforms by Emmanuel Kingsford Owusu.",
+      "The multidisciplinary creative platform of Emmanuel Kingsford Owusu—Studio, Living Room, and Lab.",
     start_url: "/",
     scope: "/",
     display: "standalone",

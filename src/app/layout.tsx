@@ -16,12 +16,17 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Emmanuel Kingsford Owusu — Design, systems & digital worlds",
-    template: "%s — Emmanuel Kingsford Owusu",
+    default:
+      "Kingxford — Design, Digital Products & Research Experiences by Emmanuel Kingsford Owusu",
+    template: "%s | Kingxford",
   },
   description:
-    "A living portfolio of digital products, visual systems, research experiences, websites, and intelligent platforms by Emmanuel Kingsford Owusu.",
+    "Kingxford is the multidisciplinary creative platform of Emmanuel Kingsford Owusu—spanning digital design and development in the Studio, open-ended creative services in the Living Room, and scientific and academic work in the Lab.",
   keywords: [
+    "Kingxford",
+    "Studio",
+    "Living Room",
+    "Lab",
     "Emmanuel Kingsford Owusu",
     "multidisciplinary designer",
     "product design",
@@ -32,28 +37,28 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Emmanuel Kingsford Owusu", url: siteUrl }],
   creator: "Emmanuel Kingsford Owusu",
-  publisher: "Emmanuel Kingsford Owusu",
+  publisher: "Kingxford",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_CA",
     url: "/",
-    siteName: "Emmanuel Kingsford Owusu — Living Loom",
-    title: "Complex ideas. Unforgettable form.",
+    siteName: "Kingxford",
+    title: "Complex ideas. Unforgettable form. | Kingxford",
     description:
-      "Digital products, visual systems, research experiences, and intelligent platforms designed by Emmanuel Kingsford Owusu.",
+      "Studio, Living Room, and Lab: digital products, open-ended creative services, and research experiences by Emmanuel Kingsford Owusu.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Emmanuel Kingsford Owusu — Complex ideas. Unforgettable form.",
+        alt: "Kingxford — Complex ideas. Unforgettable form.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Emmanuel Kingsford Owusu — Living Loom",
+    title: "Kingxford — Studio · Living Room · Lab",
     description:
       "Complex ideas. Unforgettable form. Selected digital products and visual systems.",
     images: ["/opengraph-image"],
@@ -116,6 +121,19 @@ const personSchema = {
   },
 };
 
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Kingxford",
+  url: siteUrl,
+  creator: {
+    "@type": "Person",
+    name: "Emmanuel Kingsford Owusu",
+  },
+  description:
+    "A multidisciplinary creative platform spanning digital design and development, open-ended creative services, and scientific and academic work.",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
@@ -131,6 +149,11 @@ export default function RootLayout({
           id="person-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+        />
+        <script
+          id="website-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
         <MotionProvider>
           <ScrollProgress />

@@ -48,14 +48,28 @@ async function inspectPage(name, route, viewport, options = {}) {
   const consoleErrors = [];
   const pageErrors = [];
 
+  if (options.blockMotionVideo !== false) {
+    await page.route(
+      "https://d8j0ntlcm91z4.cloudfront.net/**",
+      (route) => route.abort("blockedbyclient"),
+    );
+  }
+
   page.on("console", (message) => {
-    if (message.type() === "error") consoleErrors.push(message.text());
+    if (
+      message.type() === "error" &&
+      !message.text().includes("ERR_BLOCKED_BY_CLIENT")
+    ) {
+      consoleErrors.push(message.text());
+    }
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   const response = await page.goto(`${baseUrl}${route}`, {
-    waitUntil: "networkidle",
+    waitUntil: "domcontentloaded",
   });
+  await page.waitForSelector("main");
+  await page.waitForTimeout(650);
   await page.screenshot({
     path: path.join(outputDir, `${name}.png`),
     fullPage: options.fullPage ?? false,
@@ -186,6 +200,111 @@ if (!commandSearchFocus) {
   failures.push({ interaction: "command-search-focus" });
 }
 await desktop.page.keyboard.press("Escape");
+
+const storyMetrics = await desktop.page.locator(".kx-cinematic").evaluate((story) => {
+  const stage = story.querySelector(".kx-cinematic__stage");
+  const poster = story.querySelector(".kx-cinematic__poster img");
+  const rect = story.getBoundingClientRect();
+  return {
+    top: rect.top + window.scrollY,
+    height: rect.height,
+    viewportHeight: window.innerHeight,
+    chapterCount: story.querySelectorAll(".kx-cinematic__chapter").length,
+    stagePosition: stage ? getComputedStyle(stage).position : null,
+    posterReady:
+      poster instanceof HTMLImageElement &&
+      poster.complete &&
+      poster.naturalWidth > 0,
+  };
+});
+const storyStructurePassed =
+  storyMetrics.chapterCount === 6 &&
+  storyMetrics.stagePosition === "sticky" &&
+  storyMetrics.posterReady &&
+  storyMetrics.height > storyMetrics.viewportHeight * 6;
+results.push({
+  interaction: "kingxford-cinematic-structure",
+  passed: storyStructurePassed,
+  ...storyMetrics,
+});
+if (!storyStructurePassed) {
+  failures.push({
+    interaction: "kingxford-cinematic-structure",
+    ...storyMetrics,
+  });
+}
+
+for (const [chapter, progress] of [
+  ["arrival", 0.05],
+  ["studio", 0.27],
+  ["living-room", 0.49],
+  ["lab", 0.71],
+  ["one-practice", 0.87],
+  ["enter", 0.97],
+]) {
+  await desktop.page.evaluate(
+    ({ top, height, viewportHeight, progress }) => {
+      window.scrollTo({
+        top: top + (height - viewportHeight) * progress,
+        behavior: "instant",
+      });
+    },
+    {
+      top: storyMetrics.top,
+      height: storyMetrics.height,
+      viewportHeight: storyMetrics.viewportHeight,
+      progress,
+    },
+  );
+  await desktop.page.waitForTimeout(180);
+  await desktop.page.screenshot({
+    path: path.join(outputDir, `kingxford-${chapter}.png`),
+    fullPage: false,
+  });
+}
+
+await desktop.page.locator(".worlds__portal").scrollIntoViewIfNeeded();
+await desktop.page.locator("#living-room").hover();
+await desktop.page.waitForTimeout(250);
+const activeWorld = await desktop.page
+  .locator(".world-panel[data-active='true']")
+  .getAttribute("id");
+results.push({
+  interaction: "three-world-portal",
+  passed:
+    (await desktop.page.locator(".world-panel").count()) === 3 &&
+    activeWorld === "living-room",
+  activeWorld,
+});
+if (activeWorld !== "living-room") {
+  failures.push({ interaction: "three-world-portal", activeWorld });
+}
+await desktop.page.screenshot({
+  path: path.join(outputDir, "kingxford-three-worlds.png"),
+  fullPage: false,
+});
+
+await desktop.page.locator(".idea-router").scrollIntoViewIfNeeded();
+await desktop.page
+  .locator("#idea-router-input")
+  .fill("A research platform for scientific evidence and academic data");
+await desktop.page.waitForTimeout(250);
+const routedWorld = await desktop.page
+  .locator(".idea-router__result strong")
+  .textContent();
+results.push({
+  interaction: "idea-router",
+  passed: routedWorld?.trim() === "Lab",
+  routedWorld,
+});
+if (routedWorld?.trim() !== "Lab") {
+  failures.push({ interaction: "idea-router", routedWorld });
+}
+await desktop.page.screenshot({
+  path: path.join(outputDir, "kingxford-idea-router.png"),
+  fullPage: false,
+});
+
 await desktop.context.close();
 
 const work = await inspectPage(
@@ -260,6 +379,31 @@ await mobile.page.screenshot({
   path: path.join(outputDir, "home-mobile-menu.png"),
   fullPage: false,
 });
+await menuSummary.click();
+const mobileStoryMetrics = await mobile.page
+  .locator(".kx-cinematic")
+  .evaluate((story) => {
+    const rect = story.getBoundingClientRect();
+    return {
+      top: rect.top + window.scrollY,
+      height: rect.height,
+      viewportHeight: window.innerHeight,
+    };
+  });
+await mobile.page.evaluate(
+  ({ top, height, viewportHeight }) => {
+    window.scrollTo({
+      top: top + (height - viewportHeight) * 0.34,
+      behavior: "instant",
+    });
+  },
+  mobileStoryMetrics,
+);
+await mobile.page.waitForTimeout(180);
+await mobile.page.screenshot({
+  path: path.join(outputDir, "kingxford-mobile-studio.png"),
+  fullPage: false,
+});
 await mobile.context.close();
 
 const mobileWork = await inspectPage(
@@ -291,6 +435,29 @@ results.push({
 });
 if (!reducedMotionMatches) {
   failures.push({ interaction: "reduced-motion-emulation" });
+}
+await reduced.page.waitForTimeout(500);
+const reducedStory = await reduced.page.locator(".kx-static").evaluate((story) => {
+  return {
+    sourceCount: story.querySelectorAll("video source").length,
+    chapterCount: story.querySelectorAll(".kx-static__chapter").length,
+    heroVisible: Boolean(story.querySelector(".kx-static__hero")),
+  };
+});
+const reducedStoryPassed =
+  reducedStory.sourceCount === 0 &&
+  reducedStory.heroVisible &&
+  reducedStory.chapterCount === 3;
+results.push({
+  interaction: "kingxford-reduced-motion-fallback",
+  passed: reducedStoryPassed,
+  ...reducedStory,
+});
+if (!reducedStoryPassed) {
+  failures.push({
+    interaction: "kingxford-reduced-motion-fallback",
+    ...reducedStory,
+  });
 }
 await reduced.context.close();
 

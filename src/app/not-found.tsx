@@ -31,7 +31,7 @@ export default function NotFound() {
       <div className="not-found__coordinates" aria-hidden="true">
         <span>ROUTE / UNKNOWN</span>
         <span>SIGNAL / LOST</span>
-        <span>EK / PORTFOLIO</span>
+        <span>KX / STUDIO</span>
       </div>
     </main>
   );

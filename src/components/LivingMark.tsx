@@ -12,7 +12,7 @@ type LivingMarkProps = Readonly<{
 export function LivingMark({
   className,
   decorative = false,
-  label = "Kingxford Studio woven K",
+  label = "Kingxford woven mark",
 }: LivingMarkProps) {
   const shouldReduceMotion = useReducedMotion();
   const reactId = useId();

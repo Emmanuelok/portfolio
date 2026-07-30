@@ -9,10 +9,11 @@ import { LivingMark } from "@/components/LivingMark";
 import { ThemeControls } from "@/components/ThemeControls";
 
 const navigation = [
-  { href: "/", label: "Living Room" },
+  { href: "/#studio", label: "Studio" },
+  { href: "/#living-room", label: "The Living Room" },
+  { href: "/#lab", label: "Lab" },
   { href: "/work", label: "Work" },
   { href: "/about", label: "About" },
-  { href: "/lab", label: "Lab" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
@@ -26,10 +27,10 @@ function NavigationLinks({
   onNavigate,
 }: NavigationLinksProps) {
   return navigation.map((item) => {
+    const isSectionLink = item.href.includes("#");
     const isCurrent =
-      item.href === "/"
-        ? pathname === "/"
-        : pathname === item.href || pathname.startsWith(`${item.href}/`);
+      !isSectionLink &&
+      (pathname === item.href || pathname.startsWith(`${item.href}/`));
 
     return (
       <Link
@@ -81,7 +82,7 @@ export function SiteHeader() {
           <Link
             className="site-header__brand"
             href="/"
-            aria-label="Kingxford Studio by Emmanuel Kingsford Owusu, The Living Room"
+            aria-label="Kingxford home"
           >
             <LivingMark
               className="site-header__mark"
@@ -89,7 +90,6 @@ export function SiteHeader() {
             />
             <span className="site-header__brand-copy">
               <strong>Kingxford</strong>
-              <span>Studio</span>
             </span>
           </Link>
 
@@ -130,8 +130,8 @@ export function SiteHeader() {
                 />
               </nav>
               <p className="site-header__mobile-note">
-                The Living Room of a multidisciplinary design practice by
-                Emmanuel Kingsford Owusu.
+                One multidisciplinary practice, expressed through Studio,
+                The Living Room, and Lab.
               </p>
               <div className="site-header__mobile-tools">
                 <p>Choose a color theme</p>

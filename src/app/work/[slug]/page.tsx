@@ -52,7 +52,7 @@ export async function generateMetadata({
     description: project.summary,
     alternates: { canonical },
     openGraph: {
-      title: `${project.title} — Kingxford Studio`,
+      title: `${project.title} — Kingxford`,
       description: project.summary,
       type: "article",
       url: canonical,
@@ -67,7 +67,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${project.title} — Kingxford Studio`,
+      title: `${project.title} — Kingxford`,
       description: project.summary,
       images: [coverUrl],
     },

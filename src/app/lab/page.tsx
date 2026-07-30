@@ -7,7 +7,7 @@ import { Reveal } from "@/components/Reveal";
 export const metadata: Metadata = {
   title: "Kingxford Lab",
   description:
-    "The experimental wing of Kingxford Studio—visual, interaction, motion, and intelligent-system studies by Emmanuel Kingsford Owusu.",
+    "The scientific and academic wing of Kingxford—research interfaces, scholarly tools, visual inquiry, and intelligent systems by Emmanuel Kingsford Owusu.",
   alternates: {
     canonical: "/lab",
   },
@@ -69,7 +69,7 @@ export default function LabPage() {
         <div className="page-hero__content">
           <Reveal>
             <p className="eyebrow">
-              Kingxford Studio · Experimental wing
+              Kingxford · Scientific &amp; academic wing
             </p>
           </Reveal>
           <Reveal distance={48}>

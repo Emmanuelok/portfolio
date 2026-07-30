@@ -17,13 +17,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default:
-      "Kingxford Studio — Design, Digital Products & Visual Systems by Emmanuel Kingsford Owusu",
-    template: "%s | Kingxford Studio",
+      "Kingxford — Design, Digital Products & Research Experiences by Emmanuel Kingsford Owusu",
+    template: "%s | Kingxford",
   },
   description:
-    "Kingxford Studio is the multidisciplinary design practice of Emmanuel Kingsford Owusu, creating graphic identities, websites, web applications, research interfaces, and intelligent digital products.",
+    "Kingxford is the multidisciplinary creative platform of Emmanuel Kingsford Owusu—spanning digital design and development in the Studio, open-ended creative services in the Living Room, and scientific and academic work in the Lab.",
   keywords: [
-    "Kingxford Studio",
+    "Kingxford",
+    "Studio",
+    "Living Room",
+    "Lab",
     "Emmanuel Kingsford Owusu",
     "multidisciplinary designer",
     "product design",
@@ -34,28 +37,28 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Emmanuel Kingsford Owusu", url: siteUrl }],
   creator: "Emmanuel Kingsford Owusu",
-  publisher: "Kingxford Studio",
+  publisher: "Kingxford",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_CA",
     url: "/",
-    siteName: "Kingxford Studio",
-    title: "Complex ideas. Unforgettable form. | Kingxford Studio",
+    siteName: "Kingxford",
+    title: "Complex ideas. Unforgettable form. | Kingxford",
     description:
-      "Digital products, visual systems, research experiences, and intelligent platforms designed by Emmanuel Kingsford Owusu.",
+      "Studio, Living Room, and Lab: digital products, open-ended creative services, and research experiences by Emmanuel Kingsford Owusu.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Kingxford Studio — Complex ideas. Unforgettable form.",
+        alt: "Kingxford — Complex ideas. Unforgettable form.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kingxford Studio — The Living Room",
+    title: "Kingxford — Studio · Living Room · Lab",
     description:
       "Complex ideas. Unforgettable form. Selected digital products and visual systems.",
     images: ["/opengraph-image"],
@@ -121,15 +124,14 @@ const personSchema = {
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Kingxford Studio",
-  alternateName: "The Living Room",
+  name: "Kingxford",
   url: siteUrl,
   creator: {
     "@type": "Person",
     name: "Emmanuel Kingsford Owusu",
   },
   description:
-    "A multidisciplinary design practice creating graphic identities, websites, web applications, research interfaces, and intelligent digital products.",
+    "A multidisciplinary creative platform spanning digital design and development, open-ended creative services, and scientific and academic work.",
 };
 
 export default function RootLayout({

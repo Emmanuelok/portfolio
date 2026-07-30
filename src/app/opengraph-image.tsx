@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "Kingxford Studio — Complex ideas. Unforgettable form.";
+  "Kingxford — Complex ideas. Unforgettable form.";
 export const size = {
   width: 1200,
   height: 630,
@@ -118,9 +118,11 @@ export default function OpenGraphImage() {
             >
               KX
             </div>
-            <span>Kingxford Studio</span>
+            <span>Kingxford</span>
           </div>
-          <span style={{ color: "#86a0ff" }}>The Living Room / 2026</span>
+          <span style={{ color: "#86a0ff" }}>
+            Studio / Living Room / Lab
+          </span>
         </div>
 
         <div

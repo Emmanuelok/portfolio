@@ -1,11 +1,18 @@
-# Kingxford Studio — The Living Room
+# Kingxford
 
-The motion-led portfolio and front room of Emmanuel Kingsford Owusu’s
-multidisciplinary design practice: graphic identities, digital products,
-websites, research experiences, intelligent interfaces, and experiments.
+Kingxford is Emmanuel Kingsford Owusu’s multidisciplinary design practice:
+three connected worlds for bringing complex ideas into unforgettable form.
 
-The landing sequence is directed by scroll and uses a cinematic motion master
-with a lightweight still fallback for reduced-motion and data-saving contexts.
+- **Studio** creates digital tools, web apps, websites, cinematography, motion,
+  identities, and complete visual systems.
+- **The Living Room** makes space for open-ended commissions, strategy,
+  experiences, stories, and collaborations that do not fit a fixed category.
+- **Lab** serves scientific and academic audiences through research platforms,
+  data experiences, knowledge tools, and scientific communication.
+
+The landing page is built around a 24-second cinematic film directed by scroll,
+with a purpose-built mobile composition and still-image fallbacks for
+reduced-motion, data-saving, and slow-network contexts.
 
 ## Run locally
 

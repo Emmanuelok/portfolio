@@ -92,11 +92,11 @@ export const mediaPosts: readonly MediaPost[] = [
       "Human capability",
       "Systems design",
     ],
-    cover: "/media/sustainable-abundance-for-all-concept.webp",
+    cover: "/media/sustainable-abundance-capability-section-v2.webp",
     coverAlt:
-      "Conceptual editorial image of a diverse professional team studying a luminous systems model linking clean energy, water, food, research, and digital infrastructure; illustrative rather than documentary.",
-    coverWidth: 1536,
-    coverHeight: 1024,
+      "Conceptual editorial cross-section connecting energy, water, food, mobility, research, and digital capacity; illustrative rather than documentary.",
+    coverWidth: 2400,
+    coverHeight: 1600,
     featured: true,
     introduction: [
       "Abundance is often reduced to a picture of more: more energy, more goods, more computation, more choice. That picture is incomplete. A society can produce more in aggregate while many people still lack safe water, nutritious food, electricity, connectivity, or the institutional capacity to turn knowledge into durable improvements.",
@@ -261,9 +261,11 @@ export const mediaPosts: readonly MediaPost[] = [
     updatedAt: "2026-07-30T12:00:00.000Z",
     readingLabel: "9 min read",
     topics: ["Artificial intelligence", "Work", "Strategy", "Learning"],
-    cover: "/media/how-to-get-ahead-in-the-ai-era-concept.webp",
+    cover: "/media/ai-verification-chain-v2.webp",
     coverAlt:
-      "Conceptual editorial imagery of a multidisciplinary team examining an AI-assisted workflow in a professional strategy room; the generated scene is illustrative, not documentary evidence.",
+      "Conceptual editorial image of an auditable verification chain moving AI-assisted work through evidence, review, and accountability gates; illustrative rather than documentary.",
+    coverWidth: 2400,
+    coverHeight: 1600,
     featured: false,
     introduction: [
       "AI has made the distance between an idea and a plausible first draft dramatically shorter. That is useful, but it can also be misleading. A fluent answer can still be shallow. A polished image can still be wrong for the brief. A working prototype can still fail when it meets real users, sensitive data, or an unfamiliar edge case.",

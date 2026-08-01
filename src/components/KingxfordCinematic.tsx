@@ -36,10 +36,13 @@ type CinematicChapter = Readonly<{
   proofs?: readonly Proof[];
 }>;
 
-const arrivalImage = "/motion/kingxford-reality-arrival.webp";
-const studioImage = "/motion/kingxford-reality-studio.webp";
-const livingRoomImage = "/motion/kingxford-strategy-room.webp";
-const labImage = "/motion/kingxford-scientific-lab.webp";
+const capabilityReactorImage =
+  "/motion/kingxford-capability-reactor-v2.webp";
+const signalObservatoryImage =
+  "/motion/kingxford-signal-observatory-v2.webp";
+const researchLabImage = "/motion/kingxford-research-lab-v2.webp";
+const governanceGateImage =
+  "/motion/kingxford-governance-gate-v2.webp";
 
 const subscribeToHydration = () => () => {};
 
@@ -81,9 +84,9 @@ const chapters: readonly CinematicChapter[] = [
     title: "Prepare for sustainable abundance.",
     body:
       "We research, develop, and apply responsible AI to help people and institutions solve complex problems and build ambitious ideas, projects, and systems for an abundant future.",
-    image: arrivalImage,
+    image: capabilityReactorImage,
     imageAlt:
-      "Intersecting steel beams in a real contemporary structure",
+      "Conceptual editorial image of an engineered X-shaped capability reactor linking clean water, energy, mobility, research, and productive infrastructure",
     evidence: "Mission / Sustainable abundance",
   },
   {
@@ -95,14 +98,20 @@ const chapters: readonly CinematicChapter[] = [
     title: "See the system before choosing the move.",
     body:
       "We connect evidence, foresight, domain knowledge, and human judgement so complexity becomes a field of informed choices—not a reason to stand still.",
-    image: livingRoomImage,
+    image: signalObservatoryImage,
     imageAlt:
-      "A professional strategy room where a multidisciplinary team studies complex systems around a central table",
+      "Conceptual editorial image of an optical X-shaped signal observatory bringing maps, lenses, models, and evidence into focus",
     evidence: "Strategy / Systems intelligence",
     align: "end",
     proofs: [
-      { src: "/work/veridanth-concept.webp", label: "Veridanth / Practice" },
-      { src: "/work/grandmaster-concept.webp", label: "GrandMaster / Learning" },
+      {
+        src: "/work/veridanth-evidence-v2.webp",
+        label: "Veridanth / Practice",
+      },
+      {
+        src: "/work/grandmaster-evidence-v2.webp",
+        label: "GrandMaster / Learning",
+      },
     ],
   },
   {
@@ -114,9 +123,9 @@ const chapters: readonly CinematicChapter[] = [
     title: "Turn uncertainty into testable knowledge.",
     body:
       "We investigate difficult questions, build prototypes, evaluate evidence, and translate useful findings into tools, policies, platforms, and ventures that can endure.",
-    image: labImage,
+    image: researchLabImage,
     imageAlt:
-      "Scientists collaborating with microscopy, materials testing, and analytical instruments in an advanced laboratory",
+      "Conceptual editorial image of a scientific laboratory with microscopy, materials testing, and analytical instruments arranged around an optical X",
     evidence: "Scientific inquiry / Applied R&D",
   },
   {
@@ -128,15 +137,18 @@ const chapters: readonly CinematicChapter[] = [
     title: "Build intelligence people can question and govern.",
     body:
       "We pursue AI that expands human agency, makes uncertainty visible, protects meaningful oversight, and is evaluated against the people and institutions it affects.",
-    image: studioImage,
+    image: governanceGateImage,
     imageAlt:
-      "A professional production studio representing the disciplined development of intelligent digital systems",
+      "Conceptual editorial image of a physical governance gate making the evidence, review, and oversight of intelligent systems visible",
     evidence: "Human agency / Responsible deployment",
     align: "end",
     proofs: [
-      { src: "/work/ccai-global-concept.webp", label: "CCAI / Knowledge" },
       {
-        src: "/work/psyche-atlas-concept.webp",
+        src: "/work/ccai-global-evidence-v2.webp",
+        label: "CCAI / Knowledge",
+      },
+      {
+        src: "/work/psyche-atlas-evidence-v2.webp",
         label: "Psyche Atlas / Reflection",
       },
     ],
@@ -150,17 +162,17 @@ const chapters: readonly CinematicChapter[] = [
     title: "The future is built with others.",
     body:
       "We create the conditions for aligned contributors to combine insight, commitment, and capability around consequential work.",
-    image: livingRoomImage,
+    image: signalObservatoryImage,
     imageAlt:
-      "A multidisciplinary team coordinating complex work in a professional strategy room",
+      "Conceptual editorial image of a signal observatory where multiple lenses and evidence streams converge through an architectural X",
     evidence: "Collaboration / Shared capability",
     proofs: [
-      { src: "/work/veridanth-concept.webp", label: "Studio" },
+      { src: "/work/veridanth-evidence-v2.webp", label: "Studio" },
       {
-        src: "/motion/kingxford-strategy-room-portrait.webp",
+        src: "/motion/kingxford-decision-theatre-v2.webp",
         label: "Living Room",
       },
-      { src: "/work/psyche-atlas-concept.webp", label: "Lab" },
+      { src: "/work/psyche-atlas-evidence-v2.webp", label: "Lab" },
     ],
   },
   {
@@ -172,9 +184,9 @@ const chapters: readonly CinematicChapter[] = [
     title: "Make progress durable—and widely useful.",
     body:
       "We prepare people and institutions to turn expanding intelligence, knowledge, and productive capacity into long-term human and ecological value.",
-    image: arrivalImage,
+    image: capabilityReactorImage,
     imageAlt:
-      "Intersecting architectural beams representing coordinated paths toward an abundant future",
+      "Conceptual editorial image of an engineered X connecting water, energy, mobility, research, and productive systems for an abundant future",
     evidence: "Craft signature / Complex ideas. Unforgettable form.",
     align: "end",
   },

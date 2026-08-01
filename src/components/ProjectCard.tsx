@@ -43,8 +43,8 @@ export function ProjectCard({
             className="project-card__image"
             src={project.cover}
             alt={project.coverAlt}
-            width={1600}
-            height={1080}
+            width={2400}
+            height={1600}
             quality={90}
             priority={priority}
             sizes={

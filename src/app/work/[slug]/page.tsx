@@ -58,8 +58,8 @@ export async function generateMetadata({
       images: [
         {
           url: coverUrl,
-          width: 1536,
-          height: 1024,
+          width: 2400,
+          height: 1600,
           alt: project.coverAlt,
         },
       ],
@@ -80,8 +80,8 @@ function RelatedProjectCard({ project }: Readonly<{ project: Project }>) {
         <Image
           src={project.cover}
           alt={project.coverAlt}
-          width={1536}
-          height={1024}
+          width={2400}
+          height={1600}
           quality={90}
           sizes="(max-width: 760px) 100vw, 50vw"
           className="related-card__image"
@@ -166,8 +166,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <Image
               src={project.cover}
               alt={project.coverAlt}
-              width={1536}
-              height={1024}
+              width={2400}
+              height={1600}
               quality={94}
               sizes="100vw"
               priority

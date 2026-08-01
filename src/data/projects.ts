@@ -43,9 +43,9 @@ export const projects: readonly Project[] = [
     summary:
       "A connected consultancy and digital-tools platform that moves ambitious work from one brief to the right workflow, specialist, and deliverable.",
     statement: "One brief. The right tools and team already in motion.",
-    cover: "/work/veridanth-concept.webp",
+    cover: "/work/veridanth-evidence-v2.webp",
     coverAlt:
-      "Conceptual editorial image of a multidisciplinary consultancy team connecting research, design, and technical work around one brief",
+      "Editorial composite preserving the live Veridanth Studio interface within a botanical and mineral routing lattice; the surrounding imagery is illustrative.",
     accent: "#6657e8",
     featured: true,
     role: [
@@ -97,9 +97,9 @@ export const projects: readonly Project[] = [
       "A privacy-minded self-reflection platform that turns a deep, source-referenced assessment library into a guided, searchable experience with growth-oriented reporting.",
     statement:
       "A map for reflection—structured, personal, and careful about what a test can and cannot say.",
-    cover: "/work/psyche-atlas-concept.webp",
+    cover: "/work/psyche-atlas-evidence-v2.webp",
     coverAlt:
-      "Conceptual editorial image of two adults arranging layered maps and reflection cards in a quiet research library",
+      "Editorial composite preserving a live Psyche Atlas personality-results interface within layered cartographic forms; the surrounding imagery is illustrative.",
     accent: "#c6934e",
     featured: true,
     role: [
@@ -150,9 +150,9 @@ export const projects: readonly Project[] = [
     summary:
       "A research interface and knowledge system for modelling corruption as connected events across the complete project lifecycle.",
     statement: "Trace the system, not just the incident.",
-    cover: "/work/ccai-global-concept.webp",
+    cover: "/work/ccai-global-evidence-v2.webp",
     coverAlt:
-      "Conceptual editorial image of integrity researchers tracing evidence across an infrastructure model and transparent relationship maps",
+      "Editorial composite preserving a live CCAI Global research-atlas interface within a forensic infrastructure evidence system; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: true,
     role: [
@@ -203,9 +203,9 @@ export const projects: readonly Project[] = [
     summary:
       "A coherent platform of focused digital tools designed to help students and professionals move from a difficult task to a clear result.",
     statement: "Less friction between the question and the work.",
-    cover: "/work/aceplore-real.webp",
+    cover: "/work/aceplore-evidence-v2.webp",
     coverAlt:
-      "Documentary photograph of a designer refining an architectural model at a working studio desk",
+      "Editorial composite preserving the live Aceplore interface within a modular industrial workbench; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: false,
     role: [
@@ -256,9 +256,9 @@ export const projects: readonly Project[] = [
     summary:
       "An intelligent multi-game strategy centre combining adaptive opponents, playable 2D and 3D boards, plain-language move coaching, and post-game review.",
     statement: "Every move becomes a lesson, not just a result.",
-    cover: "/work/grandmaster-concept.webp",
+    cover: "/work/grandmaster-evidence-v2.webp",
     coverAlt:
-      "Conceptual editorial image of an adult learner and coach studying a chess position with an optical analysis tool",
+      "Editorial composite preserving the live GrandMaster chess and tutor interface within an exploded strategy tree; the surrounding imagery is illustrative.",
     accent: "#7758ff",
     featured: true,
     role: [
@@ -309,9 +309,9 @@ export const projects: readonly Project[] = [
     summary:
       "A mobile-minded market intelligence and learning experience built around transparency, context, and data provenance.",
     statement: "Every number needs a source, a timestamp, and context.",
-    cover: "/work/nkosuo-concept.webp",
+    cover: "/work/nkosuo-evidence-v2.webp",
     coverAlt:
-      "Conceptual editorial image of a researcher cross-checking market reports, source records, and an obscured mobile reference",
+      "Editorial composite incorporating an authentic Nkosuo interface fragment within layered market-provenance materials; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: true,
     role: [
@@ -361,9 +361,9 @@ export const projects: readonly Project[] = [
     summary:
       "A controlled-preview digital campus spanning public discovery, curriculum, admissions, learning, records, and institution operations.",
     statement: "One coherent campus, from first discovery to lifelong learning.",
-    cover: "/work/elkings-college-real.webp",
+    cover: "/work/elkings-college-evidence-v2.webp",
     coverAlt:
-      "Documentary photograph of a university clock tower and campus architecture",
+      "Editorial composite preserving a live Elkings College campus-workspace interface within an architectural campus continuum; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: true,
     role: [
@@ -414,9 +414,9 @@ export const projects: readonly Project[] = [
     summary:
       "A unified workspace for the complete SAVE International Job Plan, held together by one value graph and an explainable agent layer.",
     statement: "One study. One value thread. Every decision connected.",
-    cover: "/work/value-m-real.webp",
+    cover: "/work/value-m-evidence-v2.webp",
     coverAlt:
-      "Documentary photograph of architectural drawings and a physical building model on a studio table",
+      "Editorial composite preserving the live Value-M dashboard within a physical value-thread and decision-gate system; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: false,
     role: [

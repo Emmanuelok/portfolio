@@ -8,15 +8,15 @@
     "audience": "Institutional leaders, research partners, founders, investors of capital or capability, public-interest organisations, complex-project sponsors, and informed readers on mobile and desktop.",
     "repository": "https://github.com/Emmanuelok/portfolio",
     "hosting": "Vercel",
-    "updated_at": "2026-07-31"
+    "updated_at": "2026-08-01"
   },
   "creative_system": {
-    "concept": "X-Frame",
-    "thesis": "A dominant architectural X connects intelligence, research and development, responsible AI, aligned contributors, and three kingXford & Co delivery worlds in service of sustainable abundance.",
+    "concept": "Documented Practice",
+    "thesis": "A restrained corporate wordmark, authentic public-product evidence, and grounded documentary photography communicate intelligence, research, responsible AI, collaboration, and sustainable abundance without invented visual proof.",
     "identity": {
       "wordmark": "kingXford & Co",
-      "dominant_character": "X",
-      "mark_construction": "Two 45-degree beams with a controlled over-under seam",
+      "x_treatment": "Same baseline, optical size, and weight as the surrounding letters; colour is the only emphasis.",
+      "compact_mark": "Framed K monogram with one restrained ultramarine terminal.",
       "implementation": [
         "src/components/KingxfordLogo.tsx",
         "src/app/icon.svg"
@@ -34,8 +34,15 @@
       "Manrope Variable",
       "system monospace for metadata"
     ],
+    "evidence_direction": [
+      "Active digital-project imagery uses mechanical crops or compositions of authentic public-product captures.",
+      "Active environmental imagery uses source-recorded documentary photography.",
+      "Context photographs are not evidence of a kingXford & Co facility, staff, engagement, experiment, or measured outcome.",
+      "Previously generated and hybrid assets remain inactive historical records."
+    ],
     "anti_goals": [
-      "generic or undisclosed AI-generated imagery",
+      "dominant, oversized, raised, or architectural X treatment",
+      "generated or hybrid imagery on an active release surface",
       "short looping hero film",
       "scroll-jacking",
       "cyberpunk HUD styling",
@@ -45,150 +52,146 @@
   },
   "assets": [
     {
-      "id": "ast-evidence-object-project-covers-v2",
-      "type": "hybrid-authentic-interface-and-generated-editorial-composite",
+      "id": "ast-published-product-captures-v3",
+      "type": "mechanical-composites-of-authentic-public-product-captures",
       "sources": [
-        "public/work/veridanth-evidence-v2.webp",
-        "public/work/psyche-atlas-evidence-v2.webp",
-        "public/work/ccai-global-evidence-v2.webp",
-        "public/work/aceplore-evidence-v2.webp",
-        "public/work/grandmaster-evidence-v2.webp",
-        "public/work/nkosuo-evidence-v2.webp",
-        "public/work/elkings-college-evidence-v2.webp",
-        "public/work/value-m-evidence-v2.webp"
+        "public/work/veridanth-product-evidence-v3.webp",
+        "public/work/psyche-atlas-product-evidence-v3.webp",
+        "public/work/grandmaster-product-evidence-v3.webp"
       ],
-      "role": "Active project covers for the archive, case studies, related-work cards, metadata, and cinematic proof surfaces. Each composition preserves an authentic interface or brand fragment as the literal evidence layer and uses a distinct generated editorial field to communicate the project's subject and working logic.",
+      "role": "Active project covers and cinematic proof imagery for the three published digital products.",
       "dimensions": "2400x1600",
       "capture": {
         "date": "2026-07-31",
         "veridanth": "https://www.veridanth.com/",
         "psyche_atlas": "https://personality-tests-six.vercel.app/",
-        "ccai_global": "https://ccai.global/",
-        "aceplore": "https://aceplore.com/",
-        "grandmaster": "https://boardgames-peach.vercel.app/",
-        "nkosuo": "prior authentic brand/interface fragment from public/work/nkosuo-live.webp",
-        "elkings_college": "https://elkings-college.vercel.app/",
-        "value_m": "https://value-m.vercel.app/"
+        "grandmaster": "https://boardgames-peach.vercel.app/"
       },
-      "generation": {
-        "veridanth_background": "Higgsfield Soul Cinema; 2026-07-31; job 087fd977-54d8-4b22-a203-cac1ba3e32fe",
-        "remaining_backgrounds": "OpenAI imagegen; 2026-07-31"
-      },
-      "material_edit": "A purpose-selected authentic screenshot crop was placed as a literal layer over a separately generated subject-specific field, then given a rounded mask and shadow before final resize and WebP encoding. No interface text, metrics, controls, or claims were invented.",
-      "editorial_fields": {
-        "veridanth": "botanical-mineral routing lattice",
-        "psyche_atlas": "vellum and topographic reflection cartography",
-        "ccai_global": "forensic acrylic evidence system",
-        "aceplore": "modular industrial workbench",
-        "grandmaster": "exploded strategy game tree with no gambling cues",
-        "nkosuo": "market provenance strata with no advice or profit cues",
-        "elkings_college": "architectural campus continuum",
-        "value_m": "physical value thread and decision gates"
-      },
+      "material_edit": "Authentic public-product screenshots were cropped, scaled, and arranged on neutral fields. No generated pixels, invented interface elements, rewritten text, or semantic edits were introduced.",
       "checksums_sha256": {
-        "veridanth": "2a081181daba13fbe85c90694b69a4bc9cbc29b4fda1ad2a0a97f1236460cde3",
-        "psyche_atlas": "fce6b283b4018ea413434819756b73e69c346fb28c6782e52d825b7ae93e3222",
-        "ccai_global": "f28037ccc69d0e326c22111a5e302c6aa23e417ad846efea65cde198675ae272",
-        "aceplore": "aeb753a5512a595948ec05d979796b826a422f6e426e85c89f66718d636956b4",
-        "grandmaster": "7caffd76223f13caee26d652a4af8cd349309ac1bad7823925ffaf6a3213819d",
-        "nkosuo": "acf304d0f46a3a31d418db88b88df7132866b99711eb61c2903275353e526a25",
-        "elkings_college": "f2d97370e41ad29f5e7ae06798ba067f45ef3a6f84ab56e5efd30d6605346032",
-        "value_m": "3e44e8b43648883f0dabd1f8b327fcf0fdf982406dd7d932a53cf5caef7ff2d7"
+        "veridanth": "90189b32ccec55c513eb0e64c636df7fd1c2033515d0ff28c57a681f791e5e48",
+        "psyche_atlas": "e0d55f35400f767c5061e0ce055afbc806266ee4a5b12d826fd529f69021cdc9",
+        "grandmaster": "23eb88e736f8e71e06c3e33fe8fed393ba300061ba74fe40bad249c58f2df718"
       },
-      "rights_status": "approved only as disclosed hybrid editorial imagery; interface, property, and trademark rights were not independently reviewed; restrictions are recorded per asset",
+      "rights_status": "active; authentic public interface captures used for portfolio identification; product, interface, and trademark rights were not independently reviewed",
       "provenance": "creative/rights-provenance.csv",
-      "disclosure": "The interface layer is an authentic public-product capture or prior authentic fragment. The surrounding field is generated and conceptual, not part of the product screenshot, a documentary setting, a measured outcome, an endorsement, or independent validation."
+      "restriction": "The captures document only the visible interface state at capture time and do not independently prove ownership, performance, endorsement, user outcomes, or current availability."
     },
     {
-      "id": "ast-capability-cinematic-plates-v2",
-      "type": "synthetic-conceptual-editorial-environments",
+      "id": "ast-published-value-m-cover-v3",
+      "type": "licensed-documentary-context-photography",
       "sources": [
-        "public/motion/kingxford-capability-reactor-v2.webp",
-        "public/motion/kingxford-signal-observatory-v2.webp",
-        "public/motion/kingxford-research-lab-v2.webp",
-        "public/motion/kingxford-governance-gate-v2.webp"
+        "public/work/value-m-real.webp"
       ],
-      "role": "Active 16:9 plates for the cinematic capability, intelligence, research, and responsible-AI governance chapters.",
-      "dimensions": "2560x1440",
-      "generation": "OpenAI imagegen; 2026-07-31",
-      "material_edit": "Generated masters resized and cropped to 2560x1440 WebP; no screenshot, interface, logo, or text was composited.",
-      "prompt_direction": {
-        "capability_reactor": "A monumental engineered X integrates water, energy, materials, and infrastructure into a capability reactor.",
-        "signal_observatory": "An optical X mount, maps, lenses, and a restrained cobalt beam express systems intelligence without surveillance cues.",
-        "research_lab": "Credible scientific instruments, microscopy, sample hardware, and a spectral beam through an architectural X express R&D without unsafe or science-fiction cues.",
-        "governance_gate": "Transparent verification planes, physical audit blocks, model-card objects, and red-team route markers form a responsible-AI governance gate without compliance claims."
-      },
-      "generation_constraints": "No people, fake UI, generated text, logos, documentary claims, or implied measured outcomes.",
-      "checksums_sha256": {
-        "capability_reactor": "133219850ae2367b7f1fdaa3ed322e5239dd442c7fcd761001c4e2d88ce58252",
-        "signal_observatory": "7a2d5861c6425c4d2ac0506a9bdb06f92fc8b5665ca487e86ae038747f20bf90",
-        "research_lab": "c6bc7f83404dbed6429a36a33dc3514316e485880d7d5ea783a78e1655dadc91",
-        "governance_gate": "1546f80570af500cb2cfb6f959053d83d157a61489c1abf6582669a92c4be031"
-      },
-      "rights_status": "approved only as clearly disclosed synthetic conceptual editorial imagery; restrictions recorded",
-      "provenance": "creative/rights-provenance.csv",
-      "disclosure": "Synthetic conceptual editorial imagery; never present the environments as documentary facilities, projects, datasets, infrastructure, audits, certifications, or measured outcomes."
-    },
-    {
-      "id": "ast-capability-world-portraits-v2",
-      "type": "synthetic-conceptual-editorial-environments",
-      "sources": [
-        "public/motion/kingxford-production-spine-v2.webp",
-        "public/motion/kingxford-decision-theatre-v2.webp",
-        "public/motion/kingxford-instrument-corridor-v2.webp"
-      ],
-      "role": "Active 4:5 world-card plates for Studio, the Living Room, and Lab.",
-      "dimensions": "1600x2000",
-      "generation": "OpenAI imagegen; 2026-07-31",
-      "material_edit": "Generated masters resized and cropped to 1600x2000 WebP; no screenshot, interface, logo, or text was composited.",
-      "prompt_direction": {
-        "production_spine": "A vertical production spine combines cinematography, prototyping, electronics, physical models, materials, and optical test plates.",
-        "decision_theatre": "A professional decision theatre uses physical maps, an evidence table, decision tokens, and X geometry without residential, military, or surveillance cues.",
-        "instrument_corridor": "A credible scientific instrument corridor uses analytical hardware, microscopy, sample systems, and disciplined X geometry without unsafe or science-fiction cues."
-      },
-      "generation_constraints": "No people, fake UI, generated text, logos, documentary claims, or implied measured outcomes.",
-      "checksums_sha256": {
-        "production_spine": "5aea532082733e18e4957c8cd578a6f8fefd33da96d0b414407843529bee4f98",
-        "decision_theatre": "ee7de0a8cfeea3b94ec39e666259d560062548f93039915907d489209efd9942",
-        "instrument_corridor": "6dcb079eaaaa7e8341fd13fece91a0e47571916ab71dc0c3493d48198ceaa80c"
-      },
-      "rights_status": "approved only as clearly disclosed synthetic conceptual editorial imagery; restrictions recorded",
-      "provenance": "creative/rights-provenance.csv",
-      "disclosure": "Synthetic conceptual editorial imagery; never present these environments as documentary evidence of kingXford & Co facilities, people, equipment, operations, or outcomes."
-    },
-    {
-      "id": "ast-media-evidence-covers-v2",
-      "type": "synthetic-conceptual-editorial-evidence-stills",
-      "sources": [
-        "public/media/ai-verification-chain-v2.webp",
-        "public/media/sustainable-abundance-capability-section-v2.webp"
-      ],
-      "role": "Active 3:2 covers for How to Get Ahead in the AI Era and Sustainable Abundance for All.",
+      "role": "Active Value-M project cover, Intelligence cinematic plate, responsible-AI proof image, and Sustainable Abundance Media cover.",
       "dimensions": "2400x1600",
-      "generation": "OpenAI imagegen; 2026-07-31",
-      "material_edit": "Generated masters resized and cropped to 2400x1600 WebP; no screenshot, chart, interface, logo, or text was composited.",
-      "prompt_direction": {
-        "ai_verification_chain": "A physical verification chain connects source material, a model artifact, a human-review gate, and decision evidence without robots or brain metaphors.",
-        "sustainable_abundance_capability_section": "A credible physical section connects energy, water, food, mobility, research, and shared infrastructure without utopian or science-fiction claims."
+      "source": {
+        "creator": "Jonathan Borba / Unsplash",
+        "reference": "https://unsplash.com/photos/architectural-blueprints-and-a-laptop-on-a-marble-desk-rn00OVh0gEI"
       },
-      "generation_constraints": "No people, fake UI, generated text, logos, documentary claims, or image-encoded statistics.",
+      "material_edit": "Cropped, resized, sharpened, and optimized to 2400x1600 WebP.",
       "checksums_sha256": {
-        "ai_verification_chain": "294c54e1d246c02dba816003dab736ce929731281fad8bf5fcf7bea97be4e8e8",
-        "sustainable_abundance_capability_section": "05e747c565394c431b839f420df422d3967bba18060a69f6d50723106a9240b9"
+        "value_m_real": "58f4090760a8643984d3bc5dfc1ce135072a3a16c6d9e6691be41a8b5a543d6c"
       },
-      "rights_status": "approved only as clearly disclosed synthetic conceptual editorial imagery; restrictions recorded",
+      "rights_status": "active contextual documentary photograph; source page states free use under the Unsplash License; release and legal status not independently verified",
       "provenance": "creative/rights-provenance.csv",
-      "disclosure": "Synthetic conceptual editorial imagery; not a chart, source record, real system, proof of feasibility, partnership, causality, performance, or measured outcome."
+      "restriction": "Do not imply that the pictured plans, model, property, or process belongs to Value-M or kingXford & Co."
     },
     {
-      "id": "ast-x-frame-v2",
-      "type": "original-vector-identity",
+      "id": "ast-authentic-cinematic-plates-v5",
+      "type": "licensed-documentary-photography",
+      "sources": [
+        "public/motion/kingxford-prototype-documentary.webp",
+        "public/work/value-m-real.webp",
+        "public/motion/kingxford-lab-documentary.webp",
+        "public/motion/kingxford-reality-studio.webp",
+        "public/motion/kingxford-strategy-workshop-documentary.webp",
+        "public/motion/kingxford-reality-arrival.webp"
+      ],
+      "role": "Active mission, intelligence, R&D, responsible-AI, collaboration, and abundant-future cinematic plates.",
+      "dimensions": {
+        "documentary_landscapes": "2400x1600 or 2560x1440",
+        "lab_documentary": "2560x1440"
+      },
+      "sources_and_credits": {
+        "value_m_context": "Jonathan Borba / Unsplash; https://unsplash.com/photos/architectural-blueprints-and-a-laptop-on-a-marble-desk-rn00OVh0gEI",
+        "lab_documentary": "Nathan Rimoux / Unsplash; https://unsplash.com/photos/scientist-is-conducting-an-experiment-in-a-laboratory-MzIfSkcXj7Q",
+        "studio": "Joshua Wann / Unsplash; https://unsplash.com/photos/a-dark-room-with-a-camera-and-lights-nue6Esmpk3M",
+        "collaboration_workshop": "GN Group / Unsplash; https://unsplash.com/photos/man-working-on-architectural-model-at-desk-WUY0W2RSiBw",
+        "arrival": "Declan Sun / Unsplash; https://unsplash.com/photos/steel-beams-of-a-modern-building-structure-CnWkn7-rAh8",
+        "prototype_context": "GN Group / Unsplash; https://unsplash.com/photos/man-working-on-architectural-model-at-desk-WUY0W2RSiBw"
+      },
+      "checksums_sha256": {
+        "value_m_context": "58f4090760a8643984d3bc5dfc1ce135072a3a16c6d9e6691be41a8b5a543d6c",
+        "lab_documentary": "68a8511ec164432e2e979a543d3ec8f5eb95393420e7f057cfaaff25a08e0892",
+        "studio": "6548a4c3d2612629c5eb53e16f9cc2f75f7b5e71b9b5b848d0fd8298ac3c8e42",
+        "collaboration_workshop": "07e34ad79421f54c4523d2e5927c18d17073f79ac9a99a132d2714ac3e892ba8",
+        "arrival": "a62caf16cbb935ca1367bbbda1ed8eb2ecc289635144191f081b717c9359afcc",
+        "prototype_context": "11428687d2ce8fe82260430e4ad83ef99dd4301346c3e4f6b0675cf4d30ada39"
+      },
+      "rights_status": "active; authentic interface and source-recorded documentary imagery; restrictions recorded per asset",
+      "provenance": "creative/rights-provenance.csv",
+      "restriction": "Documentary subjects and environments are contextual and must not be described as kingXford & Co people, facilities, engagements, experiments, partnerships, or outcomes."
+    },
+    {
+      "id": "ast-authentic-world-portraits-v5",
+      "type": "licensed-documentary-photography",
+      "sources": [
+        "public/motion/kingxford-reality-studio-portrait.webp",
+        "public/motion/kingxford-strategy-workshop-documentary.webp",
+        "public/motion/kingxford-reality-lab-portrait.webp"
+      ],
+      "role": "Active Studio, Living Room, and Lab world-card imagery.",
+      "dimensions": "1600x2000",
+      "sources_and_credits": {
+        "studio": "Clay Banks / Unsplash; https://unsplash.com/photos/artists-studio-with-desk-chair-and-large-window-fybrevHYvWc",
+        "living_room_workshop": "GN Group / Unsplash; https://unsplash.com/photos/man-working-on-architectural-model-at-desk-WUY0W2RSiBw",
+        "lab": "Nathan Rimoux / Unsplash; https://unsplash.com/photos/scientist-is-conducting-an-experiment-in-a-laboratory-MzIfSkcXj7Q"
+      },
+      "material_edit": "Source photographs cropped and resized to 1600x2000 WebP; no generated fill, inserted objects, or semantic edits.",
+      "checksums_sha256": {
+        "studio": "4afd5a9a62deb00df6a8d16a289c31506b5720ce16abdfd66f36e5fbc7e8d3b8",
+        "living_room_workshop": "07e34ad79421f54c4523d2e5927c18d17073f79ac9a99a132d2714ac3e892ba8",
+        "lab": "578729b764fa27bb631f86d6d95e18764e545883568602e166a49c6cdbbe132c"
+      },
+      "rights_status": "active contextual documentary photography; source pages state free use under the Unsplash License; release and legal status not independently verified",
+      "provenance": "creative/rights-provenance.csv",
+      "restriction": "Do not imply the people, equipment, rooms, or activities are kingXford & Co staff, facilities, projects, experiments, or endorsements."
+    },
+    {
+      "id": "ast-documentary-media-covers-v3",
+      "type": "licensed-documentary-context-photography",
+      "sources": [
+        "public/work/value-m-real.webp",
+        "public/motion/kingxford-prototype-documentary.webp"
+      ],
+      "role": "Active contextual covers for Sustainable Abundance for All and How to Get Ahead in the AI Era.",
+      "dimensions": "2400x1600",
+      "sources_and_credits": {
+        "sustainable_abundance": "Jonathan Borba / Unsplash; https://unsplash.com/photos/architectural-blueprints-and-a-laptop-on-a-marble-desk-rn00OVh0gEI",
+        "ai_era": "GN Group / Unsplash; https://unsplash.com/photos/man-working-on-architectural-model-at-desk-WUY0W2RSiBw; neutral derivative path"
+      },
+      "checksums_sha256": {
+        "sustainable_abundance": "58f4090760a8643984d3bc5dfc1ce135072a3a16c6d9e6691be41a8b5a543d6c",
+        "ai_era": "11428687d2ce8fe82260430e4ad83ef99dd4301346c3e4f6b0675cf4d30ada39"
+      },
+      "rights_status": "active contextual documentary photography; sources and restrictions recorded",
+      "provenance": "creative/rights-provenance.csv",
+      "restriction": "The photographs set editorial context only and are not evidence of a kingXford & Co project, facility, team, workflow, partnership, or measured result."
+    },
+    {
+      "id": "ast-restrained-wordmark-v3",
+      "type": "original-vector-and-typeset-identity",
       "sources": [
         "src/components/KingxfordLogo.tsx",
         "src/app/icon.svg"
       ],
-      "role": "Wordmark, compact interface identity, favicon, and motion motif",
-      "rights_status": "original implementation; legal and trademark review not performed",
+      "role": "Restrained primary wordmark, compact K monogram, favicon, and interface identity.",
+      "identity_rule": "The X remains the same optical size, baseline, and weight as the surrounding letters; colour is the only emphasis.",
+      "checksums_sha256": {
+        "icon_svg": "a9fe93c18c59e8470bb5caddf4640e61d5542f5f9d4b89dec57e6cbcc56da51c"
+      },
+      "rights_status": "original repository implementation; legal and trademark review not performed",
       "provenance": "creative/rights-provenance.csv"
     }
   ],
@@ -217,12 +220,12 @@
     {
       "id": "screen-work",
       "route": "/work",
-      "purpose": "Search, filter, and enter all eight case studies."
+      "purpose": "Search and filter the four published case studies; unreleased archive records are excluded from navigation, search, metadata, sitemaps, and generated routes."
     },
     {
       "id": "screen-case-study",
       "route": "/work/[slug]",
-      "purpose": "Explain project context, decisions, outcome, related work, and verified live destinations."
+      "purpose": "Explain project context, decisions, outcome boundaries, explicit published or unreleased status, related work, and only verified live destinations."
     },
     {
       "id": "screen-media-index",
@@ -234,7 +237,7 @@
       "id": "screen-media-article",
       "route": "/media/[slug]",
       "component": "MediaArticlePage with optional AudioEdition",
-      "purpose": "Publish complete long-form articles with structured sections, institutional research notes, conceptual-image disclosure, article-specific action plans where appropriate, and an optional narration surface.",
+      "purpose": "Publish complete long-form articles with structured sections, institutional research notes, contextual documentary-image source notes, article-specific action plans where appropriate, and an optional narration surface.",
       "states": [
         "article with no audio",
         "article with approved optional audio",
@@ -258,13 +261,12 @@
   ],
   "elements": [
     {
-      "id": "element-x-frame-logo",
+      "id": "element-restrained-wordmark",
       "component": "KingxfordLogo",
       "states": [
         "wordmark",
-        "mark",
-        "animated",
-        "reduced-motion",
+        "compact K mark",
+        "monochrome",
         "decorative",
         "accessible"
       ]
@@ -272,19 +274,19 @@
     {
       "id": "element-cinematic-proof",
       "component": "KingxfordCinematic proof cards",
-      "content": "Evidence Object composites with authentic captured interfaces preserved as literal layers inside clearly disclosed generated editorial fields",
+      "content": "Authentic public-product captures and source-recorded documentary photography",
       "accessibility": "Decorative thumbnails remain hidden where adjacent labels provide equivalent context."
     },
     {
       "id": "element-media-post-card",
       "component": "MediaPostCard",
-      "content": "Conceptual cover, format, date, reading time, title, description, topics, and article link",
-      "accessibility": "The full card is one named link; the cover has purpose-based alt text and a visible conceptual-editorial figcaption."
+      "content": "Contextual documentary cover, source-aware caption, format, date, reading time, title, description, topics, and article link",
+      "accessibility": "The full card is one named link; the cover has purpose-based alt text and a visible contextual documentary caption."
     },
     {
       "id": "element-media-article",
       "component": "MediaArticlePage and optional AudioEdition",
-      "content": "Article metadata, disclosed cover, table of contents, long-form sections, principles, Sustainable Abundance evidence visuals where applicable, article-specific optional action plan, cited sources, closing note, and optional audio.",
+      "content": "Article metadata, source-recorded contextual cover, table of contents, long-form sections, principles, Sustainable Abundance evidence visuals where applicable, article-specific optional action plan, cited sources, closing note, and optional audio.",
       "accessibility": "Semantic article structure, named sections and navigation, visible source links, complete readable text, and native audio controls only when an approved file exists.",
       "audio_status": "No audio shipped; an absent audio record renders no player or dead control."
     },
@@ -323,8 +325,8 @@
       "id": "scene-scroll-cinematic",
       "duration": "760svh of native document scroll",
       "audio": "none",
-      "media": "local high-resolution WebP capability plates and clearly disclosed Evidence Object composites",
-      "behavior": "Crossfade, pan, and scale image layers while chapter copy and the structural X transition independently.",
+      "media": "local high-resolution WebP authentic public-product captures and source-recorded documentary photography",
+      "behavior": "Crossfade, pan, and scale image layers while chapter copy transitions independently; the restrained wordmark remains stable.",
       "reduced_motion": "Replace the sticky sequence with a readable static hero and stacked three-world chapters."
     }
   ],
@@ -383,7 +385,7 @@
     {
       "id": "del-creative-system-v2",
       "type": "documentation",
-      "title": "kingXford & Co X-Frame creative and production system",
+      "title": "kingXford & Co restrained wordmark, documentary-evidence, and production system",
       "channel": "repository",
       "status": "implemented"
     },
@@ -408,26 +410,32 @@
       "routes": [
         "/media/sustainable-abundance-for-all"
       ],
-      "cover_asset": "ast-media-evidence-covers-v2",
+      "cover_asset": "ast-documentary-media-covers-v3",
       "audio_status": "No narration asset shipped."
     }
   ],
   "rights_and_claims": [
     {
       "id": "right-source-media",
-      "description": "Every active raster asset has a capture or generation record, rights note, editorial restriction, date, disclosure state, and reconciled SHA-256 checksum.",
+      "description": "Every active raster asset has an authentic public-product capture or documentary source record, material-edit note, contextual restriction, dimensions, release state, and reconciled SHA-256 checksum.",
       "evidence": "creative/rights-provenance.csv",
       "status": "recorded; qualified legal review not performed"
     },
     {
-      "id": "right-synthetic-editorial",
-      "description": "Generated conceptual editorial imagery is permitted only when clearly disclosed and never represented as documentary evidence, a measured outcome, a real kingXford & Co facility, or a real employee or participant. In a hybrid Evidence Object cover, only the preserved public-product capture may be described as authentic interface evidence; the generated surroundings must never be described as part of that screenshot.",
-      "evidence": "Visible Media figcaptions, purpose-based alt text, project-card disclosure treatment, creative/rights-provenance.csv, and creative/brand-system.json",
-      "status": "policy recorded; rendered disclosure verification pending"
+      "id": "right-authentic-media",
+      "description": "Active release surfaces use no generated, synthetic, or hybrid raster imagery. Mechanical product compositions preserve authentic captured interface content; licensed documentary images remain contextual and are never represented as kingXford & Co facilities, people, engagements, experiments, or measured outcomes.",
+      "evidence": "Active-source audit, purpose-based alt text, contextual Media captions, creative/rights-provenance.csv, and creative/brand-system.json",
+      "status": "policy and source records implemented; rendered verification pending"
+    },
+    {
+      "id": "right-project-release-state",
+      "description": "Veridanth, Psyche Atlas, GrandMaster, and Value-M are published. CCAI Global, Aceplore, Nkosuo, and Elkings College are unreleased and must remain visibly labelled as such.",
+      "evidence": "src/data/projects.ts and rendered work/case-study status treatment",
+      "status": "source state recorded; rendered verification pending"
     },
     {
       "id": "right-identity",
-      "description": "The X-Frame SVG is an original implementation; trademark clearance and exclusivity are not claimed.",
+      "description": "The restrained wordmark and compact framed K monogram are original repository implementations; trademark clearance and exclusivity are not claimed.",
       "evidence": "src/components/KingxfordLogo.tsx and src/app/icon.svg",
       "status": "source recorded; qualified legal review not performed"
     },
@@ -443,9 +451,11 @@
       "typecheck",
       "lint",
       "production build",
-      "23 generated public routes, including home, work, eight case studies, Media index, two Media articles, about, lab, contact, and framework metadata routes",
+      "19 generated public routes, including home, work, four published case studies, Media index, two Media articles, about, lab, contact, and framework metadata routes",
       "mobile and desktop visual captures",
       "native-scroll cinematic progression",
+      "active-image source audit proving zero generated or hybrid raster references",
+      "published and unreleased project-status treatment on index cards, case studies, metadata, and outbound actions",
       "reduced-motion static parity",
       "keyboard navigation and visible focus",
       "browser console and failed-resource inspection",
@@ -455,9 +465,11 @@
     "hard_fail_conditions": [
       "broken route or primary control",
       "remote short-film dependency",
-      "synthetic conceptual imagery presented as documentary evidence, a measured outcome, literal product UI, or a real kingXford & Co person or facility",
-      "a generated editorial field represented as part of an authentic captured product interface",
-      "generated imagery containing fabricated readable text, interface state, testimonial, metric, or product claim",
+      "generated, synthetic, or hybrid raster imagery referenced by an active product, cinematic, world, or Media surface",
+      "authentic product capture altered with invented interface text, controls, metrics, testimonials, citations, or product claims",
+      "documentary photograph presented as a kingXford & Co person, facility, engagement, experiment, partnership, or measured outcome",
+      "CCAI Global, Aceplore, Nkosuo, or Elkings College presented as published or used as published-product proof",
+      "dominant, oversized, raised, animated, or architectural X treatment in the identity",
       "person-centric copy describing kingXford & Co as an individual or exposing a personal profile or location as company identity",
       "unsupported statistic, altered source year or unit, overlapping populations added into a fabricated total, or a projection presented as an observed result",
       "motion ignores reduced-motion preference",
@@ -473,13 +485,13 @@
     },
     {
       "id": "G1",
-      "name": "X-Frame identity",
+      "name": "restrained wordmark identity",
       "status": "passed"
     },
     {
       "id": "G2",
-      "name": "truthful interface-evidence and disclosed conceptual imagery system",
-      "status": "pending final asset and rendered-disclosure verification"
+      "name": "authentic product and documentary imagery system",
+      "status": "pending rendered verification"
     },
     {
       "id": "G3",
@@ -495,8 +507,9 @@
   "assumptions": [
     "The authorized repository owner controls the operational source repository and authorizes this kingXford & Co implementation.",
     "English is the only language required for this release.",
-    "Authentic public-product captures document only the visible interface state at capture time; they do not assert ownership, affiliation, endorsement, performance, or a documented project outcome.",
-    "Generated editorial fields are conceptual surroundings, not part of the authentic screenshot, a real kingXford & Co facility, an employee or participant identity, or a measured project outcome.",
+    "Authentic public-product captures document only the visible interface state at capture time; they do not assert ownership, affiliation, endorsement, performance, or a documented outcome.",
+    "Licensed documentary photography is contextual and does not assert that a pictured person, property, facility, tool, or activity belongs to kingXford & Co or a represented project.",
+    "CCAI Global, Aceplore, Nkosuo, and Elkings College remain unreleased until a separately verified status change.",
     "No narration asset is shipped; future audio remains optional and must pass the documented consent, editorial, and listening review before publication.",
     "No environment variables are required for the public portfolio unless the deployment workflow reports otherwise."
   ],
@@ -507,14 +520,19 @@
   ],
   "risks": [
     {
-      "id": "risk-context-image-confusion",
+      "id": "risk-documentary-context-confusion",
       "severity": "medium",
-      "mitigation": "Use factual alt text, visible hybrid conceptual-image captions where appropriate, and adjacent project copy. Identify only the preserved public-product layer as authentic interface evidence, and never describe its generated surroundings as screenshot content, a real setting, or product proof."
+      "mitigation": "Use factual alt text and visible contextual captions where appropriate; never describe a source photograph as a kingXford & Co person, facility, engagement, experiment, partnership, or result."
     },
     {
-      "id": "risk-synthetic-image-confusion",
+      "id": "risk-product-capture-integrity",
       "severity": "medium",
-      "mitigation": "Keep synthetic disclosure visible and consistent; prohibit fabricated readable text, interface states, metrics, testimonials, facilities, staff identities, and outcome claims. Require checksum reconciliation and full-size visual review for every final master. Sustainable-abundance imagery must not imply a real kingXford & Co facility, project, partnership, feasibility result, or measured performance."
+      "mitigation": "Limit edits to crop, scale, framing, neutral layout fields, and encoding; compare every active composition with its authentic public capture and prohibit invented interface content."
+    },
+    {
+      "id": "risk-release-state-confusion",
+      "severity": "high",
+      "mitigation": "Keep CCAI Global, Aceplore, Nkosuo, and Elkings College explicitly unreleased across cards, detail routes, metadata, and calls to action; do not use them as published-product proof."
     },
     {
       "id": "risk-long-scroll-performance",
@@ -531,5 +549,25 @@
       "severity": "medium",
       "mitigation": "Record reference and publication years, retain official links and interpretation boundaries beside every visual, and re-verify figures before a dated article update rather than silently replacing values."
     }
-  ]
+  ],
+  "project_release_state": {
+    "published": [
+      "Veridanth",
+      "Psyche Atlas",
+      "GrandMaster",
+      "Value-M"
+    ],
+    "unreleased": [
+      "CCAI Global",
+      "Aceplore",
+      "Nkosuo",
+      "Elkings College"
+    ],
+    "rule": "Unreleased case studies may explain work in progress but must never be presented as published products, current deployments, validated outcomes, or active proof until status and destination are explicitly re-verified."
+  },
+  "historical_assets": {
+    "registry": "creative/rights-provenance.csv",
+    "state": "inactive_historical",
+    "rule": "Prior generated, synthetic, hybrid, and superseded identity assets remain preserved for audit history only and are not referenced by active release surfaces."
+  }
 }

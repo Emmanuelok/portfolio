@@ -404,29 +404,35 @@ a {
   display: inline-flex;
   align-items: center;
   color: var(--text);
-  font-weight: 760;
-  letter-spacing: -0.075em;
+  font-weight: 680;
   line-height: 1;
   text-transform: none;
   white-space: nowrap;
 }
 
+.kingxford-logo__wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  letter-spacing: -0.052em;
+}
+
 .kingxford-logo__x {
-  width: 1.78em;
-  height: 1.78em;
-  margin: -0.36em -0.1em -0.34em -0.08em;
-  flex: none;
+  margin-inline: 0.025em 0.015em;
+  color: var(--blue-bright);
+  font-size: 0.94em;
+  font-weight: 710;
+  letter-spacing: -0.02em;
 }
 
 .kingxford-logo__co {
-  margin-left: 0.58em;
+  margin-left: 0.72em;
+  padding-left: 0.72em;
+  border-left: 1px solid color-mix(in srgb, currentColor 28%, transparent);
   color: var(--text-soft);
-  font-family: var(--font-mono);
-  font-size: 0.46em;
-  font-weight: 650;
-  letter-spacing: 0.08em;
+  font-size: 0.48em;
+  font-weight: 660;
+  letter-spacing: 0.055em;
   line-height: 1;
-  text-transform: uppercase;
 }
 
 .kingxford-mark {
@@ -434,12 +440,30 @@ a {
   overflow: visible;
 }
 
-.kingxford-mark__beam--back {
-  fill: var(--blue-bright);
+.kingxford-mark__frame {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.22;
 }
 
-.kingxford-mark__beam--front {
-  fill: currentColor;
+.kingxford-mark__letter,
+.kingxford-mark__accent {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 3.15;
+}
+
+.kingxford-mark__accent {
+  stroke: var(--blue-bright);
+}
+
+.kingxford-logo[data-monochrome="true"] .kingxford-logo__x,
+.kingxford-mark[data-monochrome="true"] .kingxford-mark__accent {
+  color: inherit;
+  stroke: currentColor;
 }
 
 .site-header__desktop-nav {
@@ -2966,17 +2990,6 @@ a {
   --media-accent: #7780ff;
 }
 
-.page-hero--media::before {
-  top: 8%;
-  right: -2%;
-  border-radius: 0;
-  background:
-    linear-gradient(45deg, transparent 48.8%, var(--blue) 49%, var(--blue) 51%, transparent 51.2%),
-    linear-gradient(-45deg, transparent 48.8%, rgba(243, 239, 229, 0.22) 49%, rgba(243, 239, 229, 0.22) 51%, transparent 51.2%);
-  opacity: 0.3;
-  transform: rotate(8deg);
-}
-
 .media-index {
   width: min(100%, var(--content-max));
   margin-inline: auto;
@@ -3177,20 +3190,6 @@ a {
 .media-article__heading {
   position: relative;
   padding: clamp(4rem, 8vw, 8rem) 0 clamp(2.5rem, 5vw, 5rem);
-}
-
-.media-article__heading::after {
-  position: absolute;
-  top: 13%;
-  right: 2%;
-  width: clamp(7rem, 18vw, 18rem);
-  aspect-ratio: 1;
-  background:
-    linear-gradient(45deg, transparent 46%, var(--media-accent) 46.5% 53.5%, transparent 54%),
-    linear-gradient(-45deg, transparent 46%, rgba(243, 239, 229, 0.14) 46.5% 53.5%, transparent 54%);
-  content: "";
-  opacity: 0.32;
-  pointer-events: none;
 }
 
 .media-article__heading h1 {
@@ -3942,12 +3941,6 @@ a {
     font-size: clamp(3.8rem, 17.5vw, 7rem);
   }
 
-  .media-article__heading::after {
-    top: 4%;
-    right: -7%;
-    width: 10rem;
-  }
-
   .media-article__standfirst {
     justify-content: flex-start;
     margin-top: 3.5rem;
@@ -4686,9 +4679,8 @@ a {
 
 .kx-reality-plate__grade {
   background:
-    linear-gradient(90deg, rgba(2, 2, 3, 0.7), transparent 48%, rgba(2, 2, 3, 0.2)),
-    linear-gradient(180deg, rgba(2, 2, 3, 0.46), transparent 38%, rgba(2, 2, 3, 0.75));
-  mix-blend-mode: multiply;
+    linear-gradient(90deg, rgba(2, 2, 3, 0.42), transparent 54%, rgba(2, 2, 3, 0.12)),
+    linear-gradient(180deg, rgba(2, 2, 3, 0.18), transparent 42%, rgba(2, 2, 3, 0.48));
 }
 
 .kx-reality-plate figcaption {
@@ -4711,14 +4703,12 @@ a {
 
 .kx-cinematic__loom {
   z-index: 1;
-  background:
-    radial-gradient(circle at 68% 48%, rgba(49, 93, 255, 0.16), transparent 30rem),
-    #030304;
+  background: radial-gradient(
+    circle at 68% 48%,
+    rgba(49, 93, 255, 0.1),
+    transparent 30rem
+  );
   pointer-events: none;
-}
-
-.kx-cinematic__loom .loom-canvas {
-  z-index: auto;
 }
 
 .kx-cinematic__veil,
@@ -4731,17 +4721,17 @@ a {
   background:
     linear-gradient(
       90deg,
-      rgba(2, 2, 3, 0.92) 0%,
-      rgba(2, 2, 3, 0.74) 25%,
-      rgba(2, 2, 3, 0.12) 60%,
-      rgba(2, 2, 3, 0.25) 100%
+      rgba(2, 2, 3, 0.74) 0%,
+      rgba(2, 2, 3, 0.5) 27%,
+      rgba(2, 2, 3, 0.08) 64%,
+      rgba(2, 2, 3, 0.18) 100%
     ),
     linear-gradient(
       180deg,
-      rgba(2, 2, 3, 0.66) 0%,
+      rgba(2, 2, 3, 0.34) 0%,
       transparent 26%,
       transparent 60%,
-      rgba(2, 2, 3, 0.9) 100%
+      rgba(2, 2, 3, 0.72) 100%
     );
 }
 
@@ -4751,46 +4741,7 @@ a {
     radial-gradient(circle at 74% 61%, rgba(255, 255, 255, 0.08) 0 0.65px, transparent 0.8px);
   background-size: 4px 4px, 5px 5px;
   mix-blend-mode: soft-light;
-  opacity: 0.16;
-}
-
-.kx-cinematic__x {
-  position: absolute;
-  top: 50%;
-  left: 70%;
-  z-index: 3;
-  width: min(36vw, 32rem);
-  aspect-ratio: 1;
-  pointer-events: none;
-  transform-origin: center;
-}
-
-.kx-cinematic__x span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 138%;
-  height: 5px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(92, 107, 255, 0.16),
-    rgba(110, 124, 255, 0.9),
-    transparent
-  );
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.kx-cinematic__x span:last-child {
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(244, 239, 228, 0.12),
-    rgba(244, 239, 228, 0.72),
-    transparent
-  );
-  transform: translate(-50%, -50%) rotate(-45deg);
+  opacity: 0.06;
 }
 
 .kx-cinematic__masthead {
@@ -4816,7 +4767,6 @@ a {
   color: #f4efe4;
   font-family: var(--font-sans);
   font-size: 0.95rem;
-  letter-spacing: -0.075em;
   text-transform: none;
 }
 
@@ -5038,7 +4988,7 @@ a {
   padding: calc(var(--header-height) + 3rem) var(--page-gutter) 2rem;
   background:
     linear-gradient(90deg, rgba(3, 3, 4, 0.92), rgba(3, 3, 4, 0.12)),
-    url("/motion/kingxford-capability-reactor-v2.webp") center / cover;
+    url("/motion/kingxford-prototype-documentary.webp") center / cover;
 }
 
 .kx-static__logo {
@@ -5397,22 +5347,6 @@ a {
 
 .world-panel__link svg {
   width: 0.9rem;
-}
-
-.worlds__x {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 25rem;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #7785ff, transparent);
-  opacity: 0.35;
-  pointer-events: none;
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.worlds__x--two {
-  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .work-runway {
@@ -5833,40 +5767,36 @@ a {
 
 .kx-practice__architecture {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
   min-height: 42rem;
   overflow: hidden;
+  padding: clamp(3rem, 7vw, 7rem);
   border-right: 1px solid rgba(244, 239, 228, 0.16);
   background:
-    linear-gradient(135deg, transparent 49.8%, rgba(118, 132, 255, 0.38) 49.9% 50.1%, transparent 50.2%),
-    linear-gradient(45deg, transparent 49.8%, rgba(118, 132, 255, 0.2) 49.9% 50.1%, transparent 50.2%),
-    radial-gradient(circle at 50% 50%, rgba(74, 89, 255, 0.18), transparent 28rem),
+    linear-gradient(180deg, rgba(118, 132, 255, 0.08), transparent 52%),
     #060608;
 }
 
 .kx-practice__architecture span {
-  position: absolute;
-  color: transparent;
-  font-size: clamp(14rem, 31vw, 39rem);
-  font-weight: 780;
-  letter-spacing: -0.14em;
-  line-height: 0.72;
-  -webkit-text-stroke: 1px rgba(244, 239, 228, 0.2);
-}
-
-.kx-practice__architecture span:first-child {
-  top: 10%;
-  left: -5%;
+  display: block;
+  padding-bottom: clamp(1rem, 2vw, 1.8rem);
+  border-bottom: 1px solid rgba(244, 239, 228, 0.16);
+  color: rgba(244, 239, 228, 0.48);
+  font-size: clamp(2.6rem, 6vw, 7.4rem);
+  font-weight: 510;
+  letter-spacing: -0.07em;
+  line-height: 0.86;
 }
 
 .kx-practice__architecture span:nth-child(2) {
-  top: 34%;
-  left: 30%;
-  -webkit-text-stroke-color: rgba(120, 134, 255, 0.65);
+  color: #8995ff;
 }
 
 .kx-practice__architecture span:last-child {
-  right: -8%;
-  bottom: -4%;
+  border-bottom: 0;
 }
 
 .kx-practice__copy {
@@ -6033,11 +5963,6 @@ a {
     bottom: 1rem;
   }
 
-  .kx-cinematic__x {
-    left: 72%;
-    width: 60vw;
-  }
-
   .kx-static__hero {
     min-height: 100svh;
     padding-top: calc(var(--header-height) + 2rem);
@@ -6124,10 +6049,6 @@ a {
   .world-panel[data-active="true"] .world-panel__link span {
     max-width: 15rem;
     opacity: 1;
-  }
-
-  .worlds__x {
-    display: none;
   }
 
   .work-runway__item:nth-child(even),

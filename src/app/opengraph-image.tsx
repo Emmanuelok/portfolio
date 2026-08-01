@@ -56,18 +56,14 @@ export default function OpenGraphImage() {
         <div
           style={{
             position: "absolute",
-            right: "48px",
-            top: "68px",
+            right: "70px",
+            top: "146px",
+            bottom: "90px",
+            width: "5px",
             display: "flex",
-            color: "rgba(89,97,255,0.22)",
-            fontSize: "430px",
-            fontWeight: 780,
-            lineHeight: 0.82,
-            letterSpacing: "-0.14em",
+            background: "rgba(89,97,255,0.72)",
           }}
-        >
-          X
-        </div>
+        />
 
         <div
           style={{
@@ -83,19 +79,20 @@ export default function OpenGraphImage() {
             style={{
               display: "flex",
               alignItems: "center",
-              letterSpacing: "-0.07em",
+              letterSpacing: "-0.045em",
               textTransform: "none",
               fontSize: "26px",
-              fontWeight: 720,
+              fontWeight: 680,
             }}
           >
             <span>king</span>
             <span
               style={{
                 display: "flex",
-                margin: "-12px -2px -10px",
+                margin: "0 1px",
                 color: "#5961ff",
-                fontSize: "48px",
+                fontSize: "25px",
+                fontWeight: 710,
                 lineHeight: 1,
               }}
             >
@@ -105,12 +102,13 @@ export default function OpenGraphImage() {
             <span
               style={{
                 display: "flex",
-                marginLeft: "13px",
+                marginLeft: "16px",
+                paddingLeft: "16px",
+                borderLeft: "1px solid rgba(244,241,233,0.28)",
                 color: "rgba(244,241,233,0.7)",
-                fontSize: "12px",
+                fontSize: "11px",
                 fontWeight: 650,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
+                letterSpacing: "0.08em",
               }}
             >
               &amp; Co

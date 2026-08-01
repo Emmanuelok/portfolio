@@ -1,19 +1,20 @@
-"use client";
-
-import { m, useReducedMotion } from "motion/react";
-
 type KingxfordMarkProps = Readonly<{
   className?: string;
   decorative?: boolean;
   label?: string;
+  monochrome?: boolean;
 }>;
 
+/**
+ * A compact K monogram for favicons and places where the full wordmark cannot
+ * be used. The short blue terminal is an accent, not a second letterform.
+ */
 export function KingxfordMark({
   className,
   decorative = false,
-  label = "kingXford & Co X mark",
+  label = "kingXford & Co monogram",
+  monochrome = false,
 }: KingxfordMarkProps) {
-  const shouldReduceMotion = useReducedMotion();
   const rootClass = className
     ? `kingxford-mark ${className}`
     : "kingxford-mark";
@@ -21,7 +22,8 @@ export function KingxfordMark({
   return (
     <svg
       className={rootClass}
-      viewBox="0 0 48 48"
+      data-monochrome={monochrome ? "true" : "false"}
+      viewBox="0 0 40 40"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden={decorative || undefined}
       aria-label={decorative ? undefined : label}
@@ -29,28 +31,18 @@ export function KingxfordMark({
       focusable="false"
     >
       {!decorative && <title>{label}</title>}
-      <m.path
-        className="kingxford-mark__beam kingxford-mark__beam--back"
-        d="M4 9 9 4l35 35-5 5L4 9Z"
-        initial={shouldReduceMotion ? false : { scale: 0.15, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: shouldReduceMotion ? 0 : 0.55, ease: [0.16, 1, 0.3, 1] }}
-        style={{ transformBox: "fill-box", transformOrigin: "center" }}
+      <rect
+        className="kingxford-mark__frame"
+        x="2.5"
+        y="2.5"
+        width="35"
+        height="35"
+        rx="8"
       />
-      <m.g
-        className="kingxford-mark__beam kingxford-mark__beam--front"
-        initial={shouldReduceMotion ? false : { scale: 0.15, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{
-          duration: shouldReduceMotion ? 0 : 0.55,
-          delay: shouldReduceMotion ? 0 : 0.08,
-          ease: [0.16, 1, 0.3, 1],
-        }}
-        style={{ transformBox: "fill-box", transformOrigin: "center" }}
-      >
-        <path d="M39 4 44 9 28.6 24.4l-5-5L39 4Z" />
-        <path d="m19.4 23.6 5 5L9 44l-5-5 15.4-15.4Z" />
-      </m.g>
+      <path className="kingxford-mark__letter" d="M13 10.5v19" />
+      <path className="kingxford-mark__letter" d="m14.25 20.25 12.5-9.75" />
+      <path className="kingxford-mark__letter" d="m19 16.55 8.75 12.95" />
+      <path className="kingxford-mark__accent" d="m24 23.95 3.75 5.55" />
     </svg>
   );
 }
@@ -58,11 +50,17 @@ export function KingxfordMark({
 type KingxfordLogoProps = Readonly<{
   className?: string;
   decorative?: boolean;
+  monochrome?: boolean;
 }>;
 
+/**
+ * The primary corporate wordmark. Its X stays on the same baseline and at the
+ * same optical size as the surrounding letters; colour is the only emphasis.
+ */
 export function KingxfordLogo({
   className,
   decorative = false,
+  monochrome = false,
 }: KingxfordLogoProps) {
   const rootClass = className
     ? `kingxford-logo ${className}`
@@ -71,15 +69,15 @@ export function KingxfordLogo({
   return (
     <span
       className={rootClass}
+      data-monochrome={monochrome ? "true" : "false"}
       aria-label={decorative ? undefined : "kingXford & Co"}
       role={decorative ? undefined : "img"}
     >
-      <span aria-hidden="true">king</span>
-      <KingxfordMark
-        className="kingxford-logo__x"
-        decorative
-      />
-      <span aria-hidden="true">ford</span>
+      <span className="kingxford-logo__wordmark" aria-hidden="true">
+        <span>king</span>
+        <span className="kingxford-logo__x">X</span>
+        <span>ford</span>
+      </span>
       <span className="kingxford-logo__co" aria-hidden="true">
         &amp; Co
       </span>

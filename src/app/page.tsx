@@ -79,9 +79,9 @@ export default function HomePage() {
         aria-labelledby="kx-practice-title"
       >
         <div className="kx-practice__architecture" aria-hidden="true">
-          <span>K</span>
-          <span>X</span>
-          <span>F</span>
+          <span>Evidence</span>
+          <span>Intelligence</span>
+          <span>Development</span>
         </div>
         <div className="kx-practice__copy">
           <Reveal>

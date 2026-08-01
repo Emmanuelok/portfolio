@@ -14,6 +14,7 @@ export type ProjectChapter = Readonly<{
 
 export type Project = Readonly<{
   slug: string;
+  status: "published" | "unreleased";
   title: string;
   eyebrow: string;
   year: string;
@@ -33,9 +34,10 @@ export type Project = Readonly<{
   related: readonly string[];
 }>;
 
-export const projects: readonly Project[] = [
+const projectArchive: readonly Project[] = [
   {
     slug: "veridanth",
+    status: "published",
     title: "Veridanth",
     eyebrow: "Intelligent consultancy · Connected tools",
     year: "2026",
@@ -43,9 +45,9 @@ export const projects: readonly Project[] = [
     summary:
       "A connected consultancy and digital-tools platform that moves ambitious work from one brief to the right workflow, specialist, and deliverable.",
     statement: "One brief. The right tools and team already in motion.",
-    cover: "/work/veridanth-evidence-v2.webp",
+    cover: "/work/veridanth-product-evidence-v3.webp",
     coverAlt:
-      "Editorial composite preserving the live Veridanth Studio interface within a botanical and mineral routing lattice; the surrounding imagery is illustrative.",
+      "Editorial arrangement made only from authentic Veridanth interface captures, showing the live navigation, proposition, and co-pilot environment.",
     accent: "#6657e8",
     featured: true,
     role: [
@@ -85,10 +87,11 @@ export const projects: readonly Project[] = [
           "Intelligent assistance accelerates the work while specialist ownership, review, and handoff remain explicit throughout the project.",
       },
     ],
-    related: ["aceplore", "psyche-atlas"],
+    related: ["psyche-atlas", "value-m"],
   },
   {
     slug: "psyche-atlas",
+    status: "published",
     title: "Psyche Atlas",
     eyebrow: "Personality assessment · Reflective intelligence",
     year: "2026",
@@ -97,9 +100,9 @@ export const projects: readonly Project[] = [
       "A privacy-minded self-reflection platform that turns a deep, source-referenced assessment library into a guided, searchable experience with growth-oriented reporting.",
     statement:
       "A map for reflection—structured, personal, and careful about what a test can and cannot say.",
-    cover: "/work/psyche-atlas-evidence-v2.webp",
+    cover: "/work/psyche-atlas-product-evidence-v3.webp",
     coverAlt:
-      "Editorial composite preserving a live Psyche Atlas personality-results interface within layered cartographic forms; the surrounding imagery is illustrative.",
+      "Authentic Psyche Atlas interface showing the research-led assessment proposition and guided starting points.",
     accent: "#c6934e",
     featured: true,
     role: [
@@ -139,10 +142,11 @@ export const projects: readonly Project[] = [
           "The product stays useful and personal while explicitly distinguishing self-understanding from medical or clinical assessment.",
       },
     ],
-    related: ["veridanth", "elkings-college"],
+    related: ["veridanth", "grandmaster"],
   },
   {
     slug: "ccai-global",
+    status: "unreleased",
     title: "CCAI Global",
     eyebrow: "Corruption analytics + ontology",
     year: "2026",
@@ -196,6 +200,7 @@ export const projects: readonly Project[] = [
   },
   {
     slug: "aceplore",
+    status: "unreleased",
     title: "Aceplore",
     eyebrow: "Digital tools for real work",
     year: "2026",
@@ -249,6 +254,7 @@ export const projects: readonly Project[] = [
   },
   {
     slug: "grandmaster",
+    status: "published",
     title: "GrandMaster",
     eyebrow: "AI game centre · Strategy and learning",
     year: "2026",
@@ -256,9 +262,9 @@ export const projects: readonly Project[] = [
     summary:
       "An intelligent multi-game strategy centre combining adaptive opponents, playable 2D and 3D boards, plain-language move coaching, and post-game review.",
     statement: "Every move becomes a lesson, not just a result.",
-    cover: "/work/grandmaster-evidence-v2.webp",
+    cover: "/work/grandmaster-product-evidence-v3.webp",
     coverAlt:
-      "Editorial composite preserving the live GrandMaster chess and tutor interface within an exploded strategy tree; the surrounding imagery is illustrative.",
+      "Authentic GrandMaster product interface showing its strategy-game catalogue, tutor proposition, and learning navigation.",
     accent: "#7758ff",
     featured: true,
     role: [
@@ -298,10 +304,11 @@ export const projects: readonly Project[] = [
           "Post-game review connects accuracy, evaluation, and the move sequence, making improvement visible beyond the final result.",
       },
     ],
-    related: ["psyche-atlas", "aceplore"],
+    related: ["psyche-atlas", "veridanth"],
   },
   {
     slug: "nkosuo",
+    status: "unreleased",
     title: "Nkosuo",
     eyebrow: "Market intelligence · Evidence-led investing",
     year: "2026",
@@ -354,6 +361,7 @@ export const projects: readonly Project[] = [
   },
   {
     slug: "elkings-college",
+    status: "unreleased",
     title: "Elkings College",
     eyebrow: "Digital campus",
     year: "2026",
@@ -407,6 +415,7 @@ export const projects: readonly Project[] = [
   },
   {
     slug: "value-m",
+    status: "published",
     title: "Value-M",
     eyebrow: "Value management intelligence",
     year: "2026",
@@ -414,9 +423,9 @@ export const projects: readonly Project[] = [
     summary:
       "A unified workspace for the complete SAVE International Job Plan, held together by one value graph and an explainable agent layer.",
     statement: "One study. One value thread. Every decision connected.",
-    cover: "/work/value-m-evidence-v2.webp",
+    cover: "/work/value-m-real.webp",
     coverAlt:
-      "Editorial composite preserving the live Value-M dashboard within a physical value-thread and decision-gate system; the surrounding imagery is illustrative.",
+      "Documentary photograph of architectural plans, material samples, and a scale model used as contextual imagery for evidence-led value decisions.",
     accent: "#315dff",
     featured: false,
     role: [
@@ -456,9 +465,18 @@ export const projects: readonly Project[] = [
           "The intelligence layer surfaces assessments and next moves while approval gates preserve human ownership of consequential changes.",
       },
     ],
-    related: ["veridanth", "ccai-global"],
+    related: ["veridanth", "grandmaster"],
   },
 ];
+
+/**
+ * The public project collection. Unreleased case studies remain in the archive
+ * above so they can be launched deliberately without leaking into navigation,
+ * search, related work, metadata, sitemaps, or generated routes.
+ */
+export const projects: readonly Project[] = projectArchive.filter(
+  (project) => project.status === "published",
+);
 
 export const projectCategories: readonly ProjectCategory[] = Array.from(
   new Set(projects.flatMap((project) => project.categories)),

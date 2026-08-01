@@ -14,7 +14,6 @@ import {
 import { useRef, useState, useSyncExternalStore } from "react";
 
 import { KingxfordLogo } from "@/components/KingxfordLogo";
-import { LoomCanvas } from "@/components/LoomCanvas";
 
 type Proof = Readonly<{
   src: string;
@@ -36,13 +35,13 @@ type CinematicChapter = Readonly<{
   proofs?: readonly Proof[];
 }>;
 
-const capabilityReactorImage =
-  "/motion/kingxford-capability-reactor-v2.webp";
-const signalObservatoryImage =
-  "/motion/kingxford-signal-observatory-v2.webp";
-const researchLabImage = "/motion/kingxford-research-lab-v2.webp";
-const governanceGateImage =
-  "/motion/kingxford-governance-gate-v2.webp";
+const missionImage = "/motion/kingxford-prototype-documentary.webp";
+const intelligenceImage = "/work/value-m-real.webp";
+const researchLabImage = "/motion/kingxford-lab-documentary.webp";
+const responsibleAiImage = "/motion/kingxford-reality-studio.webp";
+const collaborationImage =
+  "/motion/kingxford-strategy-workshop-documentary.webp";
+const abundantFutureImage = "/motion/kingxford-reality-arrival.webp";
 
 const subscribeToHydration = () => () => {};
 
@@ -84,9 +83,9 @@ const chapters: readonly CinematicChapter[] = [
     title: "Prepare for sustainable abundance.",
     body:
       "We research, develop, and apply responsible AI to help people and institutions solve complex problems and build ambitious ideas, projects, and systems for an abundant future.",
-    image: capabilityReactorImage,
+    image: missionImage,
     imageAlt:
-      "Conceptual editorial image of an engineered X-shaped capability reactor linking clean water, energy, mobility, research, and productive infrastructure",
+      "Documentary photograph of a design professional studying a physical model at a working desk",
     evidence: "Mission / Sustainable abundance",
   },
   {
@@ -98,18 +97,18 @@ const chapters: readonly CinematicChapter[] = [
     title: "See the system before choosing the move.",
     body:
       "We connect evidence, foresight, domain knowledge, and human judgement so complexity becomes a field of informed choices—not a reason to stand still.",
-    image: signalObservatoryImage,
+    image: intelligenceImage,
     imageAlt:
-      "Conceptual editorial image of an optical X-shaped signal observatory bringing maps, lenses, models, and evidence into focus",
+      "Documentary photograph of architectural plans, material samples, and a physical scale model used to evaluate a complex design",
     evidence: "Strategy / Systems intelligence",
     align: "end",
     proofs: [
       {
-        src: "/work/veridanth-evidence-v2.webp",
+        src: "/work/veridanth-product-evidence-v3.webp",
         label: "Veridanth / Practice",
       },
       {
-        src: "/work/grandmaster-evidence-v2.webp",
+        src: "/work/grandmaster-product-evidence-v3.webp",
         label: "GrandMaster / Learning",
       },
     ],
@@ -125,7 +124,7 @@ const chapters: readonly CinematicChapter[] = [
       "We investigate difficult questions, build prototypes, evaluate evidence, and translate useful findings into tools, policies, platforms, and ventures that can endure.",
     image: researchLabImage,
     imageAlt:
-      "Conceptual editorial image of a scientific laboratory with microscopy, materials testing, and analytical instruments arranged around an optical X",
+      "Documentary photograph of a researcher handling samples in a working laboratory",
     evidence: "Scientific inquiry / Applied R&D",
   },
   {
@@ -137,18 +136,18 @@ const chapters: readonly CinematicChapter[] = [
     title: "Build intelligence people can question and govern.",
     body:
       "We pursue AI that expands human agency, makes uncertainty visible, protects meaningful oversight, and is evaluated against the people and institutions it affects.",
-    image: governanceGateImage,
+    image: responsibleAiImage,
     imageAlt:
-      "Conceptual editorial image of a physical governance gate making the evidence, review, and oversight of intelligent systems visible",
+      "Documentary photograph of a production studio where human direction, review, and technical craft remain visible",
     evidence: "Human agency / Responsible deployment",
     align: "end",
     proofs: [
       {
-        src: "/work/ccai-global-evidence-v2.webp",
-        label: "CCAI / Knowledge",
+        src: "/work/value-m-real.webp",
+        label: "Value-M / Governance",
       },
       {
-        src: "/work/psyche-atlas-evidence-v2.webp",
+        src: "/work/psyche-atlas-product-evidence-v3.webp",
         label: "Psyche Atlas / Reflection",
       },
     ],
@@ -162,17 +161,20 @@ const chapters: readonly CinematicChapter[] = [
     title: "The future is built with others.",
     body:
       "We create the conditions for aligned contributors to combine insight, commitment, and capability around consequential work.",
-    image: signalObservatoryImage,
+    image: collaborationImage,
     imageAlt:
-      "Conceptual editorial image of a signal observatory where multiple lenses and evidence streams converge through an architectural X",
+      "Documentary photograph of a professional evaluating a physical model and source materials in a working studio",
     evidence: "Collaboration / Shared capability",
     proofs: [
-      { src: "/work/veridanth-evidence-v2.webp", label: "Studio" },
+      { src: "/work/veridanth-product-evidence-v3.webp", label: "Studio" },
       {
-        src: "/motion/kingxford-decision-theatre-v2.webp",
+        src: "/motion/kingxford-strategy-workshop-documentary.webp",
         label: "Living Room",
       },
-      { src: "/work/psyche-atlas-evidence-v2.webp", label: "Lab" },
+      {
+        src: "/work/psyche-atlas-product-evidence-v3.webp",
+        label: "Lab",
+      },
     ],
   },
   {
@@ -184,9 +186,9 @@ const chapters: readonly CinematicChapter[] = [
     title: "Make progress durable—and widely useful.",
     body:
       "We prepare people and institutions to turn expanding intelligence, knowledge, and productive capacity into long-term human and ecological value.",
-    image: capabilityReactorImage,
+    image: abundantFutureImage,
     imageAlt:
-      "Conceptual editorial image of an engineered X connecting water, energy, mobility, research, and productive systems for an abundant future",
+      "Documentary photograph of a contemporary public structure opening toward daylight and the landscape beyond",
     evidence: "Craft signature / Complex ideas. Unforgettable form.",
     align: "end",
   },
@@ -407,17 +409,6 @@ export function KingxfordCinematic() {
     [0, 0.045, 0.12],
     [1, 0.72, 0],
   );
-  const xScale = useTransform(
-    scrollYProgress,
-    [0, 0.1, 0.88, 1],
-    [0.04, 1, 1, 0.2],
-  );
-  const xRotate = useTransform(
-    scrollYProgress,
-    [0, 0.5, 1],
-    [-5, 0, 5],
-  );
-
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
     const chapterIndex = chapters.findLastIndex(
       (chapter) => progress >= chapter.range[0],
@@ -456,19 +447,9 @@ export function KingxfordCinematic() {
           className="kx-cinematic__loom"
           style={{ opacity: loomOpacity }}
           aria-hidden="true"
-        >
-          <LoomCanvas />
-        </m.div>
+        />
         <div className="kx-cinematic__veil" aria-hidden="true" />
         <div className="kx-cinematic__grain" aria-hidden="true" />
-        <m.div
-          className="kx-cinematic__x"
-          style={{ scale: xScale, rotate: xRotate }}
-          aria-hidden="true"
-        >
-          <span />
-          <span />
-        </m.div>
 
         <div className="kx-cinematic__masthead">
           <KingxfordLogo

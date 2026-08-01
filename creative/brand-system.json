@@ -30,21 +30,22 @@
   },
   "identity": {
     "concept": {
-      "name": "X-Frame",
-      "thesis": "The dominant X is a structural crossing: intelligence, R&D, responsible AI, aligned contributors, and three delivery worlds meet inside one kingXford & Co standard.",
-      "dominant_feeling": "energized confidence",
-      "memorable_mechanism": "an oversized electric-ultramarine X assembled from two architectural beams with a clear over-under seam",
+      "name": "Documented Practice",
+      "thesis": "A restrained corporate wordmark, authentic product evidence, and grounded documentary imagery give kingXford & Co authority without turning the identity or imagery into spectacle.",
+      "dominant_feeling": "measured authority",
+      "memorable_mechanism": "the X remains on the same baseline and at the same optical scale as the surrounding letters, with colour as its only emphasis; a compact K monogram serves icon contexts",
       "recognition_signals": [
-        "dominant X-Frame symbol",
+        "restrained kingXford & Co wordmark",
+        "compact framed K monogram",
         "bone-and-graphite editorial fields",
-        "ultramarine route",
+        "ultramarine used for navigation and selective emphasis",
         "Newsreader and Manrope contrast",
-        "licensed documentary photography and disclosed Operational Realism concept imagery"
+        "authentic public-product captures and source-recorded documentary photography"
       ]
     },
     "logo_assets": [
       {
-        "id": "logo-x-frame",
+        "id": "logo-k-monogram",
         "path": "src/app/icon.svg",
         "format": "svg",
         "status": "original implementation asset; legal and trademark review not performed"
@@ -61,8 +62,9 @@
       ],
       "prohibited_uses": [
         "Do not rotate, skew, outline, or add glow.",
-        "Do not make the surrounding letters compete with the dominant X.",
-        "Do not replace the controlled SVG geometry with generated lettering.",
+        "Do not enlarge, raise, isolate, or turn the X into an architectural emblem.",
+        "Do not emphasize the X with scale, weight, animation, or geometry; colour is sufficient.",
+        "Do not replace the restrained wordmark or K monogram with generated lettering.",
         "Do not place over a detailed image without a solid contrast field.",
         "Do not imply trademark clearance or exclusivity."
       ]
@@ -249,15 +251,16 @@
     },
     "imagery": {
       "subjects": [
-        "Licensed documentary production and architecture environments when their source and restrictions are recorded.",
-        "Photoreal conceptual editorial imagery for projects, strategy, research, and Media when its synthetic status is disclosed.",
-        "Fictional adult professionals shown in generated scenes only as illustrative participants, never as real kingXford & Co staff, clients, study participants, or endorsers."
+        "Authentic public-product interface captures for published digital work.",
+        "Licensed documentary production, design, architecture, and laboratory environments when source, restrictions, dimensions, and checksums are recorded.",
+        "Adults visible in documentary sources are contextual subjects only, never kingXford & Co staff, clients, study participants, or endorsers."
       ],
       "composition": [
         "3:2 editorial landscape",
-        "clear photographic focal subject with all critical action inside the central crop-safe region",
+        "preserve authentic product hierarchy and readable interface evidence inside the central crop-safe region",
+        "retain a clear documentary focal subject without changing the meaning of the source",
         "deliberate negative space for adjacent HTML type",
-        "the X may emerge from physical scene geometry in conceptual imagery; do not fabricate it into licensed documentary photographs"
+        "do not fabricate brand geometry, props, people, screens, or environments into product captures or documentary photographs"
       ],
       "camera": [
         "grounded eye-level or tabletop view",
@@ -266,10 +269,9 @@
       ],
       "lighting": [
         "natural or documented production light for licensed photographs",
-        "physically plausible editorial light for disclosed conceptual imagery",
         "legible material shadows and highlights",
         "restrained grade that preserves photographic truth",
-        "no unexplained glow or synthetic relighting applied to documentary sources"
+        "no unexplained glow, synthetic relighting, or generative fill applied to documentary sources"
       ],
       "color_treatment": [
         "warm-bone and graphite foundation",
@@ -282,23 +284,24 @@
         "cyberpunk interfaces",
         "glowing HUD graphics",
         "fabricated documentary evidence",
-        "synthetic people, environments, facilities, interfaces, or outcomes presented as real",
-        "generated readable text, interface states, metrics, testimonials, or product claims",
+        "generated, synthetic, or hybrid imagery on active product, cinematic, world, or Media surfaces",
+        "invented readable text, interface states, metrics, testimonials, citations, or product claims",
         "stereotyped or exoticized cultural styling"
       ],
-      "synthetic_media_policy": [
-        "Photoreal conceptual editorial imagery is allowed when it materially improves communication and is clearly disclosed.",
-        "Synthetic imagery must never be presented as documentary evidence, a measured outcome, literal product UI, a real kingXford & Co facility, or a real employee, client, participant, or endorsement.",
-        "Use factual adjacent HTML, purpose-based alt text, and a visible conceptual-editorial caption where confusion is reasonably possible.",
-        "Record the generation tool, date, prompt direction, material edits, restrictions, and final checksum in creative/rights-provenance.csv.",
-        "Preserve the rule against fabricated readable text, interfaces, metrics, testimonials, citations, or claims inside generated imagery."
+      "authentic_media_policy": [
+        "Every active project image is either a mechanical crop or composition of authentic public-product captures, or a source-recorded documentary photograph.",
+        "Mechanical product compositions may crop, scale, frame, and place authentic captures on neutral fields but may not invent, rewrite, or synthesize interface content.",
+        "Documentary photographs remain contextual and must not be described as a kingXford & Co facility, employee, engagement, experiment, or measured outcome.",
+        "Use factual adjacent HTML, purpose-based alt text, and a contextual documentary caption where confusion is reasonably possible.",
+        "Record source, capture or edit date, material edits, restrictions, dimensions, release state, and final checksum in creative/rights-provenance.csv.",
+        "Previously generated and hybrid assets remain inactive historical records and may not be restored to active use without explicit direction and a new review."
       ]
     },
     "illustration_and_icons": {
       "construction": [
         "2px optical stroke at 24px",
         "open geometry",
-        "architectural over-under intersection used only for the X-Frame symbol"
+        "simple orthographic geometry; the compact K monogram uses one restrained ultramarine terminal"
       ],
       "line_weight": "1.75–2 CSS px at the 24px reference size",
       "perspective": "orthographic for interface icons; shallow physical perspective for system diagrams",
@@ -313,8 +316,8 @@
       "principles": [
         "Reveal relationship, not decoration.",
         "State changes begin immediately and remain interruptible.",
-        "The X may assemble once as orientation, then settle.",
-        "Scroll motion crossfades licensed environments and disclosed conceptual editorial imagery without scrubbing a short looping film.",
+        "The wordmark remains stable; identity letters do not assemble as spectacle.",
+        "Scroll motion crossfades authentic public-product captures and licensed documentary environments without scrubbing a short looping film.",
         "Content never waits for a cinematic intro.",
         "Hover and focus communicate the same hierarchy."
       ],
@@ -427,20 +430,23 @@
     "approval_rules": [
       "Project claims, external URLs, and contact details require owner verification.",
       "A production release requires build, route, keyboard, responsive, and outbound-link checks.",
-      "Photography and synthetic-image provenance must remain attached to every active cover and cinematic plate.",
-      "Synthetic editorial imagery requires clear disclosure and may not be used as documentary evidence, literal product UI, a measured outcome, or a real-person or facility claim.",
+      "Public-product capture and documentary-photo provenance must remain attached to every active cover, cinematic plate, world card, and Media image.",
+      "Generated and hybrid images are inactive historical assets and fail the active-release imagery gate.",
+      "CCAI Global, Aceplore, Nkosuo, and Elkings College remain unreleased until a verified status change is recorded.",
       "Formal accessibility conformance, copyright, font, and trademark clearance require qualified review; none is claimed here."
     ],
     "asset_sources_and_licenses": [
-      "Five project covers, four strategy-room and scientific-lab plates, and one Media cover were generated with Imagegen on 2026-07-30 and are recorded as disclosed conceptual editorial imagery in creative/rights-provenance.csv.",
-      "The Sustainable Abundance for All Media cover was generated with Imagegen on 2026-07-31 and is recorded as disclosed conceptual editorial imagery in creative/rights-provenance.csv.",
-      "Three project covers and three surviving arrival and Studio spatial plates are licensed Unsplash photographs with source pages and restrictions recorded in creative/rights-provenance.csv.",
-      "X-Frame icon and wordmark system: original vector geometry created for this repository on 2026-07-29.",
+      "Veridanth, Psyche Atlas, and GrandMaster covers are mechanical 2400x1600 compositions of authentic public-product captures; no generated field or invented interface content is present.",
+      "Value-M and the neutral prototype-workshop documentary asset are licensed from Jonathan Borba and GN Group through Unsplash; source pages and contextual restrictions are recorded. The older aceplore-real path is inactive history.",
+      "Arrival, Studio, and Studio portrait photographs are licensed from Declan Sun, Joshua Wann, and Clay Banks through Unsplash.",
+      "The laboratory landscape, laboratory portrait, and new laboratory crop restore Nathan Rimoux / Unsplash provenance; the Living Room workshop portrait is a crop of the GN Group source.",
+      "The restrained wordmark and framed K monogram are original repository implementations updated on 2026-08-01; legal and trademark review has not been performed.",
+      "Generated and hybrid assets from prior releases remain in rights-provenance.csv with inactive_historical release state.",
       "Manrope and Newsreader: loaded through @fontsource packages; license metadata must be preserved and verified before redistribution.",
       "Lucide interface icons: package dependency; retain its license and notices."
     ],
-    "version": "1.2.0",
-    "updated_at": "2026-07-31",
+    "version": "2.0.0",
+    "updated_at": "2026-08-01",
     "legal_review": "not performed",
     "accessibility_conformance_audit": "not performed"
   }

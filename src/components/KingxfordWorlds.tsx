@@ -43,7 +43,7 @@ const worlds: readonly World[] = [
       "Web apps & digital infrastructure",
       "Communication & visual systems",
     ],
-    image: "/motion/kingxford-production-spine-v2.webp",
+    image: "/motion/kingxford-reality-studio-portrait.webp",
     href: "/work",
     cta: "Enter Studio",
   },
@@ -64,7 +64,7 @@ const worlds: readonly World[] = [
       "Venture & project development",
       "Cross-disciplinary coalitions",
     ],
-    image: "/motion/kingxford-decision-theatre-v2.webp",
+    image: "/motion/kingxford-strategy-workshop-documentary.webp",
     href: "/contact?world=living-room",
     cta: "Bring something different",
   },
@@ -85,7 +85,7 @@ const worlds: readonly World[] = [
       "Evidence synthesis & translation",
       "Scientific communication",
     ],
-    image: "/motion/kingxford-instrument-corridor-v2.webp",
+    image: "/motion/kingxford-reality-lab-portrait.webp",
     href: "/lab",
     cta: "Enter Lab",
   },
@@ -232,8 +232,6 @@ export function KingxfordWorlds() {
             </Link>
           </article>
         ))}
-        <span className="worlds__x worlds__x--one" aria-hidden="true" />
-        <span className="worlds__x worlds__x--two" aria-hidden="true" />
       </div>
     </section>
   );

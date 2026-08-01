@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <title>kingXford &amp; Co X mark</title>
-  <rect width="128" height="128" rx="24" fill="#09090B"/>
-  <path d="M21 32 32 21l75 75-11 11L21 32Z" fill="#5961FF"/>
-  <path d="m96 21 11 11-33 33-11-11 33-33ZM54 63l11 11-33 33-11-11 33-33Z" fill="#F3EFE5"/>
-  <path d="M10 10h108v108H10z" fill="none" stroke="#F3EFE5" stroke-opacity=".2" stroke-width="2"/>
+  <title>kingXford &amp; Co monogram</title>
+  <rect width="128" height="128" rx="27" fill="#0B0B0E"/>
+  <rect x="10" y="10" width="108" height="108" rx="21" fill="none" stroke="#F3EFE5" stroke-opacity=".18" stroke-width="3"/>
+  <path d="M43 34v60M47 65 83 34M61 53l26 41" fill="none" stroke="#F3EFE5" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="m76 77 11 17" fill="none" stroke="#7780FF" stroke-width="9" stroke-linecap="square"/>
 </svg>

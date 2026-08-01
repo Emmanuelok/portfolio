@@ -10,7 +10,7 @@ objective:
   audience_change:
     know: "kingXford & Co builds intelligence, evidence, responsible AI, and durable systems that expand human and institutional capability."
     feel: "Oriented, challenged, and confident that difficult work can become a disciplined programme of action."
-    remember: "Prepare for sustainable abundance—the mission carried through the dominant X connecting Studio, the Living Room, and Lab."
+    remember: "Prepare for sustainable abundance—the mission made credible through published products, documentary environments, and three clearly named delivery worlds."
     do: "Explore the evidence, evaluate relevant work, and bring a consequential problem or project into collaboration."
   success_metrics:
     - "A visitor can identify intelligence, research and development, responsible AI, complex-problem delivery, and sustainable abundance as the company's leading mission from the first screen."
@@ -23,9 +23,9 @@ objective:
     - "The site reads as a generic neon, glass, or template portfolio."
     - "Visual spectacle obscures project names, descriptions, navigation, or controls."
     - "A project, award, service, client result, or deployment is represented without evidence."
-    - "Context photography is presented as literal evidence from a represented client or research project."
-    - "Photoreal conceptual editorial imagery is left undisclosed or presented as documentary evidence, a measured outcome, literal product UI, a real facility, or a real person."
-    - "Generated imagery contains fabricated readable text, interface states, metrics, testimonials, citations, or product claims."
+    - "A contextual documentary photograph is presented as evidence from a represented client, product workflow, research project, or kingXford & Co facility."
+    - "A generated or hybrid image appears on an active product, cinematic, world, or Media surface."
+    - "A mechanical product composite alters, invents, or obscures the meaning of the authentic captured interface."
     - "Core content or navigation depends on hover, fine pointer accuracy, or uninterrupted motion."
 
 audience:
@@ -37,7 +37,7 @@ audience:
   objections:
     - "A broad practice may feel unfocused."
     - "Highly expressive interfaces can become difficult to navigate."
-    - "Conceptual imagery can be mistaken for literal product screenshots."
+    - "Contextual documentary photography can be mistaken for evidence of a specific kingXford & Co engagement."
   regions:
     - "Global"
   languages:
@@ -53,10 +53,10 @@ audience:
     - "Minimum 44px touch targets for primary controls"
 
 message:
-  governing_idea: "X-Frame: intelligence, research and development, responsible AI, and aligned investment cross inside one company preparing for sustainable abundance."
+  governing_idea: "Documented Practice: intelligence, research and development, responsible AI, and aligned investment are shown through authentic products, credible environments, and plainly stated project status."
   single_minded_proposition: "kingXford & Co helps people and institutions solve complex problems and develop ambitious ideas, projects, and systems into durable capability."
   proof_points:
-    - "Eight named portfolio case studies spanning connected consultancy, reflective learning, strategy games, education, research integrity, finance, productivity, and value management."
+    - "Four published projects—Veridanth, Psyche Atlas, GrandMaster, and Value-M—supported by authentic product or process imagery; CCAI Global, Aceplore, Nkosuo, and Elkings College are clearly marked unreleased."
     - "A kingXford & Co Media index with How to Get Ahead in the AI Era and Sustainable Abundance for All, each grounded by explicit institutional research notes and an optional audio architecture."
     - "Sustainable Abundance for All includes a non-additive capability dashboard, directly labelled comparisons, an evidence-register table, source links, interpretation boundaries, and an original decision framework that is explicitly not presented as a validated causal model or universal index."
     - "Functional case-study and Media routes, project discovery, theme controls, and an accessible command palette in the implemented frontend."
@@ -75,9 +75,9 @@ message:
     - "kingXford & Co Lab"
     - "Contact"
   prohibited_implications:
-    - "Do not imply that contextual licensed photographs document the represented product, commission, or study."
-    - "Do not imply that synthetic conceptual editorial imagery documents a real product interface, person, facility, commission, study, or measured outcome."
-    - "Do not imply that every represented project is currently live unless its destination has been verified."
+    - "Do not imply that contextual licensed photographs document the represented product, commission, study, facility, or staff."
+    - "Do not introduce generated, synthetic, or hybrid imagery on an active release surface."
+    - "Do not present CCAI Global, Aceplore, Nkosuo, or Elkings College as released work until their status is explicitly changed and verified."
     - "Do not imply legal clearance, trademark clearance, formal accessibility conformance, or third-party endorsement."
     - "Do not invent client outcomes, user counts, awards, testimonials, or performance statistics."
   call_to_action: "Build an abundant future"
@@ -96,30 +96,24 @@ brand:
     - "long-horizon"
   non_negotiables:
     - "Graphite, warm-bone, and electric-ultramarine are functional roles, not decoration."
-    - "The X is dominant in the identity and acts as a structural crossing, not decorative lettering."
+    - "The primary identity is a restrained kingXford & Co wordmark; the X stays on the same baseline and optical scale as the surrounding letters, with colour as its only emphasis."
     - "Editorial hierarchy remains legible beneath all motion and texture."
-    - "Photoreal conceptual editorial imagery is allowed only when clearly disclosed and never presented as documentary evidence, a measured outcome, or literal product UI."
-    - "Contextual licensed photographs never pretend to be project evidence."
+    - "Active imagery uses authentic public-product captures or source-recorded documentary photography; generated and hybrid imagery remains inactive history only."
+    - "Contextual licensed photographs never pretend to be project evidence, a kingXford & Co facility, or a measured outcome."
     - "Every interactive treatment has a reduced-motion and keyboard-accessible equivalent."
   visual_assets:
     - "src/app/icon.svg"
-    - "public/work/veridanth-evidence-v2.webp"
-    - "public/work/psyche-atlas-evidence-v2.webp"
-    - "public/work/ccai-global-evidence-v2.webp"
-    - "public/work/aceplore-evidence-v2.webp"
-    - "public/work/grandmaster-evidence-v2.webp"
-    - "public/work/nkosuo-evidence-v2.webp"
-    - "public/work/elkings-college-evidence-v2.webp"
-    - "public/work/value-m-evidence-v2.webp"
-    - "public/motion/kingxford-capability-reactor-v2.webp"
-    - "public/motion/kingxford-signal-observatory-v2.webp"
-    - "public/motion/kingxford-research-lab-v2.webp"
-    - "public/motion/kingxford-governance-gate-v2.webp"
-    - "public/motion/kingxford-production-spine-v2.webp"
-    - "public/motion/kingxford-decision-theatre-v2.webp"
-    - "public/motion/kingxford-instrument-corridor-v2.webp"
-    - "public/media/ai-verification-chain-v2.webp"
-    - "public/media/sustainable-abundance-capability-section-v2.webp"
+    - "public/work/veridanth-product-evidence-v3.webp"
+    - "public/work/psyche-atlas-product-evidence-v3.webp"
+    - "public/work/grandmaster-product-evidence-v3.webp"
+    - "public/work/value-m-real.webp"
+    - "public/motion/kingxford-prototype-documentary.webp"
+    - "public/motion/kingxford-lab-documentary.webp"
+    - "public/motion/kingxford-reality-studio.webp"
+    - "public/motion/kingxford-reality-arrival.webp"
+    - "public/motion/kingxford-reality-studio-portrait.webp"
+    - "public/motion/kingxford-strategy-workshop-documentary.webp"
+    - "public/motion/kingxford-reality-lab-portrait.webp"
   verbal_rules:
     - "Lead with what the work changes, then explain how it was made."
     - "Use concrete nouns and active verbs."
@@ -134,34 +128,34 @@ brand:
 
 world:
   characters:
-    - "Active editorial imagery is object-, interface-, instrument-, and system-led; it does not depict people."
-    - "Authentic interface fragments remain pixel-accurate evidence layers inside clearly disclosed generated editorial fields."
+    - "People appear only in source-recorded documentary photographs; they are never described as kingXford & Co staff, clients, participants, or endorsers."
+    - "Published product imagery is built only from authentic public interface captures using mechanical crops, framing, and neutral layout fields."
   products:
-    - "Eight portfolio projects represented by five disclosed conceptual editorial covers, three licensed contextual photographs, factual HTML case-study content, and verified outbound links where available."
+    - "Four published portfolio projects represented by three authentic product-capture composites and one licensed process photograph."
+    - "Four additional case studies—CCAI Global, Aceplore, Nkosuo, and Elkings College—remain explicitly unreleased and are excluded from published-product proof."
     - "kingXford & Co Media represented by an index, two complete evidence-led articles, cited research notes, and an optional audio surface with no narration shipped."
     - "The Sustainable Abundance briefing includes accessible figures, charts, and a responsive table whose official source years, units, uncertainty, and scenario boundaries remain adjacent to the values."
   props:
-    - "Architectural X-Frame"
-    - "Physical briefs, evidence planes, project models, assessment materials, research dossiers, and strategy boards"
-    - "Plausible production and scientific equipment"
+    - "Authentic product interfaces"
+    - "Physical plans, project models, laboratory equipment, production equipment, and workshop materials visible in licensed documentary sources"
   environments:
-    - "Real film and design studios"
-    - "Disclosed conceptual interdisciplinary strategy room for the Living Room"
-    - "Disclosed conceptual molecular and analytical laboratory for the Lab"
-    - "Real campus architecture"
+    - "Source-recorded film and design studios"
+    - "Source-recorded design workshop for the Living Room"
+    - "Source-recorded scientific laboratory for the Lab"
+    - "Source-recorded architecture and process environments used as contextual editorial imagery"
   time_period: "Contemporary"
-  geography: "Global company; every documentary source and synthetic generation record is documented in rights-provenance.csv."
-  season_weather_time: "Licensed photography retains documented light; conceptual imagery uses physically plausible contemporary editorial lighting."
+  geography: "Global company; every active documentary source and public-product capture is documented in rights-provenance.csv."
+  season_weather_time: "Documentary photography retains the source image's recorded light and colour response."
   continuity_anchors:
     - "Warm bone, graphite, and electric ultramarine"
-    - "One dominant X connecting the three worlds"
-    - "Licensed documentary context and clearly disclosed Operational Realism concept imagery"
+    - "A restrained kingXford & Co wordmark with a same-scale coloured X and compact K monogram"
+    - "Authentic public-product evidence and source-recorded documentary context"
     - "3:2 editorial compositions with deliberate negative space"
-    - "No watermarks, fabricated readable text, literal generated interfaces, or misleading documentary details"
+    - "No generated scenery, fabricated interface content, watermarks, or misleading documentary claims on active surfaces"
 
 creative_direction:
-  concept_title: "X-Frame"
-  premise: "An architectural X crosses licensed documentary environments and clearly disclosed conceptual editorial imagery, connecting kingXford & Co's intelligence, R&D, responsible-AI, investment, and delivery worlds without flattening their differences."
+  concept_title: "Documented Practice"
+  premise: "Authentic product interfaces and grounded documentary environments connect kingXford & Co's intelligence, R&D, responsible-AI, investment, and delivery worlds without inventing evidence or hiding release status."
   narrative_or_information_arc: "Sustainable-abundance mission → intelligence and R&D approach → responsible AI → aligned contributors represented by & Co → delivery worlds → evidence-rich Media and projects → clear collaboration path."
   emotional_arc:
     - "Immediate intrigue"
@@ -169,7 +163,7 @@ creative_direction:
     - "Increasing depth"
     - "Credible proof"
     - "Open invitation"
-  visual_thesis: "A warm editorial field is cut by an electric-blue structural X; licensed context and disclosed photoreal conceptual imagery make the company tangible without pretending to be documentary proof."
+  visual_thesis: "A restrained editorial system lets authentic interfaces, real materials, and documentary environments carry the visual authority; ultramarine provides navigation and emphasis rather than a dominant emblem."
   palette:
     - "Graphite #141617"
     - "Warm bone #F3EDDF"
@@ -184,9 +178,9 @@ creative_direction:
     - "photographic grain"
     - "subtle print grain"
   composition: "Editorial asymmetry, strong type/image counterpoint, long reading lines, alternating density, and intentional off-grid moments anchored by a stable content rail."
-  camera_and_lens: "Licensed sources retain grounded documentary perspective; generated concepts use plausible eye-level, tabletop, or editorial-wide viewpoints with crop-safe focal action."
-  lighting: "Preserve licensed environmental light; generated concepts use physically plausible editorial light, natural skin and material response, and no unexplained glow."
-  motion: "A long native-scroll sequence crossfades and pans licensed and disclosed conceptual WebP layers while the X assembles and settles; no short looping film or scroll-jacking."
+  camera_and_lens: "Licensed sources retain grounded documentary perspective; public-product captures retain the actual interface's perspective and hierarchy."
+  lighting: "Preserve source-recorded environmental light and natural material or skin response; do not synthesize or relight documentary sources."
+  motion: "A long native-scroll sequence crossfades and pans authentic product and documentary WebP layers; no short looping film, emblem assembly, or scroll-jacking."
   sound: "No audio is shipped in this release. Media supports optional future narration only after consent, editorial, and listening review under creative/narration-policy.md."
   typography: "Newsreader for expressive editorial display; Manrope for interface, labels, and body copy; system fallbacks remain legible."
   interaction: "Direct project exploration, theme control, command palette, meaningful hover/focus states, and native scrolling."
@@ -201,10 +195,10 @@ deliverables:
   master:
     - "Responsive Next.js portfolio source"
     - "Production Vercel deployment"
-    - "Eight project case-study experiences"
+    - "Four published project case-study experiences; four archived unreleased records remain excluded from navigation, search, metadata, sitemaps, and generated routes"
     - "kingXford & Co Media index and two long-form evidence-led articles"
     - "Accessible Sustainable Abundance evidence dashboard, comparisons, evidence register, and original design loop"
-    - "kingXford & Co X-Frame brand and interaction system"
+    - "kingXford & Co restrained wordmark, documentary-imagery, and interaction system"
   variants:
     - "Light, ink, and system-resolved themes"
     - "Mobile, intermediate, and wide responsive compositions"
@@ -239,12 +233,11 @@ deliverables:
 
 inputs:
   media:
-    - "Five photoreal conceptual project covers generated with Imagegen on 2026-07-30."
-    - "Four photoreal strategy-room and scientific-lab plates generated with Imagegen on 2026-07-30."
-    - "One photoreal conceptual Media cover generated with Imagegen on 2026-07-30."
-    - "One photoreal conceptual Sustainable Abundance Media cover generated with Imagegen on 2026-07-31."
-    - "Three licensed documentary project photographs."
-    - "Three licensed documentary arrival and Studio plates for the cinematic and world cards."
+    - "Three 2400x1600 mechanical composites of authentic public-product captures for Veridanth, Psyche Atlas, and GrandMaster."
+    - "Two 2400x1600 licensed documentary process photographs reused under neutral asset paths for Value-M, cinematic, and Media context."
+    - "Three source-recorded cinematic documentary plates for laboratory, production, and architectural context."
+    - "Three source-recorded portrait documentary crops for Studio, the Living Room workshop, and Lab."
+    - "Previously generated and hybrid assets remain in the repository only as inactive historical records and are not referenced by active release surfaces."
   audio:
     - "No narration asset shipped; optional future audio must follow creative/narration-policy.md."
   documents:
@@ -256,14 +249,14 @@ inputs:
 production:
   required_tools:
     - "GitHub"
-    - "Imagegen"
+    - "Authenticated public-product capture and mechanical image processing"
     - "Next.js"
     - "Vercel"
   fidelity: production
   budget_or_credit_limit: "Not specified"
   approval_gates:
     - "G0 brief"
-    - "G1 kingXford & Co X-Frame direction"
+    - "G1 kingXford & Co restrained wordmark and documentary-evidence direction"
     - "G2 representative project imagery"
     - "G3 brand, component, rights, and accessibility system"
     - "G4 functional local frontend"
@@ -277,7 +270,6 @@ production:
 rights_and_compliance:
   likeness_permissions:
     - "Licensed documentary photographs may contain adult subjects; release status is not independently verified and no endorsement is claimed."
-    - "Generated conceptual images contain fictional adults; no source likeness or real-person identity is intended, and no employment, client relationship, study participation, or endorsement is implied."
   licenses:
     - "Repository dependencies retain their own licenses."
     - "Manrope and Newsreader font-license metadata must remain available through their packages; legal review has not been performed."
@@ -286,9 +278,10 @@ rights_and_compliance:
   factual_claims:
     - "Project descriptions and live-link status require owner verification before release when not evidenced by the repository."
   required_disclosures:
-    - "Source or generation tool, date, prompt direction, material edit, editorial context, restrictions, and final checksum are recorded for every active image."
+    - "Public capture or documentary source, capture or edit date, material edit, editorial context, restrictions, dimensions, and final checksum are recorded for every active image."
     - "Context photographs are not represented as evidence from a client engagement, study, or product workflow."
-    - "Synthetic conceptual imagery is clearly identified and is never represented as documentary evidence, a measured outcome, literal product UI, a real facility, or a real person."
+    - "Generated and hybrid image records are retained as inactive history and may not be restored to an active surface without a new review and explicit direction."
+    - "CCAI Global, Aceplore, Nkosuo, and Elkings College remain labelled unreleased until status and destination are explicitly verified for publication."
   privacy_constraints:
     - "Do not publish private contact details, credentials, analytics identifiers, or non-public client information."
   unresolved_items:
@@ -301,8 +294,8 @@ assumptions:
   - "The authorized repository owner controls the operational source repository and authorizes this kingXford & Co implementation."
   - "Operational source and deployment identifiers remain in non-rendered release records only where technically necessary."
   - "The contact experience uses company-safe channels without exposing personal profiles, location, or private information."
-  - "Licensed contextual photography does not assert affiliation, participation, endorsement, or a documented project outcome."
-  - "Disclosed conceptual imagery does not assert a literal product interface, real facility, employee identity, participant, endorsement, or measured outcome."
+  - "Licensed contextual photography does not assert affiliation, participation, endorsement, a kingXford & Co facility, or a documented project outcome."
+  - "Authentic public-product captures document only the visible interface state at capture time; they do not independently establish product performance, ownership, endorsement, or measured outcomes."
 
 open_questions:
   - "Which single public email or form destination should be used if a direct contact address is later added?"

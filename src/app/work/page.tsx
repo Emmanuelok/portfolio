@@ -76,7 +76,7 @@ export default function WorkPage() {
           <p className="eyebrow">Evidence index</p>
           <h2 id="project-index-heading">Follow the problem into practice.</h2>
         </div>
-        <WorkGrid />
+        <WorkGrid items={projects} />
       </section>
 
       <Reveal className="page-cta">

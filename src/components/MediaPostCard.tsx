@@ -44,7 +44,7 @@ export function MediaPostCard({
             priority={priority}
             sizes="(max-width: 760px) 100vw, 88vw"
           />
-          <figcaption>Conceptual editorial image</figcaption>
+          <figcaption>{post.coverCaption}</figcaption>
         </figure>
 
         <div className="media-card__body">

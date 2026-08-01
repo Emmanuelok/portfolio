@@ -31,7 +31,7 @@
   "identity": {
     "concept": {
       "name": "Documented Practice",
-      "thesis": "A restrained corporate wordmark, authentic product evidence, and grounded documentary imagery give kingXford & Co authority without turning the identity or imagery into spectacle.",
+      "thesis": "A restrained corporate wordmark, two grounded documentary opening plates, and a deliberately varied system of disclosed conceptual imagery give kingXford & Co authority without turning the identity or every scene into the same visual treatment.",
       "dominant_feeling": "measured authority",
       "memorable_mechanism": "the X remains on the same baseline and at the same optical scale as the surrounding letters, with colour as its only emphasis; a compact K monogram serves icon contexts",
       "recognition_signals": [
@@ -40,7 +40,7 @@
         "bone-and-graphite editorial fields",
         "ultramarine used for navigation and selective emphasis",
         "Newsreader and Manrope contrast",
-        "authentic public-product captures and source-recorded documentary photography"
+        "source-recorded opening photography paired with disclosed, project-specific conceptual imagery"
       ]
     },
     "logo_assets": [
@@ -251,16 +251,19 @@
     },
     "imagery": {
       "subjects": [
-        "Authentic public-product interface captures for published digital work.",
-        "Licensed documentary production, design, architecture, and laboratory environments when source, restrictions, dimensions, and checksums are recorded.",
+        "A source-recorded design-process photograph for the Mission plate and a source-recorded planning photograph for the Intelligence plate.",
+        "Disclosed conceptual editorial environments for the remaining cinematic chapters and the Studio, Living Room, and Lab cards.",
+        "Published-project covers that preserve authentic interface evidence within individually art-directed conceptual fields, plus a disclosed conceptual Value-M cover.",
+        "Disclosed conceptual editorial covers for Media features.",
         "Adults visible in documentary sources are contextual subjects only, never kingXford & Co staff, clients, study participants, or endorsers."
       ],
       "composition": [
         "3:2 editorial landscape",
-        "preserve authentic product hierarchy and readable interface evidence inside the central crop-safe region",
-        "retain a clear documentary focal subject without changing the meaning of the source",
+        "preserve authentic product hierarchy and readable interface evidence inside conceptual project-cover fields",
+        "retain a clear documentary focal subject in the Mission and Intelligence plates without changing the meaning of either source",
         "deliberate negative space for adjacent HTML type",
-        "do not fabricate brand geometry, props, people, screens, or environments into product captures or documentary photographs"
+        "vary setting, material, scale, and visual metaphor by subject instead of repeating an X-shaped machine or environment",
+        "do not fabricate people, screens, or claims inside documentary photographs or authentic interface layers"
       ],
       "camera": [
         "grounded eye-level or tabletop view",
@@ -268,10 +271,11 @@
         "no drone-like or impossible viewpoint unless the object is explicitly a scale model"
       ],
       "lighting": [
-        "natural or documented production light for licensed photographs",
-        "legible material shadows and highlights",
-        "restrained grade that preserves photographic truth",
-        "no unexplained glow, synthetic relighting, or generative fill applied to documentary sources"
+        "natural or documented production light for the two licensed photographs",
+        "legible material shadows and highlights in conceptual scenes",
+        "restrained grade that preserves photographic truth on documentary sources",
+        "no generative fill or semantic edit applied to documentary sources",
+        "avoid treating glow, blue light, or darkness as a default signal of intelligence"
       ],
       "color_treatment": [
         "warm-bone and graphite foundation",
@@ -283,18 +287,20 @@
         "watermarks or unlicensed third-party assets",
         "cyberpunk interfaces",
         "glowing HUD graphics",
-        "fabricated documentary evidence",
-        "generated, synthetic, or hybrid imagery on active product, cinematic, world, or Media surfaces",
+        "fabricated documentary claims",
+        "presenting generated or hybrid imagery as documentary evidence, a literal interface, or a measured outcome",
+        "repeating a dominant X device across images; the X belongs primarily to the restrained wordmark",
         "invented readable text, interface states, metrics, testimonials, citations, or product claims",
         "stereotyped or exoticized cultural styling"
       ],
-      "authentic_media_policy": [
-        "Every active project image is either a mechanical crop or composition of authentic public-product captures, or a source-recorded documentary photograph.",
-        "Mechanical product compositions may crop, scale, frame, and place authentic captures on neutral fields but may not invent, rewrite, or synthesize interface content.",
+      "media_policy": [
+        "The Mission and Intelligence cinematic plates use source-recorded documentary photography; every other active raster is explicitly recorded by its actual generated, hybrid, or documentary source type.",
+        "Hybrid project covers may preserve authentic captured interface evidence inside generated editorial fields but may not invent, rewrite, or synthesize the interface content itself.",
+        "Conceptual imagery must be described as illustrative and must not be presented as a real facility, employee, engagement, experiment, certification, dataset, or measured outcome.",
         "Documentary photographs remain contextual and must not be described as a kingXford & Co facility, employee, engagement, experiment, or measured outcome.",
-        "Use factual adjacent HTML, purpose-based alt text, and a contextual documentary caption where confusion is reasonably possible.",
-        "Record source, capture or edit date, material edits, restrictions, dimensions, release state, and final checksum in creative/rights-provenance.csv.",
-        "Previously generated and hybrid assets remain inactive historical records and may not be restored to active use without explicit direction and a new review."
+        "Use factual adjacent HTML, purpose-based alt text, and a conceptual or contextual caption where confusion is reasonably possible.",
+        "Record source, capture or generation date, material edits, restrictions, dimensions, release state, and final checksum in creative/rights-provenance.csv.",
+        "The active asset set follows the explicitly approved selective rollback; future replacements require a new visual and rights review."
       ]
     },
     "illustration_and_icons": {
@@ -430,18 +436,17 @@
     "approval_rules": [
       "Project claims, external URLs, and contact details require owner verification.",
       "A production release requires build, route, keyboard, responsive, and outbound-link checks.",
-      "Public-product capture and documentary-photo provenance must remain attached to every active cover, cinematic plate, world card, and Media image.",
-      "Generated and hybrid images are inactive historical assets and fail the active-release imagery gate.",
+    "Documentary, generated, and hybrid provenance must remain attached to every active cover, cinematic plate, world card, and Media image.",
+    "Only the Mission and Intelligence cinematic plates are replaced by documentary photographs; the established generated and hybrid imagery remains active elsewhere under explicit conceptual disclosure.",
       "CCAI Global, Aceplore, Nkosuo, and Elkings College remain unreleased until a verified status change is recorded.",
       "Formal accessibility conformance, copyright, font, and trademark clearance require qualified review; none is claimed here."
     ],
     "asset_sources_and_licenses": [
-      "Veridanth, Psyche Atlas, and GrandMaster covers are mechanical 2400x1600 compositions of authentic public-product captures; no generated field or invented interface content is present.",
-      "Value-M and the neutral prototype-workshop documentary asset are licensed from Jonathan Borba and GN Group through Unsplash; source pages and contextual restrictions are recorded. The older aceplore-real path is inactive history.",
-      "Arrival, Studio, and Studio portrait photographs are licensed from Declan Sun, Joshua Wann, and Clay Banks through Unsplash.",
-      "The laboratory landscape, laboratory portrait, and new laboratory crop restore Nathan Rimoux / Unsplash provenance; the Living Room workshop portrait is a crop of the GN Group source.",
+    "Veridanth, Psyche Atlas, and GrandMaster covers preserve authentic public-product captures inside generated 2400x1600 conceptual fields; Value-M uses a generated conceptual process field. Each remains subject to the restrictions in rights-provenance.csv.",
+    "The Mission prototype-workshop photograph and Intelligence planning photograph are licensed from GN Group and Jonathan Borba through Unsplash; source pages and contextual restrictions are recorded.",
+    "The remaining active cinematic, world-card, and Media imagery was generated for kingXford & Co and is explicitly recorded as conceptual rather than documentary evidence.",
       "The restrained wordmark and framed K monogram are original repository implementations updated on 2026-08-01; legal and trademark review has not been performed.",
-      "Generated and hybrid assets from prior releases remain in rights-provenance.csv with inactive_historical release state.",
+    "Superseded assets remain in rights-provenance.csv with inactive_historical release state; the explicitly restored evidence-v2, capability-plate, world-portrait, and Media-cover records are active.",
       "Manrope and Newsreader: loaded through @fontsource packages; license metadata must be preserved and verified before redistribution.",
       "Lucide interface icons: package dependency; retain its license and notices."
     ],

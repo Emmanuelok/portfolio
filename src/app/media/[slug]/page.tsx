@@ -221,7 +221,10 @@ export default async function MediaArticlePage({
                 sizes="100vw"
                 priority
               />
-              <figcaption>{post.coverCaption}</figcaption>
+              <figcaption>
+                Conceptual editorial imagery · Illustrative, not documentary
+                evidence
+              </figcaption>
             </figure>
           </Reveal>
         </header>

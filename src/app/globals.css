@@ -4679,8 +4679,9 @@ a {
 
 .kx-reality-plate__grade {
   background:
-    linear-gradient(90deg, rgba(2, 2, 3, 0.42), transparent 54%, rgba(2, 2, 3, 0.12)),
-    linear-gradient(180deg, rgba(2, 2, 3, 0.18), transparent 42%, rgba(2, 2, 3, 0.48));
+    linear-gradient(90deg, rgba(2, 2, 3, 0.7), transparent 48%, rgba(2, 2, 3, 0.2)),
+    linear-gradient(180deg, rgba(2, 2, 3, 0.46), transparent 38%, rgba(2, 2, 3, 0.75));
+  mix-blend-mode: multiply;
 }
 
 .kx-reality-plate figcaption {
@@ -4703,12 +4704,14 @@ a {
 
 .kx-cinematic__loom {
   z-index: 1;
-  background: radial-gradient(
-    circle at 68% 48%,
-    rgba(49, 93, 255, 0.1),
-    transparent 30rem
-  );
+  background:
+    radial-gradient(circle at 68% 48%, rgba(49, 93, 255, 0.16), transparent 30rem),
+    #030304;
   pointer-events: none;
+}
+
+.kx-cinematic__loom .loom-canvas {
+  z-index: auto;
 }
 
 .kx-cinematic__veil,
@@ -4721,17 +4724,17 @@ a {
   background:
     linear-gradient(
       90deg,
-      rgba(2, 2, 3, 0.74) 0%,
-      rgba(2, 2, 3, 0.5) 27%,
-      rgba(2, 2, 3, 0.08) 64%,
-      rgba(2, 2, 3, 0.18) 100%
+      rgba(2, 2, 3, 0.92) 0%,
+      rgba(2, 2, 3, 0.74) 25%,
+      rgba(2, 2, 3, 0.12) 60%,
+      rgba(2, 2, 3, 0.25) 100%
     ),
     linear-gradient(
       180deg,
-      rgba(2, 2, 3, 0.34) 0%,
+      rgba(2, 2, 3, 0.66) 0%,
       transparent 26%,
       transparent 60%,
-      rgba(2, 2, 3, 0.72) 100%
+      rgba(2, 2, 3, 0.9) 100%
     );
 }
 
@@ -4741,7 +4744,7 @@ a {
     radial-gradient(circle at 74% 61%, rgba(255, 255, 255, 0.08) 0 0.65px, transparent 0.8px);
   background-size: 4px 4px, 5px 5px;
   mix-blend-mode: soft-light;
-  opacity: 0.06;
+  opacity: 0.16;
 }
 
 .kx-cinematic__masthead {

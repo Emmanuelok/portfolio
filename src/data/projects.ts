@@ -45,9 +45,9 @@ const projectArchive: readonly Project[] = [
     summary:
       "A connected consultancy and digital-tools platform that moves ambitious work from one brief to the right workflow, specialist, and deliverable.",
     statement: "One brief. The right tools and team already in motion.",
-    cover: "/work/veridanth-product-evidence-v3.webp",
+    cover: "/work/veridanth-evidence-v2.webp",
     coverAlt:
-      "Editorial arrangement made only from authentic Veridanth interface captures, showing the live navigation, proposition, and co-pilot environment.",
+      "Editorial composite preserving the live Veridanth Studio interface within a botanical and mineral routing lattice; the surrounding imagery is illustrative.",
     accent: "#6657e8",
     featured: true,
     role: [
@@ -100,9 +100,9 @@ const projectArchive: readonly Project[] = [
       "A privacy-minded self-reflection platform that turns a deep, source-referenced assessment library into a guided, searchable experience with growth-oriented reporting.",
     statement:
       "A map for reflection—structured, personal, and careful about what a test can and cannot say.",
-    cover: "/work/psyche-atlas-product-evidence-v3.webp",
+    cover: "/work/psyche-atlas-evidence-v2.webp",
     coverAlt:
-      "Authentic Psyche Atlas interface showing the research-led assessment proposition and guided starting points.",
+      "Editorial composite preserving a live Psyche Atlas personality-results interface within layered cartographic forms; the surrounding imagery is illustrative.",
     accent: "#c6934e",
     featured: true,
     role: [
@@ -262,9 +262,9 @@ const projectArchive: readonly Project[] = [
     summary:
       "An intelligent multi-game strategy centre combining adaptive opponents, playable 2D and 3D boards, plain-language move coaching, and post-game review.",
     statement: "Every move becomes a lesson, not just a result.",
-    cover: "/work/grandmaster-product-evidence-v3.webp",
+    cover: "/work/grandmaster-evidence-v2.webp",
     coverAlt:
-      "Authentic GrandMaster product interface showing its strategy-game catalogue, tutor proposition, and learning navigation.",
+      "Editorial composite preserving the live GrandMaster chess and tutor interface within an exploded strategy tree; the surrounding imagery is illustrative.",
     accent: "#7758ff",
     featured: true,
     role: [
@@ -423,9 +423,9 @@ const projectArchive: readonly Project[] = [
     summary:
       "A unified workspace for the complete SAVE International Job Plan, held together by one value graph and an explainable agent layer.",
     statement: "One study. One value thread. Every decision connected.",
-    cover: "/work/value-m-real.webp",
+    cover: "/work/value-m-evidence-v2.webp",
     coverAlt:
-      "Documentary photograph of architectural plans, material samples, and a scale model used as contextual imagery for evidence-led value decisions.",
+      "Editorial composite preserving the live Value-M dashboard within a physical value-thread and decision-gate system; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: false,
     role: [

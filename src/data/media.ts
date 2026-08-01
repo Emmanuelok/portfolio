@@ -57,7 +57,6 @@ export type MediaPost = Readonly<{
   topics: readonly string[];
   cover: string;
   coverAlt: string;
-  coverCaption: string;
   coverWidth?: number;
   coverHeight?: number;
   featured: boolean;
@@ -93,11 +92,9 @@ export const mediaPosts: readonly MediaPost[] = [
       "Human capability",
       "Systems design",
     ],
-    cover: "/work/value-m-real.webp",
+    cover: "/media/sustainable-abundance-capability-section-v2.webp",
     coverAlt:
-      "Documentary photograph of physical plans and a scale model, used to represent the practical work of designing long-lived systems.",
-    coverCaption:
-      "Licensed documentary image · Contextual, not evidence of a KingXford & Co project",
+      "Conceptual editorial cross-section connecting energy, water, food, mobility, research, and digital capacity; illustrative rather than documentary.",
     coverWidth: 2400,
     coverHeight: 1600,
     featured: true,
@@ -264,11 +261,9 @@ export const mediaPosts: readonly MediaPost[] = [
     updatedAt: "2026-07-30T12:00:00.000Z",
     readingLabel: "9 min read",
     topics: ["Artificial intelligence", "Work", "Strategy", "Learning"],
-    cover: "/motion/kingxford-prototype-documentary.webp",
+    cover: "/media/ai-verification-chain-v2.webp",
     coverAlt:
-      "Documentary photograph of a professional evaluating a physical prototype and source materials at a working desk.",
-    coverCaption:
-      "Licensed documentary image · Contextual, not evidence of a KingXford & Co project",
+      "Conceptual editorial image of an auditable verification chain moving AI-assisted work through evidence, review, and accountability gates; illustrative rather than documentary.",
     coverWidth: 2400,
     coverHeight: 1600,
     featured: false,

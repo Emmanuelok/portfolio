@@ -28,6 +28,15 @@ export type MediaPlanStage = Readonly<{
   result: string;
 }>;
 
+export type MediaActionPlan = Readonly<{
+  id: string;
+  eyebrow: string;
+  title: string;
+  introduction: string;
+  stages: readonly MediaPlanStage[];
+  resultLabel?: string;
+}>;
+
 export type MediaSource = Readonly<{
   title: string;
   organization: string;
@@ -48,22 +57,203 @@ export type MediaPost = Readonly<{
   topics: readonly string[];
   cover: string;
   coverAlt: string;
+  coverWidth?: number;
+  coverHeight?: number;
   featured: boolean;
   audio?: MediaAudio;
   introduction: readonly string[];
   sections: readonly MediaSection[];
-  plan: readonly MediaPlanStage[];
+  actionPlan?: MediaActionPlan;
+  closingTitle?: string;
+  sourcesTitle?: string;
+  sourcesIntroduction?: string;
   sources: readonly MediaSource[];
   closing: readonly string[];
 }>;
 
 export const mediaPosts: readonly MediaPost[] = [
   {
+    slug: "sustainable-abundance-for-all",
+    title:
+      "Sustainable Abundance for All: Designing a Future Where Intelligence Expands Human Capability",
+    eyebrow: "Evidence briefing · Abundant futures",
+    description:
+      "An evidence-led kingXford & Co briefing on expanding human capability while respecting ecological limits, distribution, resilience, and the resource demands of intelligence itself.",
+    standfirst:
+      "Sustainable abundance is not infinite consumption. It is the deliberate expansion of reliable human capability—supported by intelligence, research, technology, and institutions—without shifting unacceptable costs onto other people, places, or generations.",
+    format: "Briefing",
+    publishedAt: "2026-07-31T18:00:00.000Z",
+    updatedAt: "2026-07-31T18:00:00.000Z",
+    readingLabel: "14 min read",
+    topics: [
+      "Sustainable abundance",
+      "Research and development",
+      "Artificial intelligence",
+      "Human capability",
+      "Systems design",
+    ],
+    cover: "/media/sustainable-abundance-for-all-concept.webp",
+    coverAlt:
+      "Conceptual editorial image of a diverse professional team studying a luminous systems model linking clean energy, water, food, research, and digital infrastructure; illustrative rather than documentary.",
+    coverWidth: 1536,
+    coverHeight: 1024,
+    featured: true,
+    introduction: [
+      "Abundance is often reduced to a picture of more: more energy, more goods, more computation, more choice. That picture is incomplete. A society can produce more in aggregate while many people still lack safe water, nutritious food, electricity, connectivity, or the institutional capacity to turn knowledge into durable improvements.",
+      "For this briefing, sustainable abundance is a working definition, not a universally accepted metric: a condition in which more people can reliably meet essential needs, develop their capabilities, and exercise meaningful choice, while the systems providing those opportunities remain ecologically viable, resilient, and fair across generations.",
+      "That definition creates a demanding design problem. It asks whether intelligence—human expertise, research, trustworthy AI, data, and capable institutions—can increase the benefit delivered by each unit of energy, material, capital, and attention. It also asks who receives that benefit, who bears the risk, and whether the system can keep learning when conditions change.",
+    ],
+    sections: [
+      {
+        id: "an-abundance-floor",
+        eyebrow: "01 · The floor",
+        title: "Begin with capabilities people can actually use.",
+        paragraphs: [
+          "The global evidence does not describe one interchangeable group of people. Electricity access, clean cooking, water, sanitation, hygiene, hunger, and connectivity are separate indicators with different definitions and overlapping populations. They must never be added into a synthetic total. Read together, however, they show that any credible account of abundance must begin with dependable access to foundational systems.",
+          "Access also cannot be judged by a connection alone. Electricity must be reliable and affordable enough to support useful activity. Connectivity must be meaningful, safe, and usable. Water and sanitation require service-quality standards. Food security concerns sustained access to adequate nutrition, not merely the presence of calories somewhere in a market.",
+          "The design implication is practical: measure whether infrastructure expands real agency. A water system that fails seasonally, a digital service people cannot afford, or an AI tool that excludes local languages may increase nominal supply without increasing usable capability.",
+        ],
+        principles: [
+          {
+            title: "Reliability before spectacle",
+            body:
+              "Evaluate continuity, quality, affordability, safety, and recoverability—not only the number of connections or products launched.",
+          },
+          {
+            title: "Distribution before averages",
+            body:
+              "Disaggregate results by place, income, gender, disability, and other relevant conditions wherever the source data permits.",
+          },
+          {
+            title: "Capability before consumption",
+            body:
+              "Ask what people can learn, create, decide, earn, and sustain because a service exists.",
+          },
+        ],
+      },
+      {
+        id: "intelligence-as-infrastructure",
+        eyebrow: "02 · The multiplier",
+        title: "Treat intelligence and research capacity as infrastructure.",
+        paragraphs: [
+          "Physical systems do not improve themselves. Researchers, engineers, communities, public institutions, and firms must observe problems, test alternatives, retain knowledge, and translate evidence into implementation. UNESCO's latest global release reports growth in research intensity and researcher density, but it also shows deep disparities in the capacity to produce and apply knowledge.",
+          "AI can strengthen this capability when it improves discovery, modelling, translation, monitoring, and access to expertise. It can also concentrate capability when compute, data, energy, and decision authority remain inaccessible. The goal is therefore not AI diffusion at any cost; it is governed intelligence that makes institutions more capable, accountable, and responsive.",
+          "Research capacity is especially important because imported solutions rarely arrive with every local constraint resolved. Sustainable abundance depends on the ability to adapt technologies, build local evidence, question assumptions, and maintain systems after initial investment ends.",
+        ],
+      },
+      {
+        id: "scale-within-limits",
+        eyebrow: "03 · The constraint",
+        title: "Scale outcomes without scaling damage at the same rate.",
+        paragraphs: [
+          "Renewable power capacity is expanding at record speed, creating real room for cleaner electrification and new productive uses. At the same time, the material base of the economy remains under pressure. UNEP's 2024 outlook warns that, without urgent change, resource extraction could rise substantially by 2060 relative to 2020 levels.",
+          "Digital intelligence has a physical footprint too. The International Energy Agency estimates that data centres used 415 terawatt-hours of electricity in 2024 and projects around 945 terawatt-hours in its 2030 base case. Those numbers cover all data-centre activity, not AI alone, and the 2030 value is a scenario rather than a certainty. They nevertheless make one principle unavoidable: intelligence systems must be designed for energy efficiency, clean supply, appropriate scale, and measurable public value.",
+          "Sustainable abundance therefore requires productivity in the fullest sense: more health, learning, resilience, discovery, and useful choice per unit of scarce material and environmental burden—not simply more throughput per hour.",
+        ],
+      },
+      {
+        id: "a-design-discipline",
+        eyebrow: "04 · The discipline",
+        title: "Turn aspiration into a portfolio of testable systems.",
+        paragraphs: [
+          "No single technology can produce abundance for all. The work is a coordinated portfolio: universal-service infrastructure; research and technical capacity; circular material flows; trustworthy digital public systems; resilient food and health systems; financing that rewards long-term outcomes; and institutions able to learn in public.",
+          "Each project should state its abundance claim and its boundary conditions. Which capability will expand? For whom? What resource or risk could increase? Which indicator will reveal unequal outcomes? What evidence would justify scaling, redesign, or stopping? These questions convert a broad ambition into decisions that can be tested.",
+          "The strongest projects will create compounding returns: knowledge that can be reused, infrastructure that supports multiple services, open standards that reduce duplication, and institutions that become better at solving the next problem. Sustainable abundance is built when capability compounds faster than harm.",
+        ],
+        principles: [
+          {
+            title: "Define the capability gain",
+            body:
+              "Name the concrete improvement in health, knowledge, agency, resilience, or productive opportunity before selecting the technology.",
+          },
+          {
+            title: "Account for the full system",
+            body:
+              "Track energy, materials, maintenance, data rights, labour, affordability, and institutional ownership across the lifecycle.",
+          },
+          {
+            title: "Build a learning loop",
+            body:
+              "Publish assumptions, monitor outcomes, include affected communities, and change course when the evidence disagrees.",
+          },
+        ],
+      },
+    ],
+    closingTitle: "Abundance is a direction disciplined by evidence.",
+    sourcesTitle: "Primary evidence and definitions.",
+    sourcesIntroduction:
+      "Figures in this briefing come from the official institutional releases below. Reference years, units, modelled ranges, and scenario boundaries are retained because they materially affect interpretation.",
+    sources: [
+      {
+        title: "Tracking SDG 7: The Energy Progress Report 2026",
+        organization: "World Bank and SDG 7 custodian agencies",
+        url: "https://www.worldbank.org/en/news/press-release/2026/06/16/accelerating-universal-energy-access",
+        note:
+          "Reports 2024 global access estimates, including 655 million people without electricity and approximately two billion without clean cooking access.",
+      },
+      {
+        title:
+          "Progress on household drinking water, sanitation and hygiene 2000–2024",
+        organization: "WHO/UNICEF Joint Monitoring Programme",
+        url: "https://washdata.org/reports/jmp-2025-wash-households",
+        note:
+          "Defines and reports separate 2024 service gaps for safely managed drinking water, safely managed sanitation, and basic hygiene at home.",
+      },
+      {
+        title: "Facts and Figures 2025: Internet use",
+        organization: "International Telecommunication Union",
+        url: "https://www.itu.int/itu-d/reports/statistics/2025/10/15/ff25-internet-use/",
+        note:
+          "Estimates that 6.0 billion people, or 74% of the world population, were online in 2025 and 2.2 billion remained offline.",
+      },
+      {
+        title: "The State of Food Security and Nutrition in the World 2025",
+        organization: "FAO, IFAD, UNICEF, WFP and WHO",
+        url: "https://www.fao.org/newsroom/detail/global-hunger-declines--but-rises-in-africa-and-western-asia--un-report/",
+        note:
+          "Reports a 2024 point estimate of 673 million people experiencing chronic undernourishment, within a modelled range of 638–720 million.",
+      },
+      {
+        title: "Renewable Capacity Statistics 2026",
+        organization: "International Renewable Energy Agency",
+        url: "https://www.irena.org/News/pressreleases/2026/Apr/Near-700-GW-Surge-in-2025-Proves-Renewable-Energy-Resilience",
+        note:
+          "Reports installed renewable power capacity and capacity additions in 2025, including the technology composition of net renewable additions.",
+      },
+      {
+        title: "2026 R&D Data Release",
+        organization: "UNESCO Institute for Statistics",
+        url: "https://www.uis.unesco.org/en/2026-rd-data-release",
+        note:
+          "Reports 2023 global R&D expenditure intensity and researcher density, with regional comparisons and country-level investment disparities.",
+      },
+      {
+        title: "Global Resources Outlook 2024",
+        organization: "United Nations Environment Programme",
+        url: "https://www.unep.org/resources/Global-Resource-Outlook-2024",
+        note:
+          "Presents a scenario in which global resource extraction could rise 60% by 2060 from 2020 levels without urgent and concerted action.",
+      },
+      {
+        title: "Energy and AI",
+        organization: "International Energy Agency",
+        url: "https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai",
+        note:
+          "Estimates total data-centre electricity consumption in 2024 and a 2030 base-case projection; the figures are not estimates for AI alone.",
+      },
+    ],
+    closing: [
+      "The evidence holds urgency and possibility at the same time. Billions still lack foundational services, yet renewable capacity, connectivity, research, and computational capability are expanding the tools available to respond.",
+      "The central choice is architectural: whether these tools deepen extraction and concentration, or help societies extend reliable capability while reducing resource intensity, vulnerability, and exclusion.",
+      "kingXford & Co approaches sustainable abundance as a long-horizon research and development agenda—one complex problem, one accountable system, and one reusable body of knowledge at a time.",
+    ],
+  },
+  {
     slug: "how-to-get-ahead-in-the-ai-era",
     title: "How to Get Ahead in the AI Era",
     eyebrow: "Field note · Work and intelligence",
     description:
-      "A practical Kingxford field note on building judgement, repeatable systems, and reliable verification around AI-assisted work.",
+      "A practical kingXford & Co field note on building judgement, repeatable systems, and reliable verification around AI-assisted work.",
     standfirst:
       "The useful question is no longer whether AI can produce something. It is whether you can direct the work, judge it, verify it, and turn it into a dependable system.",
     format: "Essay",
@@ -74,7 +264,7 @@ export const mediaPosts: readonly MediaPost[] = [
     cover: "/media/how-to-get-ahead-in-the-ai-era-concept.webp",
     coverAlt:
       "Conceptual editorial imagery of a multidisciplinary team examining an AI-assisted workflow in a professional strategy room; the generated scene is illustrative, not documentary evidence.",
-    featured: true,
+    featured: false,
     introduction: [
       "AI has made the distance between an idea and a plausible first draft dramatically shorter. That is useful, but it can also be misleading. A fluent answer can still be shallow. A polished image can still be wrong for the brief. A working prototype can still fail when it meets real users, sensitive data, or an unfamiliar edge case.",
       "Getting ahead therefore cannot mean producing more unexamined material. It means becoming better at the parts of the work that remain consequential: defining the problem, setting a standard, arranging the process, checking the evidence, and taking responsibility for the result.",
@@ -175,8 +365,15 @@ export const mediaPosts: readonly MediaPost[] = [
         ],
       },
     ],
-    plan: [
-      {
+    actionPlan: {
+      id: "thirty-day-plan",
+      eyebrow: "05 · Practice",
+      title: "A practical 30-day plan.",
+      introduction:
+        "The plan begins with one real workflow. It is deliberately narrow: learn enough from a complete cycle to build the next one intelligently.",
+      resultLabel: "Result",
+      stages: [
+        {
         range: "Days 01–07",
         title: "Choose one meaningful workflow",
         focus:
@@ -232,8 +429,9 @@ export const mediaPosts: readonly MediaPost[] = [
         ],
         result:
           "A working case, a documented method, and a specific list of improvements for the next cycle.",
-      },
-    ],
+        },
+      ],
+    },
     sources: [
       {
         title: "AI Index",

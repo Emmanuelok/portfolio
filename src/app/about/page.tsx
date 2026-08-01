@@ -5,9 +5,9 @@ import { ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
-  title: "About Kingxford",
+  title: "About kingXford & Co",
   description:
-    "Discover Kingxford, a multidisciplinary creative company connecting design, research, technology, and education.",
+    "Discover the kingXford & Co mission: intelligence, research and development, and responsible AI for sustainable abundance.",
   alternates: {
     canonical: "/about",
   },
@@ -16,50 +16,50 @@ export const metadata: Metadata = {
 const capabilities = [
   {
     index: "01",
-    title: "Product & experience",
+    title: "Strategic intelligence",
     text:
-      "Product strategy, service architecture, interaction design, prototyping, and the systems that keep a growing platform coherent.",
+      "Systems analysis, foresight, decision support, and problem framing that help institutions distinguish signal from noise and act with clarity.",
   },
   {
     index: "02",
-    title: "Research & information",
+    title: "Research & development",
     text:
-      "Knowledge architecture, research translation, data-rich interfaces, diagrams, and visual narratives that preserve intellectual depth.",
+      "Applied inquiry, experimentation, evidence synthesis, prototypes, and knowledge translation designed to move consequential questions toward usable capability.",
   },
   {
     index: "03",
-    title: "Brand & visual direction",
+    title: "Responsible AI",
     text:
-      "Identity systems, art direction, campaign concepts, graphic design, and a clear visual point of view across every touchpoint.",
+      "Human-centred intelligent systems with visible uncertainty, meaningful oversight, evaluation, governance, and deliberate human control.",
   },
   {
     index: "04",
-    title: "AI-enabled systems",
+    title: "Complex project development",
     text:
-      "Human-centred workflows that use intelligent models with visible reasoning, useful fallbacks, and deliberate moments of human control.",
+      "The structures, partnerships, products, communication, and delivery systems that turn ambitious ideas into resilient projects and institutions.",
   },
 ] as const;
 
 const method = [
   {
-    title: "Decode",
+    title: "Investigate",
     text:
-      "Find the human problem inside the ambitious brief, then name the decisions the experience must make easier.",
+      "Examine the system, evidence, incentives, affected people, and long-term stakes before defining the intervention.",
   },
   {
-    title: "Structure",
+    title: "Model",
     text:
-      "Turn domain knowledge into a legible system of journeys, relationships, states, and reusable patterns.",
+      "Make relationships, assumptions, scenarios, uncertainties, and decision paths explicit enough to test.",
   },
   {
-    title: "Compose",
+    title: "Develop",
     text:
-      "Give the system a distinct visual rhythm—type, image, motion, space, and interaction working as one voice.",
+      "Build the research programme, prototype, intelligent system, platform, or coalition that the mission requires.",
   },
   {
-    title: "Refine",
+    title: "Validate",
     text:
-      "Test the whole story, remove friction, strengthen the edge cases, and keep polishing until the experience feels inevitable.",
+      "Evaluate usefulness, responsibility, resilience, inclusion, and ecological consequence before wider deployment.",
   },
 ] as const;
 
@@ -76,14 +76,14 @@ export default function AboutPage() {
         <div className="page-hero__content">
           <Reveal>
             <p className="eyebrow">
-              Kingxford · Canada / Worldwide
+              kingXford &amp; Co · Mission / Operating model
             </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="about-heading">
-              <span className="page-hero__line">We design the bridge</span>
+              <span className="page-hero__line">Intelligence for people</span>
               <span className="page-hero__line page-hero__line--accent">
-                between difficult ideas and everyday use.
+                preparing an abundant future.
               </span>
             </h1>
           </Reveal>
@@ -91,38 +91,39 @@ export default function AboutPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            A Canada-based multidisciplinary creative company—working wherever
-            technology, knowledge, and human ambition meet.
+            A company for research, development, responsible AI, and the
+            advancement of complex ideas and projects with durable human and
+            ecological value.
           </p>
         </Reveal>
       </section>
 
       <section className="about-intro" aria-labelledby="about-intro-title">
         <Reveal className="about-intro__statement">
-          <p className="eyebrow">Our point of view</p>
+          <p className="eyebrow">Our reason for being</p>
           <h2 id="about-intro-title">
-            The best design does more than decorate complexity. It gives
-            complexity a shape people can enter.
+            Expanding intelligence should expand humanity&apos;s capacity to solve
+            hard problems—and to share progress more sustainably.
           </h2>
         </Reveal>
 
         <div className="about-intro__body">
           <Reveal>
             <p>
-              Our work lives at the intersection of design, research,
-              technology, and entrepreneurship. We are drawn to projects with
-              many moving parts: knowledge systems, intelligent platforms,
-              institutional services, data products, and new digital categories
-              that do not yet have an obvious visual language.
+              Our work begins with consequential questions: how people and
+              institutions can understand complex systems, develop stronger
+              ideas, govern intelligent technologies responsibly, and prepare
+              for futures in which knowledge and productive capacity can create
+              broader, longer-lasting value.
             </p>
           </Reveal>
           <Reveal delay={0.08}>
             <p>
-              Our perspective draws from the built environment, economics,
-              education, analytics, and AI. We ask structural questions, look
-              for the hidden relationship, and translate that logic into
-              experiences that feel clear, expressive, and unmistakably
-              considered.
+              The “&amp; Co” represents the people and institutions that invest in
+              this mission through capital, knowledge, time, research capacity,
+              infrastructure, networks, and trust. It is a collaborative
+              operating philosophy—not a securities offer, investment fund,
+              public solicitation, or roster of named staff.
             </p>
           </Reveal>
         </div>
@@ -130,20 +131,20 @@ export default function AboutPage() {
         <Reveal className="about-intro__ledger">
           <dl>
             <div>
-              <dt>Based</dt>
-              <dd>Canada</dd>
+              <dt>Purpose</dt>
+              <dd>Sustainable abundance</dd>
             </div>
             <div>
-              <dt>Reach</dt>
-              <dd>Worldwide</dd>
+              <dt>Means</dt>
+              <dd>Intelligence · R&amp;D · Responsible AI</dd>
             </div>
             <div>
-              <dt>Range</dt>
-              <dd>Products · Systems · Stories</dd>
+              <dt>Partners</dt>
+              <dd>People · Institutions · Coalitions</dd>
             </div>
             <div>
-              <dt>Working</dt>
-              <dd>Across disciplines and borders</dd>
+              <dt>Delivery</dt>
+              <dd>Studio · Living Room · Lab</dd>
             </div>
           </dl>
         </Reveal>
@@ -154,9 +155,9 @@ export default function AboutPage() {
         aria-labelledby="capabilities-heading"
       >
         <div className="section-heading section-heading--split">
-          <p className="eyebrow">What we bring</p>
+          <p className="eyebrow">Core capabilities</p>
           <h2 id="capabilities-heading">
-            One creative practice, expressed at different scales.
+            Capability organised around consequential outcomes.
           </h2>
         </div>
         <div className="capabilities__grid">
@@ -177,7 +178,9 @@ export default function AboutPage() {
       <section className="method" aria-labelledby="method-heading">
         <div className="section-heading section-heading--split">
           <p className="eyebrow">How we work</p>
-          <h2 id="method-heading">Deep thinking. Clear moves. Relentless finish.</h2>
+          <h2 id="method-heading">
+            Evidence before certainty. Responsibility before scale.
+          </h2>
         </div>
         <ol className="method__track">
           {method.map((step, index) => (
@@ -197,14 +200,14 @@ export default function AboutPage() {
           “
         </p>
         <blockquote>
-          We pursue work that earns attention twice: first through its presence,
-          then through the quality of its thinking.
+          The mission comes first. “Complex ideas. Unforgettable form.” is the
+          craft standard by which we make that mission legible and useful.
         </blockquote>
       </Reveal>
 
       <Reveal className="page-cta">
-        <p className="eyebrow">Selected collaborations</p>
-        <h2>Bring the difficult brief. We&apos;ll find its clearest form.</h2>
+        <p className="eyebrow">Advance the mission</p>
+        <h2>Bring the complex problem, ambitious idea, or consequential project.</h2>
         <div className="page-cta__actions">
           <Link className="button button--primary" href="/contact">
             <span>Start a conversation</span>

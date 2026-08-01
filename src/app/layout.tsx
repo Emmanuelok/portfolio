@@ -11,57 +11,57 @@ import "./globals.css";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://my-portfolio-six-teal-90.vercel.app";
+  "https://portfolio-flame-psi-88.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Kingxford — Design, Digital Products & Research Experiences",
-    template: "%s | Kingxford",
+    default: "kingXford & Co — Intelligence for Sustainable Abundance",
+    template: "%s | kingXford & Co",
   },
   description:
-    "Kingxford is a multidisciplinary creative company spanning digital design and development in the Studio, open-ended creative services in the Living Room, and scientific and academic work in the Lab.",
+    "kingXford & Co advances intelligence, research and development, and responsible AI to help people and institutions solve complex problems and prepare for sustainable abundance.",
   keywords: [
-    "Kingxford",
+    "kingXford & Co",
+    "intelligence",
+    "research and development",
+    "responsible AI",
+    "sustainable abundance",
+    "abundant future",
+    "complex problem solving",
+    "complex project development",
+    "institutional intelligence",
+    "applied research",
+    "strategic foresight",
     "Studio",
     "Living Room",
     "Lab",
-    "multidisciplinary creative company",
-    "multidisciplinary design",
-    "product design",
-    "web design",
-    "visual systems",
-    "digital products",
-    "research interfaces",
-    "artificial intelligence essays",
-    "design media",
   ],
-  authors: [{ name: "Kingxford", url: siteUrl }],
-  creator: "Kingxford",
-  publisher: "Kingxford",
+  authors: [{ name: "kingXford & Co", url: siteUrl }],
+  creator: "kingXford & Co",
+  publisher: "kingXford & Co",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    locale: "en_CA",
     url: "/",
-    siteName: "Kingxford",
-    title: "Complex ideas. Unforgettable form. | Kingxford",
+    siteName: "kingXford & Co",
+    title: "Intelligence for Sustainable Abundance | kingXford & Co",
     description:
-      "Studio, Living Room, and Lab: digital products, open-ended creative services, and research experiences by Kingxford.",
+      "Research, development, and responsible AI for people and institutions solving complex problems and preparing an abundant future.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Kingxford — Complex ideas. Unforgettable form.",
+        alt: "kingXford & Co — Intelligence for Sustainable Abundance",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kingxford — Studio · Living Room · Lab",
+    title: "kingXford & Co — Intelligence for Sustainable Abundance",
     description:
-      "Complex ideas. Unforgettable form. Selected digital products and visual systems.",
+      "Research, development, and responsible AI for complex problems, ambitious ideas, and an abundant future.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -89,7 +89,7 @@ export const viewport: Viewport = {
 const themeBootstrap = `
 (() => {
   try {
-    const saved = localStorage.getItem("ek-portfolio-theme");
+    const saved = localStorage.getItem("kxco-theme");
     const choice = saved === "dark" || saved === "light" || saved === "system" ? saved : "system";
     const resolved = choice === "system"
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
@@ -105,37 +105,34 @@ const themeBootstrap = `
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Kingxford",
+  name: "kingXford & Co",
   url: siteUrl,
-  sameAs: ["https://github.com/Emmanuelok/portfolio"],
   description:
-    "A multidisciplinary creative company spanning digital design and development, open-ended creative services, and scientific and academic work.",
+    "A company advancing intelligence, research and development, and responsible AI to help people and institutions solve complex problems and prepare for sustainable abundance.",
   knowsAbout: [
-    "Digital product design",
-    "Visual systems",
-    "Web experiences",
-    "Research interfaces",
-    "Information architecture",
-    "Artificial intelligence",
-    "Editorial publishing",
+    "Strategic intelligence",
+    "Research and development",
+    "Responsible artificial intelligence",
+    "Sustainable abundance",
+    "Complex problem solving",
+    "Complex project development",
+    "Institutional transformation",
+    "Strategic foresight",
+    "Knowledge systems",
   ],
-  address: {
-    "@type": "PostalAddress",
-    addressCountry: "CA",
-  },
 };
 
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Kingxford",
+  name: "kingXford & Co",
   url: siteUrl,
   creator: {
     "@type": "Organization",
-    name: "Kingxford",
+    name: "kingXford & Co",
   },
   description:
-    "A multidisciplinary creative platform spanning digital design and development, open-ended creative services, scientific and academic work, and original media.",
+    "Intelligence, R&D, responsible AI, complex project development, and evidence-led media for sustainable abundance.",
 };
 
 export default function RootLayout({

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "Kingxford — Complex ideas. Unforgettable form.";
+  "kingXford & Co — Intelligence for Sustainable Abundance";
 export const size = {
   width: 1200,
   height: 630,
@@ -102,9 +102,22 @@ export default function OpenGraphImage() {
               X
             </span>
             <span>ford</span>
+            <span
+              style={{
+                display: "flex",
+                marginLeft: "13px",
+                color: "rgba(244,241,233,0.7)",
+                fontSize: "12px",
+                fontWeight: 650,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+              }}
+            >
+              &amp; Co
+            </span>
           </div>
           <span style={{ color: "#86a0ff" }}>
-            Studio / Living Room / Lab
+            Intelligence / R&amp;D / Responsible AI
           </span>
         </div>
 
@@ -126,7 +139,7 @@ export default function OpenGraphImage() {
               letterSpacing: "-0.06em",
             }}
           >
-            Complex ideas.
+            Intelligence for
           </div>
           <div
             style={{
@@ -138,7 +151,7 @@ export default function OpenGraphImage() {
               color: "#7894ff",
             }}
           >
-            Unforgettable form.
+            sustainable abundance.
           </div>
         </div>
 
@@ -158,31 +171,26 @@ export default function OpenGraphImage() {
               color: "rgba(244,241,233,0.7)",
             }}
           >
-            Kingxford · Digital products · Visual systems · Research
-            experiences
+            Helping people and institutions solve complex problems and
+            develop ambitious ideas, projects, and systems.
           </div>
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              fontSize: 17,
+              maxWidth: "285px",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "5px",
+              fontSize: 12,
               letterSpacing: "0.12em",
+              lineHeight: 1.35,
+              textAlign: "right",
               textTransform: "uppercase",
               color: "rgba(244,241,233,0.7)",
             }}
           >
-            <span>Canada</span>
-            <span
-              style={{
-                width: "6px",
-                height: "6px",
-                display: "flex",
-                borderRadius: "50%",
-                background: "#315dff",
-              }}
-            />
-            <span>Worldwide</span>
+            <span>Craft signature</span>
+            <span>Complex ideas. Unforgettable form.</span>
           </div>
         </div>
       </div>

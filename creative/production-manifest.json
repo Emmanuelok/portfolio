@@ -2,19 +2,19 @@
   "schema_version": "2.0",
   "project": {
     "id": "kingxford",
-    "name": "Kingxford",
+    "name": "kingXford & Co",
     "mode": "frontend-production",
-    "objective": "Present Kingxford as one multidisciplinary creative company with three clear worlds: Studio, the Living Room, and Lab.",
-    "audience": "Product and design leaders, institutional and research partners, prospective clients, collaborators, and recruiters on mobile and desktop.",
+    "objective": "Present kingXford & Co as an intelligence, research, and development company applying responsible AI and systems thinking to complex problems, ideas, and projects in pursuit of sustainable abundance.",
+    "audience": "Institutional leaders, research partners, founders, investors of capital or capability, public-interest organisations, complex-project sponsors, and informed readers on mobile and desktop.",
     "repository": "https://github.com/Emmanuelok/portfolio",
     "hosting": "Vercel",
-    "updated_at": "2026-07-30"
+    "updated_at": "2026-07-31"
   },
   "creative_system": {
     "concept": "X-Frame",
-    "thesis": "A dominant architectural X crosses licensed documentary environments and clearly disclosed conceptual editorial imagery, connecting three distinct Kingxford worlds.",
+    "thesis": "A dominant architectural X connects intelligence, research and development, responsible AI, aligned contributors, and three kingXford & Co delivery worlds in service of sustainable abundance.",
     "identity": {
-      "wordmark": "kingXford",
+      "wordmark": "kingXford & Co",
       "dominant_character": "X",
       "mark_construction": "Two 45-degree beams with a controlled over-under seam",
       "implementation": [
@@ -138,6 +138,23 @@
       "disclosure": "Synthetic conceptual editorial imagery; not documentary evidence of a Kingxford team, facility, or measured AI outcome."
     },
     {
+      "id": "ast-media-sustainable-abundance-concept-v1",
+      "type": "synthetic-photoreal-conceptual-editorial-imagery",
+      "sources": [
+        "public/media/sustainable-abundance-for-all-concept.webp"
+      ],
+      "role": "Cover for the kingXford & Co evidence briefing Sustainable Abundance for All",
+      "dimensions": "1536x1024",
+      "file_size_bytes": 132738,
+      "generation": "Imagegen; 2026-07-31",
+      "material_edit": "Imagegen output delivered as a 1536x1024 WebP; no compositional edit recorded",
+      "prompt_direction": "A photoreal serious R&D and strategy facility with five fictional adult professionals studying a physical regional system model that integrates solar energy, electric transit, a greenhouse, water recycling, and shared infrastructure; a subtle architectural X; no text, logos, holograms, or science-fiction styling.",
+      "rights_status": "approved only as clearly disclosed synthetic conceptual editorial imagery; restrictions recorded",
+      "provenance": "creative/rights-provenance.csv",
+      "checksum_sha256": "c45d79e255697dcf968eaf31cb7929049668f91b6a5233eb51610ebe0632d267",
+      "disclosure": "Synthetic conceptual editorial imagery; not documentary evidence of kingXford & Co staff, a facility, a project, or a measured outcome."
+    },
+    {
       "id": "ast-x-frame-v2",
       "type": "original-vector-identity",
       "sources": [
@@ -154,7 +171,7 @@
       "id": "screen-home-cinematic",
       "route": "/",
       "component": "KingxfordCinematic",
-      "purpose": "Introduce the company, reveal all three worlds, show project proof, and lead into the portfolio.",
+      "purpose": "Lead with intelligence, R&D, responsible AI, aligned contribution, and sustainable abundance before revealing the company's three delivery worlds and project proof.",
       "states": [
         "arrival",
         "Studio",
@@ -169,7 +186,7 @@
       "id": "screen-home-worlds",
       "route": "/#three-worlds",
       "component": "KingxfordWorlds",
-      "purpose": "Explain Studio, the Living Room, and Lab as distinct but connected service spaces."
+      "purpose": "Explain Studio, the Living Room, and Lab as distinct but connected delivery spaces for intelligence, complex-project strategy, research, responsible AI, and development."
     },
     {
       "id": "screen-work",
@@ -185,19 +202,22 @@
       "id": "screen-media-index",
       "route": "/media",
       "component": "MediaPage and MediaPostCard",
-      "purpose": "Introduce Kingxford Media and provide a scannable index of essays, field notes, briefings, and future conversations."
+      "purpose": "Introduce kingXford & Co Media and provide a scannable index of evidence briefings, essays, field notes, and future conversations about intelligence, R&D, responsible AI, complex systems, and sustainable abundance."
     },
     {
       "id": "screen-media-article",
       "route": "/media/[slug]",
       "component": "MediaArticlePage with optional AudioEdition",
-      "purpose": "Publish complete long-form articles with structured sections, a practical plan, research notes, conceptual-image disclosure, and an optional narration surface.",
+      "purpose": "Publish complete long-form articles with structured sections, institutional research notes, conceptual-image disclosure, article-specific action plans where appropriate, and an optional narration surface.",
       "states": [
         "article with no audio",
         "article with approved optional audio",
         "not found"
       ],
-      "release_content": "How to Get Ahead in the AI Era",
+      "release_content": [
+        "How to Get Ahead in the AI Era",
+        "Sustainable Abundance for All: Designing a Future Where Intelligence Expands Human Capability"
+      ],
       "audio_status": "Optional architecture implemented; no narration asset shipped in this release."
     },
     {
@@ -207,7 +227,7 @@
         "/lab",
         "/contact"
       ],
-      "purpose": "Describe Kingxford in company voice and provide a public collaboration path."
+      "purpose": "Describe kingXford & Co in company voice and provide a company-safe collaboration path without personal profile or location disclosure."
     }
   ],
   "elements": [
@@ -238,9 +258,16 @@
     {
       "id": "element-media-article",
       "component": "MediaArticlePage and optional AudioEdition",
-      "content": "Article metadata, disclosed cover, table of contents, long-form sections, principles, 30-day plan, cited sources, closing note, and optional audio.",
+      "content": "Article metadata, disclosed cover, table of contents, long-form sections, principles, Sustainable Abundance evidence visuals where applicable, article-specific optional action plan, cited sources, closing note, and optional audio.",
       "accessibility": "Semantic article structure, named sections and navigation, visible source links, complete readable text, and native audio controls only when an approved file exists.",
       "audio_status": "No audio shipped; an absent audio record renders no player or dead control."
+    },
+    {
+      "id": "element-sustainable-abundance-evidence",
+      "component": "SustainableAbundanceEvidence",
+      "content": "A non-additive capability dashboard, three directly labelled official-data comparisons, a responsive evidence-register table, interpretation notes, primary source links, and the original kingXford & Co Sustainable Abundance Design Loop.",
+      "accessibility": "Semantic figures and table, direct values and units, purpose-based aria labels, visible captions and caveats, keyboard-reachable source links, and a focusable horizontal table wrapper at compact widths.",
+      "truthfulness": "Do not sum overlapping service-gap populations; preserve source years, units, ranges, definitions, and scenario or projection status; the original framework is a decision aid, not a validated causal model, universal index, or forecast."
     },
     {
       "id": "element-global-navigation",
@@ -256,6 +283,13 @@
         "responsive",
         "company voice"
       ]
+    },
+    {
+      "id": "element-project-brief-builder",
+      "component": "ProjectBriefBuilder",
+      "content": "Seven browser-local prompts that structure a complex problem, affected people and institutions, evidence, desired future, constraints, available investment, and time horizon; copy and plain-text download actions.",
+      "accessibility": "Native labelled fields and actions, visible focus, polite status announcements, keyboard operation, and responsive one- or two-column layout.",
+      "privacy": "Runs locally in the browser and must not submit, store, transmit, or log visitor content."
     }
   ],
   "scenes": [
@@ -271,58 +305,59 @@
   "shots": [
     {
       "index": "00",
-      "name": "Arrival",
-      "message": "Complex ideas. Unforgettable form.",
-      "evidence": "Real architectural crossing"
+      "name": "Mission",
+      "message": "Prepare for sustainable abundance.",
+      "evidence": "Intelligence, R&D, responsible AI, and complex-project delivery"
     },
     {
       "index": "01",
-      "name": "Studio",
-      "message": "Build what people can enter.",
-      "evidence": "Licensed film-production environment and disclosed conceptual project imagery"
+      "name": "Intelligence",
+      "message": "See the system before choosing the move.",
+      "evidence": "Strategy and systems intelligence"
     },
     {
       "index": "02",
-      "name": "Living Room",
-      "message": "Make room for what has no category.",
-      "evidence": "Disclosed conceptual interdisciplinary strategy room"
+      "name": "Research & development",
+      "message": "Turn uncertainty into testable knowledge.",
+      "evidence": "Scientific inquiry and applied R&D"
     },
     {
       "index": "03",
-      "name": "Lab",
-      "message": "Evidence, made visible.",
-      "evidence": "Disclosed conceptual scientific laboratory and research-product imagery"
+      "name": "Responsible AI",
+      "message": "Build intelligence people can question and govern.",
+      "evidence": "Human agency and responsible deployment"
     },
     {
       "index": "04",
-      "name": "One company",
-      "message": "The same standard in every room."
+      "name": "& Co",
+      "message": "The future is built with others.",
+      "evidence": "Aligned investment of capital, time, knowledge, infrastructure, access, and trust"
     },
     {
       "index": "05",
-      "name": "Enter",
-      "message": "Choose your door."
+      "name": "Abundant Future",
+      "message": "Make progress durable—and widely useful."
     }
   ],
   "deliverables": [
     {
       "id": "del-github-release-v2",
       "type": "source",
-      "title": "Kingxford public source",
+      "title": "kingXford & Co operational source release",
       "channel": "GitHub",
       "status": "pending verified publication"
     },
     {
       "id": "del-vercel-production-v2",
       "type": "interactive",
-      "title": "Kingxford production site",
+      "title": "kingXford & Co production site",
       "channel": "Vercel",
       "status": "pending verified deployment"
     },
     {
       "id": "del-creative-system-v2",
       "type": "documentation",
-      "title": "Kingxford X-Frame creative and production system",
+      "title": "kingXford & Co X-Frame creative and production system",
       "channel": "repository",
       "status": "implemented"
     },
@@ -337,6 +372,18 @@
         "/media/how-to-get-ahead-in-the-ai-era"
       ],
       "audio_status": "Optional architecture implemented; no narration asset shipped."
+    },
+    {
+      "id": "del-media-sustainable-abundance-v1",
+      "type": "editorial",
+      "title": "kingXford & Co evidence briefing: Sustainable Abundance for All",
+      "channel": "public web",
+      "status": "implemented; rendered and production verification pending",
+      "routes": [
+        "/media/sustainable-abundance-for-all"
+      ],
+      "cover_asset": "ast-media-sustainable-abundance-concept-v1",
+      "audio_status": "No narration asset shipped."
     }
   ],
   "rights_and_claims": [
@@ -348,7 +395,7 @@
     },
     {
       "id": "right-synthetic-editorial",
-      "description": "Photoreal conceptual editorial imagery is permitted only when it is clearly disclosed and never represented as documentary evidence, a measured outcome, literal product UI, a real Kingxford facility, or a real employee or participant.",
+      "description": "Photoreal conceptual editorial imagery is permitted only when it is clearly disclosed and never represented as documentary evidence, a measured outcome, literal product UI, a real kingXford & Co facility, or a real employee or participant.",
       "evidence": "Visible Media figcaptions, purpose-based alt text, project-card disclosure treatment, creative/rights-provenance.csv, and creative/brand-system.json",
       "status": "policy recorded; rendered disclosure verification pending"
     },
@@ -357,6 +404,12 @@
       "description": "The X-Frame SVG is an original implementation; trademark clearance and exclusivity are not claimed.",
       "evidence": "src/components/KingxfordLogo.tsx and src/app/icon.svg",
       "status": "source recorded; qualified legal review not performed"
+    },
+    {
+      "id": "right-evidence-data",
+      "description": "Sustainable Abundance figures and tables retain official source links, reference years, units, uncertainty ranges, definitions, and scenario boundaries; separate service-gap populations are never added into an invented total.",
+      "evidence": "src/components/SustainableAbundanceEvidence.tsx and the source register in src/data/media.ts",
+      "status": "source records implemented; publication-date and rendered-link verification pending"
     }
   ],
   "qa": {
@@ -364,20 +417,22 @@
       "typecheck",
       "lint",
       "production build",
-      "22 generated public routes, including home, work, eight case studies, Media index, first Media article, about, lab, contact, and framework metadata routes",
+      "23 generated public routes, including home, work, eight case studies, Media index, two Media articles, about, lab, contact, and framework metadata routes",
       "mobile and desktop visual captures",
       "native-scroll cinematic progression",
       "reduced-motion static parity",
       "keyboard navigation and visible focus",
       "browser console and failed-resource inspection",
+      "Sustainable Abundance data-label, source-link, non-additivity, uncertainty, scenario, responsive-table, and figure-caption verification",
       "production deployment status and response verification"
     ],
     "hard_fail_conditions": [
       "broken route or primary control",
       "remote short-film dependency",
-      "synthetic conceptual imagery presented as documentary evidence, a measured outcome, literal product UI, or a real Kingxford person or facility",
+      "synthetic conceptual imagery presented as documentary evidence, a measured outcome, literal product UI, or a real kingXford & Co person or facility",
       "generated imagery containing fabricated readable text, interface state, testimonial, metric, or product claim",
-      "person-centric copy describing Kingxford as an individual",
+      "person-centric copy describing kingXford & Co as an individual or exposing a personal profile or location as company identity",
+      "unsupported statistic, altered source year or unit, overlapping populations added into a fabricated total, or a projection presented as an observed result",
       "motion ignores reduced-motion preference",
       "missing source provenance",
       "unverified production claim"
@@ -411,15 +466,15 @@
     }
   ],
   "assumptions": [
-    "The authorized repository owner controls the requested GitHub repository and authorizes this Kingxford implementation.",
+    "The authorized repository owner controls the operational source repository and authorizes this kingXford & Co implementation.",
     "English is the only language required for this release.",
     "Licensed contextual photography does not assert affiliation, participation, endorsement, or a documented project outcome.",
-    "Disclosed conceptual editorial imagery does not assert a literal product interface, real Kingxford facility, employee identity, participant, or measured project outcome.",
+    "Disclosed conceptual editorial imagery does not assert a literal product interface, real kingXford & Co facility, employee identity, participant, or measured project outcome.",
     "No narration asset is shipped; future audio remains optional and must pass the documented consent, editorial, and listening review before publication.",
     "No environment variables are required for the public portfolio unless the deployment workflow reports otherwise."
   ],
   "open_questions": [
-    "Which direct company email or form destination should replace the public GitHub contact path in a future release?",
+    "Which direct company email or form destination should be used for the company-safe contact path?",
     "Should a future release connect a custom CMS for project and Media publishing?",
     "Should a future Media release commission a professional narrator or approve a disclosed, editorially reviewed synthetic voice under creative/narration-policy.md?"
   ],
@@ -432,7 +487,7 @@
     {
       "id": "risk-synthetic-image-confusion",
       "severity": "medium",
-      "mitigation": "Keep synthetic disclosure visible and consistent; prohibit fabricated readable text, interfaces, metrics, testimonials, facilities, staff identities, and outcome claims."
+      "mitigation": "Keep synthetic disclosure visible and consistent; prohibit fabricated readable text, interfaces, metrics, testimonials, facilities, staff identities, and outcome claims. Sustainable-abundance imagery must not imply a real kingXford & Co facility, staff, project, or measured result."
     },
     {
       "id": "risk-long-scroll-performance",
@@ -443,6 +498,11 @@
       "id": "risk-custom-domain",
       "severity": "external",
       "mitigation": "Deploy and verify the Vercel production URL; treat custom-domain DNS as a separate owner-controlled configuration."
+    },
+    {
+      "id": "risk-evidence-currency",
+      "severity": "medium",
+      "mitigation": "Record reference and publication years, retain official links and interpretation boundaries beside every visual, and re-verify figures before a dated article update rather than silently replacing values."
     }
   ]
 }

@@ -11,7 +11,7 @@ type KingxfordMarkProps = Readonly<{
 export function KingxfordMark({
   className,
   decorative = false,
-  label = "Kingxford X mark",
+  label = "kingXford & Co X mark",
 }: KingxfordMarkProps) {
   const shouldReduceMotion = useReducedMotion();
   const rootClass = className
@@ -71,7 +71,7 @@ export function KingxfordLogo({
   return (
     <span
       className={rootClass}
-      aria-label={decorative ? undefined : "Kingxford"}
+      aria-label={decorative ? undefined : "kingXford & Co"}
       role={decorative ? undefined : "img"}
     >
       <span aria-hidden="true">king</span>
@@ -80,6 +80,9 @@ export function KingxfordLogo({
         decorative
       />
       <span aria-hidden="true">ford</span>
+      <span className="kingxford-logo__co" aria-hidden="true">
+        &amp; Co
+      </span>
     </span>
   );
 }

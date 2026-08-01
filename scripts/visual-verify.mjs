@@ -1,5 +1,8 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
+import { brotliDecompress } from "node:zlib";
 
 import chromiumBinary from "@sparticuz/chromium";
 import { chromium } from "playwright-core";
@@ -7,6 +10,21 @@ import { chromium } from "playwright-core";
 const baseUrl = process.env.VERIFY_BASE_URL ?? "http://127.0.0.1:3000";
 const outputDir = path.resolve("verification");
 await fs.mkdir(outputDir, { recursive: true });
+
+// Some container filesystems reject the ownership metadata inside Sparticuz's
+// font archive. Pre-inflating only the browser binary avoids that unrelated
+// archive operation while preserving the same Chromium build for UI checks.
+const localChromiumPath = path.join(os.tmpdir(), "chromium");
+try {
+  await fs.access(localChromiumPath);
+} catch {
+  const decompress = promisify(brotliDecompress);
+  const compressed = await fs.readFile(
+    path.resolve("node_modules/@sparticuz/chromium/bin/chromium.br"),
+  );
+  const binary = await decompress(compressed);
+  await fs.writeFile(localChromiumPath, binary, { mode: 0o700 });
+}
 
 chromiumBinary.setGraphicsMode = false;
 const executablePath = await chromiumBinary.executablePath();
@@ -194,10 +212,25 @@ if (!commandSearchFocus) {
 }
 await desktop.page.keyboard.press("Escape");
 
+const missionImage = desktop.page.locator(
+  ".kx-reality-plate[data-plate='mission'] img",
+);
+await missionImage.waitFor({ state: "visible" });
+await desktop.page.waitForFunction(() => {
+  const image = document.querySelector(
+    ".kx-reality-plate[data-plate='mission'] img",
+  );
+  return (
+    image instanceof HTMLImageElement &&
+    image.complete &&
+    image.naturalWidth > 0
+  );
+});
+
 const storyMetrics = await desktop.page.locator(".kx-cinematic").evaluate((story) => {
   const stage = story.querySelector(".kx-cinematic__stage");
   const arrival = story.querySelector(
-    ".kx-reality-plate[data-plate='arrival'] img",
+    ".kx-reality-plate[data-plate='mission'] img",
   );
   const rect = story.getBoundingClientRect();
   return {
@@ -238,12 +271,12 @@ await desktop.page.addStyleTag({
 });
 
 for (const [captureName, expectedChapter, progress] of [
-  ["arrival", "arrival", 0.05],
-  ["studio", "studio", 0.27],
-  ["living-room", "living-room", 0.49],
-  ["lab", "lab", 0.71],
-  ["one-practice", "one-practice", 0.87],
-  ["enter", "choose", 0.97],
+  ["mission", "mission", 0.05],
+  ["intelligence", "intelligence", 0.27],
+  ["research-development", "research-development", 0.445],
+  ["responsible-ai", "responsible-ai", 0.625],
+  ["and-co", "and-co", 0.79],
+  ["abundant-future", "abundant-future", 0.95],
 ]) {
   await desktop.page.evaluate(
     ({ top, height, viewportHeight, progress }) => {
@@ -434,6 +467,61 @@ if (!mediaArticlePassed) {
 }
 await mediaArticle.context.close();
 
+const abundanceArticle = await inspectPage(
+  "sustainable-abundance-desktop-1440",
+  "/media/sustainable-abundance-for-all",
+  { width: 1440, height: 1000 },
+);
+const abundanceArticleState = await abundanceArticle.page.evaluate(() => {
+  const cover = document.querySelector(".media-article__cover img");
+  const evidence = document.querySelector("#evidence-dashboard");
+  const rows = document.querySelectorAll("#evidence-register tbody tr");
+  const charts = document.querySelectorAll("#capacity-engine figure");
+  const sourceNotes = document.querySelectorAll(".media-sources li");
+  return {
+    title: document.querySelector("h1")?.textContent?.trim() ?? "",
+    coverReady:
+      cover instanceof HTMLImageElement &&
+      cover.complete &&
+      cover.naturalWidth > 0,
+    evidenceDashboard: Boolean(evidence),
+    evidenceRows: rows.length,
+    chartCount: charts.length,
+    sourceCount: sourceNotes.length,
+    audioCount: document.querySelectorAll("audio").length,
+    evidenceTextLength: evidence?.textContent?.trim().length ?? 0,
+  };
+});
+const abundanceArticlePassed =
+  abundanceArticleState.title.startsWith("Sustainable Abundance for All") &&
+  abundanceArticleState.coverReady &&
+  abundanceArticleState.evidenceDashboard &&
+  abundanceArticleState.evidenceRows === 8 &&
+  abundanceArticleState.chartCount === 3 &&
+  abundanceArticleState.sourceCount === 8 &&
+  abundanceArticleState.audioCount === 0 &&
+  abundanceArticleState.evidenceTextLength > 1500;
+results.push({
+  interaction: "sustainable-abundance-evidence",
+  passed: abundanceArticlePassed,
+  ...abundanceArticleState,
+});
+if (!abundanceArticlePassed) {
+  failures.push({
+    interaction: "sustainable-abundance-evidence",
+    ...abundanceArticleState,
+  });
+}
+await abundanceArticle.page
+  .locator("#evidence-dashboard")
+  .scrollIntoViewIfNeeded();
+await abundanceArticle.page.waitForTimeout(250);
+await abundanceArticle.page.screenshot({
+  path: path.join(outputDir, "sustainable-abundance-evidence.png"),
+  fullPage: false,
+});
+await abundanceArticle.context.close();
+
 const light = await inspectPage(
   "home-light-1024",
   "/",
@@ -534,6 +622,21 @@ const mobileMediaArticle = await inspectPage(
 );
 await mobileMediaArticle.context.close();
 
+const mobileAbundanceArticle = await inspectPage(
+  "sustainable-abundance-mobile-390",
+  "/media/sustainable-abundance-for-all",
+  { width: 390, height: 844 },
+);
+await mobileAbundanceArticle.page
+  .locator("#evidence-dashboard")
+  .scrollIntoViewIfNeeded();
+await mobileAbundanceArticle.page.waitForTimeout(250);
+await mobileAbundanceArticle.page.screenshot({
+  path: path.join(outputDir, "sustainable-abundance-evidence-mobile.png"),
+  fullPage: false,
+});
+await mobileAbundanceArticle.context.close();
+
 const project = await inspectPage(
   "project-veridanth-1440",
   "/work/veridanth",
@@ -568,7 +671,7 @@ const reducedStory = await reduced.page.locator(".kx-static").evaluate((story) =
 const reducedStoryPassed =
   reducedStory.sourceCount === 0 &&
   reducedStory.heroVisible &&
-  reducedStory.chapterCount === 3;
+  reducedStory.chapterCount === 5;
 results.push({
   interaction: "kingxford-reduced-motion-fallback",
   passed: reducedStoryPassed,

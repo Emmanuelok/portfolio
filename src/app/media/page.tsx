@@ -9,22 +9,22 @@ import { mediaPosts } from "@/data/media";
 export const metadata: Metadata = {
   title: "Media",
   description:
-    "Kingxford field notes, essays, briefings, and future conversations on artificial intelligence, business, finance, design, research, and the changing shape of work.",
+    "kingXford & Co evidence briefings and essays on sustainable abundance, intelligence, research and development, AI, and solving complex problems.",
   alternates: {
     canonical: "/media",
   },
   openGraph: {
-    title: "Media — Kingxford",
+    title: "Media — kingXford & Co",
     description:
-      "Ideas for thinking clearly and building responsibly through technological and economic change.",
+      "Evidence and ideas for expanding human capability through intelligence, research, AI, and sustainable systems.",
     type: "website",
     url: "/media",
   },
   twitter: {
     card: "summary",
-    title: "Media — Kingxford",
+    title: "Media — kingXford & Co",
     description:
-      "Field notes and briefings on AI, business, finance, design, research, and work.",
+      "Evidence briefings on sustainable abundance, intelligence, research, AI, and complex systems.",
   },
 };
 
@@ -44,14 +44,14 @@ export default function MediaPage() {
         <div className="page-hero__content">
           <Reveal>
             <p className="eyebrow">
-              Kingxford · Field notes · Essays · Conversations
+              kingXford &amp; Co · Intelligence · Evidence · Abundant futures
             </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="media-heading">
-              <span className="page-hero__line">Ideas for the world</span>
+              <span className="page-hero__line">Intelligence for an</span>
               <span className="page-hero__line page-hero__line--accent">
-                that is taking shape.
+                abundant future.
               </span>
             </h1>
           </Reveal>
@@ -59,9 +59,9 @@ export default function MediaPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            Clear thinking on artificial intelligence, business, finance,
-            design, research, and the practical work of moving ahead without
-            losing judgement.
+            Evidence-led thinking on research and development, trustworthy AI,
+            sustainable abundance, and the systems people and institutions need
+            to solve consequential problems.
           </p>
           <a className="text-link" href="#latest">
             <span>Read the latest</span>
@@ -91,9 +91,9 @@ export default function MediaPage() {
         aria-labelledby="latest-media-title"
       >
         <div className="section-heading section-heading--split">
-          <p className="eyebrow">Latest from Kingxford</p>
+          <p className="eyebrow">Latest from kingXford &amp; Co</p>
           <h2 id="latest-media-title">
-            Useful ideas, followed all the way through.
+            Complex questions, followed through with evidence.
           </h2>
         </div>
 

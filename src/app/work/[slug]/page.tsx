@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  Github,
 } from "lucide-react";
 
 import { Reveal } from "@/components/Reveal";
@@ -23,7 +22,7 @@ type ProjectPageProps = Readonly<{
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://my-portfolio-six-teal-90.vercel.app";
+  "https://portfolio-flame-psi-88.vercel.app";
 
 export const dynamicParams = false;
 
@@ -52,7 +51,7 @@ export async function generateMetadata({
     description: project.summary,
     alternates: { canonical },
     openGraph: {
-      title: `${project.title} — Kingxford`,
+      title: `${project.title} — kingXford & Co`,
       description: project.summary,
       type: "article",
       url: canonical,
@@ -67,7 +66,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${project.title} — Kingxford`,
+      title: `${project.title} — kingXford & Co`,
       description: project.summary,
       images: [coverUrl],
     },
@@ -197,30 +196,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </Reveal>
           </div>
 
-          {(project.liveUrl || project.repoUrl) && (
+          {project.liveUrl && (
             <Reveal className="project-links">
-              {project.liveUrl && (
-                <a
-                  className="button button--primary"
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <span>Visit live project</span>
-                  <ArrowUpRight aria-hidden="true" />
-                </a>
-              )}
-              {project.repoUrl && (
-                <a
-                  className="button button--quiet"
-                  href={project.repoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Github aria-hidden="true" />
-                  <span>View repository</span>
-                </a>
-              )}
+              <a
+                className="button button--primary"
+                href={project.liveUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span>Visit live project</span>
+                <ArrowUpRight aria-hidden="true" />
+              </a>
             </Reveal>
           )}
         </section>

@@ -30,18 +30,18 @@ const worlds: readonly World[] = [
     id: "studio",
     number: "01",
     title: "Studio",
-    kicker: "Digital creation",
-    statement: "Ideas become experiences.",
+    kicker: "Product & digital systems",
+    statement: "Build intelligence into useful systems.",
     body:
-      "We design and build intelligent tools, web apps, websites, digital products, cinematic worlds, and motion-led visual systems.",
-    signature: "From first strategy to live release.",
+      "The Studio translates research and strategic insight into intelligent tools, platforms, products, and experiences people can put to work.",
+    signature: "From validated proposition to resilient release.",
     services: [
-      "Digital tools & platforms",
-      "Web apps & websites",
-      "Product & experience design",
-      "Cinematography & motion",
-      "Brand & visual systems",
-      "Digital development",
+      "Intelligent tools & platforms",
+      "AI-enabled products",
+      "Decision-support systems",
+      "Product & service design",
+      "Web apps & digital infrastructure",
+      "Communication & visual systems",
     ],
     image: "/motion/kingxford-reality-studio-portrait.webp",
     href: "/work",
@@ -51,18 +51,18 @@ const worlds: readonly World[] = [
     id: "living-room",
     number: "02",
     title: "The Living Room",
-    kicker: "Open-ended practice",
-    statement: "For the brief that refuses a category.",
+    kicker: "Strategy & complex mandates",
+    statement: "Solve the problem before it hardens.",
     body:
-      "One-off commissions, new service ideas, creative strategy, experiences, and collaborations shaped around the real need.",
-    signature: "No fixed menu. Unending possibilities.",
+      "The Living Room is our situation room for institutions, collaborators, and uncommon briefs that need structured intelligence before they need a predefined service.",
+    signature: "The right coalition around the real question.",
     services: [
-      "Special commissions",
-      "Strategy & concepts",
-      "Experiences",
-      "New service ideas",
-      "Cross-disciplinary collaboration",
-      "The useful unknown",
+      "Strategic intelligence",
+      "Complex problem framing",
+      "Foresight & scenario work",
+      "Institutional transformation",
+      "Venture & project development",
+      "Cross-disciplinary coalitions",
     ],
     image: "/motion/kingxford-strategy-room-portrait.webp",
     href: "/contact?world=living-room",
@@ -72,17 +72,17 @@ const worlds: readonly World[] = [
     id: "lab",
     number: "03",
     title: "Lab",
-    kicker: "Science & academia",
-    statement: "Rigour, made legible.",
+    kicker: "Research & development",
+    statement: "Make uncertainty testable.",
     body:
-      "For researchers, educators, institutions, and scientific teams turning difficult knowledge into systems people can explore and use.",
-    signature: "Depth without obscurity.",
+      "The Lab conducts and translates rigorous inquiry for scientific, academic, public-interest, and industry partners developing knowledge with consequence.",
+    signature: "Evidence that can travel into action.",
     services: [
-      "Research platforms",
-      "Academic visualisation",
+      "Applied research & experimentation",
+      "Responsible AI evaluation",
       "Data & knowledge systems",
-      "Publication design",
-      "Learning experiences",
+      "Research platforms",
+      "Evidence synthesis & translation",
       "Scientific communication",
     ],
     image: "/motion/kingxford-scientific-lab-portrait.webp",
@@ -110,6 +110,9 @@ const intentVocabulary: Record<WorldId, readonly string[]> = {
     "cinematography",
     "video",
     "design system",
+    "prototype",
+    "automation",
+    "decision support",
   ],
   "living-room": [
     "campaign",
@@ -124,6 +127,12 @@ const intentVocabulary: Record<WorldId, readonly string[]> = {
     "unusual",
     "different",
     "unsure",
+    "institution",
+    "foresight",
+    "scenario",
+    "transformation",
+    "venture",
+    "project development",
   ],
   lab: [
     "research",
@@ -141,6 +150,11 @@ const intentVocabulary: Record<WorldId, readonly string[]> = {
     "knowledge",
     "learning",
     "education",
+    "development",
+    "experiment",
+    "responsible ai",
+    "sustainable",
+    "abundance",
   ],
 };
 
@@ -155,17 +169,18 @@ export function KingxfordWorlds() {
     >
       <header className="worlds__header">
         <div className="worlds__index">
-          <span>01 / Three worlds</span>
-          <span>Choose the room the idea needs</span>
+          <span>01 / Delivery environments</span>
+          <span>One mission, three modes of work</span>
         </div>
         <div className="worlds__heading">
           <h2 id="worlds-title">
-            Three doors.
-            <em>One exacting practice.</em>
+            One mission.
+            <em>Three delivery environments.</em>
           </h2>
           <p>
-            Every Kingxford engagement begins in one of three worlds. The
-            boundaries are clear; the possibilities inside them are not.
+            Intelligence, R&amp;D, responsible AI, and preparation for sustainable
+            abundance lead the work. Studio, The Living Room, and Lab are the
+            environments through which kingXford &amp; Co delivers it.
           </p>
         </div>
       </header>
@@ -246,9 +261,9 @@ function scoreIntent(value: string) {
 }
 
 const ideaPrompts = [
-  "A web app for a difficult workflow",
-  "A strange commission with no category",
-  "A research platform for scientific evidence",
+  "An intelligent system for a difficult workflow",
+  "A complex institutional challenge with no obvious owner",
+  "A research programme for sustainable abundance",
 ] as const;
 
 export function IdeaRouter() {
@@ -266,25 +281,27 @@ export function IdeaRouter() {
       aria-labelledby="idea-router-title"
     >
       <div className="idea-router__intro">
-        <span>02 / The idea router</span>
+        <span>02 / The complexity router</span>
         <h2 id="idea-router-title">
-          What are you trying
-          <em>to bring into form?</em>
+          What future are you trying
+          <em>to make possible?</em>
         </h2>
         <p>
-          Describe it plainly. Kingxford will point you toward the room best
-          equipped to begin.
+          Describe the problem, idea, or project plainly. kingXford &amp; Co will
+          point you toward the delivery environment best equipped to begin.
         </p>
       </div>
 
       <div className="idea-router__console">
-        <label htmlFor="idea-router-input">Your idea, in one sentence</label>
+        <label htmlFor="idea-router-input">
+          Your problem, idea, or project in one sentence
+        </label>
         <div className="idea-router__input">
           <textarea
             id="idea-router-input"
             value={idea}
             rows={3}
-            placeholder="I need to turn…"
+            placeholder="We need to understand, develop, or build…"
             onChange={(event) => setIdea(event.target.value)}
           />
           <CornerDownLeft aria-hidden="true" />

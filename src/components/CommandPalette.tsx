@@ -31,59 +31,51 @@ type CommandItem = {
 
 const commands: readonly CommandItem[] = [
   {
-    id: "studio",
-    label: "Studio",
-    description: "Digital tools, products, web apps, film, and creative technology",
-    href: "/#studio",
-    keywords: "kingxford digital products aceplore cinematography websites development",
-    icon: BriefcaseBusiness,
-  },
-  {
-    id: "living-room",
-    label: "The Living Room",
-    description: "Open-ended creative services and unexpected commissions",
-    href: "/#living-room",
-    keywords: "kingxford creative unending services ideas commissions",
+    id: "mission",
+    label: "Mission",
+    description: "Intelligence and responsible innovation for sustainable abundance",
+    href: "/#mission",
+    keywords: "kingxford co mission intelligence sustainable abundance abundant future complex problems ideas projects",
     icon: House,
   },
   {
     id: "lab",
-    label: "Lab",
-    description: "Research, science, and work for academic audiences",
-    href: "/#lab",
-    keywords: "kingxford research science academic experiments",
+    label: "R&D / Lab",
+    description: "Research, experimentation, responsible AI, and knowledge systems",
+    href: "/lab",
+    keywords: "kingxford research development science academic experiments evidence responsible ai",
     icon: FlaskConical,
   },
   {
     id: "work",
-    label: "Selected work",
-    description: "Explore digital products and visual systems",
+    label: "Work",
+    description: "See complex ideas and research translated into working systems",
     href: "/work",
-    keywords: "portfolio projects case studies websites apps",
+    keywords: "portfolio projects case studies intelligence research websites apps systems",
     icon: BriefcaseBusiness,
   },
   {
     id: "media",
     label: "Media",
-    description: "Essays, briefings, and future conversations",
+    description: "Evidence-led ideas on AI, R&D, and sustainable abundance",
     href: "/media",
-    keywords: "blog podcast media artificial intelligence business finance design research",
+    keywords: "blog podcast media artificial intelligence sustainable abundance business finance design research",
     icon: Newspaper,
   },
   {
     id: "about",
-    label: "About Kingxford",
-    description: "Practice, perspective, and capabilities",
+    label: "About kingXford & Co",
+    description: "Mission, operating model, perspective, and capabilities",
     href: "/about",
-    keywords: "company practice perspective capabilities",
+    keywords: "company co mission investors contributors practice perspective capabilities",
     icon: UserRound,
   },
   {
     id: "contact",
-    label: "Start a conversation",
-    description: "Bring an ambitious idea into focus",
+    label: "Bring a complex challenge",
+    description: "Start with a problem, opportunity, idea, or ambitious project",
     href: "/contact",
-    keywords: "contact collaborate commission email project",
+    keywords: "contact collaborate institution research development email project problem",
     icon: Mail,
   },
 ];
@@ -303,7 +295,8 @@ export function CommandPalette({
 
             {filteredCommands.length === 0 && (
               <p className="command-palette__empty">
-                No destination found. Try “work”, “about”, or “contact”.
+                No destination found. Try “mission”, “R&amp;D”, “media”, or
+                “contact”.
               </p>
             )}
           </div>

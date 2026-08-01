@@ -1,12 +1,12 @@
-# Kingxford narration policy
+# kingXford & Co narration policy
 
 ## Quality standard
 
-Kingxford narration must sound deliberate, editorial, and convincingly human. A generic browser voice, an unreviewed text-to-speech export, or a robotic placeholder is not acceptable.
+kingXford & Co narration must sound deliberate, editorial, and convincingly human. A generic browser voice, an unreviewed text-to-speech export, or a robotic placeholder is not acceptable.
 
-No narration asset is being shipped in this release. Publishing an unreviewed or robotic placeholder would violate the Kingxford quality bar. Audio should be added only after the full narration workflow below has been completed and the result has passed editorial and listening review.
+No narration asset is being shipped in this release. Publishing an unreviewed or robotic placeholder would violate the kingXford & Co quality bar. Audio should be added only after the full narration workflow below has been completed and the result has passed editorial and listening review.
 
-If the requirement is literally an actual human voice rather than human-sounding synthesis, Kingxford must commission a professional narrator and publish the approved human recording.
+If the requirement is literally an actual human voice rather than human-sounding synthesis, kingXford & Co must commission a professional narrator and publish the approved human recording.
 
 ## Approved open-source systems
 
@@ -15,7 +15,7 @@ If the requirement is literally an actual human voice rather than human-sounding
 Use Qwen3-TTS 12Hz 1.7B as the primary synthesis family:
 
 - `CustomVoice` for a consistent licensed built-in voice with editorial style control.
-- `VoiceDesign` when Kingxford needs an original synthetic narrator designed for the brand.
+- `VoiceDesign` when kingXford & Co needs an original synthetic narrator designed for the brand.
 - The documented Voice Design to Clone workflow may be used to keep an original designed voice consistent across posts.
 
 Official sources:
@@ -62,7 +62,7 @@ Narration supplements the article. It never replaces the readable text.
 
 ## Consent and voice rights
 
-Kingxford must never clone, imitate, or build a voice profile from a real person without that person's explicit written permission.
+kingXford & Co must never clone, imitate, or build a voice profile from a real person without that person's explicit written permission.
 
 This applies equally to employees, contractors, clients, public figures, interview subjects, creators, and audio found online. Public availability is not consent. A short reference clip is not permission. Do not scrape a podcast, video, meeting, social post, or archival recording to create a voice.
 

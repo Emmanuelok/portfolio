@@ -3,10 +3,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Kingxford",
-    short_name: "Kingxford",
+    name: "kingXford & Co",
+    short_name: "kingXford & Co",
     description:
-      "Kingxford is a multidisciplinary creative company spanning Studio, Living Room, Lab, and Media.",
+      "Intelligence, research and development, and responsible AI for sustainable abundance.",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -14,6 +14,6 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#07090d",
     orientation: "any",
     lang: "en",
-    categories: ["design", "portfolio", "productivity", "education", "news"],
+    categories: ["research", "education", "productivity", "news"],
   };
 }

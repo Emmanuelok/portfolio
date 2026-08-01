@@ -38,8 +38,8 @@ export function MediaPostCard({
             className="media-card__image"
             src={post.cover}
             alt={post.coverAlt}
-            width={2400}
-            height={1600}
+            width={post.coverWidth ?? 2400}
+            height={post.coverHeight ?? 1600}
             quality={94}
             priority={priority}
             sizes="(max-width: 760px) 100vw, 88vw"

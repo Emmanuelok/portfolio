@@ -1,24 +1,24 @@
 project:
-  id: kingxford-studio
-  name: "Kingxford"
-  owner: "Kingxford"
+  id: kingxford-and-co
+  name: "kingXford & Co"
+  owner: "kingXford & Co"
   status: implementation
   deadline: "Not specified; production deployment requested"
 
 objective:
-  primary_goal: "Present Kingxford's graphic design, product design, websites, web applications, and research-led digital systems through a distinctive, usable public portfolio."
+  primary_goal: "Present kingXford & Co as an intelligence, research, and development company that applies responsible AI and systems thinking to complex problems, ideas, and projects in pursuit of sustainable abundance."
   audience_change:
-    know: "Kingxford turns complex ideas into coherent, useful, visually memorable digital products."
-    feel: "Curious, confident in the craft, and eager to explore beyond the first project."
-    remember: "The dominant architectural X connecting Studio, the Living Room, and Lab."
-    do: "Explore case studies, visit live work where available, and start a relevant collaboration."
+    know: "kingXford & Co builds intelligence, evidence, responsible AI, and durable systems that expand human and institutional capability."
+    feel: "Oriented, challenged, and confident that difficult work can become a disciplined programme of action."
+    remember: "Prepare for sustainable abundance—the mission carried through the dominant X connecting Studio, the Living Room, and Lab."
+    do: "Explore the evidence, evaluate relevant work, and bring a consequential problem or project into collaboration."
   success_metrics:
-    - "A visitor can identify Kingxford's practice and reach the featured work index from the first screen."
+    - "A visitor can identify intelligence, research and development, responsible AI, complex-problem delivery, and sustainable abundance as the company's leading mission from the first screen."
     - "Every featured project has a working detail route, truthful status, and clear next action."
     - "Primary navigation, theme selection, and project discovery work with keyboard, pointer, and touch."
     - "The experience reflows from 320px to wide desktop without horizontal page overflow."
     - "Non-essential motion respects prefers-reduced-motion."
-    - "A verified Vercel production URL and public GitHub source URL are recorded at delivery."
+    - "A verified Vercel production URL and immutable source release are recorded in operational delivery evidence."
   failure_conditions:
     - "The site reads as a generic neon, glass, or template portfolio."
     - "Visual spectacle obscures project names, descriptions, navigation, or controls."
@@ -29,18 +29,17 @@ objective:
     - "Core content or navigation depends on hover, fine pointer accuracy, or uninterrupted motion."
 
 audience:
-  primary: "Founders, product and design leaders, institutional partners, and prospective clients evaluating Kingxford's design and digital-product capabilities."
-  secondary: "Collaborators, academic and research partners, recruiters, and curious makers."
-  context_of_use: "Public web portfolio on mobile and desktop; often first encountered through a shared project or profile link."
-  prior_knowledge: "May know one project but not the range connecting design, research, education, and software."
-  tension_or_need: "Visitors need fast proof of range without losing the depth, authorship, and context behind each project."
+  primary: "Institutional leaders, research partners, founders, investors of capital or capability, public-interest organisations, and complex-project sponsors evaluating kingXford & Co's intelligence and development capacity."
+  secondary: "Researchers, technical collaborators, educators, product leaders, and informed readers seeking evidence-led approaches to an abundant future."
+  context_of_use: "Public company platform on mobile and desktop; often first encountered through a shared article, project, or institutional conversation."
+  prior_knowledge: "May know one project but not the mission connecting intelligence, research, responsible AI, development, and sustainable abundance."
+  tension_or_need: "Visitors need a clear account of the mission, credible evidence, and practical ways to move a complex problem or project forward."
   objections:
     - "A broad practice may feel unfocused."
     - "Highly expressive interfaces can become difficult to navigate."
     - "Conceptual imagery can be mistaken for literal product screenshots."
   regions:
     - "Global"
-    - "Canada"
   languages:
     - en
   age_suitability: general
@@ -54,22 +53,26 @@ audience:
     - "Minimum 44px touch targets for primary controls"
 
 message:
-  governing_idea: "X-Frame: Studio, the Living Room, and Lab cross inside one company and one standard of craft."
-  single_minded_proposition: "Kingxford designs ambitious digital experiences with both visual conviction and systems depth."
+  governing_idea: "X-Frame: intelligence, research and development, responsible AI, and aligned investment cross inside one company preparing for sustainable abundance."
+  single_minded_proposition: "kingXford & Co helps people and institutions solve complex problems and develop ambitious ideas, projects, and systems into durable capability."
   proof_points:
     - "Eight named portfolio case studies spanning connected consultancy, reflective learning, strategy games, education, research integrity, finance, productivity, and value management."
-    - "A Kingxford Media index and complete first field note, How to Get Ahead in the AI Era, with institutional research notes and an optional audio architecture."
-    - "Public source repository at https://github.com/Emmanuelok/portfolio."
+    - "A kingXford & Co Media index with How to Get Ahead in the AI Era and Sustainable Abundance for All, each grounded by explicit institutional research notes and an optional audio architecture."
+    - "Sustainable Abundance for All includes a non-additive capability dashboard, directly labelled comparisons, an evidence-register table, source links, interpretation boundaries, and an original decision framework that is explicitly not presented as a validated causal model or universal index."
     - "Functional case-study and Media routes, project discovery, theme controls, and an accessible command palette in the implemented frontend."
   required_copy:
-    - "Kingxford"
+    - "kingXford & Co"
+    - "Prepare for sustainable abundance"
+    - "Intelligence"
+    - "Research & development"
+    - "Responsible AI"
     - "Studio"
     - "The Living Room"
     - "Lab"
     - "Selected work"
     - "Media"
     - "About"
-    - "Kingxford Lab"
+    - "kingXford & Co Lab"
     - "Contact"
   prohibited_implications:
     - "Do not imply that contextual licensed photographs document the represented product, commission, or study."
@@ -77,10 +80,10 @@ message:
     - "Do not imply that every represented project is currently live unless its destination has been verified."
     - "Do not imply legal clearance, trademark clearance, formal accessibility conformance, or third-party endorsement."
     - "Do not invent client outcomes, user counts, awards, testimonials, or performance statistics."
-  call_to_action: "Explore the work"
+  call_to_action: "Build an abundant future"
 
 brand:
-  name: "Kingxford"
+  name: "kingXford & Co"
   attributes:
     - "tactile"
     - "editorial"
@@ -88,6 +91,9 @@ brand:
     - "generous"
     - "precise"
     - "quietly audacious"
+    - "research-led"
+    - "responsible"
+    - "long-horizon"
   non_negotiables:
     - "Graphite, warm-bone, and electric-ultramarine are functional roles, not decoration."
     - "The X is dominant in the identity and acts as a structural crossing, not decorative lettering."
@@ -110,6 +116,7 @@ brand:
     - "public/motion/kingxford-scientific-lab.webp"
     - "public/motion/kingxford-scientific-lab-portrait.webp"
     - "public/media/how-to-get-ahead-in-the-ai-era-concept.webp"
+    - "public/media/sustainable-abundance-for-all-concept.webp"
   verbal_rules:
     - "Lead with what the work changes, then explain how it was made."
     - "Use concrete nouns and active verbs."
@@ -128,7 +135,8 @@ world:
     - "Fictional adults in generated conceptual imagery shown only as illustrative participants; no real identity, employment, client relationship, study participation, or endorsement is implied."
   products:
     - "Eight portfolio projects represented by five disclosed conceptual editorial covers, three licensed contextual photographs, factual HTML case-study content, and verified outbound links where available."
-    - "Kingxford Media represented by an index, a complete first field note, cited research notes, and an optional audio surface with no narration shipped."
+    - "kingXford & Co Media represented by an index, two complete evidence-led articles, cited research notes, and an optional audio surface with no narration shipped."
+    - "The Sustainable Abundance briefing includes accessible figures, charts, and a responsive table whose official source years, units, uncertainty, and scenario boundaries remain adjacent to the values."
   props:
     - "Architectural X-Frame"
     - "Physical briefs, evidence planes, project models, assessment materials, research dossiers, and strategy boards"
@@ -139,7 +147,7 @@ world:
     - "Disclosed conceptual molecular and analytical laboratory for the Lab"
     - "Real campus architecture"
   time_period: "Contemporary"
-  geography: "Global company with Canadian context; every documentary source and synthetic generation record is documented in rights-provenance.csv."
+  geography: "Global company; every documentary source and synthetic generation record is documented in rights-provenance.csv."
   season_weather_time: "Licensed photography retains documented light; conceptual imagery uses physically plausible contemporary editorial lighting."
   continuity_anchors:
     - "Warm bone, graphite, and electric ultramarine"
@@ -150,8 +158,8 @@ world:
 
 creative_direction:
   concept_title: "X-Frame"
-  premise: "An architectural X crosses licensed documentary environments and clearly disclosed conceptual editorial imagery, connecting three distinct Kingxford worlds without flattening their differences."
-  narrative_or_information_arc: "Identity and proposition → selected work → individual case-study context and process → Media ideas and practical guidance → broader practice and experiments → clear contact path."
+  premise: "An architectural X crosses licensed documentary environments and clearly disclosed conceptual editorial imagery, connecting kingXford & Co's intelligence, R&D, responsible-AI, investment, and delivery worlds without flattening their differences."
+  narrative_or_information_arc: "Sustainable-abundance mission → intelligence and R&D approach → responsible AI → aligned contributors represented by & Co → delivery worlds → evidence-rich Media and projects → clear collaboration path."
   emotional_arc:
     - "Immediate intrigue"
     - "Confident orientation"
@@ -191,8 +199,9 @@ deliverables:
     - "Responsive Next.js portfolio source"
     - "Production Vercel deployment"
     - "Eight project case-study experiences"
-    - "Kingxford Media index and first long-form field note"
-    - "Kingxford X-Frame brand and interaction system"
+    - "kingXford & Co Media index and two long-form evidence-led articles"
+    - "Accessible Sustainable Abundance evidence dashboard, comparisons, evidence register, and original design loop"
+    - "kingXford & Co X-Frame brand and interaction system"
   variants:
     - "Light, ink, and system-resolved themes"
     - "Mobile, intermediate, and wide responsive compositions"
@@ -230,14 +239,13 @@ inputs:
     - "Five photoreal conceptual project covers generated with Imagegen on 2026-07-30."
     - "Four photoreal strategy-room and scientific-lab plates generated with Imagegen on 2026-07-30."
     - "One photoreal conceptual Media cover generated with Imagegen on 2026-07-30."
+    - "One photoreal conceptual Sustainable Abundance Media cover generated with Imagegen on 2026-07-31."
     - "Three licensed documentary project photographs."
     - "Three licensed documentary arrival and Studio plates for the cinematic and world cards."
   audio:
     - "No narration asset shipped; optional future audio must follow creative/narration-policy.md."
   documents:
     - "Direct Creative Production templates adapted in creative/."
-  urls:
-    - "https://github.com/Emmanuelok/portfolio"
   codebase: "Next.js 16 App Router, React 19, TypeScript, Motion, Lucide, Manrope, and Newsreader."
   reference_purpose_notes:
     - "User requested a futuristic, out-of-the-ordinary showcase; the chosen direction translates that ambition into tactile editorial interaction instead of trend mimicry."
@@ -252,7 +260,7 @@ production:
   budget_or_credit_limit: "Not specified"
   approval_gates:
     - "G0 brief"
-    - "G1 Kingxford X-Frame direction"
+    - "G1 kingXford & Co X-Frame direction"
     - "G2 representative project imagery"
     - "G3 brand, component, rights, and accessibility system"
     - "G4 functional local frontend"
@@ -287,13 +295,13 @@ rights_and_compliance:
     - "Narration is optional and not shipped; any future edition requires a licensed or consented voice, human editorial review, a complete transcript, and listening QA."
 
 assumptions:
-  - "The authorized repository owner controls the requested GitHub repository and authorizes this Kingxford implementation."
-  - "The public GitHub repository is the safe source-code destination requested by the user."
-  - "The contact experience uses public navigation and mail-safe patterns without exposing private information."
+  - "The authorized repository owner controls the operational source repository and authorizes this kingXford & Co implementation."
+  - "Operational source and deployment identifiers remain in non-rendered release records only where technically necessary."
+  - "The contact experience uses company-safe channels without exposing personal profiles, location, or private information."
   - "Licensed contextual photography does not assert affiliation, participation, endorsement, or a documented project outcome."
   - "Disclosed conceptual imagery does not assert a literal product interface, real facility, employee identity, participant, endorsement, or measured outcome."
 
 open_questions:
   - "Which single public email or form destination should be used if a direct contact address is later added?"
   - "Which represented project URLs are owner-approved and currently production-ready?"
-  - "Should future releases add a downloadable résumé after the final document and privacy review?"
+  - "Should future releases add a company research library, evidence dashboard, or institutional partnership prospectus after content and privacy review?"

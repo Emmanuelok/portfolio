@@ -26,7 +26,6 @@ export type Project = Readonly<{
   featured: boolean;
   role: readonly string[];
   liveUrl?: string;
-  repoUrl?: string;
   challenge: string;
   approach: readonly string[];
   outcome: string;
@@ -163,7 +162,6 @@ export const projects: readonly Project[] = [
       "Digital publication",
     ],
     liveUrl: "https://ccai.global/",
-    repoUrl: "https://github.com/Emmanuelok/corpm-onto",
     challenge:
       "Corruption in projects is usually described as a list of acts. That makes it difficult to see how actors, roles, opportunities, lifecycle stages, evidence, impacts, red flags, and controls connect.",
     approach: [

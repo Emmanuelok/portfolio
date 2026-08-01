@@ -73,32 +73,32 @@ function visibilityWindow(
 
 const chapters: readonly CinematicChapter[] = [
   {
-    id: "arrival",
-    label: "Kingxford",
+    id: "mission",
+    label: "Mission",
     index: "00",
     range: [0, 0.18],
-    eyebrow: "Kingxford / Three worlds. One company.",
-    title: "Complex ideas. Unforgettable form.",
+    eyebrow: "kingXford & Co / Intelligence for shared progress",
+    title: "Prepare for sustainable abundance.",
     body:
-      "We turn difficult ideas into worlds people can see, use, understand, and remember.",
+      "We research, develop, and apply responsible AI to help people and institutions solve complex problems and build ambitious ideas, projects, and systems for an abundant future.",
     image: arrivalImage,
     imageAlt:
       "Intersecting steel beams in a real contemporary structure",
-    evidence: "Real architecture / X as structure",
+    evidence: "Mission / Sustainable abundance",
   },
   {
-    id: "studio",
-    label: "Studio",
+    id: "intelligence",
+    label: "Intelligence",
     index: "01",
-    range: [0.17, 0.39],
-    eyebrow: "Studio / Digital creation",
-    title: "Build what people can enter.",
+    range: [0.17, 0.36],
+    eyebrow: "Intelligence / From signals to decisions",
+    title: "See the system before choosing the move.",
     body:
-      "Digital tools, web apps, websites, products, cinematography, motion, identities, and complete visual systems—from first idea to live release.",
-    image: studioImage,
+      "We connect evidence, foresight, domain knowledge, and human judgement so complexity becomes a field of informed choices—not a reason to stand still.",
+    image: livingRoomImage,
     imageAlt:
-      "A real film studio with a cinema camera, lighting, and production equipment",
-    evidence: "Documentary production environment",
+      "A professional strategy room where a multidisciplinary team studies complex systems around a central table",
+    evidence: "Strategy / Systems intelligence",
     align: "end",
     proofs: [
       { src: "/work/veridanth-concept.webp", label: "Veridanth / Practice" },
@@ -106,32 +106,32 @@ const chapters: readonly CinematicChapter[] = [
     ],
   },
   {
-    id: "living-room",
-    label: "Living Room",
+    id: "research-development",
+    label: "R&D",
     index: "02",
-    range: [0.38, 0.61],
-    eyebrow: "The Living Room / Open-ended practice",
-    title: "Make room for what has no category.",
+    range: [0.35, 0.54],
+    eyebrow: "Research & development / Inquiry into capability",
+    title: "Turn uncertainty into testable knowledge.",
     body:
-      "Special commissions, strategy, experiences, stories, and uncommon collaborations shaped around what the moment actually needs.",
-    image: livingRoomImage,
-    imageAlt:
-      "Conceptual editorial image of a professional strategy room where a multidisciplinary team studies projects around a central table",
-    evidence: "Strategy room / Open possibility",
-  },
-  {
-    id: "lab",
-    label: "Lab",
-    index: "03",
-    range: [0.6, 0.82],
-    eyebrow: "Lab / Science & academia",
-    title: "Evidence, made visible.",
-    body:
-      "Research platforms, academic systems, data experiences, knowledge tools, and scientific communication built with depth and clarity.",
+      "We investigate difficult questions, build prototypes, evaluate evidence, and translate useful findings into tools, policies, platforms, and ventures that can endure.",
     image: labImage,
     imageAlt:
-      "Conceptual editorial image of scientists collaborating with microscopy, materials testing, and analytical instruments in an advanced laboratory",
-    evidence: "Scientific laboratory / Research in practice",
+      "Scientists collaborating with microscopy, materials testing, and analytical instruments in an advanced laboratory",
+    evidence: "Scientific inquiry / Applied R&D",
+  },
+  {
+    id: "responsible-ai",
+    label: "Responsible AI",
+    index: "03",
+    range: [0.53, 0.72],
+    eyebrow: "Responsible AI / Capability with accountability",
+    title: "Build intelligence people can question and govern.",
+    body:
+      "We pursue AI that expands human agency, makes uncertainty visible, protects meaningful oversight, and is evaluated against the people and institutions it affects.",
+    image: studioImage,
+    imageAlt:
+      "A professional production studio representing the disciplined development of intelligent digital systems",
+    evidence: "Human agency / Responsible deployment",
     align: "end",
     proofs: [
       { src: "/work/ccai-global-concept.webp", label: "CCAI / Knowledge" },
@@ -142,18 +142,18 @@ const chapters: readonly CinematicChapter[] = [
     ],
   },
   {
-    id: "one-practice",
-    label: "One company",
+    id: "and-co",
+    label: "& Co",
     index: "04",
-    range: [0.81, 0.96],
-    eyebrow: "One Kingxford / Different doors",
-    title: "The same standard in every room.",
+    range: [0.71, 0.87],
+    eyebrow: "& Co / Progress is a collective undertaking",
+    title: "The future is built with others.",
     body:
-      "Clear thinking. Distinctive form. Work designed to matter beyond the first impression.",
-    image: arrivalImage,
+      "We create the conditions for aligned contributors to combine insight, commitment, and capability around consequential work.",
+    image: livingRoomImage,
     imageAlt:
-      "Intersecting architectural beams representing Kingxford's connected worlds",
-    evidence: "Studio / Living Room / Lab",
+      "A multidisciplinary team coordinating complex work in a professional strategy room",
+    evidence: "Collaboration / Shared capability",
     proofs: [
       { src: "/work/veridanth-concept.webp", label: "Studio" },
       {
@@ -164,18 +164,18 @@ const chapters: readonly CinematicChapter[] = [
     ],
   },
   {
-    id: "choose",
-    label: "Enter",
+    id: "abundant-future",
+    label: "Abundant Future",
     index: "05",
-    range: [0.94, 1],
-    eyebrow: "Studio / Living Room / Lab",
-    title: "Choose your door.",
+    range: [0.86, 1],
+    eyebrow: "Abundant future / Prepared, inclusive, sustainable",
+    title: "Make progress durable—and widely useful.",
     body:
-      "Or bring us something the world has not named yet.",
+      "We prepare people and institutions to turn expanding intelligence, knowledge, and productive capacity into long-term human and ecological value.",
     image: arrivalImage,
     imageAlt:
-      "The architectural crossing that connects the three Kingxford worlds",
-    evidence: "One company / Three ways in",
+      "Intersecting architectural beams representing coordinated paths toward an abundant future",
+    evidence: "Craft signature / Complex ideas. Unforgettable form.",
     align: "end",
   },
 ] as const;
@@ -311,11 +311,11 @@ function Chapter({ chapter, progress }: ChapterProps) {
           ))}
         </div>
       ) : null}
-      {chapter.id === "choose" ? (
+      {chapter.id === "abundant-future" ? (
         <div className="kx-cinematic__chapter-actions">
-          <a href="#studio">Studio</a>
-          <a href="#living-room">Living Room</a>
-          <a href="#lab">Lab</a>
+          <a href="#three-worlds">Delivery worlds</a>
+          <a href="/lab">Explore R&amp;D</a>
+          <a href="/contact">Build with us</a>
         </div>
       ) : null}
     </m.article>
@@ -326,7 +326,7 @@ function StaticCinematic() {
   return (
     <section
       className="kx-static"
-      id="top"
+      id="mission"
       aria-labelledby="kx-static-title"
     >
       <div className="kx-static__hero">
@@ -334,25 +334,26 @@ function StaticCinematic() {
           className="kx-static__logo"
           decorative
         />
-        <p>Kingxford / Three worlds. One company.</p>
+        <p>kingXford &amp; Co / Intelligence for shared progress</p>
         <h1 id="kx-static-title">
-          Complex ideas.
-          <em>Unforgettable form.</em>
+          Prepare for
+          <em>sustainable abundance.</em>
         </h1>
         <div>
           <p>
-            A multidisciplinary creative company for digital creation,
-            open-ended collaboration, and scientific and academic work.
+            We research, develop, and apply responsible AI to help people and
+            institutions solve complex problems and build ambitious ideas,
+            projects, and systems for an abundant future.
           </p>
           <a href="#three-worlds">
-            Explore the three worlds
+            Explore how we deliver
             <ArrowDown aria-hidden="true" />
           </a>
         </div>
       </div>
 
       <div className="kx-static__chapters">
-        {chapters.slice(1, 4).map((chapter) => (
+        {chapters.slice(1).map((chapter) => (
           <article className="kx-static__chapter" key={chapter.id}>
             <div className="kx-static__image">
               <Image
@@ -421,9 +422,9 @@ export function KingxfordCinematic() {
   return (
     <section
       className="kx-cinematic"
-      id="top"
+      id="mission"
       ref={sectionRef}
-      aria-label="Kingxford: three worlds, one company"
+      aria-label="kingXford & Co mission: intelligence and research for sustainable abundance"
       data-media-ready="true"
     >
       <div className="kx-cinematic__stage">
@@ -462,8 +463,8 @@ export function KingxfordCinematic() {
             className="kx-cinematic__logo"
             decorative
           />
-          <span>Three worlds / One company</span>
-          <span>Operational worlds / Editorial project concepts</span>
+          <span>Intelligence / R&amp;D / Responsible AI</span>
+          <span>Preparing for sustainable abundance</span>
         </div>
 
         <div className="kx-cinematic__chapters">

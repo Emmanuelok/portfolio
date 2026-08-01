@@ -7,9 +7,9 @@ import { WorkGrid } from "@/components/WorkGrid";
 import { projectCategories, projects } from "@/data/projects";
 
 export const metadata: Metadata = {
-  title: "Selected work",
+  title: "Work",
   description:
-    "Selected work from Kingxford—digital products, research platforms, visual systems, and intelligent web experiences.",
+    "Mission in practice from kingXford & Co: research, intelligent systems, responsible AI, and complex project development.",
   alternates: {
     canonical: "/work",
   },
@@ -23,18 +23,18 @@ export default function WorkPage() {
         aria-labelledby="work-heading"
       >
         <div className="page-hero__index" aria-hidden="true">
-          01 / Selected work
+          03 / Work
         </div>
 
         <div className="page-hero__content">
           <Reveal>
-            <p className="eyebrow">Kingxford · Studio archive · 2026</p>
+            <p className="eyebrow">kingXford &amp; Co · Mission in practice</p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="work-heading">
-              <span className="page-hero__line">Built to make</span>
+              <span className="page-hero__line">Intelligence and research,</span>
               <span className="page-hero__line page-hero__line--accent">
-                complexity feel inevitable.
+                developed into working systems.
               </span>
             </h1>
           </Reveal>
@@ -42,9 +42,8 @@ export default function WorkPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            Product systems, research interfaces, intelligent tools, and
-            digital worlds—each shaped around a real problem and a clear
-            point of view.
+            Evidence of how complex problems, ambitious ideas, and
+            consequential projects move from inquiry to tested, useful form.
           </p>
           <a className="text-link" href="#project-index">
             <span>Browse the index</span>
@@ -63,7 +62,7 @@ export default function WorkPage() {
           </span>
           <span>
             <strong>01</strong>
-            Point of view
+            Shared mission
           </span>
         </div>
       </section>
@@ -74,15 +73,15 @@ export default function WorkPage() {
         aria-labelledby="project-index-heading"
       >
         <div className="section-heading">
-          <p className="eyebrow">Project index</p>
-          <h2 id="project-index-heading">Choose a thread to follow.</h2>
+          <p className="eyebrow">Evidence index</p>
+          <h2 id="project-index-heading">Follow the problem into practice.</h2>
         </div>
         <WorkGrid />
       </section>
 
       <Reveal className="page-cta">
-        <p className="eyebrow">Have an ambitious brief?</p>
-        <h2>Let&apos;s give it a form people remember.</h2>
+        <p className="eyebrow">Have a consequential challenge?</p>
+        <h2>Let&apos;s turn complexity into tested capability.</h2>
         <Link className="button button--primary" href="/contact">
           <span>Start a conversation</span>
           <ArrowUpRight aria-hidden="true" />

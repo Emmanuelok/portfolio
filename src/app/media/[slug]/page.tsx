@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { Reveal } from "@/components/Reveal";
+import { SustainableAbundanceEvidence } from "@/components/SustainableAbundanceEvidence";
 import {
   getMediaPostBySlug,
   mediaPosts,
@@ -22,7 +23,7 @@ type MediaArticlePageProps = Readonly<{
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://my-portfolio-six-teal-90.vercel.app"
+  "https://portfolio-flame-psi-88.vercel.app"
 ).replace(/\/$/, "");
 
 export const dynamicParams = false;
@@ -62,26 +63,26 @@ export async function generateMetadata({
     keywords: [...post.topics],
     alternates: { canonical },
     openGraph: {
-      title: `${post.title} — Kingxford`,
+      title: `${post.title} — kingXford & Co`,
       description: post.description,
       type: "article",
       url: canonical,
       publishedTime: post.publishedAt,
       modifiedTime: post.updatedAt,
-      authors: ["Kingxford"],
+      authors: ["kingXford & Co"],
       tags: [...post.topics],
       images: [
         {
           url: coverUrl,
-          width: 2400,
-          height: 1600,
+          width: post.coverWidth ?? 2400,
+          height: post.coverHeight ?? 1600,
           alt: post.coverAlt,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${post.title} — Kingxford`,
+      title: `${post.title} — kingXford & Co`,
       description: post.description,
       images: [coverUrl],
     },
@@ -150,12 +151,12 @@ export default async function MediaArticlePage({
     },
     author: {
       "@type": "Organization",
-      name: "Kingxford",
+      name: "kingXford & Co",
       url: siteUrl,
     },
     publisher: {
       "@type": "Organization",
-      name: "Kingxford",
+      name: "kingXford & Co",
       url: siteUrl,
     },
   };
@@ -201,7 +202,7 @@ export default async function MediaArticlePage({
             </div>
             <div>
               <p className="meta-label">By</p>
-              <p>Kingxford</p>
+              <p>kingXford &amp; Co</p>
             </div>
             <div>
               <p className="meta-label">Topics</p>
@@ -214,8 +215,8 @@ export default async function MediaArticlePage({
               <Image
                 src={post.cover}
                 alt={post.coverAlt}
-                width={2400}
-                height={1600}
+                width={post.coverWidth ?? 2400}
+                height={post.coverHeight ?? 1600}
                 quality={94}
                 sizes="100vw"
                 priority
@@ -235,14 +236,34 @@ export default async function MediaArticlePage({
             <nav aria-label="On this page">
               <p className="eyebrow">On this page</p>
               <ol>
+                {post.slug === "sustainable-abundance-for-all" ? (
+                  <>
+                    <li>
+                      <a href="#evidence-dashboard">Evidence dashboard</a>
+                    </li>
+                    <li>
+                      <a href="#capacity-engine">Capacity engine</a>
+                    </li>
+                    <li>
+                      <a href="#evidence-register">Evidence register</a>
+                    </li>
+                    <li>
+                      <a href="#design-framework">Design framework</a>
+                    </li>
+                  </>
+                ) : null}
                 {post.sections.map((section) => (
                   <li key={section.id}>
                     <a href={`#${section.id}`}>{section.title}</a>
                   </li>
                 ))}
-                <li>
-                  <a href="#thirty-day-plan">A practical 30-day plan</a>
-                </li>
+                {post.actionPlan ? (
+                  <li>
+                    <a href={`#${post.actionPlan.id}`}>
+                      {post.actionPlan.title}
+                    </a>
+                  </li>
+                ) : null}
                 <li>
                   <a href="#research-notes">Research notes</a>
                 </li>
@@ -264,6 +285,10 @@ export default async function MediaArticlePage({
                 </p>
               ))}
             </section>
+
+            {post.slug === "sustainable-abundance-for-all" ? (
+              <SustainableAbundanceEvidence />
+            ) : null}
 
             {post.sections.map((section) => (
               <section
@@ -297,46 +322,51 @@ export default async function MediaArticlePage({
               </section>
             ))}
 
-            <section
-              className="media-article__section media-plan"
-              id="thirty-day-plan"
-              aria-labelledby="thirty-day-plan-title"
-            >
-              <p className="eyebrow">05 · Practice</p>
-              <h2 id="thirty-day-plan-title">A practical 30-day plan.</h2>
-              <p>
-                The plan begins with one real workflow. It is deliberately
-                narrow: learn enough from a complete cycle to build the next
-                one intelligently.
-              </p>
+            {post.actionPlan ? (
+              <section
+                className="media-article__section media-plan"
+                id={post.actionPlan.id}
+                aria-labelledby={`${post.actionPlan.id}-title`}
+              >
+                <p className="eyebrow">{post.actionPlan.eyebrow}</p>
+                <h2 id={`${post.actionPlan.id}-title`}>
+                  {post.actionPlan.title}
+                </h2>
+                <p>{post.actionPlan.introduction}</p>
 
-              <ol className="media-plan__stages">
-                {post.plan.map((stage) => (
-                  <li className="media-plan__stage" key={stage.range}>
-                    <div className="media-plan__heading">
-                      <span>{stage.range}</span>
-                      <h3>{stage.title}</h3>
-                    </div>
-                    <p>{stage.focus}</p>
-                    <ul>
-                      {stage.actions.map((action) => (
-                        <li key={action}>{action}</li>
-                      ))}
-                    </ul>
-                    <p className="media-plan__result">
-                      <strong>Result:</strong> {stage.result}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            </section>
+                <ol className="media-plan__stages">
+                  {post.actionPlan.stages.map((stage) => (
+                    <li className="media-plan__stage" key={stage.range}>
+                      <div className="media-plan__heading">
+                        <span>{stage.range}</span>
+                        <h3>{stage.title}</h3>
+                      </div>
+                      <p>{stage.focus}</p>
+                      <ul>
+                        {stage.actions.map((action) => (
+                          <li key={action}>{action}</li>
+                        ))}
+                      </ul>
+                      <p className="media-plan__result">
+                        <strong>
+                          {post.actionPlan?.resultLabel ?? "Outcome"}:
+                        </strong>{" "}
+                        {stage.result}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            ) : null}
 
             <section
               className="media-article__closing"
               aria-labelledby="media-closing-title"
             >
               <p className="eyebrow">Closing note</p>
-              <h2 id="media-closing-title">Capability with accountability.</h2>
+              <h2 id="media-closing-title">
+                {post.closingTitle ?? "Capability with accountability."}
+              </h2>
               {post.closing.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
@@ -348,11 +378,12 @@ export default async function MediaArticlePage({
               aria-labelledby="research-notes-title"
             >
               <p className="eyebrow">Research notes</p>
-              <h2 id="research-notes-title">Sources for going deeper.</h2>
+              <h2 id="research-notes-title">
+                {post.sourcesTitle ?? "Sources for going deeper."}
+              </h2>
               <p>
-                This field note is an original Kingxford perspective. These
-                primary and institutional sources helped ground its wider
-                context.
+                {post.sourcesIntroduction ??
+                  "This field note is an original kingXford & Co perspective. These primary and institutional sources helped ground its wider context."}
               </p>
               <ul>
                 {post.sources.map((source) => (
@@ -381,7 +412,7 @@ export default async function MediaArticlePage({
             <p className="eyebrow">Continue the conversation</p>
             <h2>What part of your work deserves a better system?</h2>
             <Link className="button button--primary" href="/contact">
-              <span>Bring it to Kingxford</span>
+              <span>Bring it to kingXford &amp; Co</span>
               <ArrowUpRight aria-hidden="true" />
             </Link>
           </div>

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "name": "Kingxford",
+  "name": "kingXford & Co",
   "color": {
     "canvas": "#F3EDDF",
     "canvas_inverse": "#141617",
@@ -187,6 +187,6 @@
   "verification": {
     "status": "tokens declared; rendered contrast and full accessibility audit pending",
     "legal_review": "not performed",
-    "updated_at": "2026-07-29"
+    "updated_at": "2026-07-31"
   }
 }

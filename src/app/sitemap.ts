@@ -5,11 +5,11 @@ import { projects } from "@/data/projects";
 
 const baseUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://my-portfolio-six-teal-90.vercel.app"
+  "https://portfolio-flame-psi-88.vercel.app"
 ).replace(/\/$/, "");
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-07-30T00:00:00.000Z");
+  const lastModified = new Date("2026-07-31T00:00:00.000Z");
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {

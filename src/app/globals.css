@@ -418,6 +418,17 @@ a {
   flex: none;
 }
 
+.kingxford-logo__co {
+  margin-left: 0.58em;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.46em;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .kingxford-mark {
   display: block;
   overflow: visible;
@@ -4859,11 +4870,11 @@ a {
   text-wrap: balance;
 }
 
-.kx-cinematic__chapter[data-chapter="arrival"] h2 {
+.kx-cinematic__chapter[data-chapter="mission"] h2 {
   max-width: 9.3ch;
 }
 
-.kx-cinematic__chapter[data-chapter="arrival"] h2::first-line {
+.kx-cinematic__chapter[data-chapter="mission"] h2::first-line {
   color: #fffaf0;
 }
 

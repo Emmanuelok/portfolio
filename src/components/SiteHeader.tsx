@@ -9,9 +9,8 @@ import { KingxfordLogo } from "@/components/KingxfordLogo";
 import { ThemeControls } from "@/components/ThemeControls";
 
 const navigation = [
-  { href: "/#studio", label: "Studio" },
-  { href: "/#living-room", label: "The Living Room" },
-  { href: "/#lab", label: "Lab" },
+  { href: "/#mission", label: "Mission" },
+  { href: "/lab", label: "R&D / Lab" },
   { href: "/work", label: "Work" },
   { href: "/media", label: "Media" },
   { href: "/about", label: "About" },
@@ -83,7 +82,7 @@ export function SiteHeader() {
           <Link
             className="site-header__brand"
             href="/"
-            aria-label="Kingxford home"
+            aria-label="kingXford & Co home"
           >
             <KingxfordLogo
               className="site-header__logo"
@@ -128,8 +127,8 @@ export function SiteHeader() {
                 />
               </nav>
               <p className="site-header__mobile-note">
-                One multidisciplinary practice, expressed through Studio,
-                The Living Room, and Lab.
+                Intelligence, research and development, and responsible AI for
+                people and institutions preparing for sustainable abundance.
               </p>
               <div className="site-header__mobile-tools">
                 <p>Choose a color theme</p>

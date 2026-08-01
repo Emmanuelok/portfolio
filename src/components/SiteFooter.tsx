@@ -4,10 +4,9 @@ import Link from "next/link";
 import { KingxfordLogo } from "@/components/KingxfordLogo";
 
 const footerNavigation = [
-  { href: "/#studio", label: "Studio" },
-  { href: "/#living-room", label: "The Living Room" },
-  { href: "/#lab", label: "Lab" },
-  { href: "/work", label: "Selected work" },
+  { href: "/#mission", label: "Mission" },
+  { href: "/lab", label: "R&D / Lab" },
+  { href: "/work", label: "Work" },
   { href: "/media", label: "Media" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -21,7 +20,7 @@ export function SiteFooter() {
           <Link
             className="site-footer__identity"
             href="/"
-            aria-label="Kingxford home"
+            aria-label="kingXford & Co home"
           >
             <KingxfordLogo
               className="site-footer__logo"
@@ -29,12 +28,12 @@ export function SiteFooter() {
             />
           </Link>
           <p>
-            Kingxford is a multidisciplinary creative company where digital
-            craft, open-ended creativity, and research become experiences with
-            consequence.
+            kingXford &amp; Co advances intelligence, R&amp;D, and responsible AI to
+            help people and institutions solve complex problems and prepare
+            for sustainable abundance.
           </p>
           <Link className="site-footer__conversation" href="/contact">
-            <span>Start a conversation</span>
+            <span>Bring a complex problem</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
         </div>
@@ -54,26 +53,19 @@ export function SiteFooter() {
         </nav>
 
         <div className="site-footer__source">
-          <p className="site-footer__label">Open source</p>
-          <a
-            href="https://github.com/Emmanuelok/portfolio"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span>View public GitHub repository</span>
-            <ArrowUpRight aria-hidden="true" />
-          </a>
+          <p className="site-footer__label">Craft signature</p>
+          <p>Complex ideas. Unforgettable form.</p>
           <p>
-            Kingxford is an evolving record of products, systems, visual
-            experiments, scientific work, and everything between.
+            Studio, The Living Room, and Lab are our delivery environments—not
+            the limit of the mission.
           </p>
         </div>
 
         <div className="site-footer__base">
           <p>
-            © {new Date().getFullYear()} Kingxford
+            © {new Date().getFullYear()} kingXford &amp; Co
           </p>
-          <p>Canada · Working worldwide</p>
+          <p>Intelligence · R&amp;D · Responsible AI · Abundant futures</p>
           <a href="#main-content">Back to top</a>
         </div>
       </div>

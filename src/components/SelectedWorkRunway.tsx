@@ -20,17 +20,18 @@ export function SelectedWorkRunway({
     >
       <header className="work-runway__header">
         <Reveal className="work-runway__index">
-          <span>03 / Selected work</span>
-          <span>Across all three worlds</span>
+          <span>03 / Mission in practice</span>
+          <span>Evidence across our delivery environments</span>
         </Reveal>
         <Reveal className="work-runway__heading" delay={0.05}>
           <h2 id="work-runway-title">
-            Built to be entered,
-            <em>not observed.</em>
+            Complex ideas,
+            <em>made operational.</em>
           </h2>
           <p>
-            Products, platforms, research systems, and visual worlds that
-            help people understand, decide, create, and move.
+            Research, intelligent products, and decision systems that help
+            people and institutions understand complexity, expand capability,
+            and move consequential projects forward.
           </p>
         </Reveal>
       </header>
@@ -84,7 +85,7 @@ export function SelectedWorkRunway({
 
       <Reveal className="work-runway__archive">
         <Link href="/work">
-          <span>Explore the complete archive</span>
+          <span>Explore the complete body of work</span>
           <ArrowUpRight aria-hidden="true" />
         </Link>
       </Reveal>

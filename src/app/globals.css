@@ -3655,7 +3655,7 @@ a {
   transform: translateX(0.4rem);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .site-header__inner {
     grid-template-columns: 1fr auto auto;
   }
@@ -3713,10 +3713,13 @@ a {
     top: calc(var(--header-height) + 0.75rem);
     right: var(--page-gutter);
     left: var(--page-gutter);
+    max-height: calc(100dvh - var(--header-height) - 1.5rem);
     padding: 1rem;
+    overflow-y: auto;
     border: 1px solid var(--border-strong);
     background: var(--canvas);
     box-shadow: var(--shadow);
+    overscroll-behavior: contain;
   }
 
   .site-header__mobile-panel nav {

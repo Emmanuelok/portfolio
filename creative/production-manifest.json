@@ -8,7 +8,7 @@
     "audience": "Institutional leaders, research partners, founders, investors of capital or capability, public-interest organisations, complex-project sponsors, and informed readers on mobile and desktop.",
     "repository": "https://github.com/Emmanuelok/portfolio",
     "hosting": "Vercel",
-    "updated_at": "2026-08-01"
+    "updated_at": "2026-08-02"
   },
   "creative_system": {
     "concept": "Selective Reality",
@@ -38,6 +38,7 @@
       "Only the Mission and Intelligence landing plates use source-recorded documentary photography.",
       "Published digital-project covers preserve authentic public-product captures inside distinct generated conceptual fields; Value-M uses a disclosed conceptual process field.",
       "R&D, Responsible AI, & Co, Abundant Future, the three delivery worlds, and both Media covers use disclosed conceptual editorial imagery.",
+      "The Create catalogue and its three website demonstrations use code-rendered HTML, CSS, inline SVG, and synthetic interface data only; they introduce no raster imagery.",
       "Context photographs are not evidence of a kingXford & Co facility, staff, engagement, experiment, or measured outcome.",
       "Conceptual imagery is not documentary evidence, literal interface capture, certification, or a measured outcome."
     ],
@@ -49,6 +50,7 @@
       "scroll-jacking",
       "cyberpunk HUD styling",
       "generic glass-card gallery",
+      "fictional concept websites presented as clients, operating institutions, scientific findings, financial advice, accreditation, or measured outcomes",
       "person-centric company copy"
     ]
   },
@@ -184,6 +186,29 @@
       },
       "rights_status": "original repository implementation; legal and trademark review not performed",
       "provenance": "creative/rights-provenance.csv"
+    },
+    {
+      "id": "ast-create-code-rendered-concepts-v1",
+      "type": "code-rendered-fictional-interface-demonstrations",
+      "sources": [
+        "src/app/create/page.tsx",
+        "src/app/create/CreatePage.module.css",
+        "src/app/create/[slug]/page.tsx",
+        "src/components/WebsiteShowcase.tsx",
+        "src/components/WebsiteShowcase.module.css",
+        "src/data/creations.ts"
+      ],
+      "role": "Create catalogue plus three complete website demonstrations for scientific research, institutional finance, and education.",
+      "media_profile": "No new raster assets, generated photographs, screenshots, video, or audio. Visuals are rendered from semantic HTML, scoped CSS, icons, and inline or CSS geometry.",
+      "data_profile": "Lumen Vale Laboratory, Meridian Financial Office, and Commonfield Institute are fictional. Every programme, person, project, instrument record, publication, date, figure, scenario, risk state, and outcome shown is synthetic demonstration data.",
+      "disclosure_rule": "Each demonstration must retain a visible concept-status disclosure and metadata identifying it as fictional demonstration content.",
+      "rights_status": "original repository code and synthetic demonstration content; institution names are fictional working identities; legal and trademark review not performed",
+      "provenance": "Source-authored in the repository; no raster provenance entry is required because no new raster asset exists.",
+      "restrictions": [
+        "Do not present any concept as an operating institution, client engagement, endorsement, accreditation, registered financial service, scientific finding, forecast, advice, or measured outcome.",
+        "Do not add raster media to these demonstrations without a separate source, rights, disclosure, and checksum record.",
+        "Do not remove the visible fictional-concept disclosures."
+      ]
     }
   ],
   "screens": [
@@ -207,6 +232,40 @@
       "route": "/#three-worlds",
       "component": "KingxfordWorlds",
       "purpose": "Explain Studio, the Living Room, and Lab as distinct but connected delivery spaces for intelligence, complex-project strategy, research, responsible AI, and development."
+    },
+    {
+      "id": "screen-create-catalogue",
+      "route": "/create",
+      "component": "CreatePage, WebsiteConceptCard, and creationCatalogue",
+      "purpose": "Show the range of websites, digital tools, institutional systems, research and AI tools, operational tools, education tools, and everyday personal utilities kingXford & Co can design and develop.",
+      "states": [
+        "wide catalogue",
+        "compact catalogue",
+        "keyboard navigation",
+        "reduced motion"
+      ],
+      "media": "Code-rendered previews only; no raster imagery."
+    },
+    {
+      "id": "screen-create-website-concepts",
+      "routes": [
+        "/create/lumen-vale-laboratory",
+        "/create/meridian-financial-office",
+        "/create/commonfield-institute"
+      ],
+      "component": "WebsiteShowcase",
+      "purpose": "Demonstrate three sharply differentiated, responsive website systems for scientific research, institutional finance, and education without relying on generated imagery or unsupported claims.",
+      "states": [
+        "science concept",
+        "finance concept",
+        "education concept",
+        "compact layout",
+        "wide layout",
+        "reduced motion",
+        "not found"
+      ],
+      "content_status": "All institutions and interface records are fictional; all displayed data is synthetic demonstration data; visible disclosure is mandatory.",
+      "media": "Semantic HTML, scoped CSS, Lucide icons, and CSS or inline-vector geometry only; no new raster assets."
     },
     {
       "id": "screen-work",
@@ -309,6 +368,20 @@
       "content": "Seven browser-local prompts that structure a complex problem, affected people and institutions, evidence, desired future, constraints, available investment, and time horizon; copy and plain-text download actions.",
       "accessibility": "Native labelled fields and actions, visible focus, polite status announcements, keyboard operation, and responsive one- or two-column layout.",
       "privacy": "Runs locally in the browser and must not submit, store, transmit, or log visitor content."
+    },
+    {
+      "id": "element-create-catalogue",
+      "component": "CreatePage and WebsiteConceptCard",
+      "content": "Seven capability categories and three code-rendered sector previews with direct routes to the complete demonstrations.",
+      "accessibility": "Semantic sections and article links, descriptive concept-link names, ordered heading structure, visible focus, and decorative preview geometry hidden from assistive technology.",
+      "responsive_behavior": "Wide editorial gallery becomes a single-column reading sequence without changing source or focus order."
+    },
+    {
+      "id": "element-website-showcase",
+      "component": "WebsiteShowcase, ConceptBar, and ConceptDisclosure",
+      "content": "Separate science, finance, and education information architectures with sector-specific modules and synthetic interface records.",
+      "accessibility": "Native landmarks, links, lists, headings, captions, and semantic tables; visible concept disclosure; keyboard-scrollable table region; no raster alt-text dependency.",
+      "truthfulness": "The concept bar and disclosure must identify each institution and every associated record as fictional demonstration content. Finance values are not forecasts or advice; science values are not findings; education programmes are not accredited offerings."
     }
   ],
   "scenes": [
@@ -403,6 +476,21 @@
       ],
       "cover_asset": "ast-restored-media-concept-covers-v2",
       "audio_status": "No narration asset shipped."
+    },
+    {
+      "id": "del-create-surface-v1",
+      "type": "interactive",
+      "title": "What we create catalogue and three code-rendered website concepts",
+      "channel": "public web",
+      "status": "implemented; rendered and production verification pending",
+      "routes": [
+        "/create",
+        "/create/lumen-vale-laboratory",
+        "/create/meridian-financial-office",
+        "/create/commonfield-institute"
+      ],
+      "asset_profile": "No new raster assets; code-rendered HTML, CSS, icons, and vector-like geometry only.",
+      "content_status": "All three institution identities and every interface datum are fictional demonstrations with mandatory visible disclosure."
     }
   ],
   "rights_and_claims": [
@@ -435,6 +523,12 @@
       "description": "Sustainable Abundance figures and tables retain official source links, reference years, units, uncertainty ranges, definitions, and scenario boundaries; separate service-gap populations are never added into an invented total.",
       "evidence": "src/components/SustainableAbundanceEvidence.tsx and the source register in src/data/media.ts",
       "status": "source records implemented; publication-date and rendered-link verification pending"
+    },
+    {
+      "id": "right-create-concepts",
+      "description": "Lumen Vale Laboratory, Meridian Financial Office, and Commonfield Institute are fictional website demonstrations built entirely from code. All interface data is synthetic, no new raster media exists, and no client, operating-institution, scientific, financial, accreditation, performance, or outcome claim is made.",
+      "evidence": "src/data/creations.ts; src/components/WebsiteShowcase.tsx; src/app/create; creative/frontend-component-inventory.csv; creative/delivery-matrix.csv",
+      "status": "disclosure and no-raster policy recorded; rendered verification and qualified legal review pending"
     }
   ],
   "qa": {
@@ -442,7 +536,7 @@
       "typecheck",
       "lint",
       "production build",
-      "19 generated public routes, including home, work, four published case studies, Media index, two Media articles, about, lab, contact, and framework metadata routes",
+      "23 generated public routes, including home, work, four published case studies, Media index, two Media articles, Create catalogue, three Create website concepts, about, lab, contact, and framework metadata routes",
       "mobile and desktop visual captures",
       "native-scroll cinematic progression",
       "active-image source audit proving that only Mission and Intelligence use documentary plates and every restored generated or hybrid reference matches the approved selective rollback",
@@ -451,6 +545,8 @@
       "keyboard navigation and visible focus",
       "browser console and failed-resource inspection",
       "Sustainable Abundance data-label, source-link, non-additivity, uncertainty, scenario, responsive-table, and figure-caption verification",
+      "Create catalogue and all three website-concept routes at compact, intermediate, and wide widths, including keyboard navigation, semantic tables, disclosure visibility, synthetic-data labels, distinct sector art direction, and reduced-motion behavior",
+      "Create asset audit confirming zero new raster references and no hidden image, remote media, video, audio, canvas, or generated-photo dependency",
       "production deployment status and response verification"
     ],
     "hard_fail_conditions": [
@@ -463,6 +559,8 @@
       "dominant, oversized, raised, animated, or architectural X treatment in the identity",
       "person-centric copy describing kingXford & Co as an individual or exposing a personal profile or location as company identity",
       "unsupported statistic, altered source year or unit, overlapping populations added into a fabricated total, or a projection presented as an observed result",
+      "fictional Create concept or synthetic interface datum presented as a real client, operating institution, scientific finding, financial forecast or advice, accreditation, endorsement, performance result, or measured outcome",
+      "missing concept-status disclosure on any Create demonstration or any newly introduced raster-media dependency without provenance",
       "motion ignores reduced-motion preference",
       "missing source provenance",
       "unverified production claim"
@@ -501,6 +599,8 @@
     "Authentic public-product captures preserved inside hybrid covers document only the visible interface state at capture time; they do not assert ownership, affiliation, endorsement, performance, or a documented outcome.",
     "Licensed documentary photography is contextual and does not assert that a pictured person, property, facility, tool, or activity belongs to kingXford & Co or a represented project.",
     "CCAI Global, Aceplore, Nkosuo, and Elkings College remain unreleased until a separately verified status change.",
+    "Lumen Vale Laboratory, Meridian Financial Office, and Commonfield Institute are fictional design demonstrations; all associated interface data is synthetic and must remain visibly disclosed.",
+    "The Create surface introduces no new raster assets, video, audio, remote-media dependency, or generated photography.",
     "No narration asset is shipped; future audio remains optional and must pass the documented consent, editorial, and listening review before publication.",
     "No environment variables are required for the public portfolio unless the deployment workflow reports otherwise."
   ],
@@ -539,6 +639,16 @@
       "id": "risk-evidence-currency",
       "severity": "medium",
       "mitigation": "Record reference and publication years, retain official links and interpretation boundaries beside every visual, and re-verify figures before a dated article update rather than silently replacing values."
+    },
+    {
+      "id": "risk-create-concept-confusion",
+      "severity": "high",
+      "mitigation": "Keep the concept bar, route metadata, structured data, and end-of-page disclosure explicit on all three demonstrations; label sample records and figures as fictional or synthetic; never describe a concept as a client, operating institution, scientific result, financial service, accreditation, or measured outcome."
+    },
+    {
+      "id": "risk-create-visual-convergence",
+      "severity": "medium",
+      "mitigation": "Preserve distinct science, finance, and education palettes, information architectures, typography roles, and visual mechanisms; verify the demonstrations do not collapse into one reused template, an AI-looking image system, a dominant-X motif, or a generic glowing dashboard."
     }
   ],
   "project_release_state": {

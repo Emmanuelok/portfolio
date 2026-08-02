@@ -1,0 +1,705 @@
+.page {
+  --create-rule: color-mix(in srgb, var(--text) 15%, transparent);
+  background: var(--canvas);
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  width: min(100%, var(--content-max));
+  min-height: 100svh;
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 0.48fr);
+  grid-template-rows: auto 1fr auto;
+  gap: clamp(2rem, 5vw, 6rem);
+  padding: calc(var(--header-height) + 3rem) var(--page-gutter) 2rem;
+  overflow: hidden;
+}
+
+.hero::before {
+  position: absolute;
+  top: 12%;
+  right: 2%;
+  width: min(42vw, 38rem);
+  aspect-ratio: 1;
+  border: 1px solid var(--create-rule);
+  content: "";
+  background:
+    linear-gradient(90deg, transparent 49.8%, var(--create-rule) 50%, transparent 50.2%),
+    linear-gradient(transparent 49.8%, var(--create-rule) 50%, transparent 50.2%),
+    radial-gradient(circle, transparent 0 19%, var(--create-rule) 19.2% 19.4%, transparent 19.6% 42%, var(--create-rule) 42.2% 42.4%, transparent 42.6%);
+  opacity: 0.7;
+  transform: rotate(8deg);
+}
+
+.heroIndex {
+  z-index: 1;
+  grid-column: 1 / -1;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.heroCopy {
+  z-index: 1;
+  align-self: center;
+}
+
+.heroCopy h1 {
+  max-width: 9ch;
+  margin: 1.4rem 0 2rem;
+  font-size: clamp(4.2rem, 10.6vw, 11rem);
+  font-weight: 450;
+  letter-spacing: -0.09em;
+  line-height: 0.82;
+}
+
+.heroCopy > div:last-child > p {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--text-soft);
+  font-size: clamp(1.1rem, 1.6vw, 1.55rem);
+  line-height: 1.45;
+}
+
+.heroAside {
+  z-index: 1;
+  align-self: end;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--create-rule);
+}
+
+.heroAside > p {
+  margin-bottom: 1.5rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.heroRail {
+  z-index: 1;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-top: 1px solid var(--create-rule);
+  border-bottom: 1px solid var(--create-rule);
+}
+
+.heroRail a {
+  display: grid;
+  min-height: 5.2rem;
+  align-content: center;
+  gap: 0.25rem;
+  padding: 0.9rem;
+  border-left: 1px solid var(--create-rule);
+  color: var(--text-soft);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.heroRail a:first-child {
+  border-left: 0;
+}
+
+.heroRail a:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.heroRail span {
+  color: var(--blue-bright);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+}
+
+.showcases,
+.catalogue {
+  width: min(100%, var(--content-max));
+  margin-inline: auto;
+  padding: clamp(6rem, 10vw, 11rem) var(--page-gutter);
+  border-top: 1px solid var(--create-rule);
+}
+
+.sectionHeading {
+  display: grid;
+  margin-bottom: clamp(3rem, 7vw, 7rem);
+  grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.45fr);
+  align-items: end;
+  gap: clamp(2rem, 8vw, 9rem);
+}
+
+.sectionHeading h2 {
+  max-width: 13ch;
+  margin: 1.25rem 0 0;
+  font-size: clamp(3rem, 6.6vw, 7.2rem);
+  font-weight: 450;
+  letter-spacing: -0.075em;
+  line-height: 0.9;
+}
+
+.sectionHeading > p {
+  margin: 0;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--create-rule);
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.showcaseList {
+  display: grid;
+  gap: clamp(6rem, 11vw, 11rem);
+}
+
+.showcaseCard {
+  --sector-bg: #081512;
+  --sector-surface: #11241f;
+  --sector-text: #edf8f3;
+  --sector-muted: #93aaa1;
+  --sector-accent: #53d3ad;
+}
+
+.showcaseCard[data-sector="finance"] {
+  --sector-bg: #eeeadd;
+  --sector-surface: #faf8f1;
+  --sector-text: #102634;
+  --sector-muted: #65727a;
+  --sector-accent: #a66d2d;
+}
+
+.showcaseCard[data-sector="education"] {
+  --sector-bg: #f3ead7;
+  --sector-surface: #fffaf0;
+  --sector-text: #271c2d;
+  --sector-muted: #706974;
+  --sector-accent: #b5533a;
+}
+
+.showcaseCardTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--create-rule);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.61rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.showcaseCardTopline span:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.showcaseCardTopline svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.showcasePreviewLink {
+  display: block;
+}
+
+.showcaseBrowser {
+  overflow: hidden;
+  border: 1px solid var(--create-rule);
+  background: var(--sector-bg);
+  box-shadow: 0 3rem 8rem rgba(0, 0, 0, 0.18);
+  color: var(--sector-text);
+  transition: transform 450ms var(--ease-out);
+}
+
+.showcasePreviewLink:hover .showcaseBrowser {
+  transform: translateY(-0.45rem);
+}
+
+.browserBar {
+  display: flex;
+  min-height: 2.4rem;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--sector-text) 15%, transparent);
+}
+
+.browserBar > span {
+  width: 0.42rem;
+  height: 0.42rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.55;
+}
+
+.browserBar small {
+  margin-left: auto;
+  color: var(--sector-muted);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sciencePreview,
+.financePreview,
+.educationPreview {
+  min-height: clamp(31rem, 54vw, 48rem);
+  padding: clamp(1.5rem, 4vw, 4rem);
+}
+
+.previewNav,
+.financeMasthead,
+.educationMasthead {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  color: var(--sector-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.previewNav strong,
+.financeMasthead strong {
+  margin-right: auto;
+  color: var(--sector-text);
+  font-size: 0.8rem;
+}
+
+.scienceField {
+  position: relative;
+  width: min(58vw, 42rem);
+  aspect-ratio: 1;
+  margin: clamp(2rem, 4vw, 4rem) auto 0;
+  border: 1px solid color-mix(in srgb, var(--sector-text) 18%, transparent);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 55% 43%, rgba(83, 211, 173, 0.48) 0 1%, transparent 1.2%),
+    radial-gradient(circle at 47% 55%, rgba(237, 248, 243, 0.22) 0 2%, transparent 2.2%),
+    repeating-radial-gradient(circle, transparent 0 12%, rgba(83, 211, 173, 0.12) 12.2% 12.4%, transparent 12.6% 24%);
+}
+
+.scienceRing,
+.scienceAxis {
+  position: absolute;
+  inset: 15%;
+  border: 1px solid color-mix(in srgb, var(--sector-accent) 52%, transparent);
+  border-radius: 50%;
+}
+
+.scienceAxis {
+  inset: 50% 8% auto;
+  height: 1px;
+  border: 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--sector-text) 35%, transparent);
+}
+
+.scienceAxis::after {
+  position: absolute;
+  top: -15vw;
+  left: 50%;
+  width: 1px;
+  height: min(30vw, 22rem);
+  background: inherit;
+  content: "";
+}
+
+.scienceSample,
+.scienceScale {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.scienceSample {
+  top: 8%;
+  left: 12%;
+  color: var(--sector-accent);
+}
+
+.scienceScale {
+  right: 10%;
+  bottom: 8%;
+  color: var(--sector-muted);
+}
+
+.previewRows {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 2rem;
+  border-top: 1px solid color-mix(in srgb, var(--sector-text) 15%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--sector-text) 15%, transparent);
+}
+
+.previewRows span {
+  padding: 1rem;
+  border-left: 1px solid color-mix(in srgb, var(--sector-text) 15%, transparent);
+  color: var(--sector-muted);
+  font-size: 0.72rem;
+}
+
+.previewRows span:first-child {
+  border-left: 0;
+}
+
+.financeMasthead,
+.educationMasthead {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--sector-text) 24%, transparent);
+}
+
+.financePreview > p,
+.educationPreview > p {
+  max-width: 9ch;
+  margin: clamp(3rem, 8vw, 7rem) 0;
+  color: var(--sector-text);
+  font-family: var(--font-serif);
+  font-size: clamp(3.3rem, 8vw, 8.5rem);
+  font-weight: 430;
+  letter-spacing: -0.07em;
+  line-height: 0.84;
+}
+
+.financePath {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.3rem;
+  align-items: end;
+  height: 7rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--sector-text) 22%, transparent);
+}
+
+.financePath span {
+  height: 1px;
+  background: var(--sector-accent);
+}
+
+.financePath span:nth-child(2) { height: 32%; }
+.financePath span:nth-child(3) { height: 58%; }
+.financePath span:nth-child(4) { height: 44%; }
+.financePath span:nth-child(5) { height: 78%; }
+
+.financeLedger {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 1rem;
+  padding-top: 1rem;
+  color: var(--sector-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.financeLedger strong {
+  color: var(--sector-text);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+}
+
+.educationMasthead {
+  justify-content: space-between;
+  color: var(--sector-text);
+}
+
+.educationMasthead strong {
+  color: var(--sector-accent);
+}
+
+.educationPreview > p {
+  max-width: 11ch;
+  color: var(--sector-text);
+}
+
+.educationSchedule {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 1.35fr 0.9fr 1.2fr;
+  gap: 0.45rem;
+}
+
+.educationSchedule span {
+  min-height: 7.5rem;
+  padding: 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--sector-text) 20%, transparent);
+  background: color-mix(in srgb, var(--sector-accent) 11%, var(--sector-surface));
+  color: var(--sector-text);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+}
+
+.educationSchedule span:nth-child(2),
+.educationSchedule span:nth-child(5) {
+  background: color-mix(in srgb, #2f624b 16%, var(--sector-surface));
+}
+
+.showcaseCopy {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.6fr);
+  gap: clamp(2rem, 7vw, 8rem);
+  padding-top: 2rem;
+}
+
+.showcaseCopy h3 {
+  margin: 0.8rem 0 0;
+  font-size: clamp(2.6rem, 5vw, 5.8rem);
+  font-weight: 470;
+  letter-spacing: -0.065em;
+  line-height: 0.95;
+}
+
+.showcaseCopy > div:last-child > p {
+  margin-bottom: 1.5rem;
+  color: var(--text-soft);
+}
+
+.catalogue {
+  background: var(--canvas-deep);
+}
+
+.catalogueList {
+  border-top: 1px solid var(--create-rule);
+}
+
+.catalogueItem {
+  display: grid;
+  grid-template-columns: 7rem minmax(16rem, 0.7fr) minmax(0, 1.3fr);
+  gap: clamp(1.5rem, 5vw, 5rem);
+  padding: clamp(2.5rem, 5vw, 5rem) 0;
+  border-bottom: 1px solid var(--create-rule);
+  scroll-margin-top: calc(var(--header-height) + 2rem);
+}
+
+.catalogueIndex {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--blue-bright);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.catalogueIndex svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.catalogueLead h3 {
+  margin: 0.8rem 0 1.2rem;
+  font-size: clamp(2rem, 3.4vw, 4rem);
+  font-weight: 480;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.catalogueLead > p:last-child,
+.catalogueDetails > p {
+  color: var(--text-soft);
+}
+
+.catalogueDetails > p {
+  max-width: 50rem;
+  margin-bottom: 2rem;
+}
+
+.catalogueColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.catalogueColumns h4 {
+  margin: 0 0 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.catalogueColumns ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalogueColumns li {
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--create-rule);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+}
+
+.close {
+  display: flex;
+  min-height: min(48rem, 86svh);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(6rem, 10vw, 11rem) var(--page-gutter);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(89, 97, 255, 0.16), transparent 28rem),
+    var(--canvas);
+  text-align: center;
+}
+
+.close h2 {
+  max-width: 12ch;
+  margin: 1.5rem 0 2.5rem;
+  font-size: clamp(3.2rem, 7.7vw, 8.4rem);
+  font-weight: 450;
+  letter-spacing: -0.08em;
+  line-height: 0.88;
+}
+
+.closeActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .heroAside {
+    max-width: 32rem;
+  }
+
+  .heroRail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .heroRail a:nth-child(5) {
+    border-left: 0;
+  }
+
+  .sectionHeading,
+  .showcaseCopy {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeading > p,
+  .showcaseCopy > div:last-child {
+    max-width: 40rem;
+  }
+
+  .catalogueItem {
+    grid-template-columns: 4rem 1fr;
+  }
+
+  .catalogueDetails {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero {
+    min-height: auto;
+    padding-top: calc(var(--header-height) + 2.5rem);
+    padding-bottom: 0;
+  }
+
+  .hero::before {
+    top: 16%;
+    right: -24%;
+    width: 78vw;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(4rem, 21vw, 7rem);
+  }
+
+  .heroRail {
+    margin-inline: calc(var(--page-gutter) * -1);
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .heroRail a,
+  .heroRail a:nth-child(5) {
+    border-top: 1px solid var(--create-rule);
+    border-left: 1px solid var(--create-rule);
+  }
+
+  .heroRail a:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .showcases,
+  .catalogue {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+
+  .sciencePreview,
+  .financePreview,
+  .educationPreview {
+    min-height: 31rem;
+    padding: 1.2rem;
+  }
+
+  .scienceField {
+    width: min(74vw, 21rem);
+  }
+
+  .previewNav span {
+    display: none;
+  }
+
+  .financePreview > p,
+  .educationPreview > p {
+    margin: 3.5rem 0;
+    font-size: clamp(3.4rem, 15vw, 5.5rem);
+  }
+
+  .financeLedger {
+    grid-template-columns: auto 1fr;
+  }
+
+  .educationSchedule {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .educationSchedule span {
+    min-height: 5.5rem;
+  }
+
+  .showcaseCopy h3 {
+    font-size: clamp(3rem, 13vw, 5rem);
+  }
+
+  .catalogueItem {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogueIndex {
+    justify-content: flex-start;
+  }
+
+  .catalogueDetails {
+    grid-column: auto;
+  }
+
+  .catalogueColumns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcaseBrowser {
+    transition: none;
+  }
+
+  .showcasePreviewLink:hover .showcaseBrowser {
+    transform: none;
+  }
+}

@@ -67,9 +67,14 @@ async function inspectPage(name, route, viewport, options = {}) {
   const pageErrors = [];
 
   page.on("console", (message) => {
+    const expectedNotFoundConsole =
+      options.expectedStatus === 404 &&
+      message.type() === "error" &&
+      /failed to load resource.*404/i.test(message.text());
     if (
       message.type() === "error" &&
-      !message.text().includes("ERR_BLOCKED_BY_CLIENT")
+      !message.text().includes("ERR_BLOCKED_BY_CLIENT") &&
+      !expectedNotFoundConsole
     ) {
       consoleErrors.push(message.text());
     }
@@ -136,14 +141,20 @@ async function inspectPage(name, route, viewport, options = {}) {
     route,
     viewport,
     status: response?.status() ?? null,
+    expectedStatus: options.expectedStatus ?? null,
     consoleErrors,
     pageErrors,
     audit,
   };
   results.push(record);
 
+  const responsePassed =
+    options.expectedStatus === undefined
+      ? response?.ok()
+      : response?.status() === options.expectedStatus;
+
   if (
-    !response?.ok() ||
+    !responsePassed ||
     audit.bodyTextLength < 80 ||
     !audit.hasMain ||
     audit.hasErrorOverlay ||
@@ -210,7 +221,37 @@ results.push({
 if (!commandSearchFocus) {
   failures.push({ interaction: "command-search-focus" });
 }
-await desktop.page.keyboard.press("Escape");
+await desktop.page.locator("#command-palette-search").fill("science lab");
+await desktop.page.waitForTimeout(120);
+const scienceLabCommandResults = await desktop.page
+  .locator("#command-palette-results [role='option']")
+  .evaluateAll((options) =>
+    options.map((option) => ({
+      id: option.id,
+      text: option.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    })),
+  );
+const scienceLabCommandPassed = scienceLabCommandResults.some(
+  (result) =>
+    result.id === "command-create" &&
+    /create/i.test(result.text) &&
+    /websites?/i.test(result.text),
+);
+results.push({
+  interaction: "command-search-science-lab",
+  passed: scienceLabCommandPassed,
+  results: scienceLabCommandResults,
+});
+if (!scienceLabCommandPassed) {
+  failures.push({
+    interaction: "command-search-science-lab",
+    results: scienceLabCommandResults,
+  });
+}
+await desktop.page.locator(".command-palette__close").click();
+await desktop.page
+  .locator("dialog.command-palette[open]")
+  .waitFor({ state: "hidden" });
 
 const missionImage = desktop.page.locator(
   ".kx-reality-plate[data-plate='mission'] img",
@@ -392,11 +433,292 @@ await work.page.screenshot({
 });
 await work.context.close();
 
+const expectedCreateShowcases = [
+  {
+    slug: "lumen-vale-laboratory",
+    name: "Lumen Vale Laboratory",
+    sector: "science",
+    heading: "Research made inspectable.",
+  },
+  {
+    slug: "meridian-financial-office",
+    name: "Meridian Financial Office",
+    sector: "finance",
+    heading: "Capital governed by mandate.",
+  },
+  {
+    slug: "commonfield-institute",
+    name: "Commonfield Institute",
+    sector: "education",
+    heading: "Learn by building the question.",
+  },
+];
+
+const create = await inspectPage(
+  "create-desktop-1440",
+  "/create",
+  { width: 1440, height: 1000 },
+);
+const createIndexState = await create.page.evaluate((expectedShowcases) => {
+  const cards = [...document.querySelectorAll("#websites article[data-sector]")];
+  const detailHrefs = [
+    ...new Set(
+      [...document.querySelectorAll("#websites a[href^='/create/']")]
+        .map((link) => link.getAttribute("href"))
+        .filter(Boolean),
+    ),
+  ];
+  const navLinks = [
+    ...document.querySelectorAll(".site-header__nav-link[href='/create']"),
+  ];
+  const schemaNode = document.querySelector("#create-collection-schema");
+  let schema = null;
+  try {
+    schema = schemaNode?.textContent ? JSON.parse(schemaNode.textContent) : null;
+  } catch {
+    schema = null;
+  }
+
+  return {
+    heading: document.querySelector("#create-heading")?.textContent?.trim() ?? "",
+    featuredCount: cards.length,
+    sectors: cards
+      .map((card) => card.getAttribute("data-sector"))
+      .filter(Boolean)
+      .sort(),
+    detailHrefs: detailHrefs.sort(),
+    expectedHrefs: expectedShowcases
+      .map(({ slug }) => `/create/${slug}`)
+      .sort(),
+    catalogueCount: document.querySelectorAll(
+      "section[aria-labelledby='catalogue-heading'] article[id]",
+    ).length,
+    currentNav:
+      navLinks.length > 0 &&
+      navLinks.every((link) => link.getAttribute("aria-current") === "page"),
+    schemaType: schema?.["@type"] ?? null,
+    schemaPartCount: Array.isArray(schema?.hasPart) ? schema.hasPart.length : 0,
+  };
+}, expectedCreateShowcases);
+const createIndexPassed =
+  createIndexState.heading === "What should exist next?" &&
+  createIndexState.featuredCount === 3 &&
+  JSON.stringify(createIndexState.sectors) ===
+    JSON.stringify(["education", "finance", "science"]) &&
+  JSON.stringify(createIndexState.detailHrefs) ===
+    JSON.stringify(createIndexState.expectedHrefs) &&
+  createIndexState.catalogueCount === 7 &&
+  createIndexState.currentNav &&
+  createIndexState.schemaType === "CollectionPage" &&
+  createIndexState.schemaPartCount === 3;
+results.push({
+  interaction: "create-index",
+  passed: createIndexPassed,
+  ...createIndexState,
+});
+if (!createIndexPassed) {
+  failures.push({ interaction: "create-index", ...createIndexState });
+}
+
+const sitemapResponse = await create.context.request.get(
+  `${baseUrl}/sitemap.xml`,
+);
+const sitemapText = await sitemapResponse.text();
+const expectedCreateSitemapPaths = [
+  "/create",
+  ...expectedCreateShowcases.map(({ slug }) => `/create/${slug}`),
+];
+const missingCreateSitemapPaths = expectedCreateSitemapPaths.filter(
+  (route) => !sitemapText.includes(route),
+);
+const createSitemapPassed =
+  sitemapResponse.ok() && missingCreateSitemapPaths.length === 0;
+results.push({
+  interaction: "create-sitemap",
+  passed: createSitemapPassed,
+  status: sitemapResponse.status(),
+  missingPaths: missingCreateSitemapPaths,
+});
+if (!createSitemapPassed) {
+  failures.push({
+    interaction: "create-sitemap",
+    status: sitemapResponse.status(),
+    missingPaths: missingCreateSitemapPaths,
+  });
+}
+await create.context.close();
+
+for (const expected of expectedCreateShowcases) {
+  const detail = await inspectPage(
+    `create-${expected.slug}-1440`,
+    `/create/${expected.slug}`,
+    { width: 1440, height: 1000 },
+  );
+  const detailState = await detail.page.evaluate(({ slug }) => {
+    const disclosure = document.querySelector(
+      "aside[aria-label='Concept disclosure']",
+    );
+    const navLinks = [
+      ...document.querySelectorAll(".site-header__nav-link[href='/create']"),
+    ];
+    const schemaNode = document.querySelector(`#showcase-schema-${slug}`);
+    const breadcrumbsNode = document.querySelector(
+      `#showcase-breadcrumbs-${slug}`,
+    );
+    let schema = null;
+    let breadcrumbs = null;
+    try {
+      schema = schemaNode?.textContent
+        ? JSON.parse(schemaNode.textContent)
+        : null;
+      breadcrumbs = breadcrumbsNode?.textContent
+        ? JSON.parse(breadcrumbsNode.textContent)
+        : null;
+    } catch {
+      schema = null;
+      breadcrumbs = null;
+    }
+
+    return {
+      rootSector:
+        document
+          .querySelector("[data-showcase-sector]")
+          ?.getAttribute("data-showcase-sector") ?? null,
+      heading: document.querySelector("main h1")?.textContent?.trim() ?? "",
+      currentNav:
+        navLinks.length > 0 &&
+        navLinks.every((link) => link.getAttribute("aria-current") === "page"),
+      disclosurePresent: Boolean(disclosure),
+      disclosureText: disclosure?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+      schemaType: schema?.["@type"] ?? null,
+      schemaUsageInfo: schema?.usageInfo ?? "",
+      breadcrumbType: breadcrumbs?.["@type"] ?? null,
+      breadcrumbCount: Array.isArray(breadcrumbs?.itemListElement)
+        ? breadcrumbs.itemListElement.length
+        : 0,
+    };
+  }, expected);
+  const detailPassed =
+    detailState.rootSector === expected.sector &&
+    detailState.heading === expected.heading &&
+    detailState.currentNav &&
+    detailState.disclosurePresent &&
+    /fictional/i.test(detailState.disclosureText) &&
+    /demonstration/i.test(detailState.disclosureText) &&
+    detailState.schemaType === "CreativeWork" &&
+    /fictional/i.test(detailState.schemaUsageInfo) &&
+    detailState.breadcrumbType === "BreadcrumbList" &&
+    detailState.breadcrumbCount === 2;
+  results.push({
+    interaction: `create-detail-${expected.slug}`,
+    passed: detailPassed,
+    ...detailState,
+  });
+  if (!detailPassed) {
+    failures.push({
+      interaction: `create-detail-${expected.slug}`,
+      ...detailState,
+    });
+  }
+  await detail.context.close();
+}
+
+const createHeader = await inspectPage(
+  "create-header-1201",
+  "/create",
+  { width: 1201, height: 900 },
+);
+const createHeaderState = await createHeader.page.evaluate(() => {
+  const brand = document.querySelector(".site-header__brand");
+  const nav = document.querySelector(".site-header__desktop-nav");
+  const actions = document.querySelector(".site-header__actions");
+  if (!brand || !nav || !actions) {
+    return {
+      elementsPresent: false,
+      navDisplay: null,
+      navLinkCount: 0,
+      currentNav: false,
+      brandNavOverlap: null,
+      navActionsOverlap: null,
+    };
+  }
+  const brandRect = brand.getBoundingClientRect();
+  const navRect = nav.getBoundingClientRect();
+  const actionsRect = actions.getBoundingClientRect();
+  return {
+    elementsPresent: true,
+    navDisplay: getComputedStyle(nav).display,
+    navLinkCount: nav.querySelectorAll(".site-header__nav-link").length,
+    currentNav:
+      nav
+        .querySelector(".site-header__nav-link[href='/create']")
+        ?.getAttribute("aria-current") === "page",
+    brandNavOverlap: Math.max(0, brandRect.right - navRect.left),
+    navActionsOverlap: Math.max(0, navRect.right - actionsRect.left),
+  };
+});
+const createHeaderPassed =
+  createHeaderState.elementsPresent &&
+  createHeaderState.navDisplay !== "none" &&
+  createHeaderState.navLinkCount >= 7 &&
+  createHeaderState.currentNav &&
+  createHeaderState.brandNavOverlap <= 0.5 &&
+  createHeaderState.navActionsOverlap <= 0.5;
+results.push({
+  interaction: "create-header-overlap-1201",
+  passed: createHeaderPassed,
+  ...createHeaderState,
+});
+if (!createHeaderPassed) {
+  failures.push({
+    interaction: "create-header-overlap-1201",
+    ...createHeaderState,
+  });
+}
+await createHeader.context.close();
+
+const unknownCreate = await inspectPage(
+  "create-unknown-404",
+  "/create/not-a-real-showcase",
+  { width: 1024, height: 900 },
+  { expectedStatus: 404 },
+);
+const unknownCreateState = await unknownCreate.page.evaluate(() => ({
+  heading: document.querySelector("main h1")?.textContent?.trim() ?? "",
+  notFoundSignal: document.body.innerText.includes("404"),
+}));
+const unknownCreatePassed =
+  unknownCreate.record.status === 404 &&
+  unknownCreateState.notFoundSignal &&
+  unknownCreateState.heading.length > 0;
+results.push({
+  interaction: "create-unknown-slug-404",
+  passed: unknownCreatePassed,
+  ...unknownCreateState,
+});
+if (!unknownCreatePassed) {
+  failures.push({
+    interaction: "create-unknown-slug-404",
+    status: unknownCreate.record.status,
+    ...unknownCreateState,
+  });
+}
+await unknownCreate.context.close();
+
 const media = await inspectPage(
   "media-desktop-1440",
   "/media",
   { width: 1440, height: 1000 },
 );
+await media.page.locator(".media-card__image").first().scrollIntoViewIfNeeded();
+await media.page.waitForFunction(() => {
+  const cover = document.querySelector(".media-card__image");
+  return (
+    cover instanceof HTMLImageElement &&
+    cover.complete &&
+    cover.naturalWidth > 0
+  );
+});
 const mediaIndexState = await media.page.evaluate(() => {
   const cover = document.querySelector(".media-card__image");
   return {
@@ -607,6 +929,47 @@ const mobileWork = await inspectPage(
   { width: 390, height: 844 },
 );
 await mobileWork.context.close();
+
+const mobileCreate = await inspectPage(
+  "create-mobile-390",
+  "/create",
+  { width: 390, height: 844 },
+);
+await mobileCreate.page.locator(".site-header__mobile-summary").click();
+const mobileCreateState = {
+  menuOpen: await mobileCreate.page
+    .locator(".site-header__mobile-menu[open]")
+    .isVisible(),
+  currentNavVisible: await mobileCreate.page
+    .locator(
+      ".site-header__mobile-panel .site-header__nav-link[href='/create'][aria-current='page']",
+    )
+    .isVisible(),
+  featuredCount: await mobileCreate.page
+    .locator("#websites article[data-sector]")
+    .count(),
+  heading: await mobileCreate.page
+    .locator("#create-heading")
+    .textContent(),
+};
+const mobileCreatePassed =
+  mobileCreateState.menuOpen &&
+  mobileCreateState.currentNavVisible &&
+  mobileCreateState.featuredCount === 3 &&
+  mobileCreateState.heading?.trim() === "What should exist next?";
+results.push({
+  interaction: "create-mobile-index",
+  passed: mobileCreatePassed,
+  ...mobileCreateState,
+});
+if (!mobileCreatePassed) {
+  failures.push({ interaction: "create-mobile-index", ...mobileCreateState });
+}
+await mobileCreate.page.screenshot({
+  path: path.join(outputDir, "create-mobile-menu.png"),
+  fullPage: false,
+});
+await mobileCreate.context.close();
 
 const mobileMedia = await inspectPage(
   "media-mobile-390",

@@ -11,6 +11,7 @@ import { ThemeControls } from "@/components/ThemeControls";
 const navigation = [
   { href: "/#mission", label: "Mission" },
   { href: "/lab", label: "R&D / Lab" },
+  { href: "/create", label: "Create" },
   { href: "/work", label: "Work" },
   { href: "/media", label: "Media" },
   { href: "/about", label: "About" },

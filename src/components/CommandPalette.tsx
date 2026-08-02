@@ -7,6 +7,7 @@ import {
   House,
   Mail,
   Newspaper,
+  PanelsTopLeft,
   Search,
   UserRound,
   X,
@@ -47,11 +48,19 @@ const commands: readonly CommandItem[] = [
     icon: FlaskConical,
   },
   {
+    id: "create",
+    label: "What we create",
+    description: "Websites, digital tools, and systems shaped around real needs",
+    href: "/create",
+    keywords: "create websites digital tools platforms science laboratory finance education schools institutions businesses professionals individuals communities everyday needs",
+    icon: PanelsTopLeft,
+  },
+  {
     id: "work",
     label: "Work",
     description: "See complex ideas and research translated into working systems",
     href: "/work",
-    keywords: "portfolio projects case studies intelligence research websites apps systems",
+    keywords: "portfolio published projects case studies evidence intelligence research deployed systems",
     icon: BriefcaseBusiness,
   },
   {
@@ -295,8 +304,8 @@ export function CommandPalette({
 
             {filteredCommands.length === 0 && (
               <p className="command-palette__empty">
-                No destination found. Try “mission”, “R&amp;D”, “media”, or
-                “contact”.
+                No destination found. Try “mission”, “create”, “R&amp;D”,
+                “media”, or “contact”.
               </p>
             )}
           </div>

@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     "institutional intelligence",
     "applied research",
     "strategic foresight",
+    "website and digital platform development",
+    "digital tools",
+    "educational technology",
     "Studio",
     "Living Room",
     "Lab",
@@ -119,7 +122,39 @@ const organizationSchema = {
     "Institutional transformation",
     "Strategic foresight",
     "Knowledge systems",
+    "Website and digital platform development",
+    "Digital tool design",
+    "Scientific and research platforms",
+    "Financial information systems",
+    "Educational technology",
   ],
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "kingXford & Co creation capabilities",
+    itemListElement: [
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Websites and digital platforms",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Digital tools and operational systems",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Research, intelligence, and learning systems",
+        },
+      },
+    ],
+  },
 };
 
 const websiteSchema = {

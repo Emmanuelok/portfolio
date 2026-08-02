@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { websiteShowcases } from "@/data/creations";
 import { mediaPosts } from "@/data/media";
 import { projects } from "@/data/projects";
 
@@ -9,7 +10,7 @@ const baseUrl = (
 ).replace(/\/$/, "");
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-07-31T00:00:00.000Z");
+  const lastModified = new Date("2026-08-02T00:00:00.000Z");
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -22,6 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/work`,
       lastModified,
       changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/create`,
+      lastModified,
+      changeFrequency: "monthly",
       priority: 0.9,
     },
     {
@@ -66,5 +73,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     images: [`${baseUrl}${post.cover}`],
   }));
 
-  return [...staticRoutes, ...projectRoutes, ...mediaRoutes];
+  const creationRoutes: MetadataRoute.Sitemap = websiteShowcases.map(
+    (showcase) => ({
+      url: `${baseUrl}/create/${showcase.slug}`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    }),
+  );
+
+  return [
+    ...staticRoutes,
+    ...creationRoutes,
+    ...projectRoutes,
+    ...mediaRoutes,
+  ];
 }

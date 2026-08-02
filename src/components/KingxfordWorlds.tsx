@@ -44,7 +44,7 @@ const worlds: readonly World[] = [
       "Communication & visual systems",
     ],
     image: "/motion/kingxford-production-spine-v2.webp",
-    href: "/work",
+    href: "/create",
     cta: "Enter Studio",
   },
   {

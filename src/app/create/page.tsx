@@ -7,20 +7,17 @@ import {
   BookOpenCheck,
   Building2,
   Calculator,
-  FlaskConical,
-  GraduationCap,
-  Landmark,
   MonitorSmartphone,
   Network,
   UsersRound,
 } from "lucide-react";
 
+import { CreateLaunchGallery } from "@/components/CreateLaunchGallery";
 import { Reveal } from "@/components/Reveal";
 import {
   creationCatalogue,
   websiteShowcases,
   type CreationCategory,
-  type WebsiteShowcase,
 } from "@/data/creations";
 
 import styles from "./CreatePage.module.css";
@@ -54,137 +51,6 @@ const categoryIcons: Record<CreationCategory, typeof MonitorSmartphone> = {
   "education-tools": BookOpenCheck,
   "personal-tools": UsersRound,
 };
-
-function sectorKey(showcase: WebsiteShowcase) {
-  if (showcase.sector === "Scientific research") return "science";
-  if (showcase.sector === "Finance") return "finance";
-  return "education";
-}
-
-function SciencePreview() {
-  return (
-    <div className={styles.sciencePreview} aria-hidden="true">
-      <div className={styles.previewNav}>
-        <strong>LVL</strong>
-        <span>Methods</span>
-        <span>Facilities</span>
-      </div>
-      <div className={styles.scienceField}>
-        <span className={styles.scienceRing} />
-        <span className={styles.scienceAxis} />
-        <span className={styles.scienceSample}>S–014</span>
-        <span className={styles.scienceScale}>20 μm · illustrative</span>
-      </div>
-      <div className={styles.previewRows}>
-        <span>Materials systems</span>
-        <span>Environmental sensing</span>
-        <span>Open methods</span>
-      </div>
-    </div>
-  );
-}
-
-function FinancePreview() {
-  return (
-    <div className={styles.financePreview} aria-hidden="true">
-      <div className={styles.financeMasthead}>
-        <strong>MERIDIAN</strong>
-        <span>Governance ledger / 01</span>
-      </div>
-      <p>Capital governed by mandate.</p>
-      <div className={styles.financePath}>
-        <span />
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-      <div className={styles.financeLedger}>
-        <span>Mandate</span>
-        <strong>Evidence before action</strong>
-        <span>Review</span>
-        <strong>Decision rights visible</strong>
-      </div>
-    </div>
-  );
-}
-
-function EducationPreview() {
-  return (
-    <div className={styles.educationPreview} aria-hidden="true">
-      <div className={styles.educationMasthead}>
-        <span>COMMONFIELD</span>
-        <strong>INSTITUTE</strong>
-      </div>
-      <p>Learn by building the question.</p>
-      <div className={styles.educationSchedule}>
-        <span>INQ 101</span>
-        <span>Studio</span>
-        <span>Field</span>
-        <span>Seminar</span>
-        <span>Public work</span>
-      </div>
-    </div>
-  );
-}
-
-function WebsiteConceptCard({
-  showcase,
-  index,
-}: Readonly<{ showcase: WebsiteShowcase; index: number }>) {
-  const sector = sectorKey(showcase);
-  const SectorIcon =
-    sector === "science"
-      ? FlaskConical
-      : sector === "finance"
-        ? Landmark
-        : GraduationCap;
-
-  return (
-    <article className={styles.showcaseCard} data-sector={sector}>
-      <div className={styles.showcaseCardTopline}>
-        <span>{String(index + 1).padStart(2, "0")} / Website concept</span>
-        <span>
-          <SectorIcon aria-hidden="true" /> {showcase.sector}
-        </span>
-      </div>
-      <Link
-        className={styles.showcasePreviewLink}
-        href={showcase.previewHref}
-        aria-label={`Explore ${showcase.name}, a fictional ${showcase.sector.toLocaleLowerCase()} website concept`}
-      >
-        <div className={styles.showcaseBrowser}>
-          <div className={styles.browserBar} aria-hidden="true">
-            <span />
-            <span />
-            <span />
-            <small>kingXford &amp; Co / concept demonstration</small>
-          </div>
-          {sector === "science" ? (
-            <SciencePreview />
-          ) : sector === "finance" ? (
-            <FinancePreview />
-          ) : (
-            <EducationPreview />
-          )}
-        </div>
-      </Link>
-      <div className={styles.showcaseCopy}>
-        <div>
-          <p className="eyebrow">{showcase.eyebrow}</p>
-          <h3>{showcase.name}</h3>
-        </div>
-        <div>
-          <p>{showcase.thesis}</p>
-          <Link className="text-link" href={showcase.previewHref}>
-            <span>Explore the complete concept</span>
-            <ArrowUpRight aria-hidden="true" />
-          </Link>
-        </div>
-      </div>
-    </article>
-  );
-}
 
 export default function CreatePage() {
   const collectionSchema = {
@@ -252,22 +118,18 @@ export default function CreatePage() {
         <div className={styles.sectionHeading}>
           <div>
             <p className="eyebrow">Websites / Three sectors / Three systems</p>
-            <h2 id="websites-heading">Not mockups. Complete design propositions.</h2>
+            <h2 id="websites-heading">Interactive concept prototypes, built to be explored.</h2>
           </div>
           <p>
-            Each concept is rendered with live HTML and CSS at every size. No
-            generated futuristic imagery, repetitive visual formula, invented
-            client, or unsupported outcome.
+            Each fictional prototype pairs working interface states with licensed
+            contextual photography and explicit limits. They demonstrate design
+            direction—not an operating institution, client engagement, or outcome.
           </p>
         </div>
 
-        <div className={styles.showcaseList}>
-          {websiteShowcases.map((showcase, index) => (
-            <Reveal delay={index * 0.05} key={showcase.slug}>
-              <WebsiteConceptCard showcase={showcase} index={index} />
-            </Reveal>
-          ))}
-        </div>
+        <Reveal>
+          <CreateLaunchGallery />
+        </Reveal>
       </section>
 
       <section className={styles.catalogue} aria-labelledby="catalogue-heading">

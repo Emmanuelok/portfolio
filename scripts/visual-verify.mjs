@@ -86,6 +86,10 @@ async function inspectPage(name, route, viewport, options = {}) {
   });
   await page.waitForSelector("main");
   await page.waitForTimeout(650);
+  if (options.scrollSelector) {
+    await page.locator(options.scrollSelector).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(220);
+  }
   await page.screenshot({
     path: path.join(outputDir, `${name}.png`),
     fullPage: options.fullPage ?? false,
@@ -199,6 +203,10 @@ if (!desktopThemeKeyboard) {
 
 await desktop.page.keyboard.press("Control+K");
 await desktop.page.waitForSelector("dialog[open]");
+await desktop.page.waitForFunction(
+  () => document.activeElement?.id === "command-palette-search",
+);
+await desktop.page.waitForTimeout(80);
 const commandPaletteOpen = await desktop.page
   .locator("dialog[open]")
   .isVisible();
@@ -438,19 +446,19 @@ const expectedCreateShowcases = [
     slug: "lumen-vale-laboratory",
     name: "Lumen Vale Laboratory",
     sector: "science",
-    heading: "Research made inspectable.",
+    heading: "Evidence should arrive with its history intact.",
   },
   {
     slug: "meridian-financial-office",
     name: "Meridian Financial Office",
     sector: "finance",
-    heading: "Capital governed by mandate.",
+    heading: "A decision should survive the meeting.",
   },
   {
     slug: "commonfield-institute",
     name: "Commonfield Institute",
     sector: "education",
-    heading: "Learn by building the question.",
+    heading: "A curriculum that starts with a real question.",
   },
 ];
 
@@ -460,14 +468,8 @@ const create = await inspectPage(
   { width: 1440, height: 1000 },
 );
 const createIndexState = await create.page.evaluate((expectedShowcases) => {
-  const cards = [...document.querySelectorAll("#websites article[data-sector]")];
-  const detailHrefs = [
-    ...new Set(
-      [...document.querySelectorAll("#websites a[href^='/create/']")]
-        .map((link) => link.getAttribute("href"))
-        .filter(Boolean),
-    ),
-  ];
+  const gallery = document.querySelector("[data-prototype-gallery]");
+  const tabs = [...gallery?.querySelectorAll("[role='tab']") ?? []];
   const navLinks = [
     ...document.querySelectorAll(".site-header__nav-link[href='/create']"),
   ];
@@ -481,12 +483,10 @@ const createIndexState = await create.page.evaluate((expectedShowcases) => {
 
   return {
     heading: document.querySelector("#create-heading")?.textContent?.trim() ?? "",
-    featuredCount: cards.length,
-    sectors: cards
-      .map((card) => card.getAttribute("data-sector"))
-      .filter(Boolean)
-      .sort(),
-    detailHrefs: detailHrefs.sort(),
+    featuredCount: tabs.length,
+    activeSector: gallery?.getAttribute("data-sector") ?? null,
+    selectedTabCount: tabs.filter((tab) => tab.getAttribute("aria-selected") === "true").length,
+    liveControlCount: gallery?.querySelectorAll("#active-prototype button").length ?? 0,
     expectedHrefs: expectedShowcases
       .map(({ slug }) => `/create/${slug}`)
       .sort(),
@@ -500,13 +500,33 @@ const createIndexState = await create.page.evaluate((expectedShowcases) => {
     schemaPartCount: Array.isArray(schema?.hasPart) ? schema.hasPart.length : 0,
   };
 }, expectedCreateShowcases);
+
+const prototypeStates = [];
+for (const expected of expectedCreateShowcases) {
+  const tab = create.page.locator(`#prototype-tab-${expected.sector}`);
+  await tab.click();
+  await create.page.waitForTimeout(380);
+  prototypeStates.push(
+    await create.page.locator("[data-prototype-gallery]").evaluate((gallery) => ({
+      sector: gallery.getAttribute("data-sector"),
+      href: gallery.querySelector("a[href^='/create/']")?.getAttribute("href") ?? null,
+      liveControls: gallery.querySelectorAll("#active-prototype button").length,
+      panelText: gallery.querySelector("#active-prototype")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    })),
+  );
+}
+
 const createIndexPassed =
   createIndexState.heading === "What should exist next?" &&
   createIndexState.featuredCount === 3 &&
-  JSON.stringify(createIndexState.sectors) ===
-    JSON.stringify(["education", "finance", "science"]) &&
-  JSON.stringify(createIndexState.detailHrefs) ===
+  createIndexState.activeSector === "science" &&
+  createIndexState.selectedTabCount === 1 &&
+  createIndexState.liveControlCount >= 3 &&
+  JSON.stringify(prototypeStates.map((state) => state.sector)) ===
+    JSON.stringify(expectedCreateShowcases.map((showcase) => showcase.sector)) &&
+  JSON.stringify(prototypeStates.map((state) => state.href).sort()) ===
     JSON.stringify(createIndexState.expectedHrefs) &&
+  prototypeStates.every((state) => state.liveControls >= 3 && state.panelText.length > 120) &&
   createIndexState.catalogueCount === 7 &&
   createIndexState.currentNav &&
   createIndexState.schemaType === "CollectionPage" &&
@@ -515,9 +535,10 @@ results.push({
   interaction: "create-index",
   passed: createIndexPassed,
   ...createIndexState,
+  prototypeStates,
 });
 if (!createIndexPassed) {
-  failures.push({ interaction: "create-index", ...createIndexState });
+  failures.push({ interaction: "create-index", ...createIndexState, prototypeStates });
 }
 
 const sitemapResponse = await create.context.request.get(
@@ -547,6 +568,14 @@ if (!createSitemapPassed) {
   });
 }
 await create.context.close();
+
+const createGallery = await inspectPage(
+  "create-gallery-desktop-1440",
+  "/create",
+  { width: 1440, height: 1000 },
+  { scrollSelector: "[data-prototype-gallery]" },
+);
+await createGallery.context.close();
 
 for (const expected of expectedCreateShowcases) {
   const detail = await inspectPage(
@@ -598,6 +627,65 @@ for (const expected of expectedCreateShowcases) {
         : 0,
     };
   }, expected);
+  let detailInteraction = { passed: false, state: "not-tested" };
+  if (expected.sector === "science") {
+    await detail.page.locator("#sample-tab-LV-SYN-021").click();
+    const selectedRecord = await detail.page
+      .locator("#sample-panel-LV-SYN-021")
+      .textContent();
+    await detail.page
+      .locator("#lineage button")
+      .filter({ hasText: "Review" })
+      .click();
+    const lineageState = await detail.page.locator("#lineage").textContent();
+    detailInteraction = {
+      passed:
+        /Polymer film control/i.test(selectedRecord ?? "") &&
+        /alternative explanations/i.test(lineageState ?? "") &&
+        /Independent reviewer/i.test(lineageState ?? ""),
+      state: selectedRecord?.replace(/\s+/g, " ").trim() ?? "",
+    };
+  } else if (expected.sector === "finance") {
+    await detail.page
+      .locator("#finance-scenario label:has(input[value='pressure'])")
+      .click();
+    await detail.page
+      .locator("#finance-governance label")
+      .filter({ hasText: "Conflicts declared" })
+      .click();
+    const scenarioSelected = await detail.page
+      .locator("#finance-scenario input[type='radio'][value='pressure']")
+      .isChecked();
+    const governanceText = await detail.page
+      .locator("#finance-governance")
+      .textContent();
+    detailInteraction = {
+      passed:
+        scenarioSelected &&
+        /Ready for fictional review/i.test(governanceText ?? "") &&
+        /not an approval/i.test(governanceText ?? ""),
+      state: governanceText?.replace(/\s+/g, " ").trim().slice(0, 280) ?? "",
+    };
+  } else {
+    await detail.page
+      .getByRole("button", { name: /Materials in circulation/i })
+      .first()
+      .click();
+    await detail.page
+      .locator("#curriculum-composer")
+      .getByRole("button", { name: "Open Build phase" })
+      .click();
+    const pathwayText = await detail.page
+      .locator("#curriculum-composer [aria-live='polite']")
+      .textContent();
+    detailInteraction = {
+      passed:
+        /How can everyday materials circulate/i.test(pathwayText ?? "") &&
+        /Working proposition/i.test(pathwayText ?? ""),
+      state: pathwayText?.replace(/\s+/g, " ").trim() ?? "",
+    };
+  }
+
   const detailPassed =
     detailState.rootSector === expected.sector &&
     detailState.heading === expected.heading &&
@@ -608,19 +696,29 @@ for (const expected of expectedCreateShowcases) {
     detailState.schemaType === "CreativeWork" &&
     /fictional/i.test(detailState.schemaUsageInfo) &&
     detailState.breadcrumbType === "BreadcrumbList" &&
-    detailState.breadcrumbCount === 2;
+    detailState.breadcrumbCount === 2 &&
+    detailInteraction.passed;
   results.push({
     interaction: `create-detail-${expected.slug}`,
     passed: detailPassed,
+    detailInteraction,
     ...detailState,
   });
   if (!detailPassed) {
     failures.push({
       interaction: `create-detail-${expected.slug}`,
+      detailInteraction,
       ...detailState,
     });
   }
   await detail.context.close();
+
+  const detailMobile = await inspectPage(
+    `create-${expected.slug}-mobile-390`,
+    `/create/${expected.slug}`,
+    { width: 390, height: 844 },
+  );
+  await detailMobile.context.close();
 }
 
 const createHeader = await inspectPage(
@@ -946,7 +1044,7 @@ const mobileCreateState = {
     )
     .isVisible(),
   featuredCount: await mobileCreate.page
-    .locator("#websites article[data-sector]")
+    .locator("[data-prototype-gallery] [role='tab']")
     .count(),
   heading: await mobileCreate.page
     .locator("#create-heading")

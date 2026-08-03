@@ -530,7 +530,7 @@ const createIndexPassed =
   createIndexState.catalogueCount === 7 &&
   createIndexState.currentNav &&
   createIndexState.schemaType === "CollectionPage" &&
-  createIndexState.schemaPartCount === 3;
+  createIndexState.schemaPartCount === 4;
 results.push({
   interaction: "create-index",
   passed: createIndexPassed,
@@ -547,6 +547,7 @@ const sitemapResponse = await create.context.request.get(
 const sitemapText = await sitemapResponse.text();
 const expectedCreateSitemapPaths = [
   "/create",
+  "/create/workspace",
   ...expectedCreateShowcases.map(({ slug }) => `/create/${slug}`),
 ];
 const missingCreateSitemapPaths = expectedCreateSitemapPaths.filter(
@@ -568,6 +569,318 @@ if (!createSitemapPassed) {
   });
 }
 await create.context.close();
+
+const canvas = await inspectPage(
+  "canvas-desktop-1440",
+  "/create/workspace",
+  { width: 1440, height: 1000 },
+);
+const canvasAgentRequests = [];
+const canvasPostRequests = [];
+canvas.page.on("request", (request) => {
+  if (request.url().includes("/api/workspace/agent")) {
+    canvasAgentRequests.push({
+      method: request.method(),
+      url: request.url(),
+    });
+  }
+  if (request.method() === "POST") {
+    canvasPostRequests.push(request.url());
+  }
+});
+
+const canvasRouteState = await canvas.page.evaluate(() => {
+  const schemaNode = document.querySelector("#kingxford-canvas-schema");
+  let schema = null;
+  try {
+    schema = schemaNode?.textContent
+      ? JSON.parse(schemaNode.textContent)
+      : null;
+  } catch {
+    schema = null;
+  }
+
+  return {
+    heading: document.querySelector("#canvas-title")?.textContent?.trim() ?? "",
+    modeCount: document.querySelectorAll("[role='tab'][id^='workspace-mode-']").length,
+    selectedMode:
+      document
+        .querySelector("[role='tab'][id^='workspace-mode-'][aria-selected='true']")
+        ?.getAttribute("id") ?? null,
+    hasWorkbench: Boolean(
+      document.querySelector("[aria-label='Creative input workbench']"),
+    ),
+    hasResultPane: Boolean(
+      document.querySelector("[aria-label='Live result and agent review']"),
+    ),
+    schemaType: schema?.["@type"] ?? null,
+  };
+});
+const canvasRoutePassed =
+  canvas.record.status === 200 &&
+  canvasRouteState.heading === "Move from first thought to working proof." &&
+  canvasRouteState.modeCount === 5 &&
+  canvasRouteState.selectedMode === "workspace-mode-idea" &&
+  canvasRouteState.hasWorkbench &&
+  canvasRouteState.hasResultPane &&
+  canvasRouteState.schemaType === "WebApplication";
+results.push({
+  interaction: "canvas-route-desktop",
+  passed: canvasRoutePassed,
+  ...canvasRouteState,
+});
+if (!canvasRoutePassed) {
+  failures.push({
+    interaction: "canvas-route-desktop",
+    status: canvas.record.status,
+    ...canvasRouteState,
+  });
+}
+
+const canvasModeChecks = [];
+for (const expected of [
+  { mode: "idea", previewSelector: "[aria-label='Local concept preview']", text: "Concept specimen" },
+  { mode: "code", previewSelector: "iframe[title='Live code preview']", text: "Isolated browser" },
+  { mode: "mindmap", previewSelector: "[aria-label='Mind map preview']", text: "Relationship view" },
+  { mode: "prompt", previewSelector: "#workspace-preview-panel article", text: "Prompt instrument" },
+  { mode: "brief", previewSelector: "#workspace-preview-panel article", text: "Working production brief" },
+]) {
+  const tab = canvas.page.locator(`#workspace-mode-${expected.mode}`);
+  await tab.click();
+  await canvas.page.waitForTimeout(90);
+  const preview = canvas.page.locator(expected.previewSelector);
+  const state = {
+    mode: expected.mode,
+    selected: (await tab.getAttribute("aria-selected")) === "true",
+    previewVisible: await preview.isVisible(),
+    expectedTextVisible: (await canvas.page
+      .locator("#workspace-preview-panel")
+      .textContent())?.includes(expected.text) ?? false,
+  };
+  state.passed =
+    state.selected && state.previewVisible && state.expectedTextVisible;
+  canvasModeChecks.push(state);
+}
+const canvasModesPassed =
+  canvasModeChecks.length === 5 &&
+  canvasModeChecks.every((state) => state.passed);
+results.push({
+  interaction: "canvas-five-creation-modes",
+  passed: canvasModesPassed,
+  modes: canvasModeChecks,
+});
+if (!canvasModesPassed) {
+  failures.push({
+    interaction: "canvas-five-creation-modes",
+    modes: canvasModeChecks,
+  });
+}
+
+await canvas.page.locator("#workspace-mode-idea").click();
+const canvasIdeaSource = `Create: Civic Repair Ledger
+For: Residents, maintenance teams and local decision-makers
+Problem: Small public-space failures are reported without a visible resolution path.
+Change: Connect each observation to ownership, action and public learning.
+Constraints: Privacy, accessibility and responsible evidence handling.
+Evidence: A verified repair record and a clear next decision.`;
+await canvas.page.locator("#workspace-text-editor").fill(canvasIdeaSource);
+await canvas.page.waitForFunction(() =>
+  document
+    .querySelector("[aria-label='Local concept preview']")
+    ?.textContent?.includes("Civic Repair Ledger"),
+);
+const canvasIdeaPreview = await canvas.page
+  .locator("[aria-label='Local concept preview']")
+  .textContent();
+const canvasIdeaPassed =
+  /Civic Repair Ledger/.test(canvasIdeaPreview ?? "") &&
+  /Residents, maintenance teams and local decision-makers/.test(
+    canvasIdeaPreview ?? "",
+  ) &&
+  /Connect each observation to ownership/.test(canvasIdeaPreview ?? "") &&
+  canvasAgentRequests.length === 0;
+results.push({
+  interaction: "canvas-idea-local-preview",
+  passed: canvasIdeaPassed,
+  agentRequestCount: canvasAgentRequests.length,
+  preview: canvasIdeaPreview?.replace(/\s+/g, " ").trim().slice(0, 420) ?? "",
+});
+if (!canvasIdeaPassed) {
+  failures.push({
+    interaction: "canvas-idea-local-preview",
+    agentRequests: canvasAgentRequests,
+    preview: canvasIdeaPreview?.replace(/\s+/g, " ").trim().slice(0, 420) ?? "",
+  });
+}
+
+await canvas.page.locator("#workspace-mode-code").click();
+const autoRun = canvas.page.getByLabel("Auto-run", { exact: true });
+if (await autoRun.isChecked()) await autoRun.uncheck();
+const canvasCodeMarker = "canvas-visual-verification-marker";
+await canvas.page
+  .locator("#workspace-code-editor")
+  .fill(`<main id="${canvasCodeMarker}">Canvas code preview verified</main>`);
+const canvasFrame = canvas.page.frameLocator("iframe[title='Live code preview']");
+const markerBeforeRun = await canvasFrame.locator(`#${canvasCodeMarker}`).isVisible();
+await canvas.page
+  .locator("[aria-label='Creative input workbench']")
+  .getByRole("button", { name: /^Run/ })
+  .click();
+await canvasFrame.locator(`#${canvasCodeMarker}`).waitFor({ state: "visible" });
+const canvasCodeText = await canvasFrame
+  .locator(`#${canvasCodeMarker}`)
+  .textContent();
+const canvasCodePassed =
+  !markerBeforeRun &&
+  canvasCodeText?.trim() === "Canvas code preview verified" &&
+  canvasAgentRequests.length === 0;
+results.push({
+  interaction: "canvas-code-explicit-run",
+  passed: canvasCodePassed,
+  markerBeforeRun,
+  renderedText: canvasCodeText,
+  agentRequestCount: canvasAgentRequests.length,
+});
+if (!canvasCodePassed) {
+  failures.push({
+    interaction: "canvas-code-explicit-run",
+    markerBeforeRun,
+    renderedText: canvasCodeText,
+    agentRequests: canvasAgentRequests,
+  });
+}
+await canvas.page.screenshot({
+  path: path.join(outputDir, "canvas-code-desktop-1440.png"),
+  fullPage: false,
+});
+
+await canvas.page.getByRole("tab", { name: "Agent review" }).click();
+const canvasAgentPanel = canvas.page.locator("#workspace-agent-panel");
+const canvasAgentPanelText = await canvasAgentPanel.textContent();
+const canvasAgentContextPassed =
+  (await canvasAgentPanel.isVisible()) &&
+  /Choose what the Agent can see/.test(canvasAgentPanelText ?? "") &&
+  /Only the checked workspace context is sent/.test(canvasAgentPanelText ?? "") &&
+  (await canvasAgentPanel.getByLabel("Current input", { exact: true }).isChecked()) &&
+  !(await canvasAgentPanel.getByLabel("Preview console", { exact: true }).isChecked()) &&
+  !(await canvasAgentPanel.getByLabel("Previous versions", { exact: true }).isChecked()) &&
+  canvasAgentRequests.length === 0;
+results.push({
+  interaction: "canvas-agent-context-disclosure",
+  passed: canvasAgentContextPassed,
+  agentRequestCount: canvasAgentRequests.length,
+});
+if (!canvasAgentContextPassed) {
+  failures.push({
+    interaction: "canvas-agent-context-disclosure",
+    agentRequests: canvasAgentRequests,
+    panelText: canvasAgentPanelText?.replace(/\s+/g, " ").trim().slice(0, 520) ?? "",
+  });
+}
+await canvas.page.screenshot({
+  path: path.join(outputDir, "canvas-agent-context-desktop-1440.png"),
+  fullPage: false,
+});
+
+const canvasLocationBeforeHandoff = canvas.page.url();
+const handoffSessionBefore = await canvas.page.evaluate(() =>
+  window.sessionStorage.getItem("kingxford:canvas-handoff:v1"),
+);
+const postCountBeforeHandoff = canvasPostRequests.length;
+await canvas.page
+  .getByRole("button", { name: "Build with Kingxford", exact: true })
+  .click();
+const canvasHandoff = canvas.page.getByRole("dialog", {
+  name: "Take this from tested idea to production.",
+});
+await canvasHandoff.waitFor({ state: "visible" });
+const entrepreneurshipControl = canvasHandoff.getByRole("button", {
+  name: /Continue in AI-driven Entrepreneurship Platform/,
+});
+const handoffSessionAfter = await canvas.page.evaluate(() =>
+  window.sessionStorage.getItem("kingxford:canvas-handoff:v1"),
+);
+const canvasHandoffState = {
+  dialogVisible: await canvasHandoff.isVisible(),
+  currentVersionIncluded: await canvasHandoff
+    .getByLabel("Current version", { exact: true })
+    .isChecked(),
+  entrepreneurshipDisabled: await entrepreneurshipControl.isDisabled(),
+  entrepreneurshipTag: await entrepreneurshipControl.evaluate(
+    (element) => element.tagName,
+  ),
+  entrepreneurshipTitle: await entrepreneurshipControl.getAttribute("title"),
+  locationUnchanged: canvas.page.url() === canvasLocationBeforeHandoff,
+  sessionUntouched:
+    handoffSessionBefore === null && handoffSessionAfter === null,
+  postRequestsAfterOpen:
+    canvasPostRequests.length - postCountBeforeHandoff,
+};
+const canvasHandoffPassed =
+  canvasHandoffState.dialogVisible &&
+  canvasHandoffState.currentVersionIncluded &&
+  canvasHandoffState.entrepreneurshipDisabled &&
+  canvasHandoffState.entrepreneurshipTag === "BUTTON" &&
+  /not available yet/i.test(canvasHandoffState.entrepreneurshipTitle ?? "") &&
+  canvasHandoffState.locationUnchanged &&
+  canvasHandoffState.sessionUntouched &&
+  canvasHandoffState.postRequestsAfterOpen === 0;
+results.push({
+  interaction: "canvas-build-handoff-safe-open",
+  passed: canvasHandoffPassed,
+  ...canvasHandoffState,
+});
+if (!canvasHandoffPassed) {
+  failures.push({
+    interaction: "canvas-build-handoff-safe-open",
+    ...canvasHandoffState,
+  });
+}
+await canvas.page.screenshot({
+  path: path.join(outputDir, "canvas-handoff-desktop-1440.png"),
+  fullPage: false,
+});
+
+const postCountBeforeTransfer = canvasPostRequests.length;
+await Promise.all([
+  canvas.page.waitForURL("**/contact?brief=workspace"),
+  canvasHandoff
+    .getByRole("button", { name: "Request a scoped build plan" })
+    .click(),
+]);
+await canvas.page.locator("[data-state='ready']").waitFor({ state: "visible" });
+const contactHandoffState = await canvas.page.evaluate(() => ({
+  url: window.location.pathname + window.location.search,
+  notice: document.querySelector("[data-state='ready']")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+  problem: document.querySelector("form textarea")?.value ?? "",
+  sessionPackage: Boolean(
+    window.sessionStorage.getItem("kingxford:canvas-handoff:v1"),
+  ),
+}));
+const contactHandoffPassed =
+  contactHandoffState.url === "/contact?brief=workspace" &&
+  /Canvas handoff ready/i.test(contactHandoffState.notice) &&
+  /Canvas code preview verified/.test(contactHandoffState.problem) &&
+  contactHandoffState.sessionPackage &&
+  canvasPostRequests.length === postCountBeforeTransfer;
+results.push({
+  interaction: "canvas-contact-handoff-prefill",
+  passed: contactHandoffPassed,
+  ...contactHandoffState,
+  postRequestsAfterTransfer: canvasPostRequests.length - postCountBeforeTransfer,
+});
+if (!contactHandoffPassed) {
+  failures.push({
+    interaction: "canvas-contact-handoff-prefill",
+    ...contactHandoffState,
+    postRequestsAfterTransfer: canvasPostRequests.length - postCountBeforeTransfer,
+  });
+}
+await canvas.page.screenshot({
+  path: path.join(outputDir, "canvas-contact-handoff-desktop-1440.png"),
+  fullPage: false,
+});
+await canvas.context.close();
 
 const createGallery = await inspectPage(
   "create-gallery-desktop-1440",
@@ -1068,6 +1381,132 @@ await mobileCreate.page.screenshot({
   fullPage: false,
 });
 await mobileCreate.context.close();
+
+const mobileCanvas = await inspectPage(
+  "canvas-mobile-390",
+  "/create/workspace",
+  { width: 390, height: 844 },
+);
+const mobileCanvasTabs = mobileCanvas.page.locator(
+  "[aria-label='Mobile workspace panes']",
+);
+const mobileCanvasInputTab = mobileCanvasTabs.getByRole("button", {
+  name: "Input",
+  exact: true,
+});
+const mobileCanvasPreviewTab = mobileCanvasTabs.getByRole("button", {
+  name: "Preview",
+  exact: true,
+});
+const mobileCanvasAgentTab = mobileCanvasTabs.getByRole("button", {
+  name: "Agent",
+  exact: true,
+});
+const mobileWorkbench = mobileCanvas.page.locator(
+  "[aria-label='Creative input workbench']",
+);
+const mobileResultPane = mobileCanvas.page.locator(
+  "[aria-label='Live result and agent review']",
+);
+const mobilePreviewPanel = mobileCanvas.page.locator(
+  "#workspace-preview-panel",
+);
+const mobileAgentPanel = mobileCanvas.page.locator("#workspace-agent-panel");
+
+const mobileCanvasInputState = {
+  pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
+  selected: (await mobileCanvasInputTab.getAttribute("aria-pressed")) === "true",
+  workbenchVisible: await mobileWorkbench.isVisible(),
+  resultHidden: !(await mobileResultPane.isVisible()),
+};
+
+await mobileCanvasPreviewTab.click();
+await mobilePreviewPanel.waitFor({ state: "visible" });
+const mobileCanvasPreviewState = {
+  pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
+  selected: (await mobileCanvasPreviewTab.getAttribute("aria-pressed")) === "true",
+  workbenchHidden: !(await mobileWorkbench.isVisible()),
+  resultVisible: await mobileResultPane.isVisible(),
+  previewVisible: await mobilePreviewPanel.isVisible(),
+  agentHidden: !(await mobileAgentPanel.isVisible()),
+  conceptVisible: await mobilePreviewPanel
+    .locator("[aria-label='Local concept preview']")
+    .isVisible(),
+};
+await mobileCanvas.page.screenshot({
+  path: path.join(outputDir, "canvas-mobile-preview-390.png"),
+  fullPage: false,
+});
+
+await mobileCanvasAgentTab.click();
+await mobileAgentPanel.waitFor({ state: "visible" });
+const mobileAgentText = await mobileAgentPanel.textContent();
+const mobileCanvasAgentState = {
+  pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
+  selected: (await mobileCanvasAgentTab.getAttribute("aria-pressed")) === "true",
+  workbenchHidden: !(await mobileWorkbench.isVisible()),
+  resultVisible: await mobileResultPane.isVisible(),
+  previewHidden: !(await mobilePreviewPanel.isVisible()),
+  agentVisible: await mobileAgentPanel.isVisible(),
+  contextDisclosureVisible:
+    /Choose what the Agent can see/.test(mobileAgentText ?? "") &&
+    /Only the checked workspace context is sent/.test(mobileAgentText ?? ""),
+};
+await mobileCanvas.page.screenshot({
+  path: path.join(outputDir, "canvas-mobile-agent-390.png"),
+  fullPage: false,
+});
+
+await mobileCanvasInputTab.click();
+await mobileWorkbench.waitFor({ state: "visible" });
+const mobileCanvasReturnState = {
+  pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
+  selected: (await mobileCanvasInputTab.getAttribute("aria-pressed")) === "true",
+  workbenchVisible: await mobileWorkbench.isVisible(),
+  resultHidden: !(await mobileResultPane.isVisible()),
+};
+
+const mobileCanvasPassed =
+  mobileCanvasInputState.pane === "input" &&
+  mobileCanvasInputState.selected &&
+  mobileCanvasInputState.workbenchVisible &&
+  mobileCanvasInputState.resultHidden &&
+  mobileCanvasPreviewState.pane === "preview" &&
+  mobileCanvasPreviewState.selected &&
+  mobileCanvasPreviewState.workbenchHidden &&
+  mobileCanvasPreviewState.resultVisible &&
+  mobileCanvasPreviewState.previewVisible &&
+  mobileCanvasPreviewState.agentHidden &&
+  mobileCanvasPreviewState.conceptVisible &&
+  mobileCanvasAgentState.pane === "agent" &&
+  mobileCanvasAgentState.selected &&
+  mobileCanvasAgentState.workbenchHidden &&
+  mobileCanvasAgentState.resultVisible &&
+  mobileCanvasAgentState.previewHidden &&
+  mobileCanvasAgentState.agentVisible &&
+  mobileCanvasAgentState.contextDisclosureVisible &&
+  mobileCanvasReturnState.pane === "input" &&
+  mobileCanvasReturnState.selected &&
+  mobileCanvasReturnState.workbenchVisible &&
+  mobileCanvasReturnState.resultHidden;
+results.push({
+  interaction: "canvas-mobile-pane-navigation",
+  passed: mobileCanvasPassed,
+  input: mobileCanvasInputState,
+  preview: mobileCanvasPreviewState,
+  agent: mobileCanvasAgentState,
+  returnedInput: mobileCanvasReturnState,
+});
+if (!mobileCanvasPassed) {
+  failures.push({
+    interaction: "canvas-mobile-pane-navigation",
+    input: mobileCanvasInputState,
+    preview: mobileCanvasPreviewState,
+    agent: mobileCanvasAgentState,
+    returnedInput: mobileCanvasReturnState,
+  });
+}
+await mobileCanvas.context.close();
 
 const mobileMedia = await inspectPage(
   "media-mobile-390",

@@ -7,6 +7,7 @@ const footerNavigation = [
   { href: "/#mission", label: "Mission" },
   { href: "/lab", label: "R&D / Lab" },
   { href: "/create", label: "Create" },
+  { href: "/create/workspace", label: "Canvas" },
   { href: "/work", label: "Work" },
   { href: "/media", label: "Media" },
   { href: "/about", label: "About" },

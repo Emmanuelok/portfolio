@@ -1,596 +1,679 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "project": {
-    "id": "living-loom-portfolio",
-    "name": "Living Loom — Emmanuel Kingsford Owusu Portfolio",
+    "id": "kingxford",
+    "name": "kingXford & Co",
     "mode": "frontend-production",
-    "objective": "Present Emmanuel's graphic design, websites, web applications, and research-led systems through an original, usable, high-craft public portfolio.",
-    "audience": "Founders, product and design leaders, institutional partners, prospective clients, collaborators, and recruiters on mobile and desktop.",
-    "governing_idea": "Every project is a thread; one responsive ultramarine strand reveals how evidence, imagination, and engineering are woven into useful systems.",
-    "status": "review",
+    "objective": "Present kingXford & Co as an intelligence, research, and development company applying responsible AI and systems thinking to complex problems, ideas, and projects in pursuit of sustainable abundance.",
+    "audience": "Institutional leaders, research partners, founders, investors of capital or capability, public-interest organisations, complex-project sponsors, and informed readers on mobile and desktop.",
     "repository": "https://github.com/Emmanuelok/portfolio",
-    "production_host": "Vercel; production URL pending verified deployment",
-    "updated_at": "2026-07-29"
+    "hosting": "Vercel",
+    "updated_at": "2026-08-02"
   },
   "creative_system": {
-    "concept_title": "Living Loom",
-    "visual_thesis": "A warm editorial field is cut and connected by one electric-blue woven gesture; tactile physical models make systems thinking visible.",
-    "anti_goals": [
-      "generic neon or glass portfolio",
-      "cyberpunk HUD and AI-control-panel clichés",
-      "motion that blocks or hijacks reading",
-      "interchangeable card gallery",
-      "embedded generated text",
-      "unsupported claims or simulated proof"
-    ],
-    "palette": {
-      "dominant": [
-        "graphite #141617",
-        "warm bone #F3EDDF",
-        "paper #FFFDF7"
-      ],
-      "accent": [
-        "electric ultramarine #3157FF",
-        "brass #B47A2A",
-        "clay #A33D2E"
-      ],
-      "contrast": "warm editorial light field or graphite inverse field with a precise ultramarine route"
+    "concept": "Selective Reality",
+    "thesis": "A restrained corporate wordmark and two grounded documentary opening plates establish credibility before distinct, disclosed conceptual environments communicate research, responsible AI, collaboration, projects, and sustainable abundance.",
+    "identity": {
+      "wordmark": "kingXford & Co",
+      "x_treatment": "Same baseline, optical size, and weight as the surrounding letters; colour is the only emphasis.",
+      "compact_mark": "Framed K monogram with one restrained ultramarine terminal.",
+      "implementation": [
+        "src/components/KingxfordLogo.tsx",
+        "src/app/icon.svg"
+      ]
     },
-    "composition": "Editorial asymmetry anchored by a stable content rail, deliberate negative space, alternating density, and 3:2 project media.",
-    "camera": "No simulated interface camera. Generated covers use grounded editorial perspective and legible physical scale.",
-    "lighting": "Directional studio light with tactile paper and material shadows; no unexplained glow.",
-    "typography": "Newsreader Variable for editorial display; Manrope Variable for body, labels, and interface; all copy remains editable HTML.",
-    "motion": "Short interruptible thread-draw, paper-reveal, crossfade, and settle behaviors; reduced-motion removes path drawing and large translation.",
-    "sound": "No audio in the public web release.",
-    "interface": "Semantic navigation, responsive reflow, keyboard access, three-state theme control, command palette, native scrolling, and reduced-motion parity.",
-    "invariants": [
-      "Warm bone, graphite, and electric ultramarine retain their semantic roles.",
-      "The woven strand connects sections but never obscures controls or body copy.",
-      "Project names and descriptions remain HTML, never generated into imagery.",
-      "Generated covers remain conceptual editorial art, not literal screenshots or documentary evidence.",
-      "Primary actions work with keyboard, pointer, and touch.",
-      "No claim of legal clearance, accessibility conformance, or deployed status without evidence."
+    "palette": [
+      "graphite",
+      "warm bone",
+      "electric ultramarine",
+      "paper",
+      "restrained brass"
     ],
-    "permitted_variations": [
-      "Recompose section density for compact, medium, and wide viewports.",
-      "Resolve the bone or ink theme from explicit user choice or system preference.",
-      "Replace non-essential spatial motion with immediate opacity or color feedback.",
-      "Adapt the blue strand path to each route while preserving its role."
+    "type": [
+      "Newsreader Variable",
+      "Manrope Variable",
+      "system monospace for metadata"
+    ],
+    "evidence_direction": [
+      "Only the Mission and Intelligence landing plates use source-recorded documentary photography.",
+      "Published digital-project covers preserve authentic public-product captures inside distinct generated conceptual fields; Value-M uses a disclosed conceptual process field.",
+      "R&D, Responsible AI, & Co, Abundant Future, the three delivery worlds, and both Media covers use disclosed conceptual editorial imagery.",
+      "The Create catalogue and its three website demonstrations use code-rendered HTML, CSS, inline SVG, and synthetic interface data only; they introduce no raster imagery.",
+      "Context photographs are not evidence of a kingXford & Co facility, staff, engagement, experiment, or measured outcome.",
+      "Conceptual imagery is not documentary evidence, literal interface capture, certification, or a measured outcome."
+    ],
+    "anti_goals": [
+      "dominant, oversized, raised, or architectural X treatment",
+      "generated or hybrid imagery presented as documentary evidence or literal product UI",
+      "repeated dominant X scenery across the image system",
+      "short looping hero film",
+      "scroll-jacking",
+      "cyberpunk HUD styling",
+      "generic glass-card gallery",
+      "fictional concept websites presented as clients, operating institutions, scientific findings, financial advice, accreditation, or measured outcomes",
+      "person-centric company copy"
     ]
   },
   "assets": [
     {
-      "id": "ast-kisuyo-cover-v1",
-      "type": "generated-editorial-image",
-      "source": "public/work/kisuyo.webp",
-      "source_png": "generated_images/call_CsbigKdLk8Xj8ZeScBCglPoi.png",
-      "role": "Kisuyo case-study cover",
-      "rights_status": "unresolved",
-      "description": "A fictional adult Black woman in a sculptural fashion atelier/runway with ivory paper and tailoring.",
-      "generation": {
-        "tool": "OpenAI built-in image generation; model not exposed",
-        "date": "2026-07-29",
-        "prompt": "Create a text-free 3:2 editorial portfolio concept for Kisuyo: a fictional adult Black woman in a sculptural fashion atelier/runway with ivory paper and tailoring. Maintain warm bone, graphite, electric-ultramarine woven-strand invariants. Exclude logos, embedded words, watermarks, cyberpunk effects, glowing HUDs, and identifiable real people."
+      "id": "ast-published-evidence-object-covers-v2",
+      "type": "hybrid-authentic-interface-and-generated-editorial-composite",
+      "sources": [
+        "public/work/veridanth-evidence-v2.webp",
+        "public/work/psyche-atlas-evidence-v2.webp",
+        "public/work/grandmaster-evidence-v2.webp",
+        "public/work/value-m-evidence-v2.webp"
+      ],
+      "role": "Active covers and proof imagery for the four published projects. The first three preserve authentic public-product captures inside distinct generated editorial fields; Value-M uses a generated conceptual process field.",
+      "dimensions": "2400x1600",
+      "capture": {
+        "date": "2026-07-31",
+        "veridanth": "https://www.veridanth.com/",
+        "psyche_atlas": "https://personality-tests-six.vercel.app/",
+        "grandmaster": "https://boardgames-peach.vercel.app/",
+        "value_m": "https://value-m.vercel.app/"
       },
-      "material_edits": "Converted from 1536x1024 PNG to stripped WebP quality 82; no compositing.",
-      "source_sha256": "2ca6344b3a55e6751338285ddec92f84288113ec507cb35235460019e8dda7b1",
-      "derived_sha256": "ccc2f5d1114045ebfb808218b40113f7b807b963adfa27a81c017e88283e4ae5"
+      "generation": {
+        "veridanth_background": "Higgsfield Soul Cinema; 2026-07-31; job 087fd977-54d8-4b22-a203-cac1ba3e32fe",
+        "remaining_fields": "OpenAI imagegen; 2026-07-31"
+      },
+      "material_edit": "For Veridanth, Psyche Atlas, and GrandMaster, a purpose-selected authentic screenshot crop was placed over a separately generated subject-specific field, then masked and encoded. No interface text, metrics, controls, or claims were invented. Value-M is wholly conceptual and contains no literal interface claim.",
+      "checksums_sha256": {
+        "veridanth": "2a081181daba13fbe85c90694b69a4bc9cbc29b4fda1ad2a0a97f1236460cde3",
+        "psyche_atlas": "fce6b283b4018ea413434819756b73e69c346fb28c6782e52d825b7ae93e3222",
+        "grandmaster": "7caffd76223f13caee26d652a4af8cd349309ac1bad7823925ffaf6a3213819d",
+        "value_m": "3e44e8b43648883f0dabd1f8b327fcf0fdf982406dd7d932a53cf5caef7ff2d7"
+      },
+      "rights_status": "active only as disclosed conceptual or hybrid editorial imagery; interface, property, and trademark rights were not independently reviewed; restrictions are recorded per asset",
+      "provenance": "creative/rights-provenance.csv",
+      "restriction": "The generated fields are conceptual, not part of the product screenshots, documentary settings, measured outcomes, endorsements, or independent validation. CCAI Global, Aceplore, Nkosuo, and Elkings College remain unreleased and are not included in this active group."
     },
     {
-      "id": "ast-king-uml-cover-v1",
-      "type": "generated-editorial-image",
-      "source": "public/work/king-uml.webp",
-      "source_png": "generated_images/call_0Sr0wNzwQHPFoi2iOxBx0g2A.png",
-      "role": "King UML case-study cover",
-      "rights_status": "unresolved",
-      "description": "A museum installation of cobalt threads, vellum diagram planes, and black nodes.",
-      "generation": {
-        "tool": "OpenAI built-in image generation; model not exposed",
-        "date": "2026-07-29",
-        "prompt": "Create a text-free 3:2 editorial portfolio concept for King UML: a museum installation of cobalt threads, vellum diagram planes, and black nodes. Maintain warm bone, graphite, electric-ultramarine woven-strand invariants. Exclude logos, embedded words, watermarks, cyberpunk effects, and glowing HUDs."
+      "id": "ast-documentary-opening-plates-v1",
+      "type": "licensed-documentary-context-photography",
+      "sources": [
+        "public/motion/kingxford-prototype-documentary.webp",
+        "public/work/value-m-real.webp"
+      ],
+      "role": "Active Mission and Intelligence cinematic plates; the Mission source also supplies the reduced-motion static fallback.",
+      "dimensions": "2400x1600",
+      "sources_and_credits": {
+        "mission": "GN Group / Unsplash; https://unsplash.com/photos/man-working-on-architectural-model-at-desk-WUY0W2RSiBw",
+        "intelligence": "Jonathan Borba / Unsplash; https://unsplash.com/photos/architectural-blueprints-and-a-laptop-on-a-marble-desk-rn00OVh0gEI"
       },
-      "material_edits": "Converted from 1536x1024 PNG to stripped WebP quality 82; no compositing.",
-      "source_sha256": "617340ba7d97aef45fcd2161de46e9dd0b909fbd3af402c57c4e839da2834631",
-      "derived_sha256": "b9b7fd4caed4120acda170d1105851f909b013a54d1aace8263b42e2482485cd"
+      "checksums_sha256": {
+        "mission": "11428687d2ce8fe82260430e4ad83ef99dd4301346c3e4f6b0675cf4d30ada39",
+        "intelligence": "58f4090760a8643984d3bc5dfc1ce135072a3a16c6d9e6691be41a8b5a543d6c"
+      },
+      "rights_status": "active contextual documentary photography; source pages state free use under the Unsplash License; release and legal status not independently verified",
+      "provenance": "creative/rights-provenance.csv",
+      "restriction": "Do not imply that the pictured people, plans, models, property, or activities belong to kingXford & Co or document a kingXford & Co engagement, facility, or outcome."
     },
     {
-      "id": "ast-ccai-cover-v1",
-      "type": "generated-editorial-image",
-      "source": "public/work/ccai-global.webp",
-      "source_png": "generated_images/call_7ohnTs6fq1QDZaNFOi0CcTl7.png",
-      "role": "CCAI Global case-study cover",
-      "rights_status": "unresolved",
-      "description": "A black architectural evidence model pierced by a blue integrity path and ivory inspection planes.",
-      "generation": {
-        "tool": "OpenAI built-in image generation; model not exposed",
-        "date": "2026-07-29",
-        "prompt": "Create a text-free 3:2 editorial portfolio concept for CCAI Global: a black architectural evidence model pierced by a blue integrity path and ivory inspection planes. Maintain warm bone, graphite, electric-ultramarine woven-strand invariants. Exclude logos, embedded words, watermarks, cyberpunk effects, and glowing HUDs."
+      "id": "ast-restored-cinematic-concept-plates-v2",
+      "type": "synthetic-conceptual-editorial-environments",
+      "sources": [
+        "public/motion/kingxford-research-lab-v2.webp",
+        "public/motion/kingxford-governance-gate-v2.webp",
+        "public/motion/kingxford-signal-observatory-v2.webp",
+        "public/motion/kingxford-capability-reactor-v2.webp"
+      ],
+      "role": "Active plates for R&D, Responsible AI, & Co, and Abundant Future. Mission and Intelligence are intentionally excluded from this generated group.",
+      "dimensions": "2560x1440",
+      "generation": "OpenAI imagegen; 2026-07-31",
+      "material_edit": "Generated masters resized and cropped to 2560x1440 WebP; no screenshot, interface, logo, or text was composited.",
+      "checksums_sha256": {
+        "research_lab": "c6bc7f83404dbed6429a36a33dc3514316e485880d7d5ea783a78e1655dadc91",
+        "governance_gate": "1546f80570af500cb2cfb6f959053d83d157a61489c1abf6582669a92c4be031",
+        "signal_observatory": "7a2d5861c6425c4d2ac0506a9bdb06f92fc8b5665ca487e86ae038747f20bf90",
+        "capability_reactor": "133219850ae2367b7f1fdaa3ed322e5239dd442c7fcd761001c4e2d88ce58252"
       },
-      "material_edits": "Converted from 1536x1024 PNG to stripped WebP quality 82; no compositing.",
-      "source_sha256": "4d504b86f08a2ebf84362ce7d9deadc3c4c474b1f1f6ef480f5ea239da86b851",
-      "derived_sha256": "515dbec562db1e3f0c5e1d43b9394976ee5dc558027fc212c60731a18460cb6c"
+      "rights_status": "active only as clearly disclosed synthetic conceptual editorial imagery",
+      "provenance": "creative/rights-provenance.csv",
+      "restriction": "Never present these scenes as documentary facilities, projects, datasets, infrastructure, audits, certifications, or measured outcomes. Do not reintroduce a separate architectural X overlay or treat the X as a universal image requirement."
     },
     {
-      "id": "ast-aceplore-cover-v1",
-      "type": "generated-editorial-image",
-      "source": "public/work/aceplore.webp",
-      "source_png": "generated_images/call_kZHGu09DVhj01SXZH8AtcKQi.png",
-      "role": "Aceplore case-study cover",
-      "rights_status": "unresolved",
-      "description": "A fictional adult Black creative at an organized studio desk with a blue strand structuring the work.",
-      "generation": {
-        "tool": "OpenAI built-in image generation; model not exposed",
-        "date": "2026-07-29",
-        "prompt": "Create a text-free 3:2 editorial portfolio concept for Aceplore: a fictional adult Black creative at an organized studio desk with a blue strand structuring the work. Maintain warm bone, graphite, electric-ultramarine woven-strand invariants. Exclude logos, embedded words, watermarks, cyberpunk effects, glowing HUDs, and identifiable real people."
+      "id": "ast-restored-world-concept-portraits-v2",
+      "type": "synthetic-conceptual-editorial-environments",
+      "sources": [
+        "public/motion/kingxford-production-spine-v2.webp",
+        "public/motion/kingxford-decision-theatre-v2.webp",
+        "public/motion/kingxford-instrument-corridor-v2.webp"
+      ],
+      "role": "Active 4:5 world-card plates for Studio, the Living Room, and Lab.",
+      "dimensions": "1600x2000",
+      "generation": "OpenAI imagegen; 2026-07-31",
+      "material_edit": "Generated masters resized and cropped to 1600x2000 WebP; no screenshot, interface, logo, or text was composited.",
+      "checksums_sha256": {
+        "production_spine": "5aea532082733e18e4957c8cd578a6f8fefd33da96d0b414407843529bee4f98",
+        "decision_theatre": "ee7de0a8cfeea3b94ec39e666259d560062548f93039915907d489209efd9942",
+        "instrument_corridor": "6dcb079eaaaa7e8341fd13fece91a0e47571916ab71dc0c3493d48198ceaa80c"
       },
-      "material_edits": "Converted from 1536x1024 PNG to stripped WebP quality 82; no compositing.",
-      "source_sha256": "6bacdad9d097143e75edf2e346cbb21f23d9da658fd3fa9ff07a023f2df73b64",
-      "derived_sha256": "3d3ee3fd09336e1bd9aacbcb250e73662e42544c3ff70f1433470babb5e55bc0"
+      "rights_status": "active only as clearly disclosed synthetic conceptual editorial imagery",
+      "provenance": "creative/rights-provenance.csv",
+      "restriction": "Never present these environments as documentary evidence of kingXford & Co facilities, people, equipment, operations, or outcomes."
     },
     {
-      "id": "ast-megaproject-cover-v1",
-      "type": "generated-editorial-image",
-      "source": "public/work/megaproject-intelligence.webp",
-      "source_png": "generated_images/call_7WtsJXOoQHv3lBjhMpUBWTpA.png",
-      "role": "Megaproject Intelligence case-study cover",
-      "rights_status": "unresolved",
-      "description": "A bridge and transit physical model traced by a blue lifecycle route.",
-      "generation": {
-        "tool": "OpenAI built-in image generation; model not exposed",
-        "date": "2026-07-29",
-        "prompt": "Create a text-free 3:2 editorial portfolio concept for Megaproject Intelligence: a bridge and transit physical model with a blue lifecycle route. Maintain warm bone, graphite, electric-ultramarine woven-strand invariants. Exclude logos, embedded words, watermarks, cyberpunk effects, and glowing HUDs."
+      "id": "ast-restored-media-concept-covers-v2",
+      "type": "synthetic-conceptual-editorial-evidence-stills",
+      "sources": [
+        "public/media/ai-verification-chain-v2.webp",
+        "public/media/sustainable-abundance-capability-section-v2.webp"
+      ],
+      "role": "Active covers for How to Get Ahead in the AI Era and Sustainable Abundance for All.",
+      "dimensions": "2400x1600",
+      "generation": "OpenAI imagegen; 2026-07-31",
+      "material_edit": "Generated masters resized and cropped to 2400x1600 WebP; no screenshot, chart, interface, logo, or text was composited.",
+      "checksums_sha256": {
+        "ai_verification_chain": "294c54e1d246c02dba816003dab736ce929731281fad8bf5fcf7bea97be4e8e8",
+        "sustainable_abundance_capability_section": "05e747c565394c431b839f420df422d3967bba18060a69f6d50723106a9240b9"
       },
-      "material_edits": "Converted from 1536x1024 PNG to stripped WebP quality 82; no compositing.",
-      "source_sha256": "89f22b9d1af7cfb602f7bf524cb1c11d461b9c6cf3878c62d69b1cc09a9e2777",
-      "derived_sha256": "7e8ab449b7d113ae5ddee13941cd3f6e6a4d8e41d18d45c9501aa0518371c51b"
+      "rights_status": "active only as clearly disclosed synthetic conceptual editorial imagery",
+      "provenance": "creative/rights-provenance.csv",
+      "restriction": "The covers are conceptual, not charts, documentary evidence, measured outcomes, or proof of feasibility, performance, partnership, or causality."
     },
     {
-      "id": "ast-ghana-sec-cover-v1",
-      "type": "generated-editorial-image",
-      "source": "public/work/ghana-sec.webp",
-      "source_png": "generated_images/call_6vhO6toQcJssjVMlq6dNDKNz.png",
-      "role": "Ghana SEC Intelligence case-study cover",
-      "rights_status": "unresolved",
-      "description": "A black and brass data sculpture with a blue line and micro red, gold, and green accents.",
-      "generation": {
-        "tool": "OpenAI built-in image generation; model not exposed",
-        "date": "2026-07-29",
-        "prompt": "Create a text-free 3:2 editorial portfolio concept for Ghana SEC Intelligence: a black and brass data sculpture with a blue line and micro red, gold, and green accents. Maintain warm bone, graphite, electric-ultramarine woven-strand invariants. Exclude logos, embedded words, watermarks, cyberpunk effects, and glowing HUDs."
+      "id": "ast-restrained-wordmark-v3",
+      "type": "original-vector-and-typeset-identity",
+      "sources": [
+        "src/components/KingxfordLogo.tsx",
+        "src/app/icon.svg"
+      ],
+      "role": "Restrained primary wordmark, compact K monogram, favicon, and interface identity.",
+      "identity_rule": "The X remains the same optical size, baseline, and weight as the surrounding letters; colour is the only emphasis.",
+      "checksums_sha256": {
+        "icon_svg": "a9fe93c18c59e8470bb5caddf4640e61d5542f5f9d4b89dec57e6cbcc56da51c"
       },
-      "material_edits": "Converted from 1536x1024 PNG to stripped WebP quality 82; no compositing.",
-      "source_sha256": "21fa51d2632f3ff0270b8a7d14e4ab9414f43475938ea4017c8c353f35cf578d",
-      "derived_sha256": "c6793bd29ecd82ec9f9f5fd9f3e21a2301b372d1e952cd850512423a9c7d051a"
+      "rights_status": "original repository implementation; legal and trademark review not performed",
+      "provenance": "creative/rights-provenance.csv"
     },
     {
-      "id": "ast-elkings-cover-v1",
-      "type": "generated-editorial-image",
-      "source": "public/work/elkings-college.webp",
-      "source_png": "generated_images/call_TrfrhZELE6WzZaO0L361yJql.png",
-      "role": "Elkings College case-study cover",
-      "rights_status": "unresolved",
-      "description": "Age-appropriate adult or older-teen students collaborating in a contemporary Ghanaian-inspired campus with a blue learning strand.",
-      "generation": {
-        "tool": "OpenAI built-in image generation; model not exposed",
-        "date": "2026-07-29",
-        "prompt": "Create a text-free 3:2 editorial portfolio concept for Elkings College: age-appropriate adult or older-teen students collaborating in a contemporary Ghanaian-inspired campus with a blue learning strand. Maintain warm bone, graphite, electric-ultramarine woven-strand invariants. Exclude logos, embedded words, watermarks, cyberpunk effects, glowing HUDs, and identifiable real people."
-      },
-      "material_edits": "Converted from 1536x1024 PNG to stripped WebP quality 82; no compositing.",
-      "source_sha256": "c12b269e023215ee0523dd248b1cf1c5fb3e5448d7c32579d88845fc37e14be4",
-      "derived_sha256": "0b02cd39630f1935e8ac861182ffc03e93496871d5e716f75c8f77ca9595e027"
+      "id": "ast-create-code-rendered-concepts-v1",
+      "type": "code-rendered-fictional-interface-demonstrations",
+      "sources": [
+        "src/app/create/page.tsx",
+        "src/app/create/CreatePage.module.css",
+        "src/app/create/[slug]/page.tsx",
+        "src/components/CreateLaunchGallery.tsx",
+        "src/components/CreateLaunchGallery.module.css",
+        "src/components/WebsiteShowcase.tsx",
+        "src/components/showcase",
+        "public/create/lumen-vale-documentary.webp",
+        "public/create/meridian-decision-room.webp",
+        "public/create/commonfield-workshop.webp",
+        "src/data/creations.ts"
+      ],
+      "role": "Create catalogue plus three interactive website prototypes for scientific research, institutional finance, and education.",
+      "media_profile": "Three locally stored, licensed documentary photographs provide contextual art direction. All interface states, charts, records, and interactions are rendered from semantic HTML, scoped CSS, icons, and SVG; no generated image, screenshot, video, audio, or remote-media dependency is used.",
+      "data_profile": "Lumen Vale Laboratory, Meridian Financial Office, and Commonfield Institute are fictional. Every programme, person, project, instrument record, publication, date, figure, scenario, risk state, and outcome shown is synthetic demonstration data.",
+      "disclosure_rule": "Each demonstration must retain a visible concept-status disclosure and metadata identifying it as fictional demonstration content.",
+      "rights_status": "original repository code and synthetic demonstration content; institution names are fictional working identities; legal and trademark review not performed",
+      "provenance": "Source-authored code plus three contextual documentary derivatives recorded with source URLs, restrictions, and checksums in creative/rights-provenance.csv.",
+      "restrictions": [
+        "Do not present any concept as an operating institution, client engagement, endorsement, accreditation, registered financial service, scientific finding, forecast, advice, or measured outcome.",
+        "Do not present the contextual photographs as the fictional institutions, clients, facilities, transactions, courses, findings, or outcomes.",
+        "Do not remove the visible fictional-concept disclosures."
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "id": "screen-home-cinematic",
+      "route": "/",
+      "component": "KingxfordCinematic",
+      "purpose": "Lead with intelligence, R&D, responsible AI, aligned contribution, and sustainable abundance before revealing the company's three delivery worlds and project proof.",
+      "states": [
+        "arrival",
+        "Studio",
+        "Living Room",
+        "Lab",
+        "one company",
+        "enter",
+        "reduced-motion static"
+      ]
     },
     {
-      "id": "ast-value-m-cover-v1",
-      "type": "generated-editorial-image",
-      "source": "public/work/value-m.webp",
-      "source_png": "generated_images/call_PsVP6i049MEM5ku3rXbkhacW.png",
-      "role": "Value-M case-study cover",
-      "rights_status": "unresolved",
-      "description": "Rough black construction blocks progressively refined through brass gates into precise ivory architecture.",
-      "generation": {
-        "tool": "OpenAI built-in image generation; model not exposed",
-        "date": "2026-07-29",
-        "prompt": "Create a text-free 3:2 editorial portfolio concept for Value-M: rough black construction blocks progressively refined through brass gates into precise ivory architecture. Maintain warm bone, graphite, electric-ultramarine woven-strand invariants. Exclude logos, embedded words, watermarks, cyberpunk effects, and glowing HUDs."
-      },
-      "material_edits": "Converted from 1536x1024 PNG to stripped WebP quality 82; no compositing.",
-      "source_sha256": "273e0cd8b069e2001ccc55bd8c7c22e11fe5e11644d8cf22c4705341315a32b1",
-      "derived_sha256": "3cc43e8fb9800a6d4e2e2c5a0377b8d5b0c654f43602d5361acf1afcbbe5bcb2"
+      "id": "screen-home-worlds",
+      "route": "/#three-worlds",
+      "component": "KingxfordWorlds",
+      "purpose": "Explain Studio, the Living Room, and Lab as distinct but connected delivery spaces for intelligence, complex-project strategy, research, responsible AI, and development."
     },
     {
-      "id": "ast-woven-k-icon-v1",
-      "type": "original-vector",
-      "source": "src/app/icon.svg",
-      "role": "site icon and compact identity",
-      "rights_status": "unresolved",
-      "description": "Controlled vector K assembled from overlapping woven bands.",
-      "generation": {
-        "tool": "hand-authored SVG implementation",
-        "date": "2026-07-29",
-        "prompt": "Construct an original small-size woven K symbol using controlled vector geometry in the Living Loom bone, graphite, ultramarine, and brass system."
-      },
-      "material_edits": "None at manifest creation; SVG source remains editable.",
-      "source_sha256": "7b319c8ca0417edfceab0ca08a2de75451c4561f7e9c1d4a1184e3c74082a99a"
+      "id": "screen-create-catalogue",
+      "route": "/create",
+      "component": "CreatePage, WebsiteConceptCard, and creationCatalogue",
+      "purpose": "Show the range of websites, digital tools, institutional systems, research and AI tools, operational tools, education tools, and everyday personal utilities kingXford & Co can design and develop.",
+      "states": [
+        "wide catalogue",
+        "compact catalogue",
+        "keyboard navigation",
+        "reduced motion"
+      ],
+      "media": "Code-rendered previews only; no raster imagery."
+    },
+    {
+      "id": "screen-create-website-concepts",
+      "routes": [
+        "/create/lumen-vale-laboratory",
+        "/create/meridian-financial-office",
+        "/create/commonfield-institute"
+      ],
+      "component": "WebsiteShowcase",
+      "purpose": "Demonstrate three sharply differentiated, responsive website systems for scientific research, institutional finance, and education with working interactions, licensed contextual photography, and no unsupported claims.",
+      "states": [
+        "science concept",
+        "finance concept",
+        "education concept",
+        "compact layout",
+        "wide layout",
+        "reduced motion",
+        "not found"
+      ],
+      "content_status": "All institutions and interface records are fictional; all displayed data is synthetic demonstration data; visible disclosure is mandatory.",
+      "media": "Semantic HTML, scoped CSS, Lucide icons, SVG, and three locally stored licensed contextual documentary photographs; no generated image, video, audio, or remote-media dependency."
+    },
+    {
+      "id": "screen-work",
+      "route": "/work",
+      "purpose": "Search and filter the four published case studies; unreleased archive records are excluded from navigation, search, metadata, sitemaps, and generated routes."
+    },
+    {
+      "id": "screen-case-study",
+      "route": "/work/[slug]",
+      "purpose": "Explain project context, decisions, outcome boundaries, explicit published or unreleased status, related work, and only verified live destinations."
+    },
+    {
+      "id": "screen-media-index",
+      "route": "/media",
+      "component": "MediaPage and MediaPostCard",
+      "purpose": "Introduce kingXford & Co Media and provide a scannable index of evidence briefings, essays, field notes, and future conversations about intelligence, R&D, responsible AI, complex systems, and sustainable abundance."
+    },
+    {
+      "id": "screen-media-article",
+      "route": "/media/[slug]",
+      "component": "MediaArticlePage with optional AudioEdition",
+      "purpose": "Publish complete long-form articles with structured sections, institutional research notes, contextual documentary-image source notes, article-specific action plans where appropriate, and an optional narration surface.",
+      "states": [
+        "article with no audio",
+        "article with approved optional audio",
+        "not found"
+      ],
+      "release_content": [
+        "How to Get Ahead in the AI Era",
+        "Sustainable Abundance for All: Designing a Future Where Intelligence Expands Human Capability"
+      ],
+      "audio_status": "Optional architecture implemented; no narration asset shipped in this release."
+    },
+    {
+      "id": "screen-company",
+      "routes": [
+        "/about",
+        "/lab",
+        "/contact"
+      ],
+      "purpose": "Describe kingXford & Co in company voice and provide a company-safe collaboration path without personal profile or location disclosure."
     }
   ],
   "elements": [
     {
-      "id": "elm-living-strand",
-      "type": "visual-system",
-      "name": "Living Strand",
-      "description": "A single electric-ultramarine route that orients, connects, and reacts without blocking content.",
-      "anchors": [
-        "electric ultramarine role",
-        "continuous path",
-        "visible woven crossings",
-        "reduced-motion static equivalent"
-      ],
-      "asset_ids": [
-        "ast-woven-k-icon-v1"
-      ],
-      "external_element_id": ""
+      "id": "element-restrained-wordmark",
+      "component": "KingxfordLogo",
+      "states": [
+        "wordmark",
+        "compact K mark",
+        "monochrome",
+        "decorative",
+        "accessible"
+      ]
     },
     {
-      "id": "elm-editorial-field",
-      "type": "environment",
-      "name": "Editorial Field",
-      "description": "Warm-bone or graphite page field with tactile grain, decisive type, structured whitespace, and accessible contrast.",
-      "anchors": [
-        "warm-bone or graphite canvas",
-        "stable content rail",
-        "Newsreader display",
-        "Manrope interface"
+      "id": "element-cinematic-proof",
+      "component": "KingxfordCinematic proof cards",
+      "content": "Published hybrid Evidence Object covers and disclosed conceptual or documentary chapter imagery",
+      "accessibility": "Decorative thumbnails remain hidden where adjacent labels provide equivalent context."
+    },
+    {
+      "id": "element-media-post-card",
+      "component": "MediaPostCard",
+      "content": "Disclosed conceptual cover, source-aware caption, format, date, reading time, title, description, topics, and article link",
+      "accessibility": "The full card is one named link; the cover has purpose-based alt text and a visible conceptual-editorial caption."
+    },
+    {
+      "id": "element-media-article",
+      "component": "MediaArticlePage and optional AudioEdition",
+      "content": "Article metadata, disclosed conceptual cover, table of contents, long-form sections, principles, Sustainable Abundance evidence visuals where applicable, article-specific optional action plan, cited sources, closing note, and optional audio.",
+      "accessibility": "Semantic article structure, named sections and navigation, visible source links, complete readable text, and native audio controls only when an approved file exists.",
+      "audio_status": "No audio shipped; an absent audio record renders no player or dead control."
+    },
+    {
+      "id": "element-sustainable-abundance-evidence",
+      "component": "SustainableAbundanceEvidence",
+      "content": "A non-additive capability dashboard, three directly labelled official-data comparisons, a responsive evidence-register table, interpretation notes, primary source links, and the original kingXford & Co Sustainable Abundance Design Loop.",
+      "accessibility": "Semantic figures and table, direct values and units, purpose-based aria labels, visible captions and caveats, keyboard-reachable source links, and a focusable horizontal table wrapper at compact widths.",
+      "truthfulness": "Do not sum overlapping service-gap populations; preserve source years, units, ranges, definitions, and scenario or projection status; the original framework is a decision aid, not a validated causal model, universal index, or forecast."
+    },
+    {
+      "id": "element-global-navigation",
+      "components": [
+        "SiteHeader",
+        "CommandPalette",
+        "ThemeControls",
+        "SiteFooter"
       ],
-      "asset_ids": [],
-      "external_element_id": ""
+      "requirements": [
+        "keyboard operable",
+        "visible focus",
+        "responsive",
+        "company voice"
+      ]
+    },
+    {
+      "id": "element-project-brief-builder",
+      "component": "ProjectBriefBuilder",
+      "content": "Seven browser-local prompts that structure a complex problem, affected people and institutions, evidence, desired future, constraints, available investment, and time horizon; copy and plain-text download actions.",
+      "accessibility": "Native labelled fields and actions, visible focus, polite status announcements, keyboard operation, and responsive one- or two-column layout.",
+      "privacy": "Runs locally in the browser and must not submit, store, transmit, or log visitor content."
+    },
+    {
+      "id": "element-create-catalogue",
+      "component": "CreatePage and WebsiteConceptCard",
+      "content": "Seven capability categories and three code-rendered sector previews with direct routes to the complete demonstrations.",
+      "accessibility": "Semantic sections and article links, descriptive concept-link names, ordered heading structure, visible focus, and decorative preview geometry hidden from assistive technology.",
+      "responsive_behavior": "Wide editorial gallery becomes a single-column reading sequence without changing source or focus order."
+    },
+    {
+      "id": "element-website-showcase",
+      "component": "WebsiteShowcase, ConceptBar, and ConceptDisclosure",
+      "content": "Separate science, finance, and education information architectures with sector-specific modules and synthetic interface records.",
+      "accessibility": "Native landmarks, links, lists, headings, captions, and semantic tables; visible concept disclosure; keyboard-scrollable table region; no raster alt-text dependency.",
+      "truthfulness": "The concept bar and disclosure must identify each institution and every associated record as fictional demonstration content. Finance values are not forecasts or advice; science values are not findings; education programmes are not accredited offerings."
     }
   ],
-  "scenes": [],
-  "shots": [],
-  "screens": [
+  "scenes": [
     {
-      "id": "scr-home",
-      "route": "/",
-      "viewport": "responsive; 320 CSS px minimum through wide desktop",
-      "state": "default home experience; additional states enumerated below",
-      "purpose": "State the practice, establish Living Loom, and lead directly into selected work.",
-      "primary_action": "Explore the work",
-      "states": [
-        "bone theme",
-        "ink theme",
-        "system theme",
-        "reduced motion",
-        "compact",
-        "intermediate",
-        "wide"
-      ],
-      "status": "review"
+      "id": "scene-scroll-cinematic",
+      "duration": "760svh of native document scroll",
+      "audio": "none",
+      "media": "local high-resolution WebP imagery: documentary Mission and Intelligence plates followed by four disclosed conceptual chapter plates and hybrid published-project proof cards",
+      "behavior": "Crossfade, pan, and scale image layers while chapter copy transitions independently; the restrained wordmark remains stable.",
+      "reduced_motion": "Replace the sticky sequence with a readable static hero and stacked three-world chapters."
+    }
+  ],
+  "shots": [
+    {
+      "index": "00",
+      "name": "Mission",
+      "message": "Prepare for sustainable abundance.",
+      "evidence": "Intelligence, R&D, responsible AI, and complex-project delivery"
     },
     {
-      "id": "scr-work",
-      "route": "/work",
-      "viewport": "responsive; 320 CSS px minimum through wide desktop",
-      "state": "all projects; additional filter states enumerated below",
-      "purpose": "Browse and filter the eight featured projects without losing project context.",
-      "primary_action": "Open case study",
-      "states": [
-        "all projects",
-        "filtered",
-        "no match",
-        "keyboard focus",
-        "compact",
-        "wide"
-      ],
-      "status": "review"
+      "index": "01",
+      "name": "Intelligence",
+      "message": "See the system before choosing the move.",
+      "evidence": "Strategy and systems intelligence"
     },
     {
-      "id": "scr-project",
-      "route": "/work/[slug]",
-      "viewport": "responsive; 320 CSS px minimum through wide desktop",
-      "state": "data-driven project route; additional states enumerated below",
-      "purpose": "Explain a project's context, role, decisions, system, and relevant destination.",
-      "primary_action": "Visit verified project or move to the next case study",
-      "states": [
-        "eight data-driven slugs",
-        "missing slug uses framework 404",
-        "compact",
-        "wide"
-      ],
-      "status": "review"
+      "index": "02",
+      "name": "Research & development",
+      "message": "Turn uncertainty into testable knowledge.",
+      "evidence": "Scientific inquiry and applied R&D"
     },
     {
-      "id": "scr-about",
-      "route": "/about",
-      "viewport": "responsive; 320 CSS px minimum through wide desktop",
-      "state": "default about experience; additional states enumerated below",
-      "purpose": "Explain Emmanuel's multidisciplinary practice and working principles.",
-      "primary_action": "Explore selected work",
-      "states": [
-        "compact",
-        "wide"
-      ],
-      "status": "review"
+      "index": "03",
+      "name": "Responsible AI",
+      "message": "Build intelligence people can question and govern.",
+      "evidence": "Human agency and responsible deployment"
     },
     {
-      "id": "scr-lab",
-      "route": "/lab",
-      "viewport": "responsive; 320 CSS px minimum through wide desktop",
-      "state": "default experiment index; additional states enumerated below",
-      "purpose": "Show exploratory visual and interaction experiments without presenting them as shipped client work.",
-      "primary_action": "Inspect an experiment",
-      "states": [
-        "compact",
-        "wide",
-        "reduced motion"
-      ],
-      "status": "review"
+      "index": "04",
+      "name": "& Co",
+      "message": "The future is built with others.",
+      "evidence": "Aligned investment of capital, time, knowledge, infrastructure, access, and trust"
     },
     {
-      "id": "scr-contact",
-      "route": "/contact",
-      "viewport": "responsive; 320 CSS px minimum through wide desktop",
-      "state": "default contact experience; additional states enumerated below",
-      "purpose": "Offer safe public paths to discuss relevant work and review source.",
-      "primary_action": "Choose a public contact path",
-      "states": [
-        "compact",
-        "wide"
-      ],
-      "status": "review"
-    },
-    {
-      "id": "scr-command-palette",
-      "route": "global overlay",
-      "viewport": "responsive modal within the current viewport",
-      "state": "closed by default; additional states enumerated below",
-      "purpose": "Provide fast keyboard navigation to public routes and projects.",
-      "primary_action": "Select a result",
-      "states": [
-        "closed",
-        "open",
-        "query",
-        "no results",
-        "keyboard selection",
-        "dismissed"
-      ],
-      "status": "review"
+      "index": "05",
+      "name": "Abundant Future",
+      "message": "Make progress durable—and widely useful."
     }
   ],
   "deliverables": [
     {
-      "id": "del-source-v1",
+      "id": "del-github-release-v2",
       "type": "source",
-      "title": "Responsive Next.js portfolio source",
+      "title": "kingXford & Co operational source release",
       "channel": "GitHub",
-      "source_ids": [
-        "scr-home",
-        "scr-work",
-        "scr-project",
-        "scr-about",
-        "scr-lab",
-        "scr-contact",
-        "scr-command-palette"
-      ],
-      "aspect_ratio": "auto",
-      "dimensions": "320 CSS px minimum through wide desktop",
-      "duration_s": null,
-      "frame_rate": null,
-      "format": "TypeScript, TSX, CSS, SVG, WebP, JSON, CSV, YAML",
-      "language": "en",
-      "captions": false,
-      "alt_text": "Required for meaningful imagery",
-      "variant_of": "",
-      "version": 1,
-      "status": "review"
+      "status": "pending verified publication"
     },
     {
-      "id": "del-vercel-production-v1",
+      "id": "del-vercel-production-v2",
       "type": "interactive",
-      "title": "Living Loom production site",
+      "title": "kingXford & Co production site",
       "channel": "Vercel",
-      "source_ids": [
-        "del-source-v1"
-      ],
-      "aspect_ratio": "auto",
-      "dimensions": "320 CSS px minimum through wide desktop",
-      "duration_s": null,
-      "frame_rate": null,
-      "format": "deployed web application",
-      "language": "en",
-      "captions": false,
-      "alt_text": "Required for meaningful imagery",
-      "variant_of": "del-source-v1",
-      "version": 1,
-      "status": "planned",
-      "status_note": "Production URL not yet verified."
+      "status": "pending verified deployment"
     },
     {
-      "id": "del-creative-system-v1",
+      "id": "del-creative-system-v2",
       "type": "documentation",
-      "title": "Living Loom creative and production system",
+      "title": "kingXford & Co restrained wordmark, selective-reality imagery, and production system",
       "channel": "repository",
-      "source_ids": [
-        "del-source-v1"
+      "status": "implemented"
+    },
+    {
+      "id": "del-media-v1",
+      "type": "editorial",
+      "title": "kingXford & Co Media index and first field note",
+      "channel": "public web",
+      "status": "implemented; rendered and production verification pending",
+      "routes": [
+        "/media",
+        "/media/how-to-get-ahead-in-the-ai-era"
       ],
-      "files": [
-        "creative/creative-brief.yaml",
-        "creative/brand-system.json",
-        "creative/design-tokens.json",
-        "creative/frontend-component-inventory.csv",
-        "creative/rights-provenance.csv",
-        "creative/review-scorecard.csv",
-        "creative/delivery-matrix.csv"
+      "audio_status": "Optional architecture implemented; no narration asset shipped."
+    },
+    {
+      "id": "del-media-sustainable-abundance-v1",
+      "type": "editorial",
+      "title": "kingXford & Co evidence briefing: Sustainable Abundance for All",
+      "channel": "public web",
+      "status": "implemented; rendered and production verification pending",
+      "routes": [
+        "/media/sustainable-abundance-for-all"
       ],
-      "aspect_ratio": "auto",
-      "dimensions": "",
-      "duration_s": null,
-      "frame_rate": null,
-      "format": "JSON, CSV, YAML",
-      "language": "en",
-      "captions": false,
-      "alt_text": "",
-      "variant_of": "",
-      "version": 1,
-      "status": "review"
+      "cover_asset": "ast-restored-media-concept-covers-v2",
+      "audio_status": "No narration asset shipped."
+    },
+    {
+      "id": "del-create-surface-v1",
+      "type": "interactive",
+      "title": "What we create catalogue and three code-rendered website concepts",
+      "channel": "public web",
+      "status": "implemented; rendered and production verification pending",
+      "routes": [
+        "/create",
+        "/create/lumen-vale-laboratory",
+        "/create/meridian-financial-office",
+        "/create/commonfield-institute"
+      ],
+      "asset_profile": "Three locally stored licensed documentary photographs provide contextual art direction; interface content is code-rendered with HTML, CSS, icons, and SVG. No generated image, video, audio, or remote media is used.",
+      "content_status": "All three institution identities and every interface datum are fictional demonstrations with mandatory visible disclosure."
     }
   ],
   "rights_and_claims": [
     {
-      "id": "right-generated-covers",
-      "category": "source-media",
-      "description": "Eight generated editorial covers have tool, date, prompt, source-to-derived mapping, edits, and checksums recorded.",
+      "id": "right-source-media",
+      "description": "Every active raster asset has a documentary, public-capture, or generation record; material-edit note; restriction; dimensions; release state; and reconciled SHA-256 checksum.",
       "evidence": "creative/rights-provenance.csv",
-      "status": "unresolved",
-      "status_note": "Provenance is recorded; qualified legal review has not been performed."
+      "status": "recorded; qualified legal review not performed"
     },
     {
-      "id": "right-project-identification",
-      "category": "trademark-and-project-names",
-      "description": "Project names are used for factual portfolio identification. Trademark clearance has not been performed.",
-      "evidence": "",
-      "status": "unresolved",
-      "status_note": "Qualified legal and trademark review has not been performed."
+      "id": "right-selective-media",
+      "description": "The Mission and Intelligence plates are source-recorded documentary context. Other active imagery is generated or hybrid conceptual editorial work and must never be represented as documentary evidence, literal product UI, a real kingXford & Co facility, certification, dataset, or measured outcome. In hybrid covers, only the preserved public capture is authentic interface evidence.",
+      "evidence": "Active-source audit, purpose-based alt text, conceptual disclosures, creative/rights-provenance.csv, and creative/brand-system.json",
+      "status": "policy and source records implemented; rendered verification pending"
     },
     {
-      "id": "right-fonts-and-icons",
-      "category": "third-party-dependencies",
-      "description": "Manrope, Newsreader, Lucide, Motion, Next.js, and other package licenses remain governed by their package notices.",
-      "evidence": "package.json and lockfile when present",
-      "status": "unresolved",
-      "status_note": "Package sources are recorded; qualified license review has not been performed."
+      "id": "right-project-release-state",
+      "description": "Veridanth, Psyche Atlas, GrandMaster, and Value-M are published. CCAI Global, Aceplore, Nkosuo, and Elkings College are unreleased and must remain visibly labelled as such.",
+      "evidence": "src/data/projects.ts and rendered work/case-study status treatment",
+      "status": "source state recorded; rendered verification pending"
     },
     {
-      "id": "claim-production-deployment",
-      "category": "delivery-claim",
-      "description": "Do not describe the portfolio as deployed until the Vercel production URL and primary routes are inspected.",
-      "evidence": "",
-      "status": "unresolved",
-      "status_note": "Requires verified production URL and functional inspection."
+      "id": "right-identity",
+      "description": "The restrained wordmark and compact framed K monogram are original repository implementations; trademark clearance and exclusivity are not claimed.",
+      "evidence": "src/components/KingxfordLogo.tsx and src/app/icon.svg",
+      "status": "source recorded; qualified legal review not performed"
     },
     {
-      "id": "claim-accessibility",
-      "category": "conformance-claim",
-      "description": "Accessibility requirements are designed into the system; no formal WCAG conformance claim is made without rendered manual and automated review.",
-      "evidence": "creative/review-scorecard.csv",
-      "status": "unresolved",
-      "status_note": "Requires rendered automated and qualified manual accessibility review."
+      "id": "right-evidence-data",
+      "description": "Sustainable Abundance figures and tables retain official source links, reference years, units, uncertainty ranges, definitions, and scenario boundaries; separate service-gap populations are never added into an invented total.",
+      "evidence": "src/components/SustainableAbundanceEvidence.tsx and the source register in src/data/media.ts",
+      "status": "source records implemented; publication-date and rendered-link verification pending"
+    },
+    {
+      "id": "right-create-concepts",
+      "description": "Lumen Vale Laboratory, Meridian Financial Office, and Commonfield Institute are fictional website demonstrations. All interface data is synthetic; three licensed photographs are contextual only; and no client, operating-institution, scientific, financial, accreditation, performance, or outcome claim is made.",
+      "evidence": "src/data/creations.ts; src/components/WebsiteShowcase.tsx; src/app/create; creative/frontend-component-inventory.csv; creative/delivery-matrix.csv",
+      "status": "disclosure and contextual-media provenance recorded; rendered verification and qualified legal review pending"
     }
   ],
   "qa": {
-    "required_gates": [
-      "gate-brief",
-      "gate-direction",
-      "gate-look",
-      "gate-system",
-      "gate-rough",
-      "gate-finish",
-      "gate-delivery"
+    "required_checks": [
+      "typecheck",
+      "lint",
+      "production build",
+      "23 generated public routes, including home, work, four published case studies, Media index, two Media articles, Create catalogue, three Create website concepts, about, lab, contact, and framework metadata routes",
+      "mobile and desktop visual captures",
+      "native-scroll cinematic progression",
+      "active-image source audit proving that only Mission and Intelligence use documentary plates and every restored generated or hybrid reference matches the approved selective rollback",
+      "published and unreleased project-status treatment on index cards, case studies, metadata, and outbound actions",
+      "reduced-motion static parity",
+      "keyboard navigation and visible focus",
+      "browser console and failed-resource inspection",
+      "Sustainable Abundance data-label, source-link, non-additivity, uncertainty, scenario, responsive-table, and figure-caption verification",
+      "Create catalogue and all three website-concept routes at compact, intermediate, and wide widths, including keyboard navigation, semantic tables, disclosure visibility, synthetic-data labels, distinct sector art direction, and reduced-motion behavior",
+      "Create asset audit confirming the three recorded documentary files, their visible contextual limits, and no hidden image, remote media, video, audio, canvas, or generated-photo dependency",
+      "production deployment status and response verification"
     ],
-    "acceptance_threshold": 90,
-    "critical_failures": [],
-    "release_blockers": [
-      "broken primary route or navigation",
-      "missing keyboard access to core navigation",
+    "hard_fail_conditions": [
+      "broken route or primary control",
+      "remote short-film dependency",
+      "generated, synthetic, or hybrid imagery presented as documentary evidence, literal product UI, a real facility, certification, dataset, or measured outcome",
+      "authentic product capture altered with invented interface text, controls, metrics, testimonials, citations, or product claims",
+      "documentary photograph presented as a kingXford & Co person, facility, engagement, experiment, partnership, or measured outcome",
+      "CCAI Global, Aceplore, Nkosuo, or Elkings College presented as published or used as published-product proof",
+      "dominant, oversized, raised, animated, or architectural X treatment in the identity",
+      "person-centric copy describing kingXford & Co as an individual or exposing a personal profile or location as company identity",
+      "unsupported statistic, altered source year or unit, overlapping populations added into a fabricated total, or a projection presented as an observed result",
+      "fictional Create concept or synthetic interface datum presented as a real client, operating institution, scientific finding, financial forecast or advice, accreditation, endorsement, performance result, or measured outcome",
+      "missing concept-status disclosure on any Create demonstration or any newly introduced raster-media dependency without provenance",
       "motion ignores reduced-motion preference",
-      "generated cover presented as documentary proof",
-      "unsupported claim, project status, or deployment status",
-      "missing generated-image provenance",
-      "production deployment not functionally inspected"
-    ],
-    "review_notes": [
-      "Ratings remain unscored until the rendered implementation and production URL are inspected.",
-      "Legal, trademark, font-license, and formal accessibility reviews have not been performed."
+      "missing source provenance",
+      "unverified production claim"
     ]
   },
   "gates": [
     {
-      "id": "gate-brief",
-      "name": "Brief",
-      "status": "passed",
-      "evidence": [
-        "creative/creative-brief.yaml"
-      ]
+      "id": "G0",
+      "name": "brief",
+      "status": "passed"
     },
     {
-      "id": "gate-direction",
-      "name": "Direction",
-      "status": "passed",
-      "evidence": [
-        "Living Loom governing idea and brand-system.json"
-      ]
+      "id": "G1",
+      "name": "restrained wordmark identity",
+      "status": "passed"
     },
     {
-      "id": "gate-look",
-      "name": "Representative look",
-      "status": "review",
-      "evidence": [
-        "Eight generated project cover concepts in public/work/",
-        "creative/rights-provenance.csv"
-      ]
+      "id": "G2",
+      "name": "selective documentary and disclosed conceptual imagery system",
+      "status": "pending rendered verification"
     },
     {
-      "id": "gate-system",
-      "name": "Production system",
-      "status": "review",
-      "evidence": [
-        "creative/design-tokens.json",
-        "creative/frontend-component-inventory.csv",
-        "creative/rights-provenance.csv"
-      ]
+      "id": "G3",
+      "name": "functional frontend",
+      "status": "pending verification"
     },
     {
-      "id": "gate-rough",
-      "name": "Coherent rough",
-      "status": "in-progress",
-      "evidence": []
-    },
-    {
-      "id": "gate-finish",
-      "name": "Finish",
-      "status": "planned",
-      "evidence": []
-    },
-    {
-      "id": "gate-delivery",
-      "name": "Delivery",
-      "status": "planned",
-      "evidence": []
+      "id": "G4",
+      "name": "GitHub and Vercel release",
+      "status": "pending"
     }
   ],
   "assumptions": [
-    "Emmanuel controls the requested GitHub repository and authorizes this implementation.",
-    "The generated covers are conceptual editorial art, not evidence of a literal interface or documented event.",
+    "The authorized repository owner controls the operational source repository and authorizes this kingXford & Co implementation.",
     "English is the only language required for this release.",
-    "No environment variables are required for the public portfolio unless the deployment workflow later reports otherwise."
+    "Authentic public-product captures preserved inside hybrid covers document only the visible interface state at capture time; they do not assert ownership, affiliation, endorsement, performance, or a documented outcome.",
+    "Licensed documentary photography is contextual and does not assert that a pictured person, property, facility, tool, or activity belongs to kingXford & Co or a represented project.",
+    "CCAI Global, Aceplore, Nkosuo, and Elkings College remain unreleased until a separately verified status change.",
+    "Lumen Vale Laboratory, Meridian Financial Office, and Commonfield Institute are fictional design demonstrations; all associated interface data is synthetic and must remain visibly disclosed.",
+    "The Create surface introduces three licensed contextual documentary derivatives recorded in rights-provenance.csv; it introduces no video, audio, remote-media dependency, or generated photography.",
+    "No narration asset is shipped; future audio remains optional and must pass the documented consent, editorial, and listening review before publication.",
+    "No environment variables are required for the public portfolio unless the deployment workflow reports otherwise."
   ],
   "open_questions": [
-    "Which public contact destination should be owner-approved for the contact route?",
-    "Which project URLs are currently live and owner-approved?",
-    "Does the owner want a downloadable résumé after document and privacy review?"
+    "Which direct company email or form destination should be used for the company-safe contact path?",
+    "Should a future release connect a custom CMS for project and Media publishing?",
+    "Should a future Media release commission a professional narrator or approve a disclosed, editorially reviewed synthetic voice under creative/narration-policy.md?"
   ],
   "risks": [
     {
-      "id": "risk-motion-overload",
-      "severity": "high",
-      "mitigation": "Use one strand-based motion grammar, native scrolling, interruptible transitions, and reduced-motion parity."
-    },
-    {
-      "id": "risk-broad-practice",
+      "id": "risk-documentary-context-confusion",
       "severity": "medium",
-      "mitigation": "Organize by outcome and system relationship rather than disconnected discipline cards."
+      "mitigation": "Use factual alt text and visible contextual captions where appropriate; never describe a source photograph as a kingXford & Co person, facility, engagement, experiment, partnership, or result."
     },
     {
-      "id": "risk-concept-image-confusion",
-      "severity": "high",
-      "mitigation": "Keep generated covers text-free, record provenance, and use factual HTML labels and project status."
-    },
-    {
-      "id": "risk-unverified-links",
-      "severity": "high",
-      "mitigation": "Inspect every outbound destination and remove or label anything not verified before release."
-    },
-    {
-      "id": "risk-legal-review",
+      "id": "risk-product-capture-integrity",
       "severity": "medium",
-      "mitigation": "Do not claim copyright, trademark, font-license, or legal clearance; route final clearance to qualified human review."
+      "mitigation": "Compare the authentic interface layer in each active hybrid composition with its source capture, prohibit invented interface content, and keep the generated surroundings explicitly conceptual."
+    },
+    {
+      "id": "risk-release-state-confusion",
+      "severity": "high",
+      "mitigation": "Keep CCAI Global, Aceplore, Nkosuo, and Elkings College explicitly unreleased across cards, detail routes, metadata, and calls to action; do not use them as published-product proof."
+    },
+    {
+      "id": "risk-long-scroll-performance",
+      "severity": "medium",
+      "mitigation": "Use optimized local WebP plates, CSS/Motion transforms, native scroll, and a reduced-motion static path."
+    },
+    {
+      "id": "risk-custom-domain",
+      "severity": "external",
+      "mitigation": "Deploy and verify the Vercel production URL; treat custom-domain DNS as a separate owner-controlled configuration."
+    },
+    {
+      "id": "risk-evidence-currency",
+      "severity": "medium",
+      "mitigation": "Record reference and publication years, retain official links and interpretation boundaries beside every visual, and re-verify figures before a dated article update rather than silently replacing values."
+    },
+    {
+      "id": "risk-create-concept-confusion",
+      "severity": "high",
+      "mitigation": "Keep the concept bar, route metadata, structured data, and end-of-page disclosure explicit on all three demonstrations; label sample records and figures as fictional or synthetic; never describe a concept as a client, operating institution, scientific result, financial service, accreditation, or measured outcome."
+    },
+    {
+      "id": "risk-create-visual-convergence",
+      "severity": "medium",
+      "mitigation": "Preserve distinct science, finance, and education palettes, information architectures, typography roles, and visual mechanisms; verify the demonstrations do not collapse into one reused template, an AI-looking image system, a dominant-X motif, or a generic glowing dashboard."
     }
-  ]
+  ],
+  "project_release_state": {
+    "published": [
+      "Veridanth",
+      "Psyche Atlas",
+      "GrandMaster",
+      "Value-M"
+    ],
+    "unreleased": [
+      "CCAI Global",
+      "Aceplore",
+      "Nkosuo",
+      "Elkings College"
+    ],
+    "rule": "Unreleased case studies may explain work in progress but must never be presented as published products, current deployments, validated outcomes, or active proof until status and destination are explicitly re-verified."
+  },
+  "historical_assets": {
+    "registry": "creative/rights-provenance.csv",
+    "state": "inactive_historical",
+    "rule": "Superseded concept-v4, product-evidence-v3, documentary world/cinematic, and X-Frame identity assets remain preserved for audit history only. The specifically restored evidence-v2, cinematic concept, world portrait, and Media concept assets are active."
+  }
 }

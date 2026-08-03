@@ -11,9 +11,15 @@ import {
   useScroll,
   useTransform,
 } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 
+import { KingxfordLogo } from "@/components/KingxfordLogo";
 import { LoomCanvas } from "@/components/LoomCanvas";
+
+type Proof = Readonly<{
+  src: string;
+  label: string;
+}>;
 
 type CinematicChapter = Readonly<{
   id: string;
@@ -24,89 +30,258 @@ type CinematicChapter = Readonly<{
   title: string;
   body: string;
   align?: "start" | "end";
-  poster: string;
+  image: string;
+  imageAlt: string;
+  evidence: string;
+  proofs?: readonly Proof[];
 }>;
 
-const motionMaster =
-  "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/fd4b72d2-7a67-480a-9dd2-3a2a15170c59.mp4";
-const motionMasterMobile =
-  "https://d2ol7oe51mr4n9.cloudfront.net/user_3ChJ2tLVG7i2Ag6ynWBf8Xmyz6a/ef3a6efe-1145-4a99-800e-be527a13a45e.mp4";
-const arrivalPoster = "/motion/kingxford-house-arrival.webp";
-const studioPoster = "/motion/kingxford-house-studio.webp";
-const livingRoomPoster = "/motion/kingxford-house-living-room.webp";
-const labPoster = "/motion/kingxford-house-lab.webp";
+const missionImage = "/motion/kingxford-prototype-documentary.webp";
+const intelligenceImage = "/work/value-m-real.webp";
+const researchLabImage = "/motion/kingxford-research-lab-v2.webp";
+const governanceGateImage =
+  "/motion/kingxford-governance-gate-v2.webp";
+const signalObservatoryImage =
+  "/motion/kingxford-signal-observatory-v2.webp";
+const capabilityReactorImage =
+  "/motion/kingxford-capability-reactor-v2.webp";
+
+const subscribeToHydration = () => () => {};
+
+function visibilityWindow(
+  start: number,
+  end: number,
+  feather: number,
+) {
+  if (start === 0) {
+    return {
+      input: [0, end - feather, end, 1],
+      opacity: [1, 1, 0, 0],
+      y: [0, 0, -24, -24],
+    };
+  }
+
+  if (end === 1) {
+    return {
+      input: [0, start, start + feather, 1],
+      opacity: [0, 0, 1, 1],
+      y: [34, 34, 0, 0],
+    };
+  }
+
+  return {
+    input: [0, start, start + feather, end - feather, end, 1],
+    opacity: [0, 0, 1, 1, 0, 0],
+    y: [34, 34, 0, 0, -24, -24],
+  };
+}
 
 const chapters: readonly CinematicChapter[] = [
   {
-    id: "arrival",
-    label: "Kingxford",
+    id: "mission",
+    label: "Mission",
     index: "00",
     range: [0, 0.18],
-    eyebrow: "Kingxford / Three worlds. One practice.",
-    title: "Complex ideas. Unforgettable form.",
+    eyebrow: "kingXford & Co / Intelligence for shared progress",
+    title: "Prepare for sustainable abundance.",
     body:
-      "We turn difficult ideas into worlds people can see, use, understand, and remember.",
-    poster: arrivalPoster,
+      "We research, develop, and apply responsible AI to help people and institutions solve complex problems and build ambitious ideas, projects, and systems for an abundant future.",
+    image: missionImage,
+    imageAlt:
+      "Documentary photograph of a design professional studying a physical model at a working desk",
+    evidence: "Mission / Sustainable abundance",
   },
   {
-    id: "studio",
-    label: "Studio",
+    id: "intelligence",
+    label: "Intelligence",
     index: "01",
-    range: [0.17, 0.39],
-    eyebrow: "Studio / Digital creation",
-    title: "Build what people can enter.",
+    range: [0.17, 0.36],
+    eyebrow: "Intelligence / From signals to decisions",
+    title: "See the system before choosing the move.",
     body:
-      "Digital tools, web apps, websites, products, cinematography, motion, identities, and complete visual systems—from first idea to live release.",
-    poster: studioPoster,
+      "We connect evidence, foresight, domain knowledge, and human judgement so complexity becomes a field of informed choices—not a reason to stand still.",
+    image: intelligenceImage,
+    imageAlt:
+      "Documentary photograph of architectural plans, material samples, and a physical scale model used to evaluate a complex design",
+    evidence: "Strategy / Systems intelligence",
     align: "end",
+    proofs: [
+      {
+        src: "/work/veridanth-evidence-v2.webp",
+        label: "Veridanth / Practice",
+      },
+      {
+        src: "/work/grandmaster-evidence-v2.webp",
+        label: "GrandMaster / Learning",
+      },
+    ],
   },
   {
-    id: "living-room",
-    label: "Living Room",
+    id: "research-development",
+    label: "R&D",
     index: "02",
-    range: [0.38, 0.61],
-    eyebrow: "The Living Room / Open-ended practice",
-    title: "Make room for what has no category.",
+    range: [0.35, 0.54],
+    eyebrow: "Research & development / Inquiry into capability",
+    title: "Turn uncertainty into testable knowledge.",
     body:
-      "Special commissions, strategy, experiences, stories, and uncommon collaborations shaped around what the moment actually needs.",
-    poster: livingRoomPoster,
+      "We investigate difficult questions, build prototypes, evaluate evidence, and translate useful findings into tools, policies, platforms, and ventures that can endure.",
+    image: researchLabImage,
+    imageAlt:
+      "Conceptual editorial image of a scientific laboratory with microscopy, materials testing, and analytical instruments arranged around an optical X",
+    evidence: "Scientific inquiry / Applied R&D",
   },
   {
-    id: "lab",
-    label: "Lab",
+    id: "responsible-ai",
+    label: "Responsible AI",
     index: "03",
-    range: [0.6, 0.82],
-    eyebrow: "Lab / Science & academia",
-    title: "Evidence, made visible.",
+    range: [0.53, 0.72],
+    eyebrow: "Responsible AI / Capability with accountability",
+    title: "Build intelligence people can question and govern.",
     body:
-      "Research platforms, academic systems, data experiences, knowledge tools, and scientific communication built with depth and clarity.",
-    poster: labPoster,
+      "We pursue AI that expands human agency, makes uncertainty visible, protects meaningful oversight, and is evaluated against the people and institutions it affects.",
+    image: governanceGateImage,
+    imageAlt:
+      "Conceptual editorial image of a physical governance gate making the evidence, review, and oversight of intelligent systems visible",
+    evidence: "Human agency / Responsible deployment",
     align: "end",
+    proofs: [
+      {
+        src: "/work/value-m-evidence-v2.webp",
+        label: "Value-M / Governance",
+      },
+      {
+        src: "/work/psyche-atlas-evidence-v2.webp",
+        label: "Psyche Atlas / Reflection",
+      },
+    ],
   },
   {
-    id: "one-practice",
-    label: "One practice",
+    id: "and-co",
+    label: "& Co",
     index: "04",
-    range: [0.81, 0.96],
-    eyebrow: "One Kingxford / Different doors",
-    title: "The same standard in every room.",
+    range: [0.71, 0.87],
+    eyebrow: "& Co / Progress is a collective undertaking",
+    title: "The future is built with others.",
     body:
-      "Clear thinking. Distinctive form. Work designed to matter beyond the first impression.",
-    poster: labPoster,
+      "We create the conditions for aligned contributors to combine insight, commitment, and capability around consequential work.",
+    image: signalObservatoryImage,
+    imageAlt:
+      "Conceptual editorial image of a signal observatory where multiple lenses and evidence streams converge through an architectural X",
+    evidence: "Collaboration / Shared capability",
+    proofs: [
+      { src: "/work/veridanth-evidence-v2.webp", label: "Studio" },
+      {
+        src: "/motion/kingxford-decision-theatre-v2.webp",
+        label: "Living Room",
+      },
+      {
+        src: "/work/psyche-atlas-evidence-v2.webp",
+        label: "Lab",
+      },
+    ],
   },
   {
-    id: "choose",
-    label: "Enter",
+    id: "abundant-future",
+    label: "Abundant Future",
     index: "05",
-    range: [0.94, 1],
-    eyebrow: "Studio / Living Room / Lab",
-    title: "Choose your door.",
+    range: [0.86, 1],
+    eyebrow: "Abundant future / Prepared, inclusive, sustainable",
+    title: "Make progress durable—and widely useful.",
     body:
-      "Or bring us something the world has not named yet.",
-    poster: labPoster,
+      "We prepare people and institutions to turn expanding intelligence, knowledge, and productive capacity into long-term human and ecological value.",
+    image: capabilityReactorImage,
+    imageAlt:
+      "Conceptual editorial image of an engineered X connecting water, energy, mobility, research, and productive systems for an abundant future",
+    evidence: "Craft signature / Complex ideas. Unforgettable form.",
     align: "end",
   },
 ] as const;
+
+type RealityPlateProps = Readonly<{
+  chapter: CinematicChapter;
+  progress: MotionValue<number>;
+  priority?: boolean;
+  index: number;
+}>;
+
+function RealityPlate({
+  chapter,
+  progress,
+  priority = false,
+  index,
+}: RealityPlateProps) {
+  const [start, end] = chapter.range;
+  const feather = Math.min(0.04, Math.max(0.022, (end - start) / 3.5));
+  const visibility = visibilityWindow(start, end, feather);
+  const opacity = useTransform(
+    progress,
+    visibility.input,
+    visibility.opacity,
+  );
+  const travelInput =
+    start === 0
+      ? [0, end, 1]
+      : end === 1
+        ? [0, start, 1]
+        : [0, start, end, 1];
+  const scale = useTransform(
+    progress,
+    travelInput,
+    start === 0
+      ? [1.12, 1.015, 1.015]
+      : end === 1
+        ? [1.12, 1.12, 1.015]
+        : [1.12, 1.12, 1.015, 1.015],
+  );
+  const xStart = index % 2 === 0 ? "-2.5%" : "2.5%";
+  const xEnd = index % 2 === 0 ? "1.5%" : "-1.5%";
+  const x = useTransform(
+    progress,
+    travelInput,
+    start === 0
+      ? [xStart, xEnd, xEnd]
+      : end === 1
+        ? [xStart, xStart, xEnd]
+        : [xStart, xStart, xEnd, xEnd],
+  );
+  const captionY = useTransform(
+    progress,
+    travelInput,
+    start === 0
+      ? [18, -10, -10]
+      : end === 1
+        ? [18, 18, -10]
+        : [18, 18, -10, -10],
+  );
+
+  return (
+    <m.figure
+      className="kx-reality-plate"
+      data-plate={chapter.id}
+      style={{ opacity }}
+      aria-hidden={index === 0 ? undefined : "true"}
+    >
+      <m.div
+        className="kx-reality-plate__image"
+        style={{ scale, x }}
+      >
+        <Image
+          src={chapter.image}
+          alt={index === 0 ? chapter.imageAlt : ""}
+          fill
+          priority={priority}
+          sizes="100vw"
+          quality={94}
+        />
+      </m.div>
+      <div className="kx-reality-plate__grade" />
+      <m.figcaption style={{ y: captionY }}>
+        <span>Reality / {chapter.index}</span>
+        <span>{chapter.evidence}</span>
+      </m.figcaption>
+    </m.figure>
+  );
+}
 
 type ChapterProps = Readonly<{
   chapter: CinematicChapter;
@@ -116,26 +291,13 @@ type ChapterProps = Readonly<{
 function Chapter({ chapter, progress }: ChapterProps) {
   const [start, end] = chapter.range;
   const feather = Math.min(0.025, Math.max(0.012, (end - start) / 4));
-  const isFirst = start === 0;
-  const isFinal = end === 1;
+  const visibility = visibilityWindow(start, end, feather);
   const opacity = useTransform(
     progress,
-    isFirst
-      ? [start, end - feather, end]
-      : isFinal
-      ? [start, start + feather, end]
-      : [start, start + feather, end - feather, end],
-    isFirst ? [1, 1, 0] : isFinal ? [0, 1, 1] : [0, 1, 1, 0],
+    visibility.input,
+    visibility.opacity,
   );
-  const y = useTransform(
-    progress,
-    isFirst
-      ? [start, end - feather, end]
-      : isFinal
-      ? [start, start + feather, end]
-      : [start, start + feather, end - feather, end],
-    isFirst ? [0, 0, -24] : isFinal ? [34, 0, 0] : [34, 0, 0, -24],
-  );
+  const y = useTransform(progress, visibility.input, visibility.y);
 
   return (
     <m.article
@@ -147,13 +309,32 @@ function Chapter({ chapter, progress }: ChapterProps) {
       <p className="kx-cinematic__eyebrow">{chapter.eyebrow}</p>
       <h2>{chapter.title}</h2>
       <p>{chapter.body}</p>
-      {chapter.id === "choose" && (
-        <div className="kx-cinematic__chapter-actions">
-          <a href="#studio">Studio</a>
-          <a href="#living-room">Living Room</a>
-          <a href="#lab">Lab</a>
+      {chapter.proofs ? (
+        <div
+          className="kx-cinematic__proofs"
+          aria-label="Editorial project concepts"
+        >
+          {chapter.proofs.map((proof) => (
+            <figure key={`${chapter.id}-${proof.label}`}>
+              <Image
+                src={proof.src}
+                alt=""
+                fill
+                quality={90}
+                sizes="(max-width: 760px) 42vw, 18vw"
+              />
+              <figcaption>{proof.label}</figcaption>
+            </figure>
+          ))}
         </div>
-      )}
+      ) : null}
+      {chapter.id === "abundant-future" ? (
+        <div className="kx-cinematic__chapter-actions">
+          <a href="#three-worlds">Delivery worlds</a>
+          <a href="/lab">Explore R&amp;D</a>
+          <a href="/contact">Build with us</a>
+        </div>
+      ) : null}
     </m.article>
   );
 }
@@ -162,36 +343,42 @@ function StaticCinematic() {
   return (
     <section
       className="kx-static"
-      id="top"
+      id="mission"
       aria-labelledby="kx-static-title"
     >
       <div className="kx-static__hero">
-        <p>Kingxford / Three worlds. One practice.</p>
+        <KingxfordLogo
+          className="kx-static__logo"
+          decorative
+        />
+        <p>kingXford &amp; Co / Intelligence for shared progress</p>
         <h1 id="kx-static-title">
-          Complex ideas.
-          <em>Unforgettable form.</em>
+          Prepare for
+          <em>sustainable abundance.</em>
         </h1>
         <div>
           <p>
-            A multidisciplinary practice for digital creation, open-ended
-            collaboration, and scientific and academic work.
+            We research, develop, and apply responsible AI to help people and
+            institutions solve complex problems and build ambitious ideas,
+            projects, and systems for an abundant future.
           </p>
           <a href="#three-worlds">
-            Explore the three worlds
+            Explore how we deliver
             <ArrowDown aria-hidden="true" />
           </a>
         </div>
       </div>
 
       <div className="kx-static__chapters">
-        {chapters.slice(1, 4).map((chapter) => (
+        {chapters.slice(1).map((chapter) => (
           <article className="kx-static__chapter" key={chapter.id}>
             <div className="kx-static__image">
               <Image
-                src={chapter.poster}
-                alt=""
+                src={chapter.image}
+                alt={chapter.imageAlt}
                 fill
                 sizes="100vw"
+                quality={94}
               />
             </div>
             <div>
@@ -208,17 +395,14 @@ function StaticCinematic() {
 
 export function KingxfordCinematic() {
   const sectionRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const durationRef = useRef(24);
-  const progressRef = useRef(0);
-  const frameRef = useRef<number | null>(null);
-  const canSeekRef = useRef(false);
   const activeChapterRef = useRef(0);
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  );
   const reducedMotion = useReducedMotion();
   const [activeChapter, setActiveChapter] = useState(0);
-  const [sourceAttached, setSourceAttached] = useState(false);
-  const [mediaReady, setMediaReady] = useState(false);
-  const [staticMode, setStaticMode] = useState(false);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"],
@@ -228,91 +412,7 @@ export function KingxfordCinematic() {
     [0, 0.045, 0.12],
     [1, 0.72, 0],
   );
-  const architectureScale = useTransform(
-    scrollYProgress,
-    [0, 0.12, 1],
-    [1.055, 1.015, 1],
-  );
-  const xScale = useTransform(
-    scrollYProgress,
-    [0, 0.12, 0.88, 1],
-    [0.05, 1, 1, 0.2],
-  );
-
-  useEffect(() => {
-    const connection = (
-      navigator as Navigator & {
-        connection?: { saveData?: boolean; effectiveType?: string };
-      }
-    ).connection;
-    const slowConnection =
-      connection?.saveData === true ||
-      connection?.effectiveType === "slow-2g" ||
-      connection?.effectiveType === "2g";
-    const frame = window.requestAnimationFrame(() => {
-      setStaticMode(reducedMotion === true || slowConnection);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [reducedMotion]);
-
-  const markFrameReady = () => {
-    const video = videoRef.current as
-      | (HTMLVideoElement & {
-          requestVideoFrameCallback?: (
-            callback: () => void,
-          ) => number;
-        })
-      | null;
-    if (!video) return;
-
-    if (video.requestVideoFrameCallback) {
-      video.requestVideoFrameCallback(() => setMediaReady(true));
-    } else {
-      window.requestAnimationFrame(() => setMediaReady(true));
-    }
-  };
-
-  const seekToProgress = (progress: number) => {
-    const video = videoRef.current;
-    if (
-      !video ||
-      !canSeekRef.current ||
-      video.seeking ||
-      !Number.isFinite(durationRef.current)
-    ) {
-      return;
-    }
-
-    const target = Math.max(
-      0,
-      Math.min(
-        durationRef.current - 1 / 24,
-        progress * durationRef.current,
-      ),
-    );
-    if (Math.abs(video.currentTime - target) < 1 / 24) {
-      markFrameReady();
-      return;
-    }
-
-    try {
-      video.currentTime = target;
-    } catch {
-      setStaticMode(true);
-    }
-  };
-
-  const scheduleSeek = (progress: number) => {
-    progressRef.current = progress;
-    if (frameRef.current !== null) return;
-    frameRef.current = window.requestAnimationFrame(() => {
-      frameRef.current = null;
-      seekToProgress(progressRef.current);
-    });
-  };
-
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
-    scheduleSeek(progress);
     const chapterIndex = chapters.findLastIndex(
       (chapter) => progress >= chapter.range[0],
     );
@@ -323,125 +423,28 @@ export function KingxfordCinematic() {
     }
   });
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section || staticMode) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setSourceAttached(true);
-        observer.disconnect();
-      },
-      { rootMargin: "150% 0px", threshold: 0.001 },
-    );
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, [staticMode]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !sourceAttached || staticMode) return;
-
-    const handleMetadata = () => {
-      durationRef.current =
-        Number.isFinite(video.duration) && video.duration >= 18
-          ? video.duration
-          : 24;
-      canSeekRef.current = true;
-      video.pause();
-      scheduleSeek(progressRef.current);
-    };
-    const handleLoaded = () => {
-      canSeekRef.current = true;
-      video.pause();
-      scheduleSeek(progressRef.current);
-      markFrameReady();
-    };
-    const handleSeeked = () => {
-      markFrameReady();
-      scheduleSeek(progressRef.current);
-    };
-    const handleError = () => {
-      canSeekRef.current = false;
-      setStaticMode(true);
-    };
-    const handleVisibility = () => {
-      video.pause();
-      if (!document.hidden) scheduleSeek(progressRef.current);
-    };
-
-    video.addEventListener("loadedmetadata", handleMetadata);
-    video.addEventListener("loadeddata", handleLoaded);
-    video.addEventListener("seeked", handleSeeked);
-    video.addEventListener("error", handleError);
-    document.addEventListener("visibilitychange", handleVisibility);
-    video.load();
-
-    return () => {
-      video.removeEventListener("loadedmetadata", handleMetadata);
-      video.removeEventListener("loadeddata", handleLoaded);
-      video.removeEventListener("seeked", handleSeeked);
-      video.removeEventListener("error", handleError);
-      document.removeEventListener("visibilitychange", handleVisibility);
-      video.pause();
-      canSeekRef.current = false;
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
-        frameRef.current = null;
-      }
-    };
-    // scheduleSeek and markFrameReady intentionally read stable refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceAttached, staticMode]);
-
-  if (staticMode) return <StaticCinematic />;
+  if (isHydrated && reducedMotion) return <StaticCinematic />;
 
   return (
     <section
       className="kx-cinematic"
-      id="top"
+      id="mission"
       ref={sectionRef}
-      aria-label="Kingxford: three worlds, one practice"
-      data-media-ready={mediaReady ? "true" : "false"}
+      aria-label="kingXford & Co mission: intelligence and research for sustainable abundance"
+      data-media-ready="true"
     >
       <div className="kx-cinematic__stage">
-        <m.div
-          className="kx-cinematic__media"
-          style={{ scale: architectureScale }}
-          aria-hidden="true"
-        >
-          <div className="kx-cinematic__poster">
-            <Image
-              src={arrivalPoster}
-              alt=""
-              fill
-              priority
-              sizes="100vw"
+        <div className="kx-cinematic__plates">
+          {chapters.map((chapter, index) => (
+            <RealityPlate
+              chapter={chapter}
+              progress={scrollYProgress}
+              priority={index === 0}
+              index={index}
+              key={chapter.id}
             />
-          </div>
-          <video
-            className="kx-cinematic__video"
-            ref={videoRef}
-            muted
-            playsInline
-            preload={sourceAttached ? "auto" : "none"}
-            tabIndex={-1}
-            disablePictureInPicture
-            disableRemotePlayback
-          >
-            {sourceAttached && (
-              <>
-                <source
-                  media="(max-width: 760px)"
-                  src={motionMasterMobile}
-                  type="video/mp4"
-                />
-                <source src={motionMaster} type="video/mp4" />
-              </>
-            )}
-          </video>
-        </m.div>
+          ))}
+        </div>
 
         <m.div
           className="kx-cinematic__loom"
@@ -452,19 +455,14 @@ export function KingxfordCinematic() {
         </m.div>
         <div className="kx-cinematic__veil" aria-hidden="true" />
         <div className="kx-cinematic__grain" aria-hidden="true" />
-        <m.div
-          className="kx-cinematic__x"
-          style={{ scaleX: xScale }}
-          aria-hidden="true"
-        >
-          <span />
-          <span />
-        </m.div>
 
         <div className="kx-cinematic__masthead">
-          <span>Kingxford</span>
-          <span>Three worlds / One practice</span>
-          <span>24-second scroll film</span>
+          <KingxfordLogo
+            className="kx-cinematic__logo"
+            decorative
+          />
+          <span>Intelligence / R&amp;D / Responsible AI</span>
+          <span>Preparing for sustainable abundance</span>
         </div>
 
         <div className="kx-cinematic__chapters">

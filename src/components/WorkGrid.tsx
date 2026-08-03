@@ -8,14 +8,10 @@ import {
   ProjectLens,
   type ProjectFilter,
 } from "@/components/ProjectLens";
-import {
-  projects as allProjects,
-  type Project,
-  type ProjectCategory,
-} from "@/data/projects";
+import type { Project, ProjectCategory } from "@/data/projects";
 
 type WorkGridProps = Readonly<{
-  items?: readonly Project[];
+  items: readonly Project[];
   featuredOnly?: boolean;
   limit?: number;
   showLens?: boolean;
@@ -27,7 +23,7 @@ function normalized(value: string) {
 }
 
 export function WorkGrid({
-  items = allProjects,
+  items,
   featuredOnly = false,
   limit,
   showLens = true,

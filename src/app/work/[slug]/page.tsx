@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  Github,
 } from "lucide-react";
 
 import { Reveal } from "@/components/Reveal";
@@ -23,7 +22,7 @@ type ProjectPageProps = Readonly<{
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://my-portfolio-six-teal-90.vercel.app";
+  "https://kingxford.co";
 
 export const dynamicParams = false;
 
@@ -52,22 +51,22 @@ export async function generateMetadata({
     description: project.summary,
     alternates: { canonical },
     openGraph: {
-      title: `${project.title} — Kingxford`,
+      title: `${project.title} — kingXford & Co`,
       description: project.summary,
       type: "article",
       url: canonical,
       images: [
         {
           url: coverUrl,
-          width: 1536,
-          height: 1024,
+          width: 2400,
+          height: 1600,
           alt: project.coverAlt,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${project.title} — Kingxford`,
+      title: `${project.title} — kingXford & Co`,
       description: project.summary,
       images: [coverUrl],
     },
@@ -81,8 +80,9 @@ function RelatedProjectCard({ project }: Readonly<{ project: Project }>) {
         <Image
           src={project.cover}
           alt={project.coverAlt}
-          width={1536}
-          height={1024}
+          width={2400}
+          height={1600}
+          quality={90}
           sizes="(max-width: 760px) 100vw, 50vw"
           className="related-card__image"
         />
@@ -166,8 +166,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <Image
               src={project.cover}
               alt={project.coverAlt}
-              width={1536}
-              height={1024}
+              width={2400}
+              height={1600}
+              quality={94}
               sizes="100vw"
               priority
               className="project-hero__image"
@@ -195,30 +196,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </Reveal>
           </div>
 
-          {(project.liveUrl || project.repoUrl) && (
+          {project.liveUrl && (
             <Reveal className="project-links">
-              {project.liveUrl && (
-                <a
-                  className="button button--primary"
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <span>Visit live project</span>
-                  <ArrowUpRight aria-hidden="true" />
-                </a>
-              )}
-              {project.repoUrl && (
-                <a
-                  className="button button--quiet"
-                  href={project.repoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Github aria-hidden="true" />
-                  <span>View repository</span>
-                </a>
-              )}
+              <a
+                className="button button--primary"
+                href={project.liveUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span>Visit live project</span>
+                <ArrowUpRight aria-hidden="true" />
+              </a>
             </Reveal>
           )}
         </section>

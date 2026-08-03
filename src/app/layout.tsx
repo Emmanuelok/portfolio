@@ -11,56 +11,60 @@ import "./globals.css";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://my-portfolio-six-teal-90.vercel.app";
+  "https://kingxford.co";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default:
-      "Kingxford — Design, Digital Products & Research Experiences by Emmanuel Kingsford Owusu",
-    template: "%s | Kingxford",
+    default: "kingXford & Co — Intelligence for Sustainable Abundance",
+    template: "%s | kingXford & Co",
   },
   description:
-    "Kingxford is the multidisciplinary creative platform of Emmanuel Kingsford Owusu—spanning digital design and development in the Studio, open-ended creative services in the Living Room, and scientific and academic work in the Lab.",
+    "kingXford & Co advances intelligence, research and development, and responsible AI to help people and institutions solve complex problems and prepare for sustainable abundance.",
   keywords: [
-    "Kingxford",
+    "kingXford & Co",
+    "intelligence",
+    "research and development",
+    "responsible AI",
+    "sustainable abundance",
+    "abundant future",
+    "complex problem solving",
+    "complex project development",
+    "institutional intelligence",
+    "applied research",
+    "strategic foresight",
+    "website and digital platform development",
+    "digital tools",
+    "educational technology",
     "Studio",
     "Living Room",
     "Lab",
-    "Emmanuel Kingsford Owusu",
-    "multidisciplinary designer",
-    "product design",
-    "web design",
-    "visual systems",
-    "digital products",
-    "research interfaces",
   ],
-  authors: [{ name: "Emmanuel Kingsford Owusu", url: siteUrl }],
-  creator: "Emmanuel Kingsford Owusu",
-  publisher: "Kingxford",
+  authors: [{ name: "kingXford & Co", url: siteUrl }],
+  creator: "kingXford & Co",
+  publisher: "kingXford & Co",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    locale: "en_CA",
     url: "/",
-    siteName: "Kingxford",
-    title: "Complex ideas. Unforgettable form. | Kingxford",
+    siteName: "kingXford & Co",
+    title: "Intelligence for Sustainable Abundance | kingXford & Co",
     description:
-      "Studio, Living Room, and Lab: digital products, open-ended creative services, and research experiences by Emmanuel Kingsford Owusu.",
+      "Research, development, and responsible AI for people and institutions solving complex problems and preparing an abundant future.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Kingxford — Complex ideas. Unforgettable form.",
+        alt: "kingXford & Co — Intelligence for Sustainable Abundance",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kingxford — Studio · Living Room · Lab",
+    title: "kingXford & Co — Intelligence for Sustainable Abundance",
     description:
-      "Complex ideas. Unforgettable form. Selected digital products and visual systems.",
+      "Research, development, and responsible AI for complex problems, ambitious ideas, and an abundant future.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -88,7 +92,7 @@ export const viewport: Viewport = {
 const themeBootstrap = `
 (() => {
   try {
-    const saved = localStorage.getItem("ek-portfolio-theme");
+    const saved = localStorage.getItem("kxco-theme");
     const choice = saved === "dark" || saved === "light" || saved === "system" ? saved : "system";
     const resolved = choice === "system"
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
@@ -101,37 +105,69 @@ const themeBootstrap = `
 })();
 `;
 
-const personSchema = {
+const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "Person",
-  name: "Emmanuel Kingsford Owusu",
+  "@type": "Organization",
+  name: "kingXford & Co",
   url: siteUrl,
-  sameAs: ["https://github.com/Emmanuelok"],
-  jobTitle: "Multidisciplinary designer, researcher, and product builder",
+  description:
+    "A company advancing intelligence, research and development, and responsible AI to help people and institutions solve complex problems and prepare for sustainable abundance.",
   knowsAbout: [
-    "Digital product design",
-    "Visual systems",
-    "Web experiences",
-    "Research interfaces",
-    "Information architecture",
+    "Strategic intelligence",
+    "Research and development",
+    "Responsible artificial intelligence",
+    "Sustainable abundance",
+    "Complex problem solving",
+    "Complex project development",
+    "Institutional transformation",
+    "Strategic foresight",
+    "Knowledge systems",
+    "Website and digital platform development",
+    "Digital tool design",
+    "Scientific and research platforms",
+    "Financial information systems",
+    "Educational technology",
   ],
-  address: {
-    "@type": "PostalAddress",
-    addressCountry: "CA",
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "kingXford & Co creation capabilities",
+    itemListElement: [
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Websites and digital platforms",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Digital tools and operational systems",
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Research, intelligence, and learning systems",
+        },
+      },
+    ],
   },
 };
 
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Kingxford",
+  name: "kingXford & Co",
   url: siteUrl,
   creator: {
-    "@type": "Person",
-    name: "Emmanuel Kingsford Owusu",
+    "@type": "Organization",
+    name: "kingXford & Co",
   },
   description:
-    "A multidisciplinary creative platform spanning digital design and development, open-ended creative services, and scientific and academic work.",
+    "Intelligence, R&D, responsible AI, complex project development, and evidence-led media for sustainable abundance.",
 };
 
 export default function RootLayout({
@@ -146,9 +182,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}
         />
         <script
-          id="person-schema"
+          id="organization-schema"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         <script
           id="website-schema"

@@ -28,7 +28,7 @@ function cssColor(
 }
 
 /**
- * Decorative, adaptive canvas for the Living Loom hero.
+ * Decorative, adaptive connection field for the Kingxford opening.
  *
  * The animation only runs for fine pointers, pauses when hidden/offscreen, caps
  * DPR to protect battery life, and renders one still frame for reduced motion.

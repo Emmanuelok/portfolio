@@ -1,0 +1,374 @@
+.gallery {
+  --gallery-bg: #07120f;
+  --gallery-surface: #10201b;
+  --gallery-text: #eef6f1;
+  --gallery-muted: #91a59d;
+  --gallery-accent: #6bd3ad;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--gallery-text) 16%, transparent);
+  background: var(--gallery-bg);
+  box-shadow: 0 2.5rem 8rem rgb(0 0 0 / 22%);
+  color: var(--gallery-text);
+  transition: background 420ms ease, color 420ms ease;
+}
+
+.gallery[data-sector="finance"] {
+  --gallery-bg: #e9e2d2;
+  --gallery-surface: #f7f2e8;
+  --gallery-text: #152735;
+  --gallery-muted: #667079;
+  --gallery-accent: #754715;
+}
+
+.gallery[data-sector="education"] {
+  --gallery-bg: #f1ebdf;
+  --gallery-surface: #faf6ee;
+  --gallery-text: #17243a;
+  --gallery-muted: #555b60;
+  --gallery-accent: #9d3d28;
+}
+
+.galleryHeader {
+  display: grid;
+  min-height: 6.6rem;
+  grid-template-columns: minmax(13rem, 0.58fr) minmax(0, 1.42fr);
+  border-bottom: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent);
+}
+
+.galleryHeader > div:first-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.38rem;
+  padding: 1.2rem 1.5rem;
+  border-right: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent);
+}
+
+.galleryHeader span,
+.demoStatement > span,
+.financeFolio > span,
+.curriculumIntro > span,
+.scenarioHeader,
+.scoreHeader > span {
+  color: var(--gallery-muted);
+  font-family: var(--font-mono);
+  font-size: 0.59rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.galleryHeader strong {
+  font-size: 0.92rem;
+  font-weight: 520;
+}
+
+.sectorTabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.sectorTabs button {
+  display: grid;
+  min-height: 6.6rem;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  border: 0;
+  border-left: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent);
+  background: transparent;
+  color: var(--gallery-muted);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.sectorTabs button:first-child { border-left: 0; }
+.sectorTabs button:hover { background: color-mix(in srgb, var(--gallery-text) 5%, transparent); color: var(--gallery-text); }
+.sectorTabs button[aria-selected="true"] { background: var(--gallery-text); color: var(--gallery-bg); }
+.sectorTabs button > span { color: currentColor; opacity: 0.66; }
+.sectorTabs svg { width: 1rem; height: 1rem; }
+
+.prototypeStage {
+  min-height: clamp(38rem, 62vw, 54rem);
+}
+
+.stageInner { min-height: inherit; }
+
+.scienceDemo,
+.financeDemo,
+.educationDemo {
+  display: grid;
+  min-height: inherit;
+  grid-template-columns: minmax(18rem, 0.62fr) minmax(0, 1.38fr);
+}
+
+.demoStatement,
+.curriculumIntro,
+.financeFolio {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(2rem, 5vw, 5rem);
+  border-right: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent);
+  isolation: isolate;
+}
+
+.demoStatement::before,
+.curriculumIntro::before,
+.financeFolio::before {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  content: "";
+}
+
+.demoStatement::after,
+.curriculumIntro::after,
+.financeFolio::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+}
+
+.demoStatement::before {
+  background-image: url("/create/lumen-vale-documentary.webp");
+  background-position: 56% 42%;
+}
+
+.demoStatement::after {
+  background: linear-gradient(0deg, rgba(7, 18, 15, 0.98) 0%, rgba(7, 18, 15, 0.64) 65%, rgba(7, 18, 15, 0.22));
+}
+
+.financeFolio::before {
+  background-image: url("/create/meridian-decision-room.webp");
+  background-position: 58% 52%;
+}
+
+.financeFolio::after {
+  background: linear-gradient(0deg, rgba(15, 34, 46, 0.98) 0%, rgba(15, 34, 46, 0.72) 62%, rgba(15, 34, 46, 0.32));
+}
+
+.curriculumIntro::before {
+  background-image: url("/create/commonfield-workshop.webp");
+  background-position: 64% 50%;
+}
+
+.curriculumIntro::after {
+  background: linear-gradient(0deg, rgba(23, 36, 58, 0.98) 0%, rgba(23, 36, 58, 0.58) 65%, rgba(23, 36, 58, 0.18));
+}
+
+.demoStatement h3,
+.financeFolio h3,
+.curriculumIntro h3 {
+  max-width: 9ch;
+  margin: 1.2rem 0 1.6rem;
+  font-family: var(--font-serif);
+  font-size: clamp(3.3rem, 6vw, 7rem);
+  font-weight: 430;
+  letter-spacing: -0.075em;
+  line-height: 0.84;
+}
+
+.demoStatement p,
+.financeFolio > p {
+  max-width: 30rem;
+  color: var(--gallery-muted);
+  font-size: 0.86rem;
+}
+
+.demoStatement > span,
+.demoStatement h3,
+.demoStatement p,
+.financeFolio > span,
+.financeFolio h3,
+.financeFolio > p,
+.curriculumIntro > span,
+.curriculumIntro h3,
+.curriculumIntro .questionButtons {
+  position: relative;
+  z-index: 1;
+}
+
+.scienceConsole {
+  display: grid;
+  padding: clamp(1.3rem, 3vw, 3rem);
+  grid-template-rows: auto 1fr;
+  background:
+    linear-gradient(90deg, transparent 49.9%, rgb(107 211 173 / 8%) 50%, transparent 50.1%),
+    linear-gradient(transparent 49.9%, rgb(107 211 173 / 8%) 50%, transparent 50.1%),
+    var(--gallery-surface);
+  background-size: 4rem 4rem;
+}
+
+.recordSelector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid color-mix(in srgb, var(--gallery-text) 18%, transparent);
+}
+
+.recordSelector button {
+  display: grid;
+  min-height: 5.6rem;
+  align-content: center;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 0;
+  border-left: 1px solid color-mix(in srgb, var(--gallery-text) 18%, transparent);
+  background: color-mix(in srgb, var(--gallery-bg) 76%, transparent);
+  color: var(--gallery-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.recordSelector button:first-child { border-left: 0; }
+.recordSelector button[aria-pressed="true"] { background: var(--gallery-accent); color: #07120f; }
+.recordSelector button > span { font-family: var(--font-mono); font-size: 0.68rem; }
+.recordSelector small { font-size: 0.65rem; }
+
+.observationField {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  align-content: center;
+  padding: clamp(2rem, 5vw, 4rem) 0 0;
+}
+
+.observationReadout {
+  display: grid;
+  width: max-content;
+  margin: 0 0 -2rem auto;
+  color: var(--gallery-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-align: right;
+}
+
+.observationReadout strong { color: var(--gallery-text); font-size: clamp(2.2rem, 5vw, 5rem); font-weight: 400; letter-spacing: -0.07em; }
+.observationField svg { width: 100%; overflow: visible; }
+.traceGrid { fill: none; stroke: color-mix(in srgb, var(--gallery-text) 12%, transparent); stroke-width: 1; }
+.traceLine { fill: none; stroke: var(--gallery-accent); stroke-linecap: round; stroke-width: 3; filter: drop-shadow(0 0 9px color-mix(in srgb, var(--gallery-accent) 45%, transparent)); transition: d 320ms ease; }
+
+.evidenceRail {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid color-mix(in srgb, var(--gallery-text) 22%, transparent);
+}
+
+.evidenceRail span {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem 0.6rem;
+  border-left: 1px solid color-mix(in srgb, var(--gallery-text) 14%, transparent);
+  color: var(--gallery-muted);
+  font-size: 0.66rem;
+}
+
+.evidenceRail span:first-child { border-left: 0; }
+.evidenceRail small { color: var(--gallery-accent); font-family: var(--font-mono); }
+.stateLine { display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0 0; color: var(--gallery-muted); font-size: 0.66rem; }
+.stateLine svg { width: 0.9rem; }
+
+.financeDemo { background: #eee7d8; }
+.financeFolio { justify-content: space-between; color: #f4efe5; }
+.financeFolio > span { color: #d6c8b4; }
+.financeFolio h3 { align-self: flex-start; margin-top: auto; font-size: clamp(3.1rem, 5.4vw, 6.6rem); }
+.financeFolio > p { margin-bottom: 2rem; color: rgba(244, 239, 229, 0.76); }
+
+.guardrailList { position: relative; z-index: 1; border-top: 1px solid rgb(244 239 229 / 28%); }
+.guardrailList span { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid rgb(244 239 229 / 20%); color: rgba(244, 239, 229, 0.72); font-size: 0.68rem; }
+.guardrailList b { color: #f4efe5; font-weight: 520; }
+
+.scenarioDesk { display: flex; flex-direction: column; justify-content: center; padding: clamp(2rem, 5vw, 5rem); background: #162b39; color: #f4efe5; }
+.scenarioHeader { display: flex; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgb(244 239 229 / 18%); color: #c0bbb1; }
+.scenarioHeader small { font: inherit; }
+.scenarioButtons { display: grid; grid-template-columns: repeat(3, 1fr); margin: 2rem 0 3rem; border: 1px solid rgb(244 239 229 / 24%); }
+.scenarioButtons button { min-height: 3.3rem; border: 0; border-left: 1px solid rgb(244 239 229 / 24%); background: transparent; color: #c0bbb1; cursor: pointer; font: inherit; }
+.scenarioButtons button:first-child { border-left: 0; }
+.scenarioButtons button[aria-pressed="true"] { background: #f4efe5; color: #162b39; }
+.headroomScale { display: grid; grid-template-columns: 1fr auto; gap: 0.7rem 1rem; align-items: end; }
+.scaleLabels { display: flex; grid-column: 1 / -1; justify-content: space-between; color: #949a99; font-family: var(--font-mono); font-size: 0.55rem; }
+.scaleTrack { height: 0.6rem; overflow: hidden; background: rgb(244 239 229 / 12%); }
+.scaleTrack span { display: block; height: 100%; background: #b98142; transition: width 320ms ease; }
+.headroomScale > strong { font-family: var(--font-serif); font-size: clamp(4rem, 8vw, 9rem); font-weight: 400; letter-spacing: -0.08em; line-height: 0.75; }
+.headroomScale > small { color: #aab0ae; font-size: 0.62rem; }
+.scenarioFacts { display: grid; grid-template-columns: repeat(3, 1fr); margin: 3rem 0 0; border-top: 1px solid rgb(244 239 229 / 19%); }
+.scenarioFacts div { padding: 1rem; border-left: 1px solid rgb(244 239 229 / 14%); }
+.scenarioFacts div:first-child { border-left: 0; }
+.scenarioFacts dt { color: #949a99; font-family: var(--font-mono); font-size: 0.55rem; text-transform: uppercase; }
+.scenarioFacts dd { margin: 0.5rem 0 0; font-size: 0.75rem; }
+
+.educationDemo { background: #f1ebdf; color: #17243a; }
+.curriculumIntro { justify-content: center; border-color: rgb(23 36 58 / 18%); color: #fffaf0; }
+.curriculumIntro h3 { max-width: 8ch; }
+.questionButtons { display: grid; gap: 0.5rem; margin-top: 2rem; }
+.questionButtons button { min-height: 3.2rem; padding: 0.7rem 0.9rem; border: 1px solid rgb(255 250 240 / 38%); background: rgb(23 36 58 / 62%); color: rgb(255 250 240 / 78%); cursor: pointer; font: inherit; font-size: 0.72rem; text-align: left; }
+.questionButtons button[aria-pressed="true"] { border-color: #e6b84a; background: #e6b84a; color: #17243a; }
+.curriculumScore { display: flex; flex-direction: column; justify-content: center; padding: clamp(2rem, 5vw, 5rem); background: #faf6ee; }
+.scoreHeader { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding-bottom: 1.2rem; border-bottom: 1px solid rgb(23 36 58 / 19%); }
+.scoreHeader > span { color: #6a6e70; }
+.scoreHeader strong { font-family: var(--font-serif); font-size: clamp(1.8rem, 3vw, 3.4rem); font-weight: 450; }
+.curriculumScore ol { display: grid; min-height: 24rem; grid-template-columns: repeat(5, 1fr); align-items: stretch; gap: 0.6rem; margin: 2rem 0; padding: 0; list-style: none; }
+.curriculumScore li { display: flex; min-height: calc(10rem + (var(--step) * 1.7rem)); flex-direction: column; justify-content: space-between; align-self: end; padding: 1rem; background: #2458a6; color: white; }
+.curriculumScore li:nth-child(2) { background: #476c54; }
+.curriculumScore li:nth-child(3) { background: #c95f43; }
+.curriculumScore li:nth-child(4) { background: #e0b84d; color: #17243a; }
+.curriculumScore li:nth-child(5) { background: #17243a; }
+.curriculumScore li > span { font-family: var(--font-mono); font-size: 0.58rem; opacity: 0.8; }
+.curriculumScore li strong { font-family: var(--font-serif); font-size: clamp(1rem, 1.7vw, 1.6rem); font-weight: 450; writing-mode: vertical-rl; transform: rotate(180deg); }
+.curriculumScore li small { font-size: 0.6rem; }
+.curriculumScore > p { margin: 0; color: #6a6e70; font-family: var(--font-mono); font-size: 0.58rem; text-transform: uppercase; }
+
+.specificationStrip { display: grid; grid-template-columns: 1fr auto; align-items: stretch; border-top: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent); }
+.specificationStrip dl { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; }
+.specificationStrip dl > div { padding: 1.1rem; border-right: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent); }
+.specificationStrip dt { color: var(--gallery-muted); font-family: var(--font-mono); font-size: 0.52rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.specificationStrip dd { margin: 0.5rem 0 0; font-size: 0.65rem; line-height: 1.4; }
+.specificationStrip > a { display: inline-flex; min-width: 16rem; align-items: center; justify-content: center; gap: 0.6rem; padding: 1.4rem; background: var(--gallery-text); color: var(--gallery-bg); font-size: 0.72rem; font-weight: 650; }
+.specificationStrip > a:hover { background: var(--gallery-accent); color: var(--gallery-bg); }
+.specificationStrip svg { width: 0.95rem; }
+
+.gallery button:focus-visible,
+.gallery a:focus-visible { outline: 2px solid var(--gallery-accent); outline-offset: -4px; }
+
+@media (max-width: 980px) {
+  .galleryHeader { grid-template-columns: 1fr; }
+  .galleryHeader > div:first-child { border-right: 0; border-bottom: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent); }
+  .scienceDemo, .financeDemo, .educationDemo { grid-template-columns: 1fr; }
+  .demoStatement, .financeFolio, .curriculumIntro { min-height: 31rem; border-right: 0; border-bottom: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent); }
+  .scienceConsole, .scenarioDesk, .curriculumScore { min-height: 36rem; }
+  .specificationStrip { grid-template-columns: 1fr; }
+  .specificationStrip dl { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 680px) {
+  .gallery { margin-inline: calc(var(--page-gutter) * -1); border-right: 0; border-left: 0; }
+  .galleryHeader > div:first-child { min-height: 5rem; }
+  .sectorTabs button { min-height: 5.4rem; grid-template-columns: 1fr; justify-items: center; gap: 0.25rem; padding: 0.6rem; text-align: center; }
+  .sectorTabs button > span { display: none; }
+  .demoStatement, .financeFolio, .curriculumIntro { min-height: 30rem; padding: 1.5rem; }
+  .demoStatement h3, .financeFolio h3, .curriculumIntro h3 { font-size: clamp(3.3rem, 15vw, 5.8rem); }
+  .scienceConsole, .scenarioDesk, .curriculumScore { min-height: 34rem; padding: 1rem; }
+  .recordSelector { grid-template-columns: 1fr; }
+  .recordSelector button { min-height: 3.5rem; border-top: 1px solid color-mix(in srgb, var(--gallery-text) 18%, transparent); border-left: 0; }
+  .recordSelector button:first-child { border-top: 0; }
+  .observationReadout { margin-bottom: 0; }
+  .evidenceRail { grid-template-columns: 1fr; }
+  .evidenceRail span { grid-template-columns: 2rem 1fr; border-top: 1px solid color-mix(in srgb, var(--gallery-text) 14%, transparent); border-left: 0; }
+  .scenarioHeader { display: grid; }
+  .scenarioFacts { grid-template-columns: 1fr; }
+  .scenarioFacts div { border-top: 1px solid rgb(244 239 229 / 14%); border-left: 0; }
+  .curriculumScore ol { min-height: auto; grid-template-columns: 1fr; }
+  .curriculumScore li { min-height: 5rem !important; flex-direction: row; align-items: center; }
+  .curriculumScore li strong { writing-mode: initial; transform: none; }
+  .specificationStrip dl { grid-template-columns: 1fr; }
+  .specificationStrip dl > div { border-right: 0; border-bottom: 1px solid color-mix(in srgb, var(--gallery-text) 15%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery, .traceLine, .scaleTrack span { transition: none; }
+}

@@ -1,45 +1,45 @@
 project:
-  id: living-loom-portfolio
-  name: "Living Loom — Emmanuel Kingsford Owusu Portfolio"
-  owner: "Emmanuel Kingsford Owusu"
+  id: kingxford-and-co
+  name: "kingXford & Co"
+  owner: "kingXford & Co"
   status: implementation
   deadline: "Not specified; production deployment requested"
 
 objective:
-  primary_goal: "Present Emmanuel's graphic design, product design, websites, web applications, and research-led digital systems through a distinctive, usable public portfolio."
+  primary_goal: "Present kingXford & Co as an intelligence, research, and development company that applies responsible AI and systems thinking to complex problems, ideas, and projects in pursuit of sustainable abundance."
   audience_change:
-    know: "Emmanuel turns complex ideas into coherent, useful, visually memorable digital products."
-    feel: "Curious, confident in the craft, and eager to explore beyond the first project."
-    remember: "The living blue thread that weaves research, strategy, design, and code into one body of work."
-    do: "Explore case studies, visit live work where available, and start a relevant collaboration."
+    know: "kingXford & Co builds intelligence, evidence, responsible AI, and durable systems that expand human and institutional capability."
+    feel: "Oriented, challenged, and confident that difficult work can become a disciplined programme of action."
+    remember: "Prepare for sustainable abundance—the mission made credible through a grounded opening, distinct project worlds, and three clearly named delivery environments."
+    do: "Explore the evidence, evaluate relevant work, and bring a consequential problem or project into collaboration."
   success_metrics:
-    - "A visitor can identify Emmanuel's practice and reach the featured work index from the first screen."
+    - "A visitor can identify intelligence, research and development, responsible AI, complex-problem delivery, and sustainable abundance as the company's leading mission from the first screen."
     - "Every featured project has a working detail route, truthful status, and clear next action."
     - "Primary navigation, theme selection, and project discovery work with keyboard, pointer, and touch."
     - "The experience reflows from 320px to wide desktop without horizontal page overflow."
     - "Non-essential motion respects prefers-reduced-motion."
-    - "A verified Vercel production URL and public GitHub source URL are recorded at delivery."
+    - "A verified Vercel production URL and immutable source release are recorded in operational delivery evidence."
   failure_conditions:
     - "The site reads as a generic neon, glass, or template portfolio."
     - "Visual spectacle obscures project names, descriptions, navigation, or controls."
     - "A project, award, service, client result, or deployment is represented without evidence."
-    - "Generated imagery is presented internally as photographed documentary evidence."
+    - "A contextual documentary photograph is presented as evidence from a represented client, product workflow, research project, or kingXford & Co facility."
+    - "A generated or hybrid image is presented as documentary evidence, a literal interface, a real kingXford & Co facility, or a measured outcome."
+    - "A mechanical product composite alters, invents, or obscures the meaning of the authentic captured interface."
     - "Core content or navigation depends on hover, fine pointer accuracy, or uninterrupted motion."
 
 audience:
-  primary: "Founders, product and design leaders, institutional partners, and prospective clients evaluating Emmanuel's design and digital-product capabilities."
-  secondary: "Collaborators, academic and research partners, recruiters, and curious makers."
-  context_of_use: "Public web portfolio on mobile and desktop; often first encountered through a shared project or profile link."
-  prior_knowledge: "May know one project but not the range connecting design, research, education, and software."
-  tension_or_need: "Visitors need fast proof of range without losing the depth, authorship, and context behind each project."
+  primary: "Institutional leaders, research partners, founders, investors of capital or capability, public-interest organisations, and complex-project sponsors evaluating kingXford & Co's intelligence and development capacity."
+  secondary: "Researchers, technical collaborators, educators, product leaders, and informed readers seeking evidence-led approaches to an abundant future."
+  context_of_use: "Public company platform on mobile and desktop; often first encountered through a shared article, project, or institutional conversation."
+  prior_knowledge: "May know one project but not the mission connecting intelligence, research, responsible AI, development, and sustainable abundance."
+  tension_or_need: "Visitors need a clear account of the mission, credible evidence, and practical ways to move a complex problem or project forward."
   objections:
     - "A broad practice may feel unfocused."
     - "Highly expressive interfaces can become difficult to navigate."
-    - "Conceptual imagery can be mistaken for literal product screenshots."
+    - "Contextual documentary photography can be mistaken for evidence of a specific kingXford & Co engagement."
   regions:
     - "Global"
-    - "Canada"
-    - "Ghana"
   languages:
     - en
   age_suitability: general
@@ -53,28 +53,37 @@ audience:
     - "Minimum 44px touch targets for primary controls"
 
 message:
-  governing_idea: "Living Loom: every project is a thread; the portfolio reveals how Emmanuel weaves evidence, imagination, and engineering into useful systems."
-  single_minded_proposition: "Emmanuel designs ambitious digital experiences with both visual conviction and systems depth."
+  governing_idea: "Selective Reality: intelligence, research and development, responsible AI, and aligned investment begin with two grounded documentary plates, then expand through varied, explicitly conceptual project and editorial worlds."
+  single_minded_proposition: "kingXford & Co helps people and institutions solve complex problems and develop ambitious ideas, projects, and systems into durable capability."
   proof_points:
-    - "Eight named portfolio case studies spanning education, research integrity, finance, visual modelling, fashion, productivity, and megaproject intelligence."
-    - "Public source repository at https://github.com/Emmanuelok/portfolio."
-    - "Functional case-study routes, project discovery, theme controls, and an accessible command palette in the implemented frontend."
+    - "Four published projects—Veridanth, Psyche Atlas, GrandMaster, and Value-M—supported by individually art-directed, disclosed conceptual or hybrid evidence imagery; CCAI Global, Aceplore, Nkosuo, and Elkings College are excluded from public release."
+    - "A kingXford & Co Media index with How to Get Ahead in the AI Era and Sustainable Abundance for All, each grounded by explicit institutional research notes and an optional audio architecture."
+    - "Sustainable Abundance for All includes a non-additive capability dashboard, directly labelled comparisons, an evidence-register table, source links, interpretation boundaries, and an original decision framework that is explicitly not presented as a validated causal model or universal index."
+    - "Functional case-study and Media routes, project discovery, theme controls, and an accessible command palette in the implemented frontend."
   required_copy:
-    - "Emmanuel Kingsford Owusu"
-    - "Living Loom"
-    - "Selected work"
-    - "About"
+    - "kingXford & Co"
+    - "Prepare for sustainable abundance"
+    - "Intelligence"
+    - "Research & development"
+    - "Responsible AI"
+    - "Studio"
+    - "The Living Room"
     - "Lab"
+    - "Selected work"
+    - "Media"
+    - "About"
+    - "kingXford & Co Lab"
     - "Contact"
   prohibited_implications:
-    - "Do not imply that generated editorial covers are literal screenshots or documentary photographs."
-    - "Do not imply that every represented project is currently live unless its destination has been verified."
+    - "Do not imply that contextual licensed photographs document the represented product, commission, study, facility, or staff."
+    - "Do not present generated, synthetic, or hybrid imagery as documentary evidence, a literal interface, or a measured outcome."
+    - "Do not present CCAI Global, Aceplore, Nkosuo, or Elkings College as released work until their status is explicitly changed and verified."
     - "Do not imply legal clearance, trademark clearance, formal accessibility conformance, or third-party endorsement."
     - "Do not invent client outcomes, user counts, awards, testimonials, or performance statistics."
-  call_to_action: "Explore the work"
+  call_to_action: "Build an abundant future"
 
 brand:
-  name: "Emmanuel Kingsford Owusu / Living Loom"
+  name: "kingXford & Co"
   attributes:
     - "tactile"
     - "editorial"
@@ -82,22 +91,33 @@ brand:
     - "generous"
     - "precise"
     - "quietly audacious"
+    - "research-led"
+    - "responsible"
+    - "long-horizon"
   non_negotiables:
     - "Graphite, warm-bone, and electric-ultramarine are functional roles, not decoration."
-    - "The woven strand expresses relationships between ideas, screens, and outcomes."
+    - "The primary identity is a restrained kingXford & Co wordmark; the X stays on the same baseline and optical scale as the surrounding letters, with colour as its only emphasis."
     - "Editorial hierarchy remains legible beneath all motion and texture."
-    - "Project imagery remains text-free; names and context use editable HTML."
+    - "Only the Mission and Intelligence landing plates use source-recorded documentary photography; restored generated and hybrid assets elsewhere remain explicitly conceptual and subject-specific."
+    - "Contextual licensed photographs never pretend to be project evidence, a kingXford & Co facility, or a measured outcome."
     - "Every interactive treatment has a reduced-motion and keyboard-accessible equivalent."
   visual_assets:
     - "src/app/icon.svg"
-    - "public/work/aceplore.webp"
-    - "public/work/ccai-global.webp"
-    - "public/work/elkings-college.webp"
-    - "public/work/ghana-sec.webp"
-    - "public/work/king-uml.webp"
-    - "public/work/kisuyo.webp"
-    - "public/work/megaproject-intelligence.webp"
-    - "public/work/value-m.webp"
+    - "public/work/veridanth-evidence-v2.webp"
+    - "public/work/psyche-atlas-evidence-v2.webp"
+    - "public/work/grandmaster-evidence-v2.webp"
+    - "public/work/value-m-evidence-v2.webp"
+    - "public/motion/kingxford-prototype-documentary.webp"
+    - "public/work/value-m-real.webp"
+    - "public/motion/kingxford-research-lab-v2.webp"
+    - "public/motion/kingxford-governance-gate-v2.webp"
+    - "public/motion/kingxford-signal-observatory-v2.webp"
+    - "public/motion/kingxford-capability-reactor-v2.webp"
+    - "public/motion/kingxford-production-spine-v2.webp"
+    - "public/motion/kingxford-decision-theatre-v2.webp"
+    - "public/motion/kingxford-instrument-corridor-v2.webp"
+    - "public/media/ai-verification-chain-v2.webp"
+    - "public/media/sustainable-abundance-capability-section-v2.webp"
   verbal_rules:
     - "Lead with what the work changes, then explain how it was made."
     - "Use concrete nouns and active verbs."
@@ -112,43 +132,44 @@ brand:
 
 world:
   characters:
-    - "Fictional adult Black creative in the Aceplore editorial concept."
-    - "Fictional adult Black fashion designer/model in the Kisuyo editorial concept."
-    - "Age-appropriate adult or older-teen learners in the Elkings College editorial concept; not based on identified people."
+    - "People appear only in the two source-recorded documentary landing plates; they are never described as kingXford & Co staff, clients, participants, or endorsers."
+    - "Published digital-project covers preserve authentic public interface evidence inside subject-specific generated fields; no invented interface content is permitted."
   products:
-    - "Eight portfolio projects represented by conceptual editorial cover imagery and factual HTML case-study content."
+    - "Four published portfolio projects represented by three disclosed hybrid evidence objects and one disclosed conceptual process image."
+    - "Four additional case studies—CCAI Global, Aceplore, Nkosuo, and Elkings College—remain explicitly unreleased and are excluded from published-product proof."
+    - "kingXford & Co Media represented by an index, two complete evidence-led articles, cited research notes, and an optional audio surface with no narration shipped."
+    - "The Sustainable Abundance briefing includes accessible figures, charts, and a responsive table whose official source years, units, uncertainty, and scenario boundaries remain adjacent to the values."
   props:
-    - "Ultramarine woven strand"
-    - "Ivory paper planes"
-    - "Graphite architectural forms"
-    - "Brass measurement gates"
-    - "Diagram nodes and physical models"
+    - "Authentic product interfaces"
+    - "Physical plans and a project model visible in the two licensed documentary opening sources"
+    - "Conceptual laboratory, production, governance, strategy, and systems objects in generated scenes"
   environments:
-    - "Tactile studio"
-    - "Museum-like diagram installation"
-    - "Abstract evidence architecture"
-    - "Contemporary Ghanaian-inspired learning environment"
+    - "Source-recorded design-process context for Mission and planning context for Intelligence"
+    - "Conceptual production environment for Studio"
+    - "Conceptual decision theatre for the Living Room"
+    - "Conceptual scientific instrument environment for Lab"
+    - "Conceptual research, governance, systems, and Media environments"
   time_period: "Contemporary"
-  geography: "Global practice with Ghanaian and Canadian context; generated covers are conceptual, not documentary locations."
-  season_weather_time: "Controlled editorial studio light; no implied real date or weather."
+  geography: "Global company; every active documentary, generated, and hybrid asset is documented in rights-provenance.csv."
+  season_weather_time: "Documentary photography retains the source image's recorded light and colour response; conceptual scenes use contemporary, non-location-specific editorial settings."
   continuity_anchors:
     - "Warm bone, graphite, and electric ultramarine"
-    - "One continuous blue strand or route"
-    - "Tactile paper, thread, stone, brass, and fabric"
+    - "A restrained kingXford & Co wordmark with a same-scale coloured X and compact K monogram"
+    - "A source-recorded opening followed by varied, disclosed conceptual evidence objects"
     - "3:2 editorial compositions with deliberate negative space"
-    - "No embedded words, logos, or watermarks"
+    - "No fabricated interface content, watermarks, misleading documentary claims, or repeated dominant X scenery"
 
 creative_direction:
-  concept_title: "Living Loom"
-  premise: "A responsive strand moves through the portfolio, connecting project disciplines without flattening their differences."
-  narrative_or_information_arc: "Identity and proposition → selected work → individual case-study context and process → broader practice and experiments → clear contact path."
+  concept_title: "Selective Reality"
+  premise: "A grounded documentary opening connects kingXford & Co's mission to a deliberately varied set of conceptual project, R&D, responsible-AI, investment, and delivery worlds without hiding image provenance or release status."
+  narrative_or_information_arc: "Sustainable-abundance mission → intelligence and R&D approach → responsible AI → aligned contributors represented by & Co → delivery worlds → evidence-rich Media and projects → clear collaboration path."
   emotional_arc:
     - "Immediate intrigue"
     - "Confident orientation"
     - "Increasing depth"
     - "Credible proof"
     - "Open invitation"
-  visual_thesis: "A warm editorial field is cut and connected by one electric-blue woven gesture; tactile physical models make systems thinking visible."
+  visual_thesis: "A restrained editorial system uses documentary reality only where it strengthens the opening, then gives each conceptual image its own subject-specific visual logic; ultramarine provides navigation and emphasis rather than a dominant emblem."
   palette:
     - "Graphite #141617"
     - "Warm bone #F3EDDF"
@@ -158,16 +179,15 @@ creative_direction:
     - "Clay #A33D2E"
   materials_textures:
     - "uncoated paper"
-    - "woven thread"
     - "matte graphite"
     - "brushed brass"
-    - "tailored fabric"
+    - "photographic grain"
     - "subtle print grain"
   composition: "Editorial asymmetry, strong type/image counterpoint, long reading lines, alternating density, and intentional off-grid moments anchored by a stable content rail."
-  camera_and_lens: "Generated covers use grounded editorial perspective and legible physical scale; the interface uses no simulated camera movement."
-  lighting: "Soft directional studio light with controlled hard-edged paper shadows; no unexplained bloom."
-  motion: "A restrained thread-draw language for reveals and state changes; short direct feedback; no blocking sequence or continuous distraction."
-  sound: "None in the public web experience."
+  camera_and_lens: "The two licensed sources retain grounded documentary perspective; hybrid and generated scenes use distinct, plausible editorial viewpoints while authentic interface layers retain their original hierarchy."
+  lighting: "Preserve source-recorded light on documentary plates; use legible, subject-specific lighting in conceptual scenes and avoid default blue glow or uniformly dark AI-tech treatment."
+  motion: "A long native-scroll sequence crossfades and pans two documentary opening plates and four disclosed conceptual WebP plates; no short looping film, emblem assembly, or scroll-jacking."
+  sound: "No audio is shipped in this release. Media supports optional future narration only after consent, editorial, and listening review under creative/narration-policy.md."
   typography: "Newsreader for expressive editorial display; Manrope for interface, labels, and body copy; system fallbacks remain legible."
   interaction: "Direct project exploration, theme control, command palette, meaningful hover/focus states, and native scrolling."
   anti_goals:
@@ -181,8 +201,10 @@ deliverables:
   master:
     - "Responsive Next.js portfolio source"
     - "Production Vercel deployment"
-    - "Eight project case-study experiences"
-    - "Living Loom brand and interaction system"
+    - "Four published project case-study experiences; four archived unreleased records remain excluded from navigation, search, metadata, sitemaps, and generated routes"
+    - "kingXford & Co Media index and two long-form evidence-led articles"
+    - "Accessible Sustainable Abundance evidence dashboard, comparisons, evidence register, and original design loop"
+    - "kingXford & Co restrained wordmark, selectively documentary and conceptual imagery system, and interaction system"
   variants:
     - "Light, ink, and system-resolved themes"
     - "Mobile, intermediate, and wide responsive compositions"
@@ -198,7 +220,7 @@ deliverables:
     - "1.91:1 social preview"
   dimensions:
     - "Minimum supported viewport: 320 CSS px"
-    - "Project imagery source: 1536x1024 px"
+    - "Active project imagery delivery: 1536x1024 to 2400x1600 px"
   durations_seconds: []
   frame_rates: []
   file_formats:
@@ -217,12 +239,17 @@ deliverables:
 
 inputs:
   media:
-    - "Eight original generated 1536x1024 PNG concepts converted to stripped WebP quality 82 for the site."
-  audio: []
+    - "Three 2400x1600 hybrid Evidence Object covers preserving authentic public-product captures for Veridanth, Psyche Atlas, and GrandMaster."
+    - "One 2400x1600 generated Value-M Evidence Object cover."
+    - "Two licensed documentary photographs used only for the Mission and Intelligence cinematic plates; the Mission source also supplies the static reduced-motion fallback."
+    - "Four 2560x1440 disclosed conceptual cinematic plates for R&D, Responsible AI, & Co, and Abundant Future."
+    - "Three 1600x2000 disclosed conceptual portraits for Studio, the Living Room, and Lab."
+    - "Two 2400x1600 disclosed conceptual Media covers."
+    - "Superseded generated, hybrid, and documentary assets remain in the repository as inactive historical records."
+  audio:
+    - "No narration asset shipped; optional future audio must follow creative/narration-policy.md."
   documents:
     - "Direct Creative Production templates adapted in creative/."
-  urls:
-    - "https://github.com/Emmanuelok/portfolio"
   codebase: "Next.js 16 App Router, React 19, TypeScript, Motion, Lucide, Manrope, and Newsreader."
   reference_purpose_notes:
     - "User requested a futuristic, out-of-the-ordinary showcase; the chosen direction translates that ambition into tactile editorial interaction instead of trend mimicry."
@@ -230,14 +257,14 @@ inputs:
 production:
   required_tools:
     - "GitHub"
+    - "Authenticated public-product capture and mechanical image processing"
     - "Next.js"
-    - "OpenAI built-in image generation; model not exposed"
     - "Vercel"
   fidelity: production
   budget_or_credit_limit: "Not specified"
   approval_gates:
     - "G0 brief"
-    - "G1 Living Loom direction"
+    - "G1 kingXford & Co restrained wordmark and selectively documentary visual direction"
     - "G2 representative project imagery"
     - "G3 brand, component, rights, and accessibility system"
     - "G4 functional local frontend"
@@ -250,7 +277,7 @@ production:
 
 rights_and_compliance:
   likeness_permissions:
-    - "Generated people are fictional and not based on supplied identifiable references; no real-person endorsement is claimed."
+    - "Licensed documentary photographs may contain adult subjects; release status is not independently verified and no endorsement is claimed."
   licenses:
     - "Repository dependencies retain their own licenses."
     - "Manrope and Newsreader font-license metadata must remain available through their packages; legal review has not been performed."
@@ -259,22 +286,27 @@ rights_and_compliance:
   factual_claims:
     - "Project descriptions and live-link status require owner verification before release when not evidenced by the repository."
   required_disclosures:
-    - "Internal provenance retained for every generated cover."
-    - "Public synthetic-media labels are not planned because the covers are clearly conceptual editorial art, not claimed documentary evidence; re-evaluate if used in a misleading context."
+    - "Public capture, documentary, or generation source; capture or generation date; material edit; editorial context; restrictions; dimensions; and final checksum are recorded for every active image."
+    - "Context photographs are not represented as evidence from a client engagement, study, or product workflow."
+    - "Generated and hybrid active imagery is labelled conceptual and is never represented as documentary evidence, literal interface capture, certification, or measured outcome."
+    - "The current active asset set reflects an explicitly directed selective rollback: only the Mission and Intelligence plates were replaced."
+    - "CCAI Global, Aceplore, Nkosuo, and Elkings College remain labelled unreleased until status and destination are explicitly verified for publication."
   privacy_constraints:
     - "Do not publish private contact details, credentials, analytics identifiers, or non-public client information."
   unresolved_items:
     - "Legal, trademark, and font-license review not performed."
     - "Formal WCAG conformance audit not performed."
     - "Production URL and all outbound project links must be verified after deployment."
+    - "Narration is optional and not shipped; any future edition requires a licensed or consented voice, human editorial review, a complete transcript, and listening QA."
 
 assumptions:
-  - "Emmanuel controls the requested GitHub repository and authorizes this portfolio implementation."
-  - "The public GitHub repository is the safe source-code destination requested by the user."
-  - "The contact experience uses public navigation and mail-safe patterns without exposing private information."
-  - "Generated covers function as conceptual portfolio art and do not assert real products, people, buildings, or outcomes."
+  - "The authorized repository owner controls the operational source repository and authorizes this kingXford & Co implementation."
+  - "Operational source and deployment identifiers remain in non-rendered release records only where technically necessary."
+  - "The contact experience uses company-safe channels without exposing personal profiles, location, or private information."
+  - "Licensed contextual photography does not assert affiliation, participation, endorsement, a kingXford & Co facility, or a documented project outcome."
+  - "Authentic public-product captures document only the visible interface state at capture time; they do not independently establish product performance, ownership, endorsement, or measured outcomes."
 
 open_questions:
   - "Which single public email or form destination should be used if a direct contact address is later added?"
   - "Which represented project URLs are owner-approved and currently production-ready?"
-  - "Should future releases add a downloadable résumé after the final document and privacy review?"
+  - "Should future releases add a company research library, evidence dashboard, or institutional partnership prospectus after content and privacy review?"

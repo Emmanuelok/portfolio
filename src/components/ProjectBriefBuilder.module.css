@@ -1,0 +1,154 @@
+.builder {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  padding: clamp(1.4rem, 3.5vw, 3rem);
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--blue) 9%, transparent), transparent 44%),
+    var(--surface);
+}
+
+.heading {
+  display: grid;
+  max-width: 58rem;
+  gap: 0.75rem;
+}
+
+.heading h2 {
+  max-width: 18ch;
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 6vw, 5.5rem);
+  font-weight: 430;
+  letter-spacing: -0.055em;
+  line-height: 0.93;
+}
+
+.heading p {
+  max-width: 68ch;
+  color: var(--text-soft);
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  line-height: 1.7;
+}
+
+.form {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--border);
+  background: var(--border);
+}
+
+.field {
+  display: grid;
+  gap: 0.72rem;
+  padding: clamp(1.1rem, 2.5vw, 1.8rem);
+  background: var(--canvas);
+}
+
+.field span {
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 760;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.field small {
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.field textarea,
+.field select {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  line-height: 1.6;
+}
+
+.field textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.field select {
+  min-height: 3rem;
+}
+
+.field textarea:focus-visible,
+.field select:focus-visible {
+  border-color: var(--blue-bright);
+  box-shadow: 0 2px 0 var(--blue-bright);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  padding-top: 0.5rem;
+}
+
+.actions button {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 0.8rem 1.1rem;
+  border: 1px solid var(--text);
+  background: var(--text);
+  color: var(--canvas);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 720;
+}
+
+.actions button:last-of-type {
+  background: transparent;
+  color: var(--text);
+}
+
+.actions button:hover {
+  border-color: var(--blue-bright);
+  background: var(--blue-bright);
+  color: #fff;
+}
+
+.status {
+  min-height: 1.5rem;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.privacy {
+  max-width: 68ch;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+@media (min-width: 760px) {
+  .form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .field:first-child,
+  .field:nth-child(4),
+  .actions,
+  .privacy {
+    grid-column: 1 / -1;
+  }
+
+  .actions,
+  .privacy {
+    padding-inline: clamp(1.1rem, 2.5vw, 1.8rem);
+    padding-block: 1rem;
+    background: var(--canvas);
+  }
+}

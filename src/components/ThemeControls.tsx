@@ -11,8 +11,8 @@ import {
 type ThemeChoice = "light" | "dark" | "system";
 type ResolvedTheme = Exclude<ThemeChoice, "system">;
 
-const STORAGE_KEY = "ek-portfolio-theme";
-const THEME_EVENT = "ek-portfolio-theme-change";
+const STORAGE_KEY = "kxco-theme";
+const THEME_EVENT = "kxco-theme-change";
 
 const themeOptions = [
   { value: "light" as const, label: "Light theme", icon: Sun },
@@ -51,7 +51,9 @@ function getServerThemeSnapshot(): ThemeChoice {
 function subscribeToTheme(onStoreChange: () => void) {
   const media = window.matchMedia("(prefers-color-scheme: dark)");
   const handleStorage = (event: StorageEvent) => {
-    if (!event.key || event.key === STORAGE_KEY) onStoreChange();
+    if (!event.key || event.key === STORAGE_KEY) {
+      onStoreChange();
+    }
   };
   const handleThemeEvent = () => onStoreChange();
   const handleSystemChange = () => {

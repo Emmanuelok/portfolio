@@ -6,6 +6,8 @@ import {
   FlaskConical,
   House,
   Mail,
+  Newspaper,
+  PanelsTopLeft,
   Search,
   UserRound,
   X,
@@ -30,51 +32,83 @@ type CommandItem = {
 
 const commands: readonly CommandItem[] = [
   {
-    id: "studio",
-    label: "Studio",
-    description: "Digital tools, products, web apps, film, and creative technology",
-    href: "/#studio",
-    keywords: "kingxford digital products aceplore cinematography websites development",
-    icon: BriefcaseBusiness,
-  },
-  {
-    id: "living-room",
-    label: "The Living Room",
-    description: "Open-ended creative services and unexpected commissions",
-    href: "/#living-room",
-    keywords: "kingxford creative unending services ideas commissions",
+    id: "mission",
+    label: "Mission",
+    description: "Intelligence and responsible innovation for sustainable abundance",
+    href: "/#mission",
+    keywords: "kingxford co mission intelligence sustainable abundance abundant future complex problems ideas projects",
     icon: House,
   },
   {
     id: "lab",
-    label: "Lab",
-    description: "Research, science, and work for academic audiences",
-    href: "/#lab",
-    keywords: "kingxford research science academic experiments",
+    label: "R&D / Lab",
+    description: "Research, experimentation, responsible AI, and knowledge systems",
+    href: "/lab",
+    keywords: "kingxford research development science academic experiments evidence responsible ai",
     icon: FlaskConical,
   },
   {
-    id: "work",
-    label: "Selected work",
-    description: "Explore digital products and visual systems",
-    href: "/work",
-    keywords: "portfolio projects case studies websites apps",
+    id: "create",
+    label: "What we create",
+    description: "Websites, digital tools, and systems shaped around real needs",
+    href: "/create",
+    keywords: "create websites digital tools platforms science laboratory finance education schools institutions businesses professionals individuals communities everyday needs",
+    icon: PanelsTopLeft,
+  },
+  {
+    id: "create-science",
+    label: "Lumen Vale Laboratory",
+    description: "Explore the interactive scientific research website concept",
+    href: "/create/lumen-vale-laboratory",
+    keywords: "science laboratory research microscopy specimens observations interactive concept prototype",
+    icon: FlaskConical,
+  },
+  {
+    id: "create-finance",
+    label: "Meridian Financial Office",
+    description: "Explore the interactive institutional finance website concept",
+    href: "/create/meridian-financial-office",
+    keywords: "finance stewardship governance scenarios mandate committee interactive concept prototype",
     icon: BriefcaseBusiness,
   },
   {
+    id: "create-education",
+    label: "Commonfield Institute",
+    description: "Explore the interactive education website concept",
+    href: "/create/commonfield-institute",
+    keywords: "education learning curriculum weekly syllabus school institute interactive concept prototype",
+    icon: PanelsTopLeft,
+  },
+  {
+    id: "work",
+    label: "Work",
+    description: "See complex ideas and research translated into working systems",
+    href: "/work",
+    keywords: "portfolio published projects case studies evidence intelligence research deployed systems",
+    icon: BriefcaseBusiness,
+  },
+  {
+    id: "media",
+    label: "Media",
+    description: "Evidence-led ideas on AI, R&D, and sustainable abundance",
+    href: "/media",
+    keywords: "blog podcast media artificial intelligence sustainable abundance business finance design research",
+    icon: Newspaper,
+  },
+  {
     id: "about",
-    label: "About Emmanuel",
-    description: "Practice, perspective, and capabilities",
+    label: "About kingXford & Co",
+    description: "Mission, operating model, perspective, and capabilities",
     href: "/about",
-    keywords: "designer profile biography experience",
+    keywords: "company co mission investors contributors practice perspective capabilities",
     icon: UserRound,
   },
   {
     id: "contact",
-    label: "Start a conversation",
-    description: "Bring an ambitious idea into focus",
+    label: "Bring a complex challenge",
+    description: "Start with a problem, opportunity, idea, or ambitious project",
     href: "/contact",
-    keywords: "contact collaborate commission email project",
+    keywords: "contact collaborate institution research development email project problem",
     icon: Mail,
   },
 ];
@@ -189,6 +223,7 @@ export function CommandPalette({
           type="button"
           onClick={() => setIsOpen(true)}
           aria-haspopup="dialog"
+          aria-expanded={isOpen}
           aria-label="Open site command menu"
         >
           <Search aria-hidden="true" />
@@ -294,7 +329,8 @@ export function CommandPalette({
 
             {filteredCommands.length === 0 && (
               <p className="command-palette__empty">
-                No destination found. Try “work”, “about”, or “contact”.
+                No destination found. Try “mission”, “create”, “R&amp;D”,
+                “media”, or “contact”.
               </p>
             )}
           </div>

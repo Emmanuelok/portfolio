@@ -5,9 +5,9 @@ import { ArrowUpRight, Plus } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
-  title: "Kingxford Lab",
+  title: "R&D / Lab",
   description:
-    "The scientific and academic wing of Kingxford—research interfaces, scholarly tools, visual inquiry, and intelligent systems by Emmanuel Kingsford Owusu.",
+    "The kingXford & Co research and development environment for responsible AI, complex systems, applied inquiry, and sustainable abundance.",
   alternates: {
     canonical: "/lab",
   },
@@ -16,43 +16,43 @@ export const metadata: Metadata = {
 const experiments = [
   {
     index: "L–01",
-    status: "Ongoing study",
-    title: "Living identities",
+    status: "Research programme",
+    title: "Abundance pathways",
     text:
-      "Brand systems whose behaviour—not only their logo—creates recognition through rhythm, response, and change over time.",
-    signal: "Identity × motion",
+      "Studying the institutions, technologies, resources, capabilities, and distribution choices that can turn rising productivity into sustainable, widely shared value.",
+    signal: "Foresight × distribution",
   },
   {
     index: "L–02",
-    status: "Prototype pattern",
-    title: "Interface choreography",
+    status: "Applied inquiry",
+    title: "Institutional intelligence",
     text:
-      "Using transition, depth, sound-aware timing, and spatial continuity to make a complex product feel like one unfolding scene.",
-    signal: "Motion × meaning",
+      "Developing ways for organisations to connect fragmented evidence, surface uncertainty, and improve decisions across complex programmes and projects.",
+    signal: "Evidence × decisions",
   },
   {
     index: "L–03",
-    status: "Research thread",
-    title: "Spatial evidence",
+    status: "Evaluation framework",
+    title: "Responsible AI in practice",
     text:
-      "Turning ontologies, infrastructure, causal chains, and dense research models into navigable visual environments.",
-    signal: "Data × space",
+      "Testing intelligent systems for usefulness, reliability, explainability, human oversight, inclusion, and consequences in the settings where they will operate.",
+    signal: "Capability × accountability",
   },
   {
     index: "L–04",
-    status: "Design inquiry",
-    title: "Legible intelligence",
+    status: "Development track",
+    title: "Complex project systems",
     text:
-      "Interaction patterns that reveal what an intelligent system used, what it inferred, where it is uncertain, and what remains a human decision.",
-    signal: "AI × agency",
+      "Building research, knowledge, and decision infrastructure that helps ambitious multidisciplinary projects move from concept to coordinated delivery.",
+    signal: "Ideas × implementation",
   },
 ] as const;
 
 const questions = [
-  "What if an interface could explain its reasoning without asking for blind trust?",
-  "What if a research diagram behaved like a place you could explore?",
-  "What if a visual identity changed with the journey while remaining unmistakably itself?",
-  "What if motion carried information instead of simply decorating the transition?",
+  "How can abundance be measured beyond aggregate output, including access, resilience, capability, and ecological consequence?",
+  "Which decisions should intelligent systems support, and which must remain meaningfully human?",
+  "How can institutions preserve uncertainty and dissent while still acting in time?",
+  "What research and infrastructure must exist before an ambitious idea can become a durable project?",
 ] as const;
 
 export default function LabPage() {
@@ -63,20 +63,20 @@ export default function LabPage() {
         aria-labelledby="lab-heading"
       >
         <div className="page-hero__index" aria-hidden="true">
-          03 / Kingxford Lab
+          02 / R&amp;D / Lab
         </div>
 
         <div className="page-hero__content">
           <Reveal>
             <p className="eyebrow">
-              Kingxford · Scientific &amp; academic wing
+              kingXford &amp; Co · Research &amp; development environment
             </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="lab-heading">
-              <span className="page-hero__line">A place to test</span>
+              <span className="page-hero__line">Research the future.</span>
               <span className="page-hero__line page-hero__line--accent">
-                what the polished work cannot risk yet.
+                Develop what makes it possible.
               </span>
             </h1>
           </Reveal>
@@ -84,9 +84,9 @@ export default function LabPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            The lab is an open edge: visual behaviours, interaction patterns,
-            and intelligent-system ideas explored before they become a
-            product, a system, or a new way of seeing.
+            The Lab investigates complex problems, evaluates responsible AI,
+            and develops the knowledge, prototypes, and systems people and
+            institutions need to prepare for sustainable abundance.
           </p>
         </Reveal>
 
@@ -102,9 +102,9 @@ export default function LabPage() {
 
       <section className="lab-index" aria-labelledby="lab-index-heading">
         <div className="section-heading section-heading--split">
-          <p className="eyebrow">Current experiments</p>
+          <p className="eyebrow">Current R&amp;D directions</p>
           <h2 id="lab-index-heading">
-            Four questions being made tangible.
+            Four capabilities being developed through inquiry.
           </h2>
         </div>
 
@@ -138,8 +138,8 @@ export default function LabPage() {
 
       <section className="field-notes" aria-labelledby="field-notes-heading">
         <div className="section-heading">
-          <p className="eyebrow">Field notes / 2026</p>
-          <h2 id="field-notes-heading">Questions worth keeping open.</h2>
+          <p className="eyebrow">Research agenda</p>
+          <h2 id="field-notes-heading">Questions that resist easy certainty.</h2>
         </div>
         <ol className="field-notes__list">
           {questions.map((question, index) => (
@@ -155,15 +155,15 @@ export default function LabPage() {
       </section>
 
       <Reveal className="page-cta">
-        <p className="eyebrow">A useful experiment needs a real constraint</p>
-        <h2>Have a strange, difficult, or entirely new design problem?</h2>
+        <p className="eyebrow">A useful research programme needs a real problem</p>
+        <h2>Bring a consequential question that deserves disciplined inquiry.</h2>
         <div className="page-cta__actions">
           <Link className="button button--primary" href="/contact">
-            <span>Bring it to the lab</span>
+            <span>Propose an R&amp;D challenge</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
           <Link className="button button--quiet" href="/work">
-            <span>See what shipped</span>
+            <span>See mission in practice</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
         </div>

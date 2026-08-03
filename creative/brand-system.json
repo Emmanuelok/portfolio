@@ -1,14 +1,15 @@
 {
   "schema_version": "1.0",
   "brand": {
-    "name": "Emmanuel Kingsford Owusu / Living Loom",
-    "purpose": "Make a multidisciplinary design and digital-product practice immediately understandable without reducing it to a generic gallery.",
-    "positioning": "A research-led designer and builder who connects visual craft, rigorous systems thinking, and production software.",
+    "name": "kingXford & Co",
+    "purpose": "Prepare people and institutions for sustainable abundance by turning intelligence, research, responsible AI, and aligned investment into durable capability.",
+    "positioning": "An intelligence, research, and development company that helps people and institutions solve complex problems and develop ambitious ideas, projects, and systems through Studio, the Living Room, and Lab.",
     "audiences": [
-      "Founders and product leaders",
-      "Institutional and research partners",
-      "Prospective design and digital-product clients",
-      "Collaborators and recruiters"
+      "Institutional and public-interest leaders",
+      "Research and development partners",
+      "Founders and complex-project sponsors",
+      "Investors of capital, time, expertise, infrastructure, access, or trust",
+      "Technical and creative collaborators"
     ],
     "attributes": [
       "tactile",
@@ -29,21 +30,22 @@
   },
   "identity": {
     "concept": {
-      "name": "Living Loom",
-      "thesis": "Every project is a distinct thread; a responsive blue strand reveals how Emmanuel connects evidence, imagination, and engineering into useful systems.",
-      "dominant_feeling": "energized confidence",
-      "memorable_mechanism": "one electric-ultramarine strand crossing tactile editorial compositions",
+      "name": "Documented Practice",
+      "thesis": "A restrained corporate wordmark, two grounded documentary opening plates, and a deliberately varied system of disclosed conceptual imagery give kingXford & Co authority without turning the identity or every scene into the same visual treatment.",
+      "dominant_feeling": "measured authority",
+      "memorable_mechanism": "the X remains on the same baseline and at the same optical scale as the surrounding letters, with colour as its only emphasis; a compact K monogram serves icon contexts",
       "recognition_signals": [
-        "woven K symbol",
+        "restrained kingXford & Co wordmark",
+        "compact framed K monogram",
         "bone-and-graphite editorial fields",
-        "ultramarine route",
+        "ultramarine used for navigation and selective emphasis",
         "Newsreader and Manrope contrast",
-        "paper, thread, graphite, brass, and fabric material cues"
+        "source-recorded opening photography paired with disclosed, project-specific conceptual imagery"
       ]
     },
     "logo_assets": [
       {
-        "id": "logo-woven-k",
+        "id": "logo-k-monogram",
         "path": "src/app/icon.svg",
         "format": "svg",
         "status": "original implementation asset; legal and trademark review not performed"
@@ -60,7 +62,9 @@
       ],
       "prohibited_uses": [
         "Do not rotate, skew, outline, or add glow.",
-        "Do not replace the controlled SVG geometry with generated lettering.",
+        "Do not enlarge, raise, isolate, or turn the X into an architectural emblem.",
+        "Do not emphasize the X with scale, weight, animation, or geometry; colour is sufficient.",
+        "Do not replace the restrained wordmark or K monogram with generated lettering.",
         "Do not place over a detailed image without a solid contrast field.",
         "Do not imply trademark clearance or exclusivity."
       ]
@@ -247,15 +251,19 @@
     },
     "imagery": {
       "subjects": [
-        "Conceptual physical models of systems, learning, architecture, and value.",
-        "Fictional adult creative professionals shown with agency and natural variation.",
-        "Age-appropriate collaborative learners only where education context requires people."
+        "A source-recorded design-process photograph for the Mission plate and a source-recorded planning photograph for the Intelligence plate.",
+        "Disclosed conceptual editorial environments for the remaining cinematic chapters and the Studio, Living Room, and Lab cards.",
+        "Published-project covers that preserve authentic interface evidence within individually art-directed conceptual fields, plus a disclosed conceptual Value-M cover.",
+        "Disclosed conceptual editorial covers for Media features.",
+        "Adults visible in documentary sources are contextual subjects only, never kingXford & Co staff, clients, study participants, or endorsers."
       ],
       "composition": [
         "3:2 editorial landscape",
-        "clear focal subject or model",
+        "preserve authentic product hierarchy and readable interface evidence inside conceptual project-cover fields",
+        "retain a clear documentary focal subject in the Mission and Intelligence plates without changing the meaning of either source",
         "deliberate negative space for adjacent HTML type",
-        "visible ultramarine route"
+        "vary setting, material, scale, and visual metaphor by subject instead of repeating an X-shaped machine or environment",
+        "do not fabricate people, screens, or claims inside documentary photographs or authentic interface layers"
       ],
       "camera": [
         "grounded eye-level or tabletop view",
@@ -263,10 +271,11 @@
         "no drone-like or impossible viewpoint unless the object is explicitly a scale model"
       ],
       "lighting": [
-        "directional studio light",
-        "legible material shadows",
-        "controlled highlight on brass or fabric",
-        "no undirected digital glow"
+        "natural or documented production light for the two licensed photographs",
+        "legible material shadows and highlights in conceptual scenes",
+        "restrained grade that preserves photographic truth on documentary sources",
+        "no generative fill or semantic edit applied to documentary sources",
+        "avoid treating glow, blue light, or darkness as a default signal of intelligence"
       ],
       "color_treatment": [
         "warm-bone and graphite foundation",
@@ -275,19 +284,30 @@
         "natural skin tones"
       ],
       "exclusions": [
-        "embedded words, logos, or watermarks",
+        "watermarks or unlicensed third-party assets",
         "cyberpunk interfaces",
         "glowing HUD graphics",
-        "identifiable real people",
-        "fabricated documentary evidence",
+        "fabricated documentary claims",
+        "presenting generated or hybrid imagery as documentary evidence, a literal interface, or a measured outcome",
+        "repeating a dominant X device across images; the X belongs primarily to the restrained wordmark",
+        "invented readable text, interface states, metrics, testimonials, citations, or product claims",
         "stereotyped or exoticized cultural styling"
+      ],
+      "media_policy": [
+        "The Mission and Intelligence cinematic plates use source-recorded documentary photography; every other active raster is explicitly recorded by its actual generated, hybrid, or documentary source type.",
+        "Hybrid project covers may preserve authentic captured interface evidence inside generated editorial fields but may not invent, rewrite, or synthesize the interface content itself.",
+        "Conceptual imagery must be described as illustrative and must not be presented as a real facility, employee, engagement, experiment, certification, dataset, or measured outcome.",
+        "Documentary photographs remain contextual and must not be described as a kingXford & Co facility, employee, engagement, experiment, or measured outcome.",
+        "Use factual adjacent HTML, purpose-based alt text, and a conceptual or contextual caption where confusion is reasonably possible.",
+        "Record source, capture or generation date, material edits, restrictions, dimensions, release state, and final checksum in creative/rights-provenance.csv.",
+        "The active asset set follows the explicitly approved selective rollback; future replacements require a new visual and rights review."
       ]
     },
     "illustration_and_icons": {
       "construction": [
         "2px optical stroke at 24px",
         "open geometry",
-        "woven overlap used only for brand-specific symbols"
+        "simple orthographic geometry; the compact K monogram uses one restrained ultramarine terminal"
       ],
       "line_weight": "1.75–2 CSS px at the 24px reference size",
       "perspective": "orthographic for interface icons; shallow physical perspective for system diagrams",
@@ -302,7 +322,8 @@
       "principles": [
         "Reveal relationship, not decoration.",
         "State changes begin immediately and remain interruptible.",
-        "The strand may draw once as orientation, then settle.",
+        "The wordmark remains stable; identity letters do not assemble as spectacle.",
+        "Scroll motion crossfades authentic public-product captures and licensed documentary environments without scrubbing a short looping film.",
         "Content never waits for a cinematic intro.",
         "Hover and focus communicate the same hierarchy."
       ],
@@ -332,7 +353,8 @@
       "Specific over inflated",
       "Warm but unsentimental",
       "Show systems depth without hiding behind jargon",
-      "Separate shipped work, active work, and concept work"
+      "Separate shipped work, active work, and concept work",
+      "Treat sustainable abundance as a research and development direction disciplined by evidence, ecological limits, distribution, and accountability"
     ],
     "headline_behavior": "Short editorial statements with one unexpected but concrete verb.",
     "body_behavior": "Explain context, decision, and consequence in compact paragraphs; avoid unsupported superlatives.",
@@ -344,6 +366,13 @@
       "Start a conversation"
     ],
     "terms_to_use": [
+      "intelligence",
+      "research and development",
+      "responsible AI",
+      "sustainable abundance",
+      "human and institutional capability",
+      "complex problems",
+      "complex projects",
       "design",
       "system",
       "evidence",
@@ -402,22 +431,27 @@
   },
   "governance": {
     "owners": [
-      "Emmanuel Kingsford Owusu — brand and content owner"
+      "kingXford & Co — brand and content authority"
     ],
     "approval_rules": [
       "Project claims, external URLs, and contact details require owner verification.",
       "A production release requires build, route, keyboard, responsive, and outbound-link checks.",
-      "Generated-image provenance must remain attached to every derived cover.",
+    "Documentary, generated, and hybrid provenance must remain attached to every active cover, cinematic plate, world card, and Media image.",
+    "Only the Mission and Intelligence cinematic plates are replaced by documentary photographs; the established generated and hybrid imagery remains active elsewhere under explicit conceptual disclosure.",
+      "CCAI Global, Aceplore, Nkosuo, and Elkings College remain unreleased until a verified status change is recorded.",
       "Formal accessibility conformance, copyright, font, and trademark clearance require qualified review; none is claimed here."
     ],
     "asset_sources_and_licenses": [
-      "Eight project covers: generated with OpenAI built-in image generation on 2026-07-29; model not exposed; converted from PNG to stripped WebP quality 82.",
-      "Woven K icon: original vector geometry created for this repository on 2026-07-29.",
+    "Veridanth, Psyche Atlas, and GrandMaster covers preserve authentic public-product captures inside generated 2400x1600 conceptual fields; Value-M uses a generated conceptual process field. Each remains subject to the restrictions in rights-provenance.csv.",
+    "The Mission prototype-workshop photograph and Intelligence planning photograph are licensed from GN Group and Jonathan Borba through Unsplash; source pages and contextual restrictions are recorded.",
+    "The remaining active cinematic, world-card, and Media imagery was generated for kingXford & Co and is explicitly recorded as conceptual rather than documentary evidence.",
+      "The restrained wordmark and framed K monogram are original repository implementations updated on 2026-08-01; legal and trademark review has not been performed.",
+    "Superseded assets remain in rights-provenance.csv with inactive_historical release state; the explicitly restored evidence-v2, capability-plate, world-portrait, and Media-cover records are active.",
       "Manrope and Newsreader: loaded through @fontsource packages; license metadata must be preserved and verified before redistribution.",
       "Lucide interface icons: package dependency; retain its license and notices."
     ],
-    "version": "1.0.0",
-    "updated_at": "2026-07-29",
+    "version": "2.0.0",
+    "updated_at": "2026-08-01",
     "legal_review": "not performed",
     "accessibility_conformance_audit": "not performed"
   }

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "Kingxford — Complex ideas. Unforgettable form.";
+  "kingXford & Co — Intelligence for Sustainable Abundance";
 export const size = {
   width: 1200,
   height: 630,
@@ -56,38 +56,12 @@ export default function OpenGraphImage() {
         <div
           style={{
             position: "absolute",
-            right: "-135px",
-            top: "-165px",
-            width: "540px",
-            height: "540px",
-            border: "1px solid rgba(91,123,255,0.5)",
-            borderRadius: "50%",
+            right: "70px",
+            top: "146px",
+            bottom: "90px",
+            width: "5px",
             display: "flex",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            right: "-55px",
-            top: "-85px",
-            width: "380px",
-            height: "380px",
-            border: "1px dashed rgba(91,123,255,0.42)",
-            borderRadius: "50%",
-            display: "flex",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            right: "96px",
-            top: "70px",
-            width: "70px",
-            height: "70px",
-            borderRadius: "50%",
-            display: "flex",
-            background: "#315dff",
-            boxShadow: "0 0 70px rgba(49,93,255,0.78)",
+            background: "rgba(89,97,255,0.72)",
           }}
         />
 
@@ -101,27 +75,47 @@ export default function OpenGraphImage() {
             textTransform: "uppercase",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              letterSpacing: "-0.045em",
+              textTransform: "none",
+              fontSize: "26px",
+              fontWeight: 680,
+            }}
+          >
+            <span>king</span>
+            <span
               style={{
-                width: "34px",
-                height: "34px",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px solid rgba(244,241,233,0.58)",
-                color: "#86a0ff",
-                fontSize: 14,
-                fontWeight: 700,
-                letterSpacing: "0.02em",
+                margin: "0 1px",
+                color: "#5961ff",
+                fontSize: "25px",
+                fontWeight: 710,
+                lineHeight: 1,
               }}
             >
-              KX
-            </div>
-            <span>Kingxford</span>
+              X
+            </span>
+            <span>ford</span>
+            <span
+              style={{
+                display: "flex",
+                marginLeft: "16px",
+                paddingLeft: "16px",
+                borderLeft: "1px solid rgba(244,241,233,0.28)",
+                color: "rgba(244,241,233,0.7)",
+                fontSize: "11px",
+                fontWeight: 650,
+                letterSpacing: "0.08em",
+              }}
+            >
+              &amp; Co
+            </span>
           </div>
           <span style={{ color: "#86a0ff" }}>
-            Studio / Living Room / Lab
+            Intelligence / R&amp;D / Responsible AI
           </span>
         </div>
 
@@ -143,7 +137,7 @@ export default function OpenGraphImage() {
               letterSpacing: "-0.06em",
             }}
           >
-            Complex ideas.
+            Intelligence for
           </div>
           <div
             style={{
@@ -155,7 +149,7 @@ export default function OpenGraphImage() {
               color: "#7894ff",
             }}
           >
-            Unforgettable form.
+            sustainable abundance.
           </div>
         </div>
 
@@ -175,31 +169,26 @@ export default function OpenGraphImage() {
               color: "rgba(244,241,233,0.7)",
             }}
           >
-            By Emmanuel Kingsford Owusu · Digital products · Visual systems ·
-            Research experiences
+            Helping people and institutions solve complex problems and
+            develop ambitious ideas, projects, and systems.
           </div>
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              fontSize: 17,
+              maxWidth: "285px",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "5px",
+              fontSize: 12,
               letterSpacing: "0.12em",
+              lineHeight: 1.35,
+              textAlign: "right",
               textTransform: "uppercase",
               color: "rgba(244,241,233,0.7)",
             }}
           >
-            <span>Canada</span>
-            <span
-              style={{
-                width: "6px",
-                height: "6px",
-                display: "flex",
-                borderRadius: "50%",
-                background: "#315dff",
-              }}
-            />
-            <span>Worldwide</span>
+            <span>Craft signature</span>
+            <span>Complex ideas. Unforgettable form.</span>
           </div>
         </div>
       </div>

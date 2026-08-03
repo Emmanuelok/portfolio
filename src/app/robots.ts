@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 const baseUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://my-portfolio-six-teal-90.vercel.app"
+  "https://kingxford.co"
 ).replace(/\/$/, "");
 
 export default function robots(): MetadataRoute.Robots {

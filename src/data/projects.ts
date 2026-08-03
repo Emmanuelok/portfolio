@@ -14,6 +14,7 @@ export type ProjectChapter = Readonly<{
 
 export type Project = Readonly<{
   slug: string;
+  status: "published" | "unreleased";
   title: string;
   eyebrow: string;
   year: string;
@@ -26,7 +27,6 @@ export type Project = Readonly<{
   featured: boolean;
   role: readonly string[];
   liveUrl?: string;
-  repoUrl?: string;
   challenge: string;
   approach: readonly string[];
   outcome: string;
@@ -34,115 +34,119 @@ export type Project = Readonly<{
   related: readonly string[];
 }>;
 
-export const projects: readonly Project[] = [
+const projectArchive: readonly Project[] = [
   {
-    slug: "kisuyo",
-    title: "KISUYO",
-    eyebrow: "The AI atelier",
+    slug: "veridanth",
+    status: "published",
+    title: "Veridanth",
+    eyebrow: "Intelligent consultancy · Connected tools",
     year: "2026",
     categories: ["Digital Product", "AI Experience", "Web Experience"],
     summary:
-      "A wardrobe-aware fashion platform that moves from a real closet and event context to complete looks, virtual try-on, and motion.",
-    statement: "Never wonder what to wear again.",
-    cover: "/work/kisuyo.webp",
+      "A connected consultancy and digital-tools platform that moves ambitious work from one brief to the right workflow, specialist, and deliverable.",
+    statement: "One brief. The right tools and team already in motion.",
+    cover: "/work/veridanth-evidence-v2.webp",
     coverAlt:
-      "A fashion model in a sculptural midnight-blue suit standing inside a paper atelier set",
-    accent: "#315dff",
+      "Editorial composite preserving the live Veridanth Studio interface within a botanical and mineral routing lattice; the surrounding imagery is illustrative.",
+    accent: "#6657e8",
     featured: true,
     role: [
-      "Product strategy",
-      "Experience architecture",
+      "Platform strategy",
+      "Service architecture",
+      "AI workflow design",
       "Visual direction",
-      "Full-stack product design",
     ],
-    liveUrl: "https://fashion-production-001b.up.railway.app/",
+    liveUrl: "https://www.veridanth.com/",
     challenge:
-      "Getting dressed is not a single recommendation problem. It depends on what someone owns, the event, weather, formality, personal style, garment condition, and how confidently the final look can be understood before it is worn.",
+      "A broad consultancy can easily become a directory of disconnected services. The platform needed one shared context layer that could understand a goal, route it intelligently, and preserve continuity as work moved between tools and people.",
     approach: [
-      "Treat the user’s actual wardrobe as the system of record, with garment attributes, wear history, laundry state, and cost-per-wear.",
-      "Translate event context into a legible dress-code ladder, then score complete outfits against formality, colour, climate, and wardrobe rotation.",
-      "Connect recommendation, model rendering, virtual try-on, runway motion, planning, and the lookbook as one continuous atelier journey.",
-      "Design useful keyless fallbacks so the essential experience remains understandable even before external generation providers are connected.",
+      "Make a single project brief reusable across the platform so people do not have to repeatedly explain the same ambition.",
+      "Route work by intent, readiness, and required expertise instead of asking users to choose from an abstract catalogue.",
+      "Connect intelligent studios, project workspaces, specialist matching, and human handoffs as one continuous service journey.",
+      "Keep milestones, authorship, responsibility, and delivery state visible as the work progresses.",
     ],
     outcome:
-      "A working multi-user fashion product that connects the closet, event atlas, AI stylist, generation studio, trip planning, outfit calendar, lookbook, and gap-filling boutique without losing the thread between them.",
+      "A live platform connecting consultancy services, intelligent studios, project routing, and workspace continuity in one coherent experience.",
     chapters: [
       {
-        eyebrow: "01 · Foundation",
-        title: "The closet is the intelligence",
+        eyebrow: "01 · Context",
+        title: "One brief becomes system memory",
         body:
-          "Recommendations begin with named garments the user already owns. That constraint makes the experience more personal, more economical, and easier to trust.",
+          "The platform carries the goal, audience, constraints, and existing material forward so every tool and specialist can begin with useful context.",
       },
       {
-        eyebrow: "02 · Context",
-        title: "A dress code becomes a decision system",
+        eyebrow: "02 · Continuity",
+        title: "Tools hand work forward",
         body:
-          "Event, venue, weather, time, and role are translated into concrete guidance rather than an opaque style verdict.",
+          "Outputs become inputs for the next stage, allowing research, writing, design, analysis, and delivery to behave like one connected practice.",
       },
       {
-        eyebrow: "03 · Confidence",
-        title: "From suggestion to seeing it move",
+        eyebrow: "03 · Expertise",
+        title: "Human judgement stays visible",
         body:
-          "Editorial renders, try-on, and short motion studies help bridge the gap between an outfit recommendation and the confidence to wear it.",
+          "Intelligent assistance accelerates the work while specialist ownership, review, and handoff remain explicit throughout the project.",
       },
     ],
-    related: ["aceplore", "elkings-college"],
+    related: ["psyche-atlas", "value-m"],
   },
   {
-    slug: "king-uml",
-    title: "Glyph",
-    eyebrow: "King-UML · Research diagramming studio",
+    slug: "psyche-atlas",
+    status: "published",
+    title: "Psyche Atlas",
+    eyebrow: "Personality assessment · Reflective intelligence",
     year: "2026",
-    categories: ["Digital Product", "Research & Data", "AI Experience"],
+    categories: ["Digital Product", "Education", "Web Experience"],
     summary:
-      "A multi-engine studio for turning code, data, and research logic into publication-ready diagrams across technical disciplines.",
-    statement: "Complex knowledge, made visible.",
-    cover: "/work/king-uml.webp",
+      "A privacy-minded self-reflection platform that turns a deep, source-referenced assessment library into a guided, searchable experience with growth-oriented reporting.",
+    statement:
+      "A map for reflection—structured, personal, and careful about what a test can and cannot say.",
+    cover: "/work/psyche-atlas-evidence-v2.webp",
     coverAlt:
-      "A luminous architectural wireframe built from translucent planes, fine lines, and electric-blue nodes",
-    accent: "#315dff",
+      "Editorial composite preserving a live Psyche Atlas personality-results interface within layered cartographic forms; the surrounding imagery is illustrative.",
+    accent: "#c6934e",
     featured: true,
     role: [
-      "Product vision",
-      "Interaction design",
+      "Experience strategy",
       "Information architecture",
-      "Visual systems",
+      "Assessment UX",
+      "Editorial direction",
     ],
-    liveUrl: "https://king-uml.vercel.app/studio",
+    liveUrl: "https://personality-tests-six.vercel.app/",
     challenge:
-      "Research diagrams span radically different grammars—from causal models and UML to statistical graphics and scientific notation. The interface needed to support that breadth without feeling like a disconnected toolbox.",
+      "A large assessment library can quickly feel repetitive or overwhelming. The experience needed to make exploration coherent and approachable without blurring educational self-reflection into clinical diagnosis.",
     approach: [
-      "Organise multiple rendering grammars around the user’s intent rather than the implementation details of each engine.",
-      "Keep source and visual output in a tight editing loop, with templates that provide a credible starting structure.",
-      "Design export, attribution, and publication workflows as first-class parts of the studio.",
-      "Create a consistent visual language across diagrams that may be rendered by very different underlying systems.",
+      "Use optional onboarding and guided packs to create a clear first step without making an account a prerequisite.",
+      "Organise discovery through thematic navigation, search, and transparent time, item, factor, and source metadata.",
+      "Keep responses on-device and make privacy, language, and display controls part of the primary experience.",
+      "Frame sensitive screens as prompts for insight and support rather than diagnoses or substitutes for professional care.",
     ],
     outcome:
-      "A live diagramming environment that brings research, engineering, scientific, and systems-visualisation workflows into one focused studio with editable source and export-ready output.",
+      "A live assessment experience spanning personality, relationships, career, wellbeing, and learning—designed for self-reflection, not clinical diagnosis.",
     chapters: [
       {
-        eyebrow: "01 · Grammar",
-        title: "Many engines, one mental model",
+        eyebrow: "01 · Orientation",
+        title: "Depth without the maze",
         body:
-          "The experience abstracts away engine switching so people can concentrate on the structure they need to communicate.",
+          "Guided entry points and thematic browsing let people begin with a question that matters to them instead of confronting an undifferentiated test catalogue.",
       },
       {
-        eyebrow: "02 · Practice",
-        title: "Templates shaped by real research",
+        eyebrow: "02 · Transparency",
+        title: "The shape of every assessment is visible",
         body:
-          "PRISMA flows, causal diagrams, ontologies, requirements, pathways, and other specialist structures sit beside familiar UML and data graphics.",
+          "Time, item count, factors, and cited-source context appear before someone begins, making the commitment and basis of each experience easier to understand.",
       },
       {
-        eyebrow: "03 · Output",
-        title: "Built for the final document",
+        eyebrow: "03 · Care",
+        title: "Reflection with clear boundaries",
         body:
-          "Preview, refinement, and export are treated as a single workflow so the result can move cleanly into papers, reports, and presentations.",
+          "The product stays useful and personal while explicitly distinguishing self-understanding from medical or clinical assessment.",
       },
     ],
-    related: ["ccai-global", "megaproject-intelligence"],
+    related: ["veridanth", "grandmaster"],
   },
   {
     slug: "ccai-global",
+    status: "unreleased",
     title: "CCAI Global",
     eyebrow: "Corruption analytics + ontology",
     year: "2026",
@@ -150,9 +154,9 @@ export const projects: readonly Project[] = [
     summary:
       "A research interface and knowledge system for modelling corruption as connected events across the complete project lifecycle.",
     statement: "Trace the system, not just the incident.",
-    cover: "/work/ccai-global.webp",
+    cover: "/work/ccai-global-evidence-v2.webp",
     coverAlt:
-      "A dark architectural model crossed by a vivid blue path that links fragmented concrete structures",
+      "Editorial composite preserving a live CCAI Global research-atlas interface within a forensic infrastructure evidence system; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: true,
     role: [
@@ -162,7 +166,6 @@ export const projects: readonly Project[] = [
       "Digital publication",
     ],
     liveUrl: "https://ccai.global/",
-    repoUrl: "https://github.com/Emmanuelok/corpm-onto",
     challenge:
       "Corruption in projects is usually described as a list of acts. That makes it difficult to see how actors, roles, opportunities, lifecycle stages, evidence, impacts, red flags, and controls connect.",
     approach: [
@@ -193,10 +196,11 @@ export const projects: readonly Project[] = [
           "The digital experience makes a formal research asset approachable without flattening its uncertainty or governance boundaries.",
       },
     ],
-    related: ["king-uml", "megaproject-intelligence"],
+    related: ["value-m", "veridanth"],
   },
   {
     slug: "aceplore",
+    status: "unreleased",
     title: "Aceplore",
     eyebrow: "Digital tools for real work",
     year: "2026",
@@ -204,9 +208,9 @@ export const projects: readonly Project[] = [
     summary:
       "A coherent platform of focused digital tools designed to help students and professionals move from a difficult task to a clear result.",
     statement: "Less friction between the question and the work.",
-    cover: "/work/aceplore.webp",
+    cover: "/work/aceplore-evidence-v2.webp",
     coverAlt:
-      "A designer seated at a warm studio desk while a blue line rises through sketches and prototypes behind him",
+      "Editorial composite preserving the live Aceplore interface within a modular industrial workbench; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: false,
     role: [
@@ -246,72 +250,75 @@ export const projects: readonly Project[] = [
           "The visual direction keeps the platform ambitious while grounding it in relatable work, real people, and visible progress.",
       },
     ],
-    related: ["elkings-college", "kisuyo"],
+    related: ["veridanth", "psyche-atlas"],
   },
   {
-    slug: "megaproject-intelligence",
-    title: "Megaproject Performance Intelligence",
-    eyebrow: "COMPSIS · Decision intelligence",
+    slug: "grandmaster",
+    status: "published",
+    title: "GrandMaster",
+    eyebrow: "AI game centre · Strategy and learning",
     year: "2026",
-    categories: ["Research & Data", "Digital Product"],
+    categories: ["Digital Product", "AI Experience", "Education"],
     summary:
-      "A browser-based system that turns project evidence into an auditable success index, benchmark, trajectory, and intervention view.",
-    statement: "Make performance evidence answerable.",
-    cover: "/work/megaproject-intelligence.webp",
+      "An intelligent multi-game strategy centre combining adaptive opponents, playable 2D and 3D boards, plain-language move coaching, and post-game review.",
+    statement: "Every move becomes a lesson, not just a result.",
+    cover: "/work/grandmaster-evidence-v2.webp",
     coverAlt:
-      "A detailed infrastructure model of bridges, tunnels, and worksites connected by a continuous electric-blue route",
-    accent: "#315dff",
+      "Editorial composite preserving the live GrandMaster chess and tutor interface within an exploded strategy tree; the surrounding imagery is illustrative.",
+    accent: "#7758ff",
     featured: true,
     role: [
-      "Research translation",
-      "Systems design",
-      "Data visualisation",
-      "Product architecture",
+      "Product strategy",
+      "Game experience design",
+      "Learning-system architecture",
+      "Visual direction",
     ],
+    liveUrl: "https://boardgames-peach.vercel.app/",
     challenge:
-      "Megaproject success is multidimensional, evidence quality varies, and like-for-like comparison is difficult. A useful product has to expose the assumptions behind a composite score rather than presenting an unexplained dashboard number.",
+      "A broad library of classic strategy games needed one coherent interface, while engine feedback had to become guidance that learners could understand rather than a stream of opaque scores.",
     approach: [
-      "Operationalise the research model as 27 KPIs across seven weighted success domains with evidence-adjusted confidence.",
-      "Connect assessment, certification, empirical benchmarking, trajectory, uncertainty, and intervention planning in one governed workflow.",
-      "Use purpose-built, accessible SVG visualisations for gauges, trends, distributions, sensitivity, and domain balance.",
-      "Keep the browser-based workspace portable with validated import and export, local persistence, and explicit research caveats.",
+      "Use skill-level onboarding to tune the first opponent and make the experience welcoming across different levels of play.",
+      "Translate move quality into plain-language explanations that help people understand what changed and why.",
+      "Connect quick play, daily challenges, openings, puzzles, reviews, and profile progress as one learning journey.",
+      "Support both clear 2D play and expressive 3D presentation, with visual themes that let the game space feel personal.",
     ],
     outcome:
-      "A working decision-support platform with an auditable Megaproject Performance & Success Index, Fuzzy Delphi lab, benchmark database, trajectory and early-warning views, uncertainty analytics, and role-based assessment workflow.",
+      "A live strategy-learning platform unifying play, practice, analysis, and visual customisation across a broad board-game library.",
     chapters: [
       {
-        eyebrow: "01 · Measure",
-        title: "An index that shows its workings",
+        eyebrow: "01 · Play",
+        title: "Many games, one clear home",
         body:
-          "Every composite result retains its domain weights, evidence coverage, confidence, and classification context.",
+          "A shared navigation and card system lets different rulesets feel like parts of the same product without erasing their individual character.",
       },
       {
-        eyebrow: "02 · Compare",
-        title: "Benchmarks with honest boundaries",
+        eyebrow: "02 · Learn",
+        title: "The engine explains itself",
         body:
-          "Empirical percentiles, cohort filters, and small-sample warnings keep comparison useful without pretending to have more evidence than the dataset provides.",
+          "Move grading is paired with plain-language reasoning so feedback becomes a lesson a player can use in the next position.",
       },
       {
-        eyebrow: "03 · Act",
-        title: "From score to intervention",
+        eyebrow: "03 · Review",
+        title: "A match becomes a learning record",
         body:
-          "Trend, uncertainty, sensitivity, and a prioritised intervention portfolio turn retrospective assessment into a forward-looking management conversation.",
+          "Post-game review connects accuracy, evaluation, and the move sequence, making improvement visible beyond the final result.",
       },
     ],
-    related: ["ccai-global", "value-m"],
+    related: ["psyche-atlas", "veridanth"],
   },
   {
-    slug: "ghana-sec-intelligence",
+    slug: "nkosuo",
+    status: "unreleased",
     title: "Nkosuo",
-    eyebrow: "Ghana SEC Intelligence · Ghanaian capital markets",
+    eyebrow: "Market intelligence · Evidence-led investing",
     year: "2026",
     categories: ["Research & Data", "Digital Product", "Education"],
     summary:
-      "A Ghana-first, mobile-minded market intelligence and learning experience built around transparency, context, and data provenance.",
+      "A mobile-minded market intelligence and learning experience built around transparency, context, and data provenance.",
     statement: "Every number needs a source, a timestamp, and context.",
-    cover: "/work/ghana-sec.webp",
+    cover: "/work/nkosuo-evidence-v2.webp",
     coverAlt:
-      "A sculptural financial chart made from black columns, paper curves, and a rising electric-blue line",
+      "Editorial composite incorporating an authentic Nkosuo interface fragment within layered market-provenance materials; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: true,
     role: [
@@ -320,17 +327,16 @@ export const projects: readonly Project[] = [
       "UX writing",
       "Visual direction",
     ],
-    liveUrl: "https://ghana-sec-intelligence.vercel.app/portfolio",
     challenge:
-      "Ghanaian investors and learners need local market context, yet exchange data has licensing and freshness constraints. The interface needed to be useful without implying that illustrative or delayed information was live advice.",
+      "Investors and learners need meaningful market context, yet exchange data has licensing and freshness constraints. The interface needed to be useful without implying that illustrative or delayed information was live advice.",
     approach: [
       "Make source, freshness, instrument, and information-only boundaries visible wherever market data appears.",
-      "Bring GSE equities, Treasury bills, business news, learning, watchlists, and portfolio views into a Ghana-specific information architecture.",
+      "Bring listed equities, fixed-income instruments, business news, learning, watchlists, and portfolio views into a coherent information architecture.",
       "Design for mobile screens and constrained connections, with plain-language explanations close to the relevant data.",
       "Treat corrections, source attribution, and legal context as product features rather than footer material.",
     ],
     outcome:
-      "A live Ghana-focused intelligence experience with market, portfolio, learning, source, and correction surfaces, designed to distinguish illustrative, delayed, and externally sourced information clearly.",
+      "A focused intelligence experience with market, portfolio, learning, source, and correction surfaces, designed to distinguish illustrative, delayed, and externally sourced information clearly.",
     chapters: [
       {
         eyebrow: "01 · Trust",
@@ -340,9 +346,9 @@ export const projects: readonly Project[] = [
       },
       {
         eyebrow: "02 · Locality",
-        title: "Designed around Ghanaian capital",
+        title: "Designed around real market context",
         body:
-          "The product foregrounds local instruments, currencies, institutions, language, and learning needs instead of adapting a generic global terminal.",
+          "The product foregrounds relevant instruments, currencies, institutions, language, and learning needs instead of adapting a generic global terminal.",
       },
       {
         eyebrow: "03 · Learning",
@@ -351,10 +357,11 @@ export const projects: readonly Project[] = [
           "Plain-English education sits close to data and portfolio tools so users can understand what they are viewing without turning the product into an adviser.",
       },
     ],
-    related: ["megaproject-intelligence", "aceplore"],
+    related: ["veridanth", "aceplore"],
   },
   {
     slug: "elkings-college",
+    status: "unreleased",
     title: "Elkings College",
     eyebrow: "Digital campus",
     year: "2026",
@@ -362,9 +369,9 @@ export const projects: readonly Project[] = [
     summary:
       "A controlled-preview digital campus spanning public discovery, curriculum, admissions, learning, records, and institution operations.",
     statement: "One coherent campus, from first discovery to lifelong learning.",
-    cover: "/work/elkings-college.webp",
+    cover: "/work/elkings-college-evidence-v2.webp",
     coverAlt:
-      "A group of students collaborating around a sculptural table on a sunlit contemporary campus",
+      "Editorial composite preserving a live Elkings College campus-workspace interface within an architectural campus continuum; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: true,
     role: [
@@ -404,10 +411,11 @@ export const projects: readonly Project[] = [
           "Controlled-preview labels and fail-closed boundaries make operational, privacy, identity, safeguarding, and provider dependencies part of the product’s truth.",
       },
     ],
-    related: ["aceplore", "kisuyo"],
+    related: ["aceplore", "psyche-atlas"],
   },
   {
     slug: "value-m",
+    status: "published",
     title: "Value-M",
     eyebrow: "Value management intelligence",
     year: "2026",
@@ -415,9 +423,9 @@ export const projects: readonly Project[] = [
     summary:
       "A unified workspace for the complete SAVE International Job Plan, held together by one value graph and an explainable agent layer.",
     statement: "One study. One value thread. Every decision connected.",
-    cover: "/work/value-m.webp",
+    cover: "/work/value-m-evidence-v2.webp",
     coverAlt:
-      "A physical process model progressing from dark raw forms to precise pale architectural structures linked by blue thread",
+      "Editorial composite preserving the live Value-M dashboard within a physical value-thread and decision-gate system; the surrounding imagery is illustrative.",
     accent: "#315dff",
     featured: false,
     role: [
@@ -457,9 +465,18 @@ export const projects: readonly Project[] = [
           "The intelligence layer surfaces assessments and next moves while approval gates preserve human ownership of consequential changes.",
       },
     ],
-    related: ["megaproject-intelligence", "king-uml"],
+    related: ["veridanth", "grandmaster"],
   },
 ];
+
+/**
+ * The public project collection. Unreleased case studies remain in the archive
+ * above so they can be launched deliberately without leaking into navigation,
+ * search, related work, metadata, sitemaps, or generated routes.
+ */
+export const projects: readonly Project[] = projectArchive.filter(
+  (project) => project.status === "published",
+);
 
 export const projectCategories: readonly ProjectCategory[] = Array.from(
   new Set(projects.flatMap((project) => project.categories)),

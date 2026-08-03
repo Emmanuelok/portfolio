@@ -1,0 +1,604 @@
+.evidence {
+  display: grid;
+  gap: clamp(6rem, 10vw, 10rem);
+  margin-top: clamp(5rem, 9vw, 9rem);
+}
+
+.dashboard,
+.capacity,
+.tableSection,
+.frameworkSection {
+  min-width: 0;
+  scroll-margin-top: calc(var(--header-height) + 2rem);
+}
+
+.sectionHeader {
+  max-width: 72rem;
+  margin-bottom: clamp(2.2rem, 4vw, 4rem);
+}
+
+.sectionHeader > p:first-child {
+  margin: 0 0 0.75rem;
+  color: var(--blue-bright);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sectionHeader h2 {
+  max-width: 16ch;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(2.7rem, 5.5vw, 5.8rem);
+  font-weight: 470;
+  letter-spacing: -0.07em;
+  line-height: 0.96;
+}
+
+.sectionHeader .intro {
+  max-width: 66ch;
+  margin: 1.5rem 0 0;
+  color: var(--text-soft);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.metricFigure,
+.chart,
+.framework {
+  margin: 0;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  background: var(--border);
+}
+
+.metric {
+  display: flex;
+  min-height: 22rem;
+  flex-direction: column;
+  padding: clamp(1.4rem, 3vw, 2.7rem);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(89, 97, 255, 0.14), transparent 14rem),
+    var(--surface);
+}
+
+.metricWide {
+  grid-column: 1 / -1;
+}
+
+.metricTopline {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metric > strong,
+.metricTriplet strong {
+  display: block;
+  margin-top: auto;
+  color: var(--text);
+  font-size: clamp(4rem, 8vw, 8.5rem);
+  font-weight: 460;
+  letter-spacing: -0.085em;
+  line-height: 0.8;
+}
+
+.metric > p,
+.metricTriplet p {
+  max-width: 30ch;
+  margin: 1.2rem 0 2rem;
+  color: var(--text-soft);
+  font-size: clamp(0.82rem, 1.4vw, 1rem);
+  line-height: 1.55;
+}
+
+.metric small {
+  display: grid;
+  max-width: 62ch;
+  gap: 0.45rem;
+  color: var(--text-faint);
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
+
+.metric small a,
+.chartHeading > a,
+.pressureNote > a {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--blue-bright);
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.metric small a svg,
+.chartHeading > a svg,
+.pressureNote > a svg {
+  width: 0.8rem;
+}
+
+.metricTriplet {
+  display: grid;
+  margin-top: auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+
+.metricTriplet > div {
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--surface) 92%, var(--blue) 8%);
+}
+
+.metricTriplet strong {
+  margin-top: 0;
+  font-size: clamp(2.8rem, 6vw, 6.2rem);
+}
+
+.metricFigure > figcaption,
+.chart > figcaption,
+.framework > figcaption {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.65;
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  background: var(--border);
+}
+
+.chart {
+  min-width: 0;
+  padding: clamp(1.5rem, 3vw, 2.75rem);
+  background: var(--surface);
+}
+
+.chartWide {
+  grid-column: 1 / -1;
+}
+
+.chartHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: clamp(2.5rem, 5vw, 5rem);
+}
+
+.chartHeading > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.chartHeading span {
+  color: var(--text-soft);
+  font-size: 0.76rem;
+}
+
+.chartHeading strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.bars {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(8rem, 2fr) 3.6rem;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.barRow > span {
+  color: var(--text-soft);
+  font-size: 0.67rem;
+}
+
+.barRow > strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-align: right;
+}
+
+.track,
+.energyTrack {
+  height: 0.75rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.track > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue-deep), var(--blue-bright));
+}
+
+.barFull {
+  width: 100%;
+}
+
+.barWorld {
+  width: 34.1%;
+}
+
+.barAfrica {
+  width: 2.02%;
+  min-width: 0.2rem;
+}
+
+.stack {
+  display: flex;
+  min-height: 5rem;
+  overflow: hidden;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.03em;
+}
+
+.stack > span {
+  display: flex;
+  align-items: center;
+  padding: 0.85rem;
+}
+
+.solar {
+  width: 73.84%;
+  background: var(--blue-deep);
+}
+
+.wind {
+  width: 22.98%;
+  background: var(--gold);
+}
+
+.other {
+  width: 3.18%;
+  min-width: 0.5rem;
+  background: var(--success);
+}
+
+.capacityTotal {
+  display: grid;
+  margin-top: 1px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+
+.capacityTotal > div {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  background: var(--canvas);
+}
+
+.capacityTotal span {
+  color: var(--text-faint);
+  font-size: 0.6rem;
+  line-height: 1.4;
+}
+
+.capacityTotal strong {
+  color: var(--text);
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.energyComparison {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.energyComparison > div {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.45fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.energyComparison > div > span {
+  color: var(--text-soft);
+  font-size: 0.68rem;
+}
+
+.energyTrack {
+  height: 3.4rem;
+}
+
+.energyTrack > span {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  padding-inline: 0.8rem;
+  background: linear-gradient(90deg, var(--blue-deep), var(--blue-bright));
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+
+.energyNow {
+  width: 43.92%;
+}
+
+.energyFuture {
+  width: 100%;
+}
+
+.tableScroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  outline: none;
+}
+
+.tableScroll:focus-visible {
+  box-shadow: 0 0 0 3px var(--focus);
+}
+
+.tableScroll table {
+  width: 100%;
+  min-width: 56rem;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+.tableScroll caption {
+  padding: 1rem;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-align: left;
+}
+
+.tableScroll th,
+.tableScroll td {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 0.7rem;
+  line-height: 1.55;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tableScroll thead th {
+  background: var(--canvas);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.tableScroll tbody th {
+  color: var(--text);
+  font-weight: 550;
+}
+
+.tableNote {
+  margin: 0;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.65;
+}
+
+.frameworkCanvas {
+  position: relative;
+  display: grid;
+  min-height: 34rem;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  align-items: stretch;
+  gap: 0.7rem;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(89, 97, 255, 0.18), transparent 24rem),
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px),
+    var(--canvas-deep);
+  background-size: auto, 4rem 4rem, 4rem 4rem, auto;
+}
+
+.frameworkNode {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1rem, 2vw, 1.6rem);
+  border: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  box-shadow: var(--shadow);
+}
+
+.frameworkNode span,
+.pressureNote > span {
+  color: var(--blue-bright);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.frameworkNode strong {
+  margin: auto 0 1rem;
+  color: var(--text);
+  font-size: clamp(1.5rem, 2.7vw, 2.8rem);
+  font-weight: 480;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.frameworkNode p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
+
+.nodeTwo,
+.nodeFour {
+  transform: translateY(2rem);
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  color: var(--blue-bright);
+  font-size: 1.5rem;
+}
+
+.feedback {
+  position: absolute;
+  right: 2.5rem;
+  bottom: 1.2rem;
+  left: 2.5rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--blue);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.pressureNote {
+  display: grid;
+  max-width: 52rem;
+  margin: clamp(2rem, 4vw, 4rem) 0 0 auto;
+  gap: 1rem;
+  padding: clamp(1.5rem, 3vw, 3rem);
+  border-left: 2px solid var(--gold);
+  background: var(--surface);
+}
+
+.pressureNote > span {
+  color: var(--gold);
+}
+
+.pressureNote > strong {
+  color: var(--text);
+  font-size: clamp(3rem, 6vw, 6rem);
+  font-weight: 460;
+  letter-spacing: -0.075em;
+  line-height: 0.9;
+}
+
+.pressureNote > p {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .metricTriplet,
+  .chartGrid,
+  .capacityTotal {
+    grid-template-columns: 1fr;
+  }
+
+  .chartWide {
+    grid-column: auto;
+  }
+
+  .frameworkCanvas {
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  .arrow {
+    transform: rotate(90deg);
+  }
+
+  .nodeTwo,
+  .nodeFour {
+    transform: none;
+  }
+
+  .frameworkNode {
+    min-height: 14rem;
+  }
+
+  .feedback {
+    position: static;
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 620px) {
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricWide {
+    grid-column: auto;
+  }
+
+  .metric {
+    min-height: 20rem;
+  }
+
+  .metricTriplet > div {
+    padding: 1rem 0;
+  }
+
+  .barRow {
+    grid-template-columns: 1fr 3.5rem;
+  }
+
+  .barRow .track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .energyComparison > div {
+    grid-template-columns: 1fr;
+  }
+
+  .stack {
+    min-height: 4rem;
+  }
+
+  .stack > span {
+    padding: 0.45rem;
+    font-size: 0.5rem;
+  }
+}

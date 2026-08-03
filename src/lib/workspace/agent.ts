@@ -3,6 +3,13 @@ import { z } from "zod";
 
 export const CREATIVE_AGENT_MODEL =
   process.env.KINGXFORD_CREATIVE_MODEL || "openai/gpt-5.6-sol";
+export const CREATIVE_AGENT_FALLBACK_MODELS = (
+  process.env.KINGXFORD_CREATIVE_FALLBACK_MODELS ||
+  "openai/gpt-5.2,openai/gpt-5.4-mini"
+)
+  .split(",")
+  .map((model) => model.trim())
+  .filter(Boolean);
 export const CREATIVE_AGENT_PROTOCOL_VERSION = "kxci-2026-08-02.1";
 
 export const agentReviewSchema = z.object({
@@ -41,9 +48,12 @@ Boundaries:
 
 Return only the required structured review.`;
 
-export function createCreativeAgent(depth: "standard" | "deep") {
+export function createCreativeAgent(
+  depth: "standard" | "deep",
+  model = CREATIVE_AGENT_MODEL,
+) {
   return new ToolLoopAgent({
-    model: CREATIVE_AGENT_MODEL,
+    model,
     instructions: creativeAgentInstructions,
     reasoning: depth === "deep" ? "xhigh" : "medium",
     maxOutputTokens: 3200,

@@ -117,6 +117,43 @@ function containsLikelySecret(value: string) {
   return secretPatterns.some((pattern) => pattern.test(value));
 }
 
+function reportAgentFailure(error: unknown) {
+  const candidate = error && typeof error === "object"
+    ? (error as {
+        name?: unknown;
+        message?: unknown;
+        statusCode?: unknown;
+        cause?: unknown;
+      })
+    : undefined;
+  const cause = candidate?.cause && typeof candidate.cause === "object"
+    ? (candidate.cause as {
+        name?: unknown;
+        message?: unknown;
+        statusCode?: unknown;
+      })
+    : undefined;
+  const compact = (value: unknown) =>
+    typeof value === "string"
+      ? value
+          .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, "[redacted]")
+          .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
+          .slice(0, 600)
+      : undefined;
+
+  console.error("[workspace-agent] OpenAI review failed", {
+    name: compact(candidate?.name),
+    message: compact(candidate?.message),
+    statusCode:
+      typeof candidate?.statusCode === "number" ? candidate.statusCode : undefined,
+    causeName: compact(cause?.name),
+    causeMessage: compact(cause?.message),
+    causeStatusCode:
+      typeof cause?.statusCode === "number" ? cause.statusCode : undefined,
+    model: CREATIVE_AGENT_MODEL,
+  });
+}
+
 function serializeWorkspace(value: z.infer<typeof requestSchema>) {
   const code = value.mode === "code"
     ? `\nHTML\n${value.code.html}\n\nCSS\n${value.code.css}\n\nJAVASCRIPT\n${value.code.javascript}`
@@ -275,7 +312,8 @@ export async function POST(request: NextRequest) {
         }),
       },
     );
-  } catch {
+  } catch (error) {
+    reportAgentFailure(error);
     return localResponse(
       parsed.data,
       "The OpenAI review was temporarily unavailable. Your input was not changed; this fallback uses local structural rules.",

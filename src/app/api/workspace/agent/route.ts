@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   canUseCreativeAgent,
   createCreativeAgent,
+  CREATIVE_AGENT_FALLBACK_MODELS,
   CREATIVE_AGENT_MODEL,
   CREATIVE_AGENT_PROTOCOL_VERSION,
 } from "@/lib/workspace/agent";
@@ -117,7 +118,7 @@ function containsLikelySecret(value: string) {
   return secretPatterns.some((pattern) => pattern.test(value));
 }
 
-function reportAgentFailure(error: unknown) {
+function reportAgentFailure(error: unknown, model: string, attempt: number) {
   const candidate = error && typeof error === "object"
     ? (error as {
         name?: unknown;
@@ -150,7 +151,8 @@ function reportAgentFailure(error: unknown) {
     causeMessage: compact(cause?.message),
     causeStatusCode:
       typeof cause?.statusCode === "number" ? cause.statusCode : undefined,
-    model: CREATIVE_AGENT_MODEL,
+    model,
+    attempt,
   });
 }
 
@@ -288,35 +290,49 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  try {
-    const agent = createCreativeAgent(parsed.data.depth);
-    const result = await agent.generate({
-      prompt: serialized,
-      abortSignal: request.signal,
-    });
+  const candidateModels = [
+    CREATIVE_AGENT_MODEL,
+    ...CREATIVE_AGENT_FALLBACK_MODELS,
+  ].filter((model, index, models) => models.indexOf(model) === index);
 
-    if (!result.output) {
-      throw new Error("Structured review was empty.");
+  for (const [attempt, model] of candidateModels.entries()) {
+    try {
+      const agent = createCreativeAgent(parsed.data.depth, model);
+      const result = await agent.generate({
+        prompt: serialized,
+        abortSignal: request.signal,
+      });
+
+      if (!result.output) {
+        throw new Error("Structured review was empty.");
+      }
+
+      return NextResponse.json(
+        {
+          review: result.output,
+          source: "openai",
+          model: model.replace(/^openai\//, ""),
+          protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
+          ...(attempt > 0
+            ? {
+                notice:
+                  "The frontier target was unavailable for this request, so the review was completed by the strongest configured fallback model.",
+              }
+            : {}),
+        },
+        {
+          headers: responseHeaders({
+            "X-RateLimit-Remaining": String(limit.remaining),
+          }),
+        },
+      );
+    } catch (error) {
+      reportAgentFailure(error, model, attempt + 1);
     }
-
-    return NextResponse.json(
-      {
-        review: result.output,
-        source: "openai",
-        model: CREATIVE_AGENT_MODEL.replace(/^openai\//, ""),
-        protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
-      },
-      {
-        headers: responseHeaders({
-          "X-RateLimit-Remaining": String(limit.remaining),
-        }),
-      },
-    );
-  } catch (error) {
-    reportAgentFailure(error);
-    return localResponse(
-      parsed.data,
-      "The OpenAI review was temporarily unavailable. Your input was not changed; this fallback uses local structural rules.",
-    );
   }
+
+  return localResponse(
+    parsed.data,
+    "The OpenAI review was temporarily unavailable. Your input was not changed; this fallback uses local structural rules.",
+  );
 }

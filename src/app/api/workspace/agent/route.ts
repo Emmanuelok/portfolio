@@ -13,7 +13,7 @@ import {
 import { buildLocalReview } from "@/lib/workspace/local-analysis";
 import { workspaceModes } from "@/lib/workspace/types";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const codeSchema = z.object({
   html: z.string().max(16000),

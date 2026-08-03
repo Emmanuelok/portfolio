@@ -12,6 +12,7 @@ const navigation = [
   { href: "/#mission", label: "Mission" },
   { href: "/lab", label: "R&D / Lab" },
   { href: "/create", label: "Create" },
+  { href: "/create/workspace", label: "Canvas" },
   { href: "/work", label: "Work" },
   { href: "/media", label: "Media" },
   { href: "/about", label: "About" },
@@ -29,9 +30,14 @@ function NavigationLinks({
 }: NavigationLinksProps) {
   return navigation.map((item) => {
     const isSectionLink = item.href.includes("#");
+    const isCreateIndex = item.href === "/create";
     const isCurrent =
       !isSectionLink &&
-      (pathname === item.href || pathname.startsWith(`${item.href}/`));
+      (pathname === item.href ||
+        (isCreateIndex
+          ? pathname.startsWith("/create/") &&
+            !pathname.startsWith("/create/workspace")
+          : pathname.startsWith(`${item.href}/`)));
 
     return (
       <Link

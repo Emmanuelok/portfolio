@@ -1,7 +1,12 @@
 "use client";
 
 import { Check, Copy, Download } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { parseConcept } from "@/lib/workspace/local-analysis";
+import { transformLabels } from "@/lib/workspace/presets";
+import type { WorkspaceDraft, WorkspaceMode } from "@/lib/workspace/types";
+import { workspaceModes } from "@/lib/workspace/types";
 
 import styles from "./ProjectBriefBuilder.module.css";
 
@@ -15,6 +20,21 @@ type BriefState = Readonly<{
   horizon: string;
 }>;
 
+type HandoffNotice = Readonly<{
+  state: "ready" | "missing" | "invalid";
+  heading: string;
+  detail: string;
+}>;
+
+type CanvasHandoff = Readonly<{
+  generatedAt: string;
+  current: WorkspaceDraft;
+  agentReview: Record<string, unknown> | null;
+  versions: readonly unknown[];
+}>;
+
+const CANVAS_HANDOFF_KEY = "kingxford:canvas-handoff:v1";
+
 const initialBrief: BriefState = {
   problem: "",
   affected: "",
@@ -24,6 +44,221 @@ const initialBrief: BriefState = {
   investment: "",
   horizon: "",
 };
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function asString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function asStringList(value: unknown) {
+  return Array.isArray(value)
+    ? value.map(asString).filter(Boolean)
+    : [];
+}
+
+function parseCanvasHandoff(raw: string): CanvasHandoff | null {
+  const parsed = asRecord(JSON.parse(raw));
+  const current = asRecord(parsed?.current);
+  const code = asRecord(current?.code);
+  const mode = current?.mode;
+
+  if (
+    !parsed ||
+    !current ||
+    !code ||
+    typeof mode !== "string" ||
+    !workspaceModes.includes(mode as WorkspaceMode) ||
+    typeof current.title !== "string" ||
+    typeof current.text !== "string" ||
+    typeof code.html !== "string" ||
+    typeof code.css !== "string" ||
+    typeof code.javascript !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    generatedAt: asString(parsed.generatedAt),
+    current: {
+      mode: mode as WorkspaceMode,
+      title: current.title,
+      text: current.text,
+      code: {
+        html: code.html,
+        css: code.css,
+        javascript: code.javascript,
+      },
+    },
+    agentReview: asRecord(parsed.agentReview),
+    versions: Array.isArray(parsed.versions) ? parsed.versions : [],
+  };
+}
+
+function usefulConceptValue(value: string, fallbackStart: string) {
+  return value.startsWith(fallbackStart) ? "" : value;
+}
+
+function listSection(label: string, items: readonly string[]) {
+  if (!items.length) return "";
+  return `${label}\n${items.map((item) => `- ${item}`).join("\n")}`;
+}
+
+function versionSummary(versions: readonly unknown[]) {
+  const rows = versions.flatMap((value) => {
+    const version = asRecord(value);
+    const draft = asRecord(version?.draft);
+    const name = asString(version?.name);
+    const mode = asString(draft?.mode);
+    const createdAt = asString(version?.createdAt);
+    if (!name) return [];
+
+    const details = [mode, createdAt].filter(Boolean).join(" · ");
+    return [`${name}${details ? ` (${details})` : ""}`];
+  });
+
+  return listSection("CANVAS VERSIONS INCLUDED BY YOU", rows);
+}
+
+function buildHandoffBrief(handoff: CanvasHandoff): BriefState {
+  const { current, agentReview, versions } = handoff;
+  const concept = parseConcept(current.text, current.title || "Untitled concept");
+  const buildBrief = asRecord(agentReview?.buildBrief);
+  const currentSource =
+    current.mode === "code"
+      ? [
+          `HTML\n${current.code.html}`,
+          `CSS\n${current.code.css}`,
+          `JAVASCRIPT\n${current.code.javascript}`,
+        ].join("\n\n")
+      : current.text.trim();
+
+  const reviewSummary = asString(agentReview?.summary);
+  const strengths = asStringList(agentReview?.strengths);
+  const uncertainties = asStringList(agentReview?.uncertainties);
+  const failurePoints = asStringList(agentReview?.failurePoints);
+  const assumptions = asStringList(agentReview?.assumptions);
+  const proposedChanges = asStringList(agentReview?.proposedChanges);
+  const deliverables = asStringList(buildBrief?.deliverables);
+  const nextTest = asString(agentReview?.nextTest);
+  const audience = asString(buildBrief?.audience);
+  const oneLine = asString(buildBrief?.oneLine);
+  const coreExperience = asString(buildBrief?.coreExperience);
+
+  const evidence = [
+    usefulConceptValue(concept.evidence, "Define what would count"),
+    reviewSummary ? `CANVAS AGENT REVIEW INCLUDED BY YOU\n${reviewSummary}` : "",
+    listSection("STRENGTHS IDENTIFIED", strengths),
+    listSection("UNKNOWNS TO RESOLVE", uncertainties),
+    nextTest ? `NEXT TEST PROPOSED\n${nextTest}` : "",
+    versionSummary(versions),
+  ].filter(Boolean).join("\n\n");
+
+  const constraints = [
+    usefulConceptValue(concept.constraints, "Name the important limits"),
+    listSection("FAILURE POINTS IDENTIFIED", failurePoints),
+    listSection("ASSUMPTIONS TO VALIDATE", assumptions),
+  ].filter(Boolean).join("\n\n");
+
+  const future = [
+    oneLine || usefulConceptValue(concept.change, "Describe the practical change"),
+    coreExperience ? `CORE EXPERIENCE\n${coreExperience}` : "",
+    listSection("PROPOSED CHANGES", proposedChanges),
+    listSection("POSSIBLE DELIVERABLES", deliverables),
+  ].filter(Boolean).join("\n\n");
+
+  return {
+    problem: [
+      `${current.title || "Untitled concept"} · ${transformLabels[current.mode]}`,
+      currentSource ? `CURRENT CANVAS SOURCE\n${currentSource}` : "",
+    ].filter(Boolean).join("\n\n"),
+    affected:
+      audience ||
+      usefulConceptValue(
+        concept.audience,
+        "The people and institutions who will use",
+      ),
+    evidence,
+    future,
+    constraints,
+    investment: "",
+    horizon: "",
+  };
+}
+
+function formatHandoffTime(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function loadCanvasHandoff(): Readonly<{
+  brief?: BriefState;
+  notice: HandoffNotice;
+}> | null {
+  const search = new URLSearchParams(window.location.search);
+  if (search.get("brief") !== "workspace") return null;
+
+  const raw = window.sessionStorage.getItem(CANVAS_HANDOFF_KEY);
+  if (!raw) {
+    return {
+      notice: {
+        state: "missing",
+        heading: "No Canvas handoff was found in this tab.",
+        detail:
+          "The worksheet remains private and blank. Return to Canvas and choose “Prepare a build request” to carry a version here.",
+      },
+    };
+  }
+
+  try {
+    const handoff = parseCanvasHandoff(raw);
+    if (!handoff) {
+      return {
+        notice: {
+          state: "invalid",
+          heading: "This Canvas handoff could not be read safely.",
+          detail:
+            "Nothing was imported or submitted. You can continue with the blank worksheet or prepare a new handoff in Canvas.",
+        },
+      };
+    }
+
+    const preparedAt = formatHandoffTime(handoff.generatedAt);
+    const context = [
+      handoff.agentReview ? "agent review included" : "no agent review included",
+      handoff.versions.length
+        ? `${handoff.versions.length} saved version${handoff.versions.length === 1 ? "" : "s"} included`
+        : "no saved versions included",
+    ].join(" · ");
+
+    return {
+      brief: buildHandoffBrief(handoff),
+      notice: {
+        state: "ready",
+        heading: `Canvas handoff ready: ${handoff.current.title || "Untitled concept"}`,
+        detail: `Prefilled locally from the current ${transformLabels[handoff.current.mode].toLocaleLowerCase()}${preparedAt ? ` prepared ${preparedAt}` : ""} · ${context}. Opening this handoff did not submit it to Kingxford or make a new network request. Review and edit every field before you deliberately copy or download it.`,
+      },
+    };
+  } catch {
+    return {
+      notice: {
+        state: "invalid",
+        heading: "This Canvas handoff could not be read safely.",
+        detail:
+          "Nothing was imported or submitted. You can continue with the blank worksheet or prepare a new handoff in Canvas.",
+      },
+    };
+  }
+}
 
 function buildBrief(value: BriefState) {
   return [
@@ -45,7 +280,24 @@ function buildBrief(value: BriefState) {
 export function ProjectBriefBuilder() {
   const [brief, setBrief] = useState<BriefState>(initialBrief);
   const [status, setStatus] = useState("");
+  const [handoffNotice, setHandoffNotice] = useState<HandoffNotice | null>(null);
   const output = buildBrief(brief);
+
+  useEffect(() => {
+    const handoff = loadCanvasHandoff();
+    if (!handoff) return;
+
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      if (handoff.brief) setBrief(handoff.brief);
+      setHandoffNotice(handoff.notice);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const update = (field: keyof BriefState, value: string) => {
     setBrief((current) => ({ ...current, [field]: value }));
@@ -83,6 +335,17 @@ export function ProjectBriefBuilder() {
           development, and responsible delivery.
         </p>
       </header>
+
+      {handoffNotice && (
+        <aside
+          className={styles.handoffNotice}
+          data-state={handoffNotice.state}
+          role="status"
+        >
+          <strong>{handoffNotice.heading}</strong>
+          <p>{handoffNotice.detail}</p>
+        </aside>
+      )}
 
       <form className={styles.form} onSubmit={(event) => event.preventDefault()}>
         <label className={styles.field}>
@@ -172,7 +435,9 @@ export function ProjectBriefBuilder() {
 
         <p className={styles.privacy}>
           Privacy: this worksheet runs locally in your browser. It does not
-          submit, store, or transmit the information you enter.
+          submit or transmit the information you enter, and changes made here
+          are not saved automatically. Copying or downloading creates a copy
+          only when you choose that action.
         </p>
       </form>
     </section>

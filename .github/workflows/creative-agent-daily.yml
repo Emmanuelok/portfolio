@@ -1,0 +1,60 @@
+name: Creative agent daily governance
+
+on:
+  schedule:
+    - cron: "17 12 * * *"
+  workflow_dispatch:
+    inputs:
+      verify_gateway_catalog:
+        description: Verify the configured model against the public Gateway catalog
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: creative-agent-governance
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    name: Verify fixed hard gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CREATIVE_AGENT_REPORT_DIR: ${{ runner.temp }}/creative-agent-evaluation
+      VERIFY_GATEWAY_MODEL_CATALOG: ${{ github.event_name == 'schedule' || inputs.verify_gateway_catalog }}
+
+    steps:
+      - name: Check out the evaluated commit without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run deterministic governance verification
+        run: npm run verify:creative-agent
+
+      - name: Publish the report in the workflow summary
+        if: always()
+        run: |
+          if [ -f "$CREATIVE_AGENT_REPORT_DIR/summary.md" ]; then
+            cat "$CREATIVE_AGENT_REPORT_DIR/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "The verifier stopped before it could create a summary." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload immutable evaluation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-agent-governance-${{ github.run_id }}
+          path: ${{ runner.temp }}/creative-agent-evaluation
+          if-no-files-found: error
+          retention-days: 30

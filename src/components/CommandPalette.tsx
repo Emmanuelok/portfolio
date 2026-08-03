@@ -9,6 +9,7 @@ import {
   Newspaper,
   PanelsTopLeft,
   Search,
+  Sparkles,
   UserRound,
   X,
 } from "lucide-react";
@@ -54,6 +55,14 @@ const commands: readonly CommandItem[] = [
     href: "/create",
     keywords: "create websites digital tools platforms science laboratory finance education schools institutions businesses professionals individuals communities everyday needs",
     icon: PanelsTopLeft,
+  },
+  {
+    id: "create-workspace",
+    label: "Kingxford Canvas",
+    description: "Test ideas, code, mind maps, prompts, and briefs beside a live result",
+    href: "/create/workspace",
+    keywords: "canvas workspace creative tool idea concept code html css javascript mind map prompt brief live preview agent prototype build",
+    icon: Sparkles,
   },
   {
     id: "create-science",

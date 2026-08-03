@@ -150,6 +150,13 @@ ${code.html}
 </html>`;
 }
 
+function formatAgentModel(model: string) {
+  return model
+    .replace(/^openai\//, "")
+    .replace(/^gpt-/i, "GPT-")
+    .replace(/-sol$/i, " Sol");
+}
+
 function AgentReviewPanel({
   response,
   isRunning,
@@ -196,7 +203,11 @@ function AgentReviewPanel({
           </div>
         </div>
         <div className={styles.agentProtocol}>
-          <span>GPT-5.6 Sol</span>
+          <span>
+            {response?.source === "openai"
+              ? formatAgentModel(response.model)
+              : "GPT-5.6 Sol target"}
+          </span>
           <small>Daily-evaluated protocol</small>
         </div>
       </header>

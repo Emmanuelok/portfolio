@@ -53,27 +53,47 @@ export function parseConcept(text: string, fallbackTitle = "Untitled concept"): 
 
 type MutableNode = { id: string; label: string; children: MutableNode[] };
 
+function stableMapToken(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 export function parseMindMap(text: string): readonly MindMapNode[] {
   const rows = text
     .split(/\r?\n/)
-    .map((raw, index) => {
+    .map((raw) => {
       const tabsExpanded = raw.replace(/\t/g, "  ");
       const spaces = tabsExpanded.match(/^\s*/)?.[0].length ?? 0;
       const label = tabsExpanded.replace(/^\s*(?:[-*+]\s+)?/, "").trim();
-      return { depth: Math.floor(spaces / 2), label, index };
+      return { depth: Math.floor(spaces / 2), label };
     })
     .filter((row) => row.label);
 
   const roots: MutableNode[] = [];
   const stack: MutableNode[] = [];
 
+  const siblingOccurrences = new Map<string, number>();
+
   rows.forEach((row) => {
+    const depth = Math.min(row.depth, stack.length);
+    const parentId = depth === 0 ? "root" : stack[depth - 1]?.id ?? "root";
+    const siblingKey = `${parentId}\u0000${row.label.toLocaleLowerCase()}`;
+    const occurrence = (siblingOccurrences.get(siblingKey) ?? 0) + 1;
+    siblingOccurrences.set(siblingKey, occurrence);
+    const slug = row.label
+      .toLocaleLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 36) || "node";
     const node: MutableNode = {
-      id: `map-node-${row.index}-${row.label.toLocaleLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      id: `map-node-${slug}-${stableMapToken(`${siblingKey}\u0000${occurrence}`)}`,
       label: row.label,
       children: [],
     };
-    const depth = Math.min(row.depth, stack.length);
     if (depth === 0) roots.push(node);
     else stack[depth - 1]?.children.push(node);
     stack.splice(depth);

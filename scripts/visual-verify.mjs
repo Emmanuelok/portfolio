@@ -61,6 +61,8 @@ async function inspectPage(name, route, viewport, options = {}) {
     deviceScaleFactor: 1,
     colorScheme: options.colorScheme ?? "dark",
     reducedMotion: options.reducedMotion ?? "no-preference",
+    hasTouch: options.hasTouch ?? false,
+    isMobile: options.isMobile ?? false,
   });
   const page = await context.newPage();
   const consoleErrors = [];
@@ -589,6 +591,149 @@ canvas.page.on("request", (request) => {
   }
 });
 
+async function readMapElementState(locator) {
+  return locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      inlineTransform: element instanceof HTMLElement
+        ? element.style.transform
+        : "",
+      computedTransform: getComputedStyle(element).transform,
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+}
+
+function mapElementMoved(before, after, minimum = 8) {
+  return (
+    Math.hypot(after.left - before.left, after.top - before.top) >= minimum ||
+    before.inlineTransform !== after.inlineTransform ||
+    before.computedTransform !== after.computedTransform
+  );
+}
+
+function mapElementStable(before, after, tolerance = 2) {
+  return (
+    Math.abs(after.left - before.left) <= tolerance &&
+    Math.abs(after.top - before.top) <= tolerance &&
+    Math.abs(after.width - before.width) <= tolerance &&
+    Math.abs(after.height - before.height) <= tolerance &&
+    before.computedTransform === after.computedTransform
+  );
+}
+
+async function findMapBackgroundPoint(viewport) {
+  return viewport.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const visible = {
+      left: Math.max(rect.left, 0) + 10,
+      right: Math.min(rect.right, innerWidth) - 10,
+      top: Math.max(rect.top, 0) + 10,
+      bottom: Math.min(rect.bottom, innerHeight) - 10,
+    };
+    if (
+      visible.right - visible.left < 90 ||
+      visible.bottom - visible.top < 90
+    ) {
+      throw new Error("The interactive map canvas has no usable visible area.");
+    }
+
+    const ratios = [0.82, 0.68, 0.5, 0.32, 0.18];
+    const moves = [
+      [48, 30],
+      [-48, 30],
+      [48, -30],
+      [-48, -30],
+    ];
+    for (const yRatio of ratios) {
+      for (const xRatio of ratios) {
+        const x = visible.left + (visible.right - visible.left) * xRatio;
+        const y = visible.top + (visible.bottom - visible.top) * yRatio;
+        const target = document.elementFromPoint(x, y);
+        if (
+          !target ||
+          !element.contains(target) ||
+          target.closest(
+            "[data-map-node-id], button, a, input, textarea, select",
+          )
+        ) {
+          continue;
+        }
+        for (const [dx, dy] of moves) {
+          const endX = x + dx;
+          const endY = y + dy;
+          if (
+            endX >= visible.left &&
+            endX <= visible.right &&
+            endY >= visible.top &&
+            endY <= visible.bottom
+          ) {
+            return {
+              x,
+              y,
+              dx,
+              dy,
+              hitTag: target.tagName,
+            };
+          }
+        }
+      }
+    }
+    throw new Error(
+      "No unobscured map background point is available for pointer verification.",
+    );
+  });
+}
+
+async function findHittableMapNodePoint(nodes) {
+  return nodes.evaluateAll((elements) => {
+    for (const [index, element] of elements.entries()) {
+      const rect = element.getBoundingClientRect();
+      const candidates = [
+        [0.72, 0.5],
+        [0.55, 0.5],
+        [0.84, 0.72],
+        [0.84, 0.28],
+      ];
+      for (const [xRatio, yRatio] of candidates) {
+        const x = rect.left + rect.width * xRatio;
+        const y = rect.top + rect.height * yRatio;
+        if (x < 0 || x > innerWidth || y < 0 || y > innerHeight) continue;
+        const target = document.elementFromPoint(x, y);
+        if (
+          target &&
+          element.contains(target) &&
+          !target.closest("button")
+        ) {
+          return {
+            index,
+            nodeId: element.getAttribute("data-map-node-id"),
+            x,
+            y,
+            hitTag: target.tagName,
+            hitNodeId:
+              target
+                .closest("[data-map-node-id]")
+                ?.getAttribute("data-map-node-id") ?? null,
+          };
+        }
+      }
+    }
+    return null;
+  });
+}
+
+async function readMapZoom(mapPreview) {
+  const text = await mapPreview
+    .getByRole("group", { name: "Map zoom controls" })
+    .textContent();
+  const match = text?.match(/(\d+)%/);
+  return match ? Number(match[1]) : null;
+}
+
 const canvasRouteState = await canvas.page.evaluate(() => {
   const schemaNode = document.querySelector("#kingxford-canvas-schema");
   let schema = null;
@@ -675,6 +820,255 @@ if (!canvasModesPassed) {
     modes: canvasModeChecks,
   });
 }
+
+await canvas.page.locator("#workspace-mode-mindmap").click();
+const canvasMapPreview = canvas.page.locator(
+  "[aria-label='Mind map preview']",
+);
+const canvasMapViewport = canvasMapPreview.locator("[data-map-viewport]");
+const canvasMapSurface = canvasMapPreview.locator("[data-map-canvas]");
+const canvasMapNodes = canvasMapPreview.locator("[data-map-node-id]");
+await canvasMapViewport.waitFor({ state: "visible" });
+const canvasMapNodeCount = await canvasMapNodes.count();
+const canvasMapFirstNode = canvasMapPreview
+  .locator("[data-map-node-id][data-map-parent-id]")
+  .first();
+const canvasMapConnectionId = await canvasMapFirstNode.evaluate((node) =>
+  `${node.getAttribute("data-map-parent-id")}->${node.getAttribute("data-map-node-id")}`,
+);
+const canvasMapConnection = canvasMapPreview.locator(
+  `[data-map-connection-id="${canvasMapConnectionId}"]`,
+);
+await canvasMapConnection.waitFor({ state: "attached" });
+const initialMapSurface = await readMapElementState(canvasMapSurface);
+const initialMapNode = await readMapElementState(canvasMapFirstNode);
+const initialMapNodeRelative = {
+  left: initialMapNode.left - initialMapSurface.left,
+  top: initialMapNode.top - initialMapSurface.top,
+};
+
+const mapBackgroundPoint = await findMapBackgroundPoint(canvasMapViewport);
+await canvas.page.mouse.move(mapBackgroundPoint.x, mapBackgroundPoint.y);
+await canvas.page.mouse.down();
+await canvas.page.mouse.move(
+  mapBackgroundPoint.x + mapBackgroundPoint.dx,
+  mapBackgroundPoint.y + mapBackgroundPoint.dy,
+  { steps: 5 },
+);
+await canvas.page.mouse.up();
+await canvas.page.waitForTimeout(220);
+const pannedMapSurface = await readMapElementState(canvasMapSurface);
+const canvasMapPanPassed =
+  canvasMapNodeCount >= 2 &&
+  mapElementMoved(initialMapSurface, pannedMapSurface, 14);
+results.push({
+  interaction: "canvas-mindmap-background-pan",
+  passed: canvasMapPanPassed,
+  nodeCount: canvasMapNodeCount,
+  before: initialMapSurface,
+  after: pannedMapSurface,
+});
+if (!canvasMapPanPassed) {
+  failures.push({
+    interaction: "canvas-mindmap-background-pan",
+    nodeCount: canvasMapNodeCount,
+    before: initialMapSurface,
+    after: pannedMapSurface,
+  });
+}
+
+const mapNodeBeforeDrag = await readMapElementState(canvasMapFirstNode);
+const mapSurfaceBeforeNodeDrag = await readMapElementState(canvasMapSurface);
+const mapConnectionBeforeDrag = await canvasMapConnection.getAttribute("d");
+const mapNodeBox = await canvasMapFirstNode.boundingBox();
+if (!mapNodeBox) {
+  throw new Error("The first draggable mind-map node has no visible bounds.");
+}
+await canvas.page.mouse.move(
+  mapNodeBox.x + mapNodeBox.width / 2,
+  mapNodeBox.y + mapNodeBox.height / 2,
+);
+await canvas.page.mouse.down();
+await canvas.page.mouse.move(
+  mapNodeBox.x + mapNodeBox.width / 2 + 42,
+  mapNodeBox.y + mapNodeBox.height / 2 - 28,
+  { steps: 5 },
+);
+await canvas.page.mouse.up();
+await canvas.page.waitForTimeout(180);
+const mapNodeAfterDrag = await readMapElementState(canvasMapFirstNode);
+const mapSurfaceAfterNodeDrag = await readMapElementState(canvasMapSurface);
+const mapConnectionAfterDrag = await canvasMapConnection.getAttribute("d");
+const canvasMapNodeDragPassed =
+  mapElementMoved(mapNodeBeforeDrag, mapNodeAfterDrag, 14) &&
+  mapElementStable(mapSurfaceBeforeNodeDrag, mapSurfaceAfterNodeDrag) &&
+  Boolean(mapConnectionBeforeDrag) &&
+  mapConnectionAfterDrag !== mapConnectionBeforeDrag;
+results.push({
+  interaction: "canvas-mindmap-node-independent-drag",
+  passed: canvasMapNodeDragPassed,
+  connectionId: canvasMapConnectionId,
+  connectionBefore: mapConnectionBeforeDrag,
+  connectionAfter: mapConnectionAfterDrag,
+  nodeBefore: mapNodeBeforeDrag,
+  nodeAfter: mapNodeAfterDrag,
+  canvasBefore: mapSurfaceBeforeNodeDrag,
+  canvasAfter: mapSurfaceAfterNodeDrag,
+});
+if (!canvasMapNodeDragPassed) {
+  failures.push({
+    interaction: "canvas-mindmap-node-independent-drag",
+    connectionId: canvasMapConnectionId,
+    connectionBefore: mapConnectionBeforeDrag,
+    connectionAfter: mapConnectionAfterDrag,
+    nodeBefore: mapNodeBeforeDrag,
+    nodeAfter: mapNodeAfterDrag,
+    canvasBefore: mapSurfaceBeforeNodeDrag,
+    canvasAfter: mapSurfaceAfterNodeDrag,
+  });
+}
+
+await canvasMapPreview
+  .getByRole("button", { name: "Reset map layout" })
+  .click();
+await canvas.page.waitForTimeout(240);
+const resetMapNode = await readMapElementState(canvasMapFirstNode);
+const resetMapSurface = await readMapElementState(canvasMapSurface);
+const mapConnectionAfterReset = await canvasMapConnection.getAttribute("d");
+const resetMapNodeRelative = {
+  left: resetMapNode.left - resetMapSurface.left,
+  top: resetMapNode.top - resetMapSurface.top,
+};
+const canvasMapResetPassed =
+  Math.abs(resetMapNodeRelative.left - initialMapNodeRelative.left) <= 3 &&
+  Math.abs(resetMapNodeRelative.top - initialMapNodeRelative.top) <= 3 &&
+  mapElementStable(initialMapNode, resetMapNode, 3) &&
+  mapElementStable(initialMapSurface, resetMapSurface, 3) &&
+  mapConnectionAfterReset === mapConnectionBeforeDrag;
+results.push({
+  interaction: "canvas-mindmap-reset-layout",
+  passed: canvasMapResetPassed,
+  connectionId: canvasMapConnectionId,
+  connectionBefore: mapConnectionBeforeDrag,
+  connectionAfterDrag: mapConnectionAfterDrag,
+  connectionAfterReset: mapConnectionAfterReset,
+  initialRelative: initialMapNodeRelative,
+  resetRelative: resetMapNodeRelative,
+  canvasInitial: initialMapSurface,
+  canvasBefore: mapSurfaceAfterNodeDrag,
+  canvasAfter: resetMapSurface,
+});
+if (!canvasMapResetPassed) {
+  failures.push({
+    interaction: "canvas-mindmap-reset-layout",
+    connectionId: canvasMapConnectionId,
+    connectionBefore: mapConnectionBeforeDrag,
+    connectionAfterDrag: mapConnectionAfterDrag,
+    connectionAfterReset: mapConnectionAfterReset,
+    initialRelative: initialMapNodeRelative,
+    resetRelative: resetMapNodeRelative,
+    canvasInitial: initialMapSurface,
+    canvasBefore: mapSurfaceAfterNodeDrag,
+    canvasAfter: resetMapSurface,
+  });
+}
+
+const canvasMapZoomBefore = await readMapZoom(canvasMapPreview);
+await canvasMapPreview.getByRole("button", { name: "Zoom in" }).click();
+await canvas.page.waitForTimeout(80);
+const canvasMapZoomedIn = await readMapZoom(canvasMapPreview);
+await canvasMapPreview.getByRole("button", { name: "Zoom out" }).click();
+await canvas.page.waitForTimeout(80);
+const canvasMapZoomedBack = await readMapZoom(canvasMapPreview);
+const canvasMapZoomPassed =
+  canvasMapZoomBefore !== null &&
+  canvasMapZoomedIn !== null &&
+  canvasMapZoomedBack !== null &&
+  canvasMapZoomedIn > canvasMapZoomBefore &&
+  canvasMapZoomedBack === canvasMapZoomBefore;
+results.push({
+  interaction: "canvas-mindmap-zoom-controls",
+  passed: canvasMapZoomPassed,
+  before: canvasMapZoomBefore,
+  zoomedIn: canvasMapZoomedIn,
+  zoomedBack: canvasMapZoomedBack,
+});
+if (!canvasMapZoomPassed) {
+  failures.push({
+    interaction: "canvas-mindmap-zoom-controls",
+    before: canvasMapZoomBefore,
+    zoomedIn: canvasMapZoomedIn,
+    zoomedBack: canvasMapZoomedBack,
+  });
+}
+
+await canvasMapPreview.getByRole("button", { name: "Zoom in" }).click();
+await canvasMapPreview.getByRole("button", { name: "Zoom in" }).click();
+await canvas.page.waitForTimeout(220);
+const mapSurfaceBeforeFit = await readMapElementState(canvasMapSurface);
+const canvasMapZoomBeforeFit = await readMapZoom(canvasMapPreview);
+await canvasMapPreview.getByRole("button", { name: "Fit map" }).click();
+await canvas.page.waitForTimeout(240);
+const mapSurfaceAfterFit = await readMapElementState(canvasMapSurface);
+const canvasMapZoomAfterFit = await readMapZoom(canvasMapPreview);
+const canvasMapFitGeometry = await canvasMapPreview.evaluate((preview) => {
+  const viewport = preview.querySelector("[data-map-viewport]");
+  const nodes = [...preview.querySelectorAll("[data-map-node-id]")];
+  if (!viewport || nodes.length === 0) {
+    return { nodeCount: nodes.length, allNodesInside: false };
+  }
+  const bounds = viewport.getBoundingClientRect();
+  return {
+    nodeCount: nodes.length,
+    allNodesInside: nodes.every((node) => {
+      const rect = node.getBoundingClientRect();
+      return (
+        rect.left >= bounds.left - 3 &&
+        rect.right <= bounds.right + 3 &&
+        rect.top >= bounds.top - 3 &&
+        rect.bottom <= bounds.bottom + 3
+      );
+    }),
+  };
+});
+await canvasMapPreview.getByRole("button", { name: "Fit map" }).click();
+await canvas.page.waitForTimeout(80);
+const mapSurfaceAfterSecondFit = await readMapElementState(canvasMapSurface);
+const canvasMapFitPassed =
+  mapElementMoved(mapSurfaceBeforeFit, mapSurfaceAfterFit, 2) &&
+  canvasMapZoomBeforeFit !== null &&
+  canvasMapZoomAfterFit !== null &&
+  canvasMapZoomAfterFit <= canvasMapZoomBeforeFit &&
+  canvasMapZoomAfterFit >= 40 &&
+  canvasMapZoomAfterFit <= 120 &&
+  canvasMapFitGeometry.nodeCount === canvasMapNodeCount &&
+  canvasMapFitGeometry.allNodesInside &&
+  mapElementStable(mapSurfaceAfterFit, mapSurfaceAfterSecondFit);
+results.push({
+  interaction: "canvas-mindmap-fit-map",
+  passed: canvasMapFitPassed,
+  zoomBefore: canvasMapZoomBeforeFit,
+  zoomAfter: canvasMapZoomAfterFit,
+  geometry: canvasMapFitGeometry,
+  before: mapSurfaceBeforeFit,
+  after: mapSurfaceAfterFit,
+  secondFit: mapSurfaceAfterSecondFit,
+});
+if (!canvasMapFitPassed) {
+  failures.push({
+    interaction: "canvas-mindmap-fit-map",
+    zoomBefore: canvasMapZoomBeforeFit,
+    zoomAfter: canvasMapZoomAfterFit,
+    geometry: canvasMapFitGeometry,
+    before: mapSurfaceBeforeFit,
+    after: mapSurfaceAfterFit,
+    secondFit: mapSurfaceAfterSecondFit,
+  });
+}
+await canvas.page.screenshot({
+  path: path.join(outputDir, "canvas-mindmap-interactions-desktop-1440.png"),
+  fullPage: false,
+});
 
 await canvas.page.locator("#workspace-mode-idea").click();
 const canvasIdeaSource = `Create: Civic Repair Ledger
@@ -1386,6 +1780,7 @@ const mobileCanvas = await inspectPage(
   "canvas-mobile-390",
   "/create/workspace",
   { width: 390, height: 844 },
+  { hasTouch: true, isMobile: true },
 );
 const mobileCanvasTabs = mobileCanvas.page.locator(
   "[aria-label='Mobile workspace panes']",
@@ -1506,6 +1901,205 @@ if (!mobileCanvasPassed) {
     returnedInput: mobileCanvasReturnState,
   });
 }
+
+await mobileCanvas.page.locator("#workspace-mode-mindmap").click();
+await mobileCanvasPreviewTab.click();
+const mobileMapPreview = mobileCanvas.page.locator(
+  "[aria-label='Mind map preview']",
+);
+const mobileMapViewport = mobileMapPreview.locator("[data-map-viewport]");
+const mobileMapSurface = mobileMapPreview.locator("[data-map-canvas]");
+const mobileMapNodes = mobileMapPreview.locator("[data-map-node-id]");
+await mobileMapViewport.waitFor({ state: "visible" });
+await mobileMapViewport.scrollIntoViewIfNeeded();
+const mobileTouchCapability = await mobileCanvas.page.evaluate(() => ({
+  maxTouchPoints: navigator.maxTouchPoints,
+  coarsePointer: matchMedia("(pointer: coarse)").matches,
+}));
+const mobileMapCdp = await mobileCanvas.context.newCDPSession(
+  mobileCanvas.page,
+);
+const mobileMapBackgroundPoint = await findMapBackgroundPoint(
+  mobileMapViewport,
+);
+const mobileMapSurfaceBeforeTouch = await readMapElementState(
+  mobileMapSurface,
+);
+const mobileScrollBeforeTouch = await mobileCanvas.page.evaluate(
+  () => window.scrollY,
+);
+await mobileMapCdp.send("Input.dispatchTouchEvent", {
+  type: "touchStart",
+  touchPoints: [
+    {
+      x: mobileMapBackgroundPoint.x,
+      y: mobileMapBackgroundPoint.y,
+      radiusX: 3,
+      radiusY: 3,
+      force: 1,
+      id: 1,
+    },
+  ],
+});
+await mobileMapCdp.send("Input.dispatchTouchEvent", {
+  type: "touchMove",
+  touchPoints: [
+    {
+      x: mobileMapBackgroundPoint.x + mobileMapBackgroundPoint.dx,
+      y: mobileMapBackgroundPoint.y + mobileMapBackgroundPoint.dy,
+      radiusX: 3,
+      radiusY: 3,
+      force: 1,
+      id: 1,
+    },
+  ],
+});
+await mobileMapCdp.send("Input.dispatchTouchEvent", {
+  type: "touchEnd",
+  touchPoints: [],
+});
+await mobileCanvas.page.waitForTimeout(220);
+const mobileMapSurfaceAfterTouch = await readMapElementState(
+  mobileMapSurface,
+);
+const mobileScrollAfterTouch = await mobileCanvas.page.evaluate(
+  () => window.scrollY,
+);
+const mobileMapTouchPanPassed =
+  mobileTouchCapability.maxTouchPoints > 0 &&
+  mapElementMoved(
+    mobileMapSurfaceBeforeTouch,
+    mobileMapSurfaceAfterTouch,
+    10,
+  ) &&
+  Math.abs(mobileScrollAfterTouch - mobileScrollBeforeTouch) <= 2;
+results.push({
+  interaction: "canvas-mindmap-touch-background-pan-390",
+  passed: mobileMapTouchPanPassed,
+  capability: mobileTouchCapability,
+  hitTarget: mobileMapBackgroundPoint,
+  scrollBefore: mobileScrollBeforeTouch,
+  scrollAfter: mobileScrollAfterTouch,
+  canvasBefore: mobileMapSurfaceBeforeTouch,
+  canvasAfter: mobileMapSurfaceAfterTouch,
+});
+if (!mobileMapTouchPanPassed) {
+  failures.push({
+    interaction: "canvas-mindmap-touch-background-pan-390",
+    capability: mobileTouchCapability,
+    hitTarget: mobileMapBackgroundPoint,
+    scrollBefore: mobileScrollBeforeTouch,
+    scrollAfter: mobileScrollAfterTouch,
+    canvasBefore: mobileMapSurfaceBeforeTouch,
+    canvasAfter: mobileMapSurfaceAfterTouch,
+  });
+}
+
+const mobileNodeTouchTarget = await findHittableMapNodePoint(mobileMapNodes);
+if (!mobileNodeTouchTarget) {
+  throw new Error(
+    "No touch-draggable mind-map node is unobscured at the current mobile viewport.",
+  );
+}
+const mobileMapFirstNode = mobileMapNodes.nth(mobileNodeTouchTarget.index);
+const mobileMapNodeBeforeTouch = await readMapElementState(
+  mobileMapFirstNode,
+);
+const mobileMapSurfaceBeforeNodeTouch = await readMapElementState(
+  mobileMapSurface,
+);
+const mobileNodeTouchStart = {
+  x: mobileNodeTouchTarget.x,
+  y: mobileNodeTouchTarget.y,
+};
+await mobileMapCdp.send("Input.dispatchTouchEvent", {
+  type: "touchStart",
+  touchPoints: [
+    {
+      ...mobileNodeTouchStart,
+      radiusX: 3,
+      radiusY: 3,
+      force: 1,
+      id: 2,
+    },
+  ],
+});
+await mobileCanvas.page.waitForTimeout(24);
+await mobileMapCdp.send("Input.dispatchTouchEvent", {
+  type: "touchMove",
+  touchPoints: [
+    {
+      x: mobileNodeTouchStart.x + 17,
+      y: mobileNodeTouchStart.y - 12,
+      radiusX: 3,
+      radiusY: 3,
+      force: 1,
+      id: 2,
+    },
+  ],
+});
+await mobileCanvas.page.waitForTimeout(24);
+await mobileMapCdp.send("Input.dispatchTouchEvent", {
+  type: "touchMove",
+  touchPoints: [
+    {
+      x: mobileNodeTouchStart.x + 34,
+      y: mobileNodeTouchStart.y - 24,
+      radiusX: 3,
+      radiusY: 3,
+      force: 1,
+      id: 2,
+    },
+  ],
+});
+await mobileCanvas.page.waitForTimeout(24);
+await mobileMapCdp.send("Input.dispatchTouchEvent", {
+  type: "touchEnd",
+  touchPoints: [],
+});
+await mobileCanvas.page.waitForTimeout(100);
+const mobileMapNodeAfterTouch = await readMapElementState(
+  mobileMapFirstNode,
+);
+const mobileMapSurfaceAfterNodeTouch = await readMapElementState(
+  mobileMapSurface,
+);
+const mobileMapNodeTouchPassed =
+  mobileTouchCapability.maxTouchPoints > 0 &&
+  mapElementMoved(mobileMapNodeBeforeTouch, mobileMapNodeAfterTouch, 10) &&
+  mapElementStable(
+    mobileMapSurfaceBeforeNodeTouch,
+    mobileMapSurfaceAfterNodeTouch,
+  );
+results.push({
+  interaction: "canvas-mindmap-touch-node-drag-390",
+  passed: mobileMapNodeTouchPassed,
+  capability: mobileTouchCapability,
+  nodeHitTarget: mobileNodeTouchTarget,
+  nodeBefore: mobileMapNodeBeforeTouch,
+  nodeAfter: mobileMapNodeAfterTouch,
+  canvasBeforeNode: mobileMapSurfaceBeforeNodeTouch,
+  canvasAfterNode: mobileMapSurfaceAfterNodeTouch,
+});
+if (!mobileMapNodeTouchPassed) {
+  failures.push({
+    interaction: "canvas-mindmap-touch-node-drag-390",
+    capability: mobileTouchCapability,
+    nodeHitTarget: mobileNodeTouchTarget,
+    nodeBefore: mobileMapNodeBeforeTouch,
+    nodeAfter: mobileMapNodeAfterTouch,
+    canvasBeforeNode: mobileMapSurfaceBeforeNodeTouch,
+    canvasAfterNode: mobileMapSurfaceAfterNodeTouch,
+  });
+}
+await mobileMapPreview
+  .getByRole("button", { name: "Reset map layout" })
+  .click();
+await mobileMapPreview.getByRole("button", { name: "Fit map" }).click();
+await mobileCanvas.page.screenshot({
+  path: path.join(outputDir, "canvas-mindmap-touch-mobile-390.png"),
+  fullPage: false,
+});
 await mobileCanvas.context.close();
 
 const mobileMedia = await inspectPage(

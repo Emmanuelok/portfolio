@@ -8,12 +8,23 @@ import {
   Laptop,
   Maximize2,
   Minus,
+  Move,
   Plus,
   RotateCcw,
   Smartphone,
   Tablet,
 } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   parseConcept,
@@ -195,30 +206,85 @@ function CodePreview({
   );
 }
 
-function MapBranch({ node }: Readonly<{ node: MindMapNode }>) {
+type MapPoint = Readonly<{ x: number; y: number }>;
+type MapOffsets = Readonly<Record<string, MapPoint>>;
+type MapConnection = Readonly<{ id: string; path: string }>;
+
+const MAP_MIN_ZOOM = 0.4;
+const MAP_MAX_ZOOM = 1.5;
+
+function MapBranch({
+  node,
+  parentId,
+  offsets,
+  draggingNodeId,
+  onNodePointerDown,
+  onNodeKeyDown,
+  onStructureChange,
+}: Readonly<{
+  node: MindMapNode;
+  parentId?: string;
+  offsets: MapOffsets;
+  draggingNodeId: string | null;
+  onNodePointerDown: (
+    nodeId: string,
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => void;
+  onNodeKeyDown: (
+    nodeId: string,
+    event: ReactKeyboardEvent<HTMLDivElement>,
+  ) => void;
+  onStructureChange: () => void;
+}>) {
   const [open, setOpen] = useState(true);
   const hasChildren = node.children.length > 0;
+  const offset = offsets[node.id] ?? { x: 0, y: 0 };
+
   return (
     <li>
-      <div className={styles.mapNode}>
+      <div
+        className={styles.mapNode}
+        data-dragging={draggingNodeId === node.id}
+        data-map-node-id={node.id}
+        data-map-parent-id={parentId}
+        tabIndex={0}
+        aria-describedby="mindmap-drag-instructions"
+        aria-label={`Draggable map node: ${node.label}`}
+        onKeyDown={(event) => onNodeKeyDown(node.id, event)}
+        onPointerDown={(event) => onNodePointerDown(node.id, event)}
+        style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
+      >
         {hasChildren ? (
           <button
             type="button"
             aria-expanded={open}
             aria-controls={`${node.id}-children`}
-            onClick={() => setOpen((value) => !value)}
+            aria-label={`${open ? "Collapse" : "Expand"} ${node.label}`}
+            onClick={() => {
+              setOpen((value) => !value);
+              onStructureChange();
+            }}
+            onKeyDown={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
           >
             {open ? <ChevronDown aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}
-            <span>{node.label}</span>
           </button>
-        ) : (
-          <span>{node.label}</span>
-        )}
+        ) : null}
+        <span>{node.label}</span>
       </div>
       {hasChildren && open && (
         <ul id={`${node.id}-children`}>
           {node.children.map((child) => (
-            <MapBranch node={child} key={child.id} />
+            <MapBranch
+              node={child}
+              parentId={node.id}
+              offsets={offsets}
+              draggingNodeId={draggingNodeId}
+              onNodePointerDown={onNodePointerDown}
+              onNodeKeyDown={onNodeKeyDown}
+              onStructureChange={onStructureChange}
+              key={child.id}
+            />
           ))}
         </ul>
       )}
@@ -229,6 +295,286 @@ function MapBranch({ node }: Readonly<{ node: MindMapNode }>) {
 function MindMapPreview({ text }: Readonly<{ text: string }>) {
   const nodes = useMemo(() => parseMindMap(text), [text]);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState<MapPoint>({ x: 0, y: 0 });
+  const [offsets, setOffsets] = useState<MapOffsets>({});
+  const [connections, setConnections] = useState<readonly MapConnection[]>([]);
+  const [structureVersion, setStructureVersion] = useState(0);
+  const [dragging, setDragging] = useState<"canvas" | string | null>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<
+    | {
+        kind: "canvas";
+        pointerId: number;
+        start: MapPoint;
+        origin: MapPoint;
+      }
+    | {
+        kind: "node";
+        nodeId: string;
+        pointerId: number;
+        start: MapPoint;
+        origin: MapPoint;
+      }
+    | null
+  >(null);
+
+  const refreshConnections = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const canvasBounds = canvas.getBoundingClientRect();
+    const transform = window.getComputedStyle(canvas).transform;
+    const matrix = transform === "none"
+      ? null
+      : new DOMMatrixReadOnly(transform);
+    const renderedScale = matrix
+      ? Math.max(0.001, Math.hypot(matrix.a, matrix.b))
+      : 1;
+    const mapNodes = [
+      ...canvas.querySelectorAll<HTMLElement>("[data-map-node-id]"),
+    ];
+    const nodesById = new Map(
+      mapNodes.map((element) => [element.dataset.mapNodeId ?? "", element]),
+    );
+    const nextConnections = mapNodes.flatMap((child) => {
+      const childId = child.dataset.mapNodeId;
+      const parentId = child.dataset.mapParentId;
+      const parent = parentId ? nodesById.get(parentId) : null;
+      if (!childId || !parentId || !parent) return [];
+
+      const parentBounds = parent.getBoundingClientRect();
+      const childBounds = child.getBoundingClientRect();
+      const startX = (
+        parentBounds.left + Math.min(24, parentBounds.width / 2) - canvasBounds.left
+      ) / renderedScale;
+      const startY = (parentBounds.bottom - canvasBounds.top) / renderedScale;
+      const endX = (childBounds.left - canvasBounds.left) / renderedScale;
+      const endY = (
+        childBounds.top + childBounds.height / 2 - canvasBounds.top
+      ) / renderedScale;
+      const horizontalDirection = endX >= startX ? 1 : -1;
+      const verticalDirection = endY >= startY ? 1 : -1;
+      const horizontalBend = Math.max(
+        16,
+        Math.min(44, Math.abs(endX - startX) * 0.5),
+      );
+      const verticalBend = Math.max(
+        18,
+        Math.min(90, Math.abs(endY - startY) * 0.35),
+      );
+
+      return [{
+        id: `${parentId}->${childId}`,
+        path: `M ${startX} ${startY} C ${startX} ${startY + verticalBend * verticalDirection}, ${endX - horizontalBend * horizontalDirection} ${endY}, ${endX} ${endY}`,
+      }];
+    });
+
+    setConnections((current) => {
+      const unchanged = current.length === nextConnections.length &&
+        current.every((connection, index) => (
+          connection.id === nextConnections[index]?.id &&
+          connection.path === nextConnections[index]?.path
+        ));
+      return unchanged ? current : nextConnections;
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    refreshConnections();
+  }, [nodes, offsets, refreshConnections, structureVersion]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const viewport = viewportRef.current;
+    if (!canvas || !viewport) return;
+
+    const observer = new ResizeObserver(refreshConnections);
+    observer.observe(canvas);
+    observer.observe(viewport);
+    window.addEventListener("resize", refreshConnections);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", refreshConnections);
+    };
+  }, [refreshConnections, nodes]);
+
+  useEffect(() => {
+    const cancelDrag = () => {
+      dragRef.current = null;
+      setDragging(null);
+    };
+    window.addEventListener("blur", cancelDrag);
+    return () => window.removeEventListener("blur", cancelDrag);
+  }, []);
+
+  const beginCanvasDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary || event.button !== 0 || dragRef.current) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("[data-map-node-id], button")) return;
+    event.preventDefault();
+    dragRef.current = {
+      kind: "canvas",
+      pointerId: event.pointerId,
+      start: { x: event.clientX, y: event.clientY },
+      origin: pan,
+    };
+    setDragging("canvas");
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const beginNodeDrag = (
+    nodeId: string,
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    if (!event.isPrimary || event.button !== 0 || dragRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.focus({ preventScroll: true });
+    dragRef.current = {
+      kind: "node",
+      nodeId,
+      pointerId: event.pointerId,
+      start: { x: event.clientX, y: event.clientY },
+      origin: offsets[nodeId] ?? { x: 0, y: 0 },
+    };
+    setDragging(nodeId);
+    viewportRef.current?.setPointerCapture(event.pointerId);
+  };
+
+  const moveDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    const delta = {
+      x: event.clientX - drag.start.x,
+      y: event.clientY - drag.start.y,
+    };
+    if (drag.kind === "canvas") {
+      setPan({ x: drag.origin.x + delta.x, y: drag.origin.y + delta.y });
+      return;
+    }
+    setOffsets((current) => ({
+      ...current,
+      [drag.nodeId]: {
+        x: drag.origin.x + delta.x / zoom,
+        y: drag.origin.y + delta.y / zoom,
+      },
+    }));
+  };
+
+  const endDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    setDragging(null);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleLostPointerCapture = (
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    setDragging(null);
+  };
+
+  const moveNodeWithKeyboard = (
+    nodeId: string,
+    event: ReactKeyboardEvent<HTMLDivElement>,
+  ) => {
+    const movement = event.shiftKey ? 32 : 12;
+    const delta = {
+      ArrowLeft: { x: -movement, y: 0 },
+      ArrowRight: { x: movement, y: 0 },
+      ArrowUp: { x: 0, y: -movement },
+      ArrowDown: { x: 0, y: movement },
+    }[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setOffsets((current) => {
+      const origin = current[nodeId] ?? { x: 0, y: 0 };
+      return {
+        ...current,
+        [nodeId]: { x: origin.x + delta.x, y: origin.y + delta.y },
+      };
+    });
+  };
+
+  const panWithKeyboard = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const movement = event.shiftKey ? 64 : 24;
+    const delta = {
+      ArrowLeft: { x: -movement, y: 0 },
+      ArrowRight: { x: movement, y: 0 },
+      ArrowUp: { x: 0, y: -movement },
+      ArrowDown: { x: 0, y: movement },
+    }[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    setPan((current) => ({
+      x: current.x + delta.x,
+      y: current.y + delta.y,
+    }));
+  };
+
+  const fitMap = () => {
+    const viewport = viewportRef.current;
+    const canvas = canvasRef.current;
+    if (!viewport || !canvas) {
+      setPan({ x: 0, y: 0 });
+      setZoom(1);
+      return;
+    }
+
+    const mapNodes = [...canvas.querySelectorAll<HTMLElement>("[data-map-node-id]")];
+    if (!mapNodes.length) return;
+
+    const canvasBounds = canvas.getBoundingClientRect();
+    const transform = window.getComputedStyle(canvas).transform;
+    const matrix = transform === "none"
+      ? null
+      : new DOMMatrixReadOnly(transform);
+    const renderedZoom = matrix
+      ? Math.max(0.001, Math.hypot(matrix.a, matrix.b))
+      : 1;
+    const nodeBounds = mapNodes.map((node) => node.getBoundingClientRect());
+    const minX = Math.min(...nodeBounds.map((bounds) =>
+      (bounds.left - canvasBounds.left) / renderedZoom));
+    const minY = Math.min(...nodeBounds.map((bounds) =>
+      (bounds.top - canvasBounds.top) / renderedZoom));
+    const maxX = Math.max(...nodeBounds.map((bounds) =>
+      (bounds.right - canvasBounds.left) / renderedZoom));
+    const maxY = Math.max(...nodeBounds.map((bounds) =>
+      (bounds.bottom - canvasBounds.top) / renderedZoom));
+    const contentWidth = Math.max(1, maxX - minX);
+    const contentHeight = Math.max(1, maxY - minY);
+    const margin = 24;
+    const availableWidth = Math.max(1, viewport.clientWidth - margin * 2);
+    const availableHeight = Math.max(1, viewport.clientHeight - margin * 2);
+    const nextZoom = Math.max(
+      MAP_MIN_ZOOM,
+      Math.min(1.2, availableWidth / contentWidth, availableHeight / contentHeight),
+    );
+    const viewportStyle = window.getComputedStyle(viewport);
+    const paddingLeft = Number.parseFloat(viewportStyle.paddingLeft) || 0;
+    const paddingTop = Number.parseFloat(viewportStyle.paddingTop) || 0;
+    const centeredX = margin + (availableWidth - contentWidth * nextZoom) / 2;
+    const centeredY = margin + (availableHeight - contentHeight * nextZoom) / 2;
+
+    setZoom(nextZoom);
+    setPan({
+      x: centeredX - paddingLeft - minX * nextZoom,
+      y: centeredY - paddingTop - minY * nextZoom,
+    });
+  };
+
+  const resetMap = () => {
+    setPan({ x: 0, y: 0 });
+    setZoom(1);
+    setOffsets({});
+  };
 
   return (
     <section className={styles.mapPreview} aria-label="Mind map preview">
@@ -236,12 +582,15 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
         <div>
           <span>Relationship view</span>
           <strong>{nodes.length} root {nodes.length === 1 ? "system" : "systems"}</strong>
+          <small id="mindmap-drag-instructions" className={styles.mapHint}>
+            <Move aria-hidden="true" /> Drag to move · Arrow keys to nudge · Shift for larger steps
+          </small>
         </div>
         <div role="group" aria-label="Map zoom controls">
           <button
             type="button"
             aria-label="Zoom out"
-            onClick={() => setZoom((value) => Math.max(0.65, value - 0.1))}
+            onClick={() => setZoom((value) => Math.max(MAP_MIN_ZOOM, value - 0.1))}
           >
             <Minus aria-hidden="true" />
           </button>
@@ -249,26 +598,68 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
           <button
             type="button"
             aria-label="Zoom in"
-            onClick={() => setZoom((value) => Math.min(1.5, value + 0.1))}
+            onClick={() => setZoom((value) => Math.min(MAP_MAX_ZOOM, value + 0.1))}
           >
             <Plus aria-hidden="true" />
           </button>
-          <button type="button" aria-label="Fit map" onClick={() => setZoom(1)}>
+          <button type="button" aria-label="Fit map" onClick={fitMap}>
             <Maximize2 aria-hidden="true" />
+          </button>
+          <button type="button" aria-label="Reset map layout" onClick={resetMap}>
+            <RotateCcw aria-hidden="true" />
           </button>
         </div>
       </header>
-      <div className={styles.mapViewport}>
+      <div
+        ref={viewportRef}
+        className={styles.mapViewport}
+        data-dragging={dragging === "canvas"}
+        data-map-viewport
+        tabIndex={0}
+        aria-label="Interactive mind map canvas. Drag the background to pan and drag nodes to move them."
+        onKeyDown={panWithKeyboard}
+        onLostPointerCapture={handleLostPointerCapture}
+        onPointerCancel={endDrag}
+        onPointerDown={beginCanvasDrag}
+        onPointerMove={moveDrag}
+        onPointerUp={endDrag}
+      >
         {nodes.length ? (
-          <ul
-            className={styles.mapTree}
-            style={{ transform: `scale(${zoom})` }}
-            aria-label="Keyboard-operable mind map tree"
+          <div
+            ref={canvasRef}
+            className={styles.mapCanvas}
+            data-map-canvas
+            style={{
+              transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+            }}
           >
-            {nodes.map((node) => (
-              <MapBranch node={node} key={node.id} />
-            ))}
-          </ul>
+            <svg
+              className={styles.mapConnections}
+              aria-hidden="true"
+              focusable="false"
+            >
+              {connections.map((connection) => (
+                <path
+                  data-map-connection-id={connection.id}
+                  d={connection.path}
+                  key={connection.id}
+                />
+              ))}
+            </svg>
+            <ul className={styles.mapTree} aria-label="Keyboard-operable mind map tree">
+              {nodes.map((node) => (
+                <MapBranch
+                  node={node}
+                  offsets={offsets}
+                  draggingNodeId={dragging === "canvas" ? null : dragging}
+                  onNodePointerDown={beginNodeDrag}
+                  onNodeKeyDown={moveNodeWithKeyboard}
+                  onStructureChange={() => setStructureVersion((value) => value + 1)}
+                  key={node.id}
+                />
+              ))}
+            </ul>
+          </div>
         ) : (
           <div className={styles.previewEmpty}>
             <p>Your map will form as you add indented lines.</p>

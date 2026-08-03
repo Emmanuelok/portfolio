@@ -926,7 +926,11 @@ export function FinanceExperience({ showcase }: FinanceExperienceProps) {
                   {filteredEvidence.map((record) => (
                     <tr data-selected={record.id === selectedEvidence.id} key={record.id}>
                       <th scope="row">
-                        <button onClick={() => setEvidenceId(record.id)} type="button">
+                        <button
+                          aria-pressed={record.id === selectedEvidence.id}
+                          onClick={() => setEvidenceId(record.id)}
+                          type="button"
+                        >
                           <FileText aria-hidden="true" />
                           {record.id}
                         </button>

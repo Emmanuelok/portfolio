@@ -165,6 +165,14 @@
   margin-inline: auto;
 }
 
+.hero,
+.caseSelector,
+.scenarioSection,
+.governanceSection,
+.evidenceSection {
+  scroll-margin-top: calc(var(--header-height) + 6.5rem);
+}
+
 .hero {
   position: relative;
   display: grid;
@@ -1317,6 +1325,14 @@
 }
 
 @media (max-width: 1180px) {
+  .hero,
+  .caseSelector,
+  .scenarioSection,
+  .governanceSection,
+  .evidenceSection {
+    scroll-margin-top: calc(var(--header-height) + 1rem);
+  }
+
   .masthead {
     position: static;
   }

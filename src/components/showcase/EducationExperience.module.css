@@ -46,6 +46,27 @@
   outline-offset: 4px;
 }
 
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.hero,
+.composer,
+.studioWeek,
+.knowledgeShelf,
+.contact {
+  scroll-margin-top: calc(var(--header-height) + 6rem);
+}
+
 .conceptBar {
   display: grid;
   min-height: 2.6rem;
@@ -119,7 +140,7 @@
 .identity small {
   color: rgba(255, 250, 240, 0.58);
   font-family: var(--font-mono);
-  font-size: 0.48rem;
+  font-size: 0.625rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -315,12 +336,15 @@
 .heroInstrument > figcaption {
   position: absolute;
   z-index: 3;
+  top: 6.4rem;
   right: 1.4rem;
-  bottom: 1.2rem;
+  bottom: auto;
   max-width: 24rem;
+  padding: 0.45rem 0.55rem;
+  background: rgba(24, 36, 51, 0.72);
   color: rgba(255, 250, 240, 0.78);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.625rem;
   letter-spacing: 0.06em;
   text-align: right;
   text-transform: uppercase;
@@ -365,7 +389,7 @@
 
 .heroQuestionSelector button > span {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.625rem;
   opacity: 0.72;
 }
 
@@ -536,7 +560,7 @@
 .heroQuestion small {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -639,7 +663,7 @@
   margin-bottom: 1rem;
   color: var(--edu-muted);
   font-family: var(--font-mono);
-  font-size: 0.59rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -693,7 +717,7 @@
 .rhythmChoices span {
   color: currentColor;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.625rem;
   letter-spacing: 0.06em;
   opacity: 0.68;
   text-transform: uppercase;
@@ -742,7 +766,7 @@
 
 .phaseChoices span {
   font-family: var(--font-mono);
-  font-size: 0.48rem;
+  font-size: 0.625rem;
   opacity: 0.7;
 }
 
@@ -771,7 +795,7 @@
 .pathwayHeader span {
   color: rgba(255, 250, 240, 0.58);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -825,7 +849,7 @@
   border-radius: 50%;
   background: var(--edu-ink);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: 0.625rem;
 }
 
 .pathwayMap button strong {
@@ -834,7 +858,7 @@
 
 .pathwayMap button small {
   max-width: 9ch;
-  font-size: 0.53rem;
+  font-size: 0.625rem;
   line-height: 1.35;
   opacity: 0.65;
 }
@@ -865,7 +889,7 @@
   margin-bottom: 0.9rem;
   color: var(--edu-sun);
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: 0.625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -965,7 +989,7 @@
 .weekSchedule button > span,
 .weekSchedule button > small {
   font-family: var(--font-mono);
-  font-size: 0.53rem;
+  font-size: 0.625rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -991,7 +1015,7 @@
   align-items: center;
   gap: 0.65rem;
   font-family: var(--font-mono);
-  font-size: 0.57rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1028,7 +1052,7 @@
 .dayDetail dt {
   margin-bottom: 0.55rem;
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1063,7 +1087,7 @@
   border-bottom: 1px solid var(--edu-rule);
   color: var(--edu-muted);
   font-family: var(--font-mono);
-  font-size: 0.57rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1111,7 +1135,7 @@
   margin-bottom: 0.7rem;
   color: var(--edu-blue);
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1156,7 +1180,7 @@
   gap: 0.7rem;
   color: var(--edu-sun);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1192,7 +1216,7 @@
 
 .methodKit li span {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.625rem;
   font-style: normal;
   opacity: 0.56;
 }
@@ -1256,7 +1280,7 @@
   gap: 0.6rem;
   color: var(--edu-vermilion);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -1289,7 +1313,7 @@
   border-top: 1px solid var(--edu-rule);
   color: var(--edu-blue);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1367,7 +1391,7 @@
 
 .disclosure span {
   font-family: var(--font-mono);
-  font-size: 0.53rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1529,7 +1553,13 @@
     padding-inline: 1.2rem;
     overflow-x: auto;
     grid-template-columns: repeat(5, minmax(6.5rem, 1fr));
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
     scrollbar-width: thin;
+  }
+
+  .pathwayMap button {
+    scroll-snap-align: start;
   }
 
   .pathwayLine {
@@ -1551,12 +1581,16 @@
     overflow-x: auto;
     border-right: 0;
     border-bottom: 2px solid var(--edu-ink);
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    scrollbar-width: thin;
   }
 
   .weekSchedule button {
     grid-template-columns: 1fr;
     border-right: 1px solid rgba(24, 36, 51, 0.34);
     border-bottom: 0;
+    scroll-snap-align: start;
   }
 
   .dayDetail dl {
@@ -1632,6 +1666,12 @@
 
   .heroQuestionSelector button:first-child {
     border-top: 0;
+  }
+
+  .heroInstrument > figcaption {
+    top: 10.6rem;
+    right: 1rem;
+    max-width: calc(100% - 2rem);
   }
 
   .fieldHalo {

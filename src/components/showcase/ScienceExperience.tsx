@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { type KeyboardEvent, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import type { WebsiteShowcase } from "@/data/creations";
 
@@ -313,8 +313,11 @@ function ResearchObservatory() {
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let nextIndex = index;
 
-    if (event.key === "ArrowRight") nextIndex = (index + 1) % samples.length;
-    else if (event.key === "ArrowLeft") nextIndex = (index - 1 + samples.length) % samples.length;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      nextIndex = (index + 1) % samples.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      nextIndex = (index - 1 + samples.length) % samples.length;
+    }
     else if (event.key === "Home") nextIndex = 0;
     else if (event.key === "End") nextIndex = samples.length - 1;
     else return;
@@ -491,14 +494,28 @@ function InstrumentAccessDraft() {
   const [selectedInstrument, setSelectedInstrument] = useState<(typeof instruments)[number]["id"]>(instruments[0].id);
   const [selectedMode, setSelectedMode] = useState<(typeof accessModes)[number]["id"]>(accessModes[0].id);
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const stepHeading = useRef<HTMLDivElement | null>(null);
+  const shouldFocusStep = useRef(false);
 
   const instrument = instruments.find((item) => item.id === selectedInstrument) ?? instruments[0];
   const mode = accessModes.find((item) => item.id === selectedMode) ?? accessModes[0];
 
+  useEffect(() => {
+    if (!shouldFocusStep.current) return;
+
+    stepHeading.current?.focus();
+    shouldFocusStep.current = false;
+  }, [step]);
+
+  const moveToStep = (nextStep: 1 | 2 | 3) => {
+    shouldFocusStep.current = true;
+    setStep(nextStep);
+  };
+
   const resetDraft = () => {
     setSelectedInstrument(instruments[0].id);
     setSelectedMode(accessModes[0].id);
-    setStep(1);
+    moveToStep(1);
   };
 
   return (
@@ -515,7 +532,11 @@ function InstrumentAccessDraft() {
           {["Instrument", "Access route", "Summary"].map((label, index) => {
             const position = index + 1;
             return (
-              <li key={label} data-state={step === position ? "active" : step > position ? "complete" : "upcoming"}>
+              <li
+                key={label}
+                aria-current={step === position ? "step" : undefined}
+                data-state={step === position ? "active" : step > position ? "complete" : "upcoming"}
+              >
                 <span>{step > position ? <Check aria-hidden="true" /> : `0${position}`}</span>
                 {label}
               </li>
@@ -524,10 +545,10 @@ function InstrumentAccessDraft() {
         </ol>
       </div>
 
-      <div className={styles.accessBuilder} aria-live="polite">
+      <div className={styles.accessBuilder}>
         {step === 1 ? (
           <div className={styles.accessStep}>
-            <div className={styles.accessStepHeading}>
+            <div className={styles.accessStepHeading} ref={stepHeading} tabIndex={-1}>
               <span>Step 01</span>
               <h3>Select an illustrative facility record</h3>
               <p>No instrument availability or operating service is implied.</p>
@@ -550,7 +571,7 @@ function InstrumentAccessDraft() {
                 </button>
               ))}
             </div>
-            <button className={styles.primaryControl} onClick={() => setStep(2)} type="button">
+            <button className={styles.primaryControl} onClick={() => moveToStep(2)} type="button">
               Continue to access route <ArrowRight aria-hidden="true" />
             </button>
           </div>
@@ -558,7 +579,7 @@ function InstrumentAccessDraft() {
 
         {step === 2 ? (
           <div className={styles.accessStep}>
-            <div className={styles.accessStepHeading}>
+            <div className={styles.accessStepHeading} ref={stepHeading} tabIndex={-1}>
               <span>Step 02</span>
               <h3>Choose how the method conversation begins</h3>
               <p>Both routes require a specialist to determine fit; this interface does not approve access.</p>
@@ -582,10 +603,10 @@ function InstrumentAccessDraft() {
               ))}
             </div>
             <div className={styles.accessControls}>
-              <button className={styles.secondaryControl} onClick={() => setStep(1)} type="button">
+              <button className={styles.secondaryControl} onClick={() => moveToStep(1)} type="button">
                 <ArrowLeft aria-hidden="true" /> Back
               </button>
-              <button className={styles.primaryControl} onClick={() => setStep(3)} type="button">
+              <button className={styles.primaryControl} onClick={() => moveToStep(3)} type="button">
                 Prepare demo summary <ArrowRight aria-hidden="true" />
               </button>
             </div>
@@ -597,10 +618,10 @@ function InstrumentAccessDraft() {
             <div className={styles.summarySeal} aria-hidden="true">
               <FlaskConical />
             </div>
-            <div className={styles.accessStepHeading}>
+            <div className={styles.accessStepHeading} ref={stepHeading} tabIndex={-1}>
               <span>Local demonstration summary</span>
               <h3>A method conversation, not an access approval.</h3>
-              <p>This summary exists only in your current browser session and has not been transmitted.</p>
+              <p>This summary exists only in the current page view and has not been transmitted or saved.</p>
             </div>
             <dl className={styles.summaryDetails}>
               <div><dt>Record</dt><dd>{instrument.id} · {instrument.name}</dd></div>

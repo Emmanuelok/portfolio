@@ -273,6 +273,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
             <div className={styles.heroQuestionSelector} aria-label="Choose the current public question" role="group">
               {QUESTION_KEYS.map((key, index) => (
                 <button
+                  aria-controls="curriculum-output"
                   aria-pressed={questionKey === key}
                   key={key}
                   onClick={() => setQuestionKey(key)}
@@ -283,7 +284,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
                 </button>
               ))}
             </div>
-            <div className={styles.heroQuestion} aria-live="polite">
+            <div className={styles.heroQuestion}>
               <span>Current public question</span>
               <strong>{question.title}</strong>
               <small>{question.field}</small>
@@ -292,6 +293,9 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
         </section>
 
         <section className={styles.composer} id="curriculum-composer" aria-labelledby="composer-heading">
+          <p className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">
+            Curriculum updated: {question.title}; {rhythm.label}; {phase.label} phase. Output: {phase.output}. Current session: {selectedSession}.
+          </p>
           <div className={styles.sectionIntro}>
             <p>Curriculum instrument / Interactive demonstration</p>
             <h2 id="composer-heading">Build a learning journey around what matters.</h2>
@@ -308,6 +312,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
                 <div className={styles.questionChoices}>
                   {QUESTION_KEYS.map((key) => (
                     <button
+                      aria-controls="curriculum-output"
                       key={key}
                       type="button"
                       aria-pressed={questionKey === key}
@@ -325,6 +330,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
                 <div className={styles.rhythmChoices}>
                   {(Object.keys(RHYTHMS) as RhythmKey[]).map((key) => (
                     <button
+                      aria-controls="curriculum-output"
                       key={key}
                       type="button"
                       aria-pressed={rhythmKey === key}
@@ -345,6 +351,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
                 <div className={styles.phaseChoices}>
                   {PHASES.map((item) => (
                     <button
+                      aria-controls="curriculum-output"
                       key={item.id}
                       type="button"
                       aria-pressed={phaseId === item.id}
@@ -358,7 +365,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
               </fieldset>
             </div>
 
-            <div className={styles.livePathway} aria-live="polite" aria-atomic="true">
+            <div className={styles.livePathway} id="curriculum-output">
               <div className={styles.pathwayHeader}>
                 <span>Living pathway / {rhythm.note}</span>
                 <strong>{phase.verb}</strong>
@@ -368,6 +375,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
                 <div className={styles.pathwayLine} aria-hidden="true" />
                 {PHASES.map((item) => (
                   <button
+                    aria-controls="curriculum-output"
                     key={item.id}
                     type="button"
                     className={phaseId === item.id ? styles.pathwayActive : undefined}
@@ -410,6 +418,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
                 const [day, activity] = session.split(" / ");
                 return (
                   <button
+                    aria-controls="studio-day-detail"
                     key={session}
                     type="button"
                     aria-pressed={selectedDay === index}
@@ -423,7 +432,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
               })}
             </div>
 
-            <article className={styles.dayDetail} aria-live="polite">
+            <article className={styles.dayDetail} id="studio-day-detail">
               <div className={styles.dayDetailTopline}>
                 <CalendarRange aria-hidden="true" />
                 <span>{selectedSession}</span>
@@ -514,6 +523,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
           <div className={styles.shelfFilters} role="group" aria-label="Filter knowledge shelf">
             {SHELF_FILTERS.map((filter) => (
               <button
+                aria-controls="knowledge-results"
                 key={filter}
                 type="button"
                 aria-pressed={shelfFilter === filter}
@@ -524,7 +534,10 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
             ))}
           </div>
 
-          <div className={styles.shelfGrid} aria-live="polite">
+          <p className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">
+            Showing {visibleShelf.length} {shelfFilter === "All" ? "demonstration resources" : `${shelfFilter.toLowerCase()} resources`}.
+          </p>
+          <div className={styles.shelfGrid} id="knowledge-results">
             {visibleShelf.map((item, index) => (
               <article key={item.title}>
                 <div>

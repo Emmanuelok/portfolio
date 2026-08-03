@@ -6,7 +6,7 @@ import { projects } from "@/data/projects";
 
 const baseUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://portfolio-flame-psi-88.vercel.app"
+  "https://kingxford.co"
 ).replace(/\/$/, "");
 
 export default function sitemap(): MetadataRoute.Sitemap {

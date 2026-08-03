@@ -23,7 +23,7 @@ type MediaArticlePageProps = Readonly<{
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://portfolio-flame-psi-88.vercel.app"
+  "https://kingxford.co"
 ).replace(/\/$/, "");
 
 export const dynamicParams = false;

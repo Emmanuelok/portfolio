@@ -56,6 +56,30 @@ const commands: readonly CommandItem[] = [
     icon: PanelsTopLeft,
   },
   {
+    id: "create-science",
+    label: "Lumen Vale Laboratory",
+    description: "Explore the interactive scientific research website concept",
+    href: "/create/lumen-vale-laboratory",
+    keywords: "science laboratory research microscopy specimens observations interactive concept prototype",
+    icon: FlaskConical,
+  },
+  {
+    id: "create-finance",
+    label: "Meridian Financial Office",
+    description: "Explore the interactive institutional finance website concept",
+    href: "/create/meridian-financial-office",
+    keywords: "finance stewardship governance scenarios mandate committee interactive concept prototype",
+    icon: BriefcaseBusiness,
+  },
+  {
+    id: "create-education",
+    label: "Commonfield Institute",
+    description: "Explore the interactive education website concept",
+    href: "/create/commonfield-institute",
+    keywords: "education learning curriculum weekly syllabus school institute interactive concept prototype",
+    icon: PanelsTopLeft,
+  },
+  {
     id: "work",
     label: "Work",
     description: "See complex ideas and research translated into working systems",
@@ -199,6 +223,7 @@ export function CommandPalette({
           type="button"
           onClick={() => setIsOpen(true)}
           aria-haspopup="dialog"
+          aria-expanded={isOpen}
           aria-label="Open site command menu"
         >
           <Search aria-hidden="true" />

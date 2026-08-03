@@ -64,6 +64,9 @@ async function inspectPage(name, route, viewport, options = {}) {
     hasTouch: options.hasTouch ?? false,
     isMobile: options.isMobile ?? false,
   });
+  if (options.initScript) {
+    await context.addInitScript(options.initScript);
+  }
   const page = await context.newPage();
   const consoleErrors = [];
   const pageErrors = [];
@@ -245,7 +248,8 @@ const scienceLabCommandPassed = scienceLabCommandResults.some(
   (result) =>
     result.id === "command-create" &&
     /create/i.test(result.text) &&
-    /websites?/i.test(result.text),
+    /canvas/i.test(result.text) &&
+    /working proofs?/i.test(result.text),
 );
 results.push({
   interaction: "command-search-science-lab",
@@ -472,9 +476,9 @@ const create = await inspectPage(
 const createIndexState = await create.page.evaluate((expectedShowcases) => {
   const gallery = document.querySelector("[data-prototype-gallery]");
   const tabs = [...gallery?.querySelectorAll("[role='tab']") ?? []];
-  const navLinks = [
-    ...document.querySelectorAll(".site-header__nav-link[href='/create']"),
-  ];
+  const createLink = document.querySelector(
+    ".site-header__desktop-nav .site-header__create-link",
+  );
   const schemaNode = document.querySelector("#create-collection-schema");
   let schema = null;
   try {
@@ -495,9 +499,10 @@ const createIndexState = await create.page.evaluate((expectedShowcases) => {
     catalogueCount: document.querySelectorAll(
       "section[aria-labelledby='catalogue-heading'] article[id]",
     ).length,
-    currentNav:
-      navLinks.length > 0 &&
-      navLinks.every((link) => link.getAttribute("aria-current") === "page"),
+    currentNav: createLink?.getAttribute("aria-current") === "page",
+    standaloneCanvasNavCount: document.querySelectorAll(
+      ".site-header__desktop-nav > .site-header__nav-link[href='/create/workspace']",
+    ).length,
     schemaType: schema?.["@type"] ?? null,
     schemaPartCount: Array.isArray(schema?.hasPart) ? schema.hasPart.length : 0,
   };
@@ -531,6 +536,7 @@ const createIndexPassed =
   prototypeStates.every((state) => state.liveControls >= 3 && state.panelText.length > 120) &&
   createIndexState.catalogueCount === 7 &&
   createIndexState.currentNav &&
+  createIndexState.standaloneCanvasNavCount === 0 &&
   createIndexState.schemaType === "CollectionPage" &&
   createIndexState.schemaPartCount === 4;
 results.push({
@@ -568,6 +574,54 @@ if (!createSitemapPassed) {
     interaction: "create-sitemap",
     status: sitemapResponse.status(),
     missingPaths: missingCreateSitemapPaths,
+  });
+}
+
+const desktopCreateTrigger = create.page.locator(
+  ".site-header__create-disclosure",
+);
+await desktopCreateTrigger.click();
+const desktopCreateMenuState = {
+  expanded: (await desktopCreateTrigger.getAttribute("aria-expanded")) === "true",
+  panelVisible: await create.page.locator("#site-header-create-panel").isVisible(),
+  modeCount: await create.page.locator(".site-header__create-modes > a").count(),
+  proofCount: await create.page.locator(".site-header__create-proofs > a").count(),
+  canvasHref: await create.page
+    .locator(".site-header__create-canvas")
+    .getAttribute("href"),
+  buildHref: await create.page
+    .locator(".site-header__create-build")
+    .getAttribute("href"),
+};
+await create.page.screenshot({
+  path: path.join(outputDir, "create-unified-menu-desktop-1440.png"),
+  fullPage: false,
+});
+await create.page.keyboard.press("Escape");
+desktopCreateMenuState.escapeClosed =
+  (await create.page.locator("#site-header-create-panel").count()) === 0 &&
+  (await desktopCreateTrigger.getAttribute("aria-expanded")) === "false";
+desktopCreateMenuState.focusRestored = await desktopCreateTrigger.evaluate(
+  (trigger) => document.activeElement === trigger,
+);
+const desktopCreateMenuPassed =
+  desktopCreateMenuState.expanded &&
+  desktopCreateMenuState.panelVisible &&
+  desktopCreateMenuState.modeCount === 5 &&
+  desktopCreateMenuState.proofCount === 3 &&
+  desktopCreateMenuState.canvasHref === "/create/workspace" &&
+  desktopCreateMenuState.buildHref === "/contact?brief=create" &&
+  desktopCreateMenuState.escapeClosed &&
+  desktopCreateMenuState.focusRestored;
+results.push({
+  interaction: "create-unified-desktop-menu",
+  passed: desktopCreateMenuPassed,
+  ...desktopCreateMenuState,
+});
+if (!desktopCreateMenuPassed) {
+  failures.push({
+    interaction: "create-unified-desktop-menu",
+    ...desktopCreateMenuState,
   });
 }
 await create.context.close();
@@ -758,6 +812,13 @@ const canvasRouteState = await canvas.page.evaluate(() => {
     hasResultPane: Boolean(
       document.querySelector("[aria-label='Live result and agent review']"),
     ),
+    createSectionCurrent:
+      document
+        .querySelector(".site-header__desktop-nav .site-header__create-link")
+        ?.getAttribute("aria-current") === "location",
+    standaloneCanvasNavCount: document.querySelectorAll(
+      ".site-header__desktop-nav > .site-header__nav-link[href='/create/workspace']",
+    ).length,
     schemaType: schema?.["@type"] ?? null,
   };
 });
@@ -768,6 +829,8 @@ const canvasRoutePassed =
   canvasRouteState.selectedMode === "workspace-mode-idea" &&
   canvasRouteState.hasWorkbench &&
   canvasRouteState.hasResultPane &&
+  canvasRouteState.createSectionCurrent &&
+  canvasRouteState.standaloneCanvasNavCount === 0 &&
   canvasRouteState.schemaType === "WebApplication";
 results.push({
   interaction: "canvas-route-desktop",
@@ -1276,6 +1339,490 @@ await canvas.page.screenshot({
 });
 await canvas.context.close();
 
+const canvasAdvanced = await inspectPage(
+  "canvas-project-library-desktop-1440",
+  "/create/workspace",
+  { width: 1440, height: 1000 },
+);
+const advancedPage = canvasAdvanced.page;
+const projectButton = advancedPage.getByRole("button", { name: /^Projects/ });
+await projectButton.click();
+const projectDialog = advancedPage.getByRole("dialog", {
+  name: "Your Canvas workspaces",
+});
+await projectDialog.waitFor({ state: "visible" });
+const initialProjectCount = await projectDialog.locator("ol > li").count();
+await advancedPage.screenshot({
+  path: path.join(outputDir, "canvas-project-library-open-desktop-1440.png"),
+  fullPage: false,
+});
+await projectDialog.getByRole("button", { name: "New project" }).click();
+const advancedProjectTitle = "Project library browser check";
+const advancedProjectSource = `Create: Evidence Garden
+For: Community teams
+Problem: Useful project evidence is scattered.
+Change: Keep decisions, tests and learning together.
+Evidence: A retrievable decision record.`;
+await advancedPage.locator("#workspace-title").fill(advancedProjectTitle);
+await advancedPage.locator("#workspace-text-editor").fill(advancedProjectSource);
+await advancedPage.waitForFunction(
+  ({ expectedTitle, expectedSource }) => {
+    const raw = localStorage.getItem("kingxford:canvas:v2");
+    if (!raw) return false;
+    const library = JSON.parse(raw);
+    const active = library.projects.find(
+      (project) => project.id === library.activeProjectId,
+    );
+    return active?.title === expectedTitle && active?.textByMode?.idea === expectedSource;
+  },
+  { expectedTitle: advancedProjectTitle, expectedSource: advancedProjectSource },
+);
+await advancedPage.reload({ waitUntil: "domcontentloaded" });
+await advancedPage.locator("#workspace-title").waitFor({ state: "visible" });
+await advancedPage.waitForFunction(
+  (expected) => document.querySelector("#workspace-title")?.value === expected,
+  advancedProjectTitle,
+);
+const persistedProjectState = {
+  title: await advancedPage.locator("#workspace-title").inputValue(),
+  source: await advancedPage.locator("#workspace-text-editor").inputValue(),
+  projectCount: await advancedPage.evaluate(() =>
+    JSON.parse(localStorage.getItem("kingxford:canvas:v2") ?? "{}").projects?.length ?? 0,
+  ),
+};
+const projectPersistencePassed =
+  initialProjectCount === 1 &&
+  persistedProjectState.title === advancedProjectTitle &&
+  persistedProjectState.source === advancedProjectSource &&
+  persistedProjectState.projectCount === 2;
+results.push({
+  interaction: "canvas-multi-project-persistence",
+  passed: projectPersistencePassed,
+  initialProjectCount,
+  ...persistedProjectState,
+});
+if (!projectPersistencePassed) {
+  failures.push({
+    interaction: "canvas-multi-project-persistence",
+    initialProjectCount,
+    ...persistedProjectState,
+  });
+}
+
+await advancedPage.getByRole("button", { name: /^Projects/ }).click();
+await projectDialog.waitFor({ state: "visible" });
+const activeProjectRow = projectDialog.locator("li[data-active='true']");
+const activeProjectText = await activeProjectRow.textContent();
+const [projectDownload] = await Promise.all([
+  advancedPage.waitForEvent("download"),
+  activeProjectRow.getByRole("button", { name: /^Export / }).click(),
+]);
+const projectDownloadPath = await projectDownload.path();
+const projectBundle = projectDownloadPath
+  ? await fs.readFile(projectDownloadPath)
+  : Buffer.from("");
+await projectDialog.locator("input[type='file']").setInputFiles({
+  name: projectDownload.suggestedFilename(),
+  mimeType: "application/json",
+  buffer: projectBundle,
+});
+await projectDialog.waitFor({ state: "hidden" });
+await advancedPage.waitForFunction(() => {
+  const library = JSON.parse(localStorage.getItem("kingxford:canvas:v2") ?? "{}");
+  return library.projects?.length === 3;
+});
+const bundleRoundTripState = await advancedPage.evaluate(() => {
+  const library = JSON.parse(localStorage.getItem("kingxford:canvas:v2") ?? "{}");
+  const active = library.projects?.find(
+    (project) => project.id === library.activeProjectId,
+  );
+  return {
+    projectCount: library.projects?.length ?? 0,
+    title: active?.title ?? "",
+    formatPreserved: Boolean(active?.textByMode && active?.code && active?.committedCode),
+  };
+});
+const bundleRoundTripPassed =
+  /Project library browser check/.test(activeProjectText ?? "") &&
+  projectBundle.length > 100 &&
+  bundleRoundTripState.projectCount === 3 &&
+  bundleRoundTripState.title === advancedProjectTitle &&
+  bundleRoundTripState.formatPreserved;
+results.push({
+  interaction: "canvas-project-bundle-round-trip",
+  passed: bundleRoundTripPassed,
+  downloadedBytes: projectBundle.length,
+  ...bundleRoundTripState,
+});
+if (!bundleRoundTripPassed) {
+  failures.push({
+    interaction: "canvas-project-bundle-round-trip",
+    downloadedBytes: projectBundle.length,
+    activeProjectText,
+    ...bundleRoundTripState,
+  });
+}
+
+const creativeHtml = `<main id="imported-creative-input"><h1>Imported proof</h1></main>
+<style>#imported-creative-input { color: rgb(12, 34, 56); }</style>
+<script>document.body.dataset.importVerified = "true";</script>`;
+await advancedPage.locator("input[type='file'][accept*='.html']").setInputFiles({
+  name: "imported-proof.html",
+  mimeType: "text/html",
+  buffer: Buffer.from(creativeHtml),
+});
+await advancedPage.locator("#workspace-mode-code[aria-selected='true']").waitFor();
+const importedHtml = await advancedPage.locator("#workspace-code-editor").inputValue();
+await advancedPage.getByRole("tab", { name: "CSS", exact: true }).click();
+const importedCss = await advancedPage.locator("#workspace-code-editor").inputValue();
+await advancedPage.getByRole("tab", { name: "JavaScript", exact: true }).click();
+const importedJavaScript = await advancedPage.locator("#workspace-code-editor").inputValue();
+const creativeImportPassed =
+  importedHtml.includes("imported-creative-input") &&
+  importedCss.includes("rgb(12, 34, 56)") &&
+  importedJavaScript.includes("importVerified");
+results.push({
+  interaction: "canvas-safe-creative-html-import",
+  passed: creativeImportPassed,
+  htmlPreserved: importedHtml.includes("imported-creative-input"),
+  cssPreserved: importedCss.includes("rgb(12, 34, 56)"),
+  javascriptPreserved: importedJavaScript.includes("importVerified"),
+});
+if (!creativeImportPassed) {
+  failures.push({
+    interaction: "canvas-safe-creative-html-import",
+    importedHtml,
+    importedCss,
+    importedJavaScript,
+  });
+}
+
+await advancedPage
+  .getByLabel("Transform current work into another form")
+  .selectOption("brief");
+const transformedCodeBrief = await advancedPage
+  .locator("#workspace-text-editor")
+  .inputValue();
+const codeAwareTransformPassed =
+  /Imported proof/.test(transformedCodeBrief) &&
+  !/Define the purpose this concept must serve/.test(transformedCodeBrief);
+results.push({
+  interaction: "canvas-code-aware-transformation",
+  passed: codeAwareTransformPassed,
+  transformedBrief: transformedCodeBrief.slice(0, 520),
+});
+if (!codeAwareTransformPassed) {
+  failures.push({
+    interaction: "canvas-code-aware-transformation",
+    transformedCodeBrief,
+  });
+}
+await advancedPage.locator("#workspace-mode-code").click();
+
+await advancedPage.getByRole("tab", { name: "HTML", exact: true }).click();
+await advancedPage.getByRole("tab", { name: "Agent review", exact: true }).click();
+let releaseStaleReview;
+const staleReviewGate = new Promise((resolve) => {
+  releaseStaleReview = resolve;
+});
+let staleReviewRequest = null;
+await advancedPage.route("**/api/workspace/agent", async (route) => {
+  staleReviewRequest = route.request().postDataJSON();
+  await staleReviewGate;
+  await route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      review: {
+        summary: "A bounded code review for browser verification.",
+        status: "Developing",
+        strengths: ["The three-file source is explicit."],
+        uncertainties: ["The next user decision needs evidence."],
+        failurePoints: ["The interface could imply unsupported certainty."],
+        assumptions: ["The imported interaction matches user needs."],
+        nextTest: "Run a keyboard and responsive interaction test.",
+        proposedChanges: ["Keep all three source files synchronized."],
+        improvedInput: "<main>stale proposal</main>",
+        improvedCode: {
+          html: "<main>stale proposal</main>",
+          css: "body { color: orange; }",
+          javascript: "document.body.dataset.stale = 'true';",
+        },
+        buildBrief: {
+          title: "Browser verification",
+          oneLine: "Verify bound source proposals.",
+          audience: "Canvas creators",
+          coreExperience: "Safe source review",
+          deliverables: ["Bound review", "Three-file proposal"],
+          complexity: "Focused",
+        },
+      },
+      source: "openai",
+      model: "gpt-5.6-sol",
+      protocolVersion: "browser-test",
+      inputDigest: "browser-stale-digest",
+    }),
+  });
+});
+await advancedPage.getByRole("button", { name: "Review this version" }).click();
+await advancedPage.getByText("Examining this version…").waitFor();
+await advancedPage
+  .locator("#workspace-code-editor")
+  .fill("<main id='newer-source'>Newer source must remain protected</main>");
+releaseStaleReview();
+await advancedPage.getByText("This review belongs to an earlier source.").waitFor();
+const staleApplyButton = advancedPage.getByRole("button", {
+  name: "Review is out of date",
+});
+const staleReviewState = {
+  applyDisabled: await staleApplyButton.isDisabled(),
+  requestMode: staleReviewRequest?.mode ?? null,
+  sentHtml: staleReviewRequest?.code?.html ?? null,
+  currentHtml: await advancedPage.locator("#workspace-code-editor").inputValue(),
+};
+const staleReviewPassed =
+  staleReviewState.applyDisabled &&
+  staleReviewState.requestMode === "code" &&
+  staleReviewState.sentHtml?.includes("imported-creative-input") &&
+  staleReviewState.currentHtml.includes("newer-source");
+results.push({
+  interaction: "canvas-stale-agent-review-protection",
+  passed: staleReviewPassed,
+  ...staleReviewState,
+});
+if (!staleReviewPassed) {
+  failures.push({
+    interaction: "canvas-stale-agent-review-protection",
+    ...staleReviewState,
+  });
+}
+await advancedPage.unroute("**/api/workspace/agent");
+
+const proposedCode = {
+  html: "<main id='agent-three-file'>Three-file proposal applied</main>",
+  css: "#agent-three-file { color: rgb(80, 90, 220); }",
+  javascript: "document.body.dataset.agentFiles = 'applied';",
+};
+await advancedPage.route("**/api/workspace/agent", async (route) => {
+  await route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      review: {
+        summary: "All source files are ready for one atomic proposal.",
+        status: "Strong",
+        strengths: ["The proposal keeps source boundaries explicit."],
+        uncertainties: ["Production data remains outside this prototype."],
+        failurePoints: ["A browser prototype is not production validation."],
+        assumptions: ["The current interaction remains in scope."],
+        nextTest: "Verify all files and the isolated preview together.",
+        proposedChanges: ["Apply HTML, CSS and JavaScript atomically."],
+        improvedInput: proposedCode.html,
+        improvedCode: proposedCode,
+        buildBrief: {
+          title: "Atomic code proposal",
+          oneLine: "Keep front-end files synchronized.",
+          audience: "Canvas creators",
+          coreExperience: "Safe multi-file application",
+          deliverables: ["HTML source", "CSS source", "JavaScript source"],
+          complexity: "Layered",
+        },
+      },
+      source: "openai",
+      model: "gpt-5.6-sol",
+      protocolVersion: "browser-test",
+      inputDigest: "browser-current-digest",
+    }),
+  });
+});
+await advancedPage.getByRole("button", { name: "Review this version" }).click();
+const applyProposal = advancedPage.getByRole("button", {
+  name: "Apply as a new version",
+});
+await applyProposal.waitFor({ state: "visible" });
+await applyProposal.click();
+await advancedPage.getByRole("tab", { name: "HTML", exact: true }).click();
+const appliedHtml = await advancedPage.locator("#workspace-code-editor").inputValue();
+await advancedPage.getByRole("tab", { name: "CSS", exact: true }).click();
+const appliedCss = await advancedPage.locator("#workspace-code-editor").inputValue();
+await advancedPage.getByRole("tab", { name: "JavaScript", exact: true }).click();
+const appliedJavaScript = await advancedPage.locator("#workspace-code-editor").inputValue();
+const atomicCodePassed =
+  appliedHtml === proposedCode.html &&
+  appliedCss === proposedCode.css &&
+  appliedJavaScript === proposedCode.javascript;
+results.push({
+  interaction: "canvas-agent-atomic-three-file-apply",
+  passed: atomicCodePassed,
+  htmlApplied: appliedHtml === proposedCode.html,
+  cssApplied: appliedCss === proposedCode.css,
+  javascriptApplied: appliedJavaScript === proposedCode.javascript,
+});
+if (!atomicCodePassed) {
+  failures.push({
+    interaction: "canvas-agent-atomic-three-file-apply",
+    appliedHtml,
+    appliedCss,
+    appliedJavaScript,
+  });
+}
+await advancedPage.unroute("**/api/workspace/agent");
+
+await advancedPage.getByRole("tab", { name: /^Versions/ }).click();
+const compareButton = advancedPage.getByRole("button", { name: "Compare" }).nth(1);
+await compareButton.click();
+const comparisonText = await advancedPage.locator("#workspace-versions-panel").textContent();
+const versionComparePassed =
+  /Checkpoint → current source/.test(comparisonText ?? "") &&
+  /(HTML|CSS|JavaScript|No source changes)/.test(comparisonText ?? "");
+results.push({
+  interaction: "canvas-version-compare",
+  passed: versionComparePassed,
+  comparison: comparisonText?.replace(/\s+/g, " ").trim().slice(0, 420) ?? "",
+});
+if (!versionComparePassed) {
+  failures.push({
+    interaction: "canvas-version-compare",
+    comparisonText,
+  });
+}
+await advancedPage.screenshot({
+  path: path.join(outputDir, "canvas-version-compare-desktop-1440.png"),
+  fullPage: false,
+});
+await canvasAdvanced.context.close();
+
+const legacyTimestamp = "2026-08-03T12:00:00.000Z";
+const canvasMigration = await inspectPage(
+  "canvas-legacy-migration-desktop-1440",
+  "/create/workspace",
+  { width: 1440, height: 1000 },
+  {
+    initScript: () => {
+      const legacy = {
+        mode: "prompt",
+        title: "Legacy migration proof",
+        textByMode: {
+          idea: "Create: Legacy migration proof",
+          mindmap: "Legacy migration proof\n  Preserve source",
+          prompt: "TASK\nPreserve this prompt during migration.",
+          brief: "OUTCOME\nPreserve this project.",
+        },
+        code: { html: "<main>Legacy</main>", css: "", javascript: "" },
+        committedCode: { html: "<main>Legacy</main>", css: "", javascript: "" },
+        versions: [],
+      };
+      localStorage.setItem("kingxford:canvas:v1", JSON.stringify(legacy));
+    },
+  },
+);
+await canvasMigration.page.waitForFunction(() =>
+  Boolean(localStorage.getItem("kingxford:canvas:v2")),
+);
+const migrationState = await canvasMigration.page.evaluate(() => {
+  const legacy = localStorage.getItem("kingxford:canvas:v1");
+  const library = JSON.parse(localStorage.getItem("kingxford:canvas:v2") ?? "{}");
+  const active = library.projects?.find(
+    (project) => project.id === library.activeProjectId,
+  );
+  return {
+    legacyPreserved: Boolean(legacy),
+    schemaVersion: library.schemaVersion ?? null,
+    projectCount: library.projects?.length ?? 0,
+    activeTitle: active?.title ?? "",
+    activePrompt: active?.textByMode?.prompt ?? "",
+  };
+});
+const migrationPassed =
+  migrationState.legacyPreserved &&
+  migrationState.schemaVersion === 2 &&
+  migrationState.projectCount === 1 &&
+  migrationState.activeTitle === "Legacy migration proof" &&
+  /Preserve this prompt/.test(migrationState.activePrompt);
+results.push({
+  interaction: "canvas-v1-to-v2-safe-migration",
+  passed: migrationPassed,
+  seededAt: legacyTimestamp,
+  ...migrationState,
+});
+if (!migrationPassed) {
+  failures.push({
+    interaction: "canvas-v1-to-v2-safe-migration",
+    ...migrationState,
+  });
+}
+await canvasMigration.context.close();
+
+const malformedLibrary = JSON.stringify({
+  schemaVersion: 2,
+  revision: 4,
+  activeProjectId: "missing-project",
+  projects: [],
+});
+const canvasRecovery = await inspectPage(
+  "canvas-malformed-storage-recovery-desktop-1440",
+  "/create/workspace",
+  { width: 1440, height: 1000 },
+);
+await canvasRecovery.page.evaluate((raw) => {
+  localStorage.clear();
+  localStorage.setItem("kingxford:canvas:v2", raw);
+}, malformedLibrary);
+await canvasRecovery.page.reload({ waitUntil: "domcontentloaded" });
+await canvasRecovery.page.waitForTimeout(700);
+const recoveryState = await canvasRecovery.page.evaluate((expected) => ({
+  malformedPreserved: localStorage.getItem("kingxford:canvas:v2") === expected,
+  status: document.querySelector("[aria-live='polite']")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+  editorAvailable: Boolean(document.querySelector("#workspace-text-editor")),
+}), malformedLibrary);
+const recoveryPassed =
+  recoveryState.malformedPreserved &&
+  /Autosave is paused/.test(recoveryState.status) &&
+  recoveryState.editorAvailable;
+results.push({
+  interaction: "canvas-malformed-storage-nondestructive-recovery",
+  passed: recoveryPassed,
+  ...recoveryState,
+});
+if (!recoveryPassed) {
+  failures.push({
+    interaction: "canvas-malformed-storage-nondestructive-recovery",
+    ...recoveryState,
+  });
+}
+await canvasRecovery.context.close();
+
+const canvasModeLaunch = await inspectPage(
+  "canvas-mode-launch-code-1440",
+  "/create/workspace?mode=code",
+  { width: 1440, height: 1000 },
+);
+const canvasModeLaunchState = {
+  selectedMode: await canvasModeLaunch.page
+    .locator("[role='tab'][id^='workspace-mode-'][aria-selected='true']")
+    .getAttribute("id"),
+  codeEditorVisible: await canvasModeLaunch.page
+    .locator("#workspace-code-editor")
+    .isVisible(),
+  url: canvasModeLaunch.page.url(),
+};
+const canvasModeLaunchPassed =
+  canvasModeLaunchState.selectedMode === "workspace-mode-code" &&
+  canvasModeLaunchState.codeEditorVisible &&
+  new URL(canvasModeLaunchState.url).searchParams.get("mode") === "code";
+results.push({
+  interaction: "canvas-create-mode-deep-link",
+  passed: canvasModeLaunchPassed,
+  ...canvasModeLaunchState,
+});
+if (!canvasModeLaunchPassed) {
+  failures.push({
+    interaction: "canvas-create-mode-deep-link",
+    ...canvasModeLaunchState,
+  });
+}
+await canvasModeLaunch.context.close();
+
 const createGallery = await inspectPage(
   "create-gallery-desktop-1440",
   "/create",
@@ -1294,9 +1841,9 @@ for (const expected of expectedCreateShowcases) {
     const disclosure = document.querySelector(
       "aside[aria-label='Concept disclosure']",
     );
-    const navLinks = [
-      ...document.querySelectorAll(".site-header__nav-link[href='/create']"),
-    ];
+    const createLink = document.querySelector(
+      ".site-header__desktop-nav .site-header__create-link",
+    );
     const schemaNode = document.querySelector(`#showcase-schema-${slug}`);
     const breadcrumbsNode = document.querySelector(
       `#showcase-breadcrumbs-${slug}`,
@@ -1321,9 +1868,7 @@ for (const expected of expectedCreateShowcases) {
           .querySelector("[data-showcase-sector]")
           ?.getAttribute("data-showcase-sector") ?? null,
       heading: document.querySelector("main h1")?.textContent?.trim() ?? "",
-      currentNav:
-        navLinks.length > 0 &&
-        navLinks.every((link) => link.getAttribute("aria-current") === "page"),
+      currentNav: createLink?.getAttribute("aria-current") === "location",
       disclosurePresent: Boolean(disclosure),
       disclosureText: disclosure?.textContent?.replace(/\s+/g, " ").trim() ?? "",
       schemaType: schema?.["@type"] ?? null,
@@ -1462,13 +2007,34 @@ const createHeaderState = await createHeader.page.evaluate(() => {
     navActionsOverlap: Math.max(0, navRect.right - actionsRect.left),
   };
 });
+await createHeader.page.locator(".site-header__create-disclosure").click();
+createHeaderState.createPanelBounds = await createHeader.page
+  .locator("#site-header-create-panel")
+  .evaluate((panel) => {
+    const rect = panel.getBoundingClientRect();
+    return {
+      left: rect.left,
+      right: rect.right,
+      top: rect.top,
+      bottom: rect.bottom,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+    };
+  });
+await createHeader.page.keyboard.press("Escape");
 const createHeaderPassed =
   createHeaderState.elementsPresent &&
   createHeaderState.navDisplay !== "none" &&
   createHeaderState.navLinkCount >= 7 &&
   createHeaderState.currentNav &&
   createHeaderState.brandNavOverlap <= 0.5 &&
-  createHeaderState.navActionsOverlap <= 0.5;
+  createHeaderState.navActionsOverlap <= 0.5 &&
+  createHeaderState.createPanelBounds.left >= 0 &&
+  createHeaderState.createPanelBounds.right <=
+    createHeaderState.createPanelBounds.viewportWidth + 0.5 &&
+  createHeaderState.createPanelBounds.top >= 0 &&
+  createHeaderState.createPanelBounds.bottom <=
+    createHeaderState.createPanelBounds.viewportHeight + 0.5;
 results.push({
   interaction: "create-header-overlap-1201",
   passed: createHeaderPassed,
@@ -1745,11 +2311,25 @@ const mobileCreateState = {
   menuOpen: await mobileCreate.page
     .locator(".site-header__mobile-menu[open]")
     .isVisible(),
+  createSectionOpen: await mobileCreate.page
+    .locator(".site-header__mobile-create[open][data-current='true']")
+    .isVisible(),
   currentNavVisible: await mobileCreate.page
     .locator(
-      ".site-header__mobile-panel .site-header__nav-link[href='/create'][aria-current='page']",
+      ".site-header__mobile-create-links a[href='/create'][aria-current='page']",
     )
     .isVisible(),
+  canvasLaunchVisible: await mobileCreate.page
+    .locator(".site-header__mobile-canvas[href='/create/workspace']")
+    .isVisible(),
+  modeCount: await mobileCreate.page
+    .locator(".site-header__mobile-create-modes > a")
+    .count(),
+  standaloneCanvasNavCount: await mobileCreate.page
+    .locator(
+      ".site-header__mobile-panel > nav > .site-header__nav-link[href='/create/workspace']",
+    )
+    .count(),
   featuredCount: await mobileCreate.page
     .locator("[data-prototype-gallery] [role='tab']")
     .count(),
@@ -1759,7 +2339,11 @@ const mobileCreateState = {
 };
 const mobileCreatePassed =
   mobileCreateState.menuOpen &&
+  mobileCreateState.createSectionOpen &&
   mobileCreateState.currentNavVisible &&
+  mobileCreateState.canvasLaunchVisible &&
+  mobileCreateState.modeCount === 5 &&
+  mobileCreateState.standaloneCanvasNavCount === 0 &&
   mobileCreateState.featuredCount === 3 &&
   mobileCreateState.heading?.trim() === "What should exist next?";
 results.push({
@@ -1782,6 +2366,30 @@ const mobileCanvas = await inspectPage(
   { width: 390, height: 844 },
   { hasTouch: true, isMobile: true },
 );
+await mobileCanvas.page.locator(".site-header__mobile-summary").click();
+const mobileCanvasCreateNavState = {
+  sectionOpen: await mobileCanvas.page
+    .locator(".site-header__mobile-create[open][data-current='true']")
+    .isVisible(),
+  workspaceCurrent: await mobileCanvas.page
+    .locator(".site-header__mobile-canvas[aria-current='page']")
+    .isVisible(),
+};
+const mobileCanvasCreateNavPassed =
+  mobileCanvasCreateNavState.sectionOpen &&
+  mobileCanvasCreateNavState.workspaceCurrent;
+results.push({
+  interaction: "canvas-mobile-unified-create-navigation",
+  passed: mobileCanvasCreateNavPassed,
+  ...mobileCanvasCreateNavState,
+});
+if (!mobileCanvasCreateNavPassed) {
+  failures.push({
+    interaction: "canvas-mobile-unified-create-navigation",
+    ...mobileCanvasCreateNavState,
+  });
+}
+await mobileCanvas.page.locator(".site-header__mobile-summary").click();
 const mobileCanvasTabs = mobileCanvas.page.locator(
   "[aria-label='Mobile workspace panes']",
 );
@@ -1797,6 +2405,9 @@ const mobileCanvasAgentTab = mobileCanvasTabs.getByRole("button", {
   name: "Agent",
   exact: true,
 });
+const mobileCanvasVersionsTab = mobileCanvasTabs.getByRole("button", {
+  name: /^Versions/,
+});
 const mobileWorkbench = mobileCanvas.page.locator(
   "[aria-label='Creative input workbench']",
 );
@@ -1807,6 +2418,7 @@ const mobilePreviewPanel = mobileCanvas.page.locator(
   "#workspace-preview-panel",
 );
 const mobileAgentPanel = mobileCanvas.page.locator("#workspace-agent-panel");
+const mobileVersionsPanel = mobileCanvas.page.locator("#workspace-versions-panel");
 
 const mobileCanvasInputState = {
   pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
@@ -1852,6 +2464,23 @@ await mobileCanvas.page.screenshot({
   fullPage: false,
 });
 
+await mobileCanvasVersionsTab.click();
+await mobileVersionsPanel.waitFor({ state: "visible" });
+const mobileCanvasVersionsState = {
+  pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
+  selected: (await mobileCanvasVersionsTab.getAttribute("aria-pressed")) === "true",
+  workbenchHidden: !(await mobileWorkbench.isVisible()),
+  resultVisible: await mobileResultPane.isVisible(),
+  versionsVisible: await mobileVersionsPanel.isVisible(),
+  headingVisible: await mobileVersionsPanel
+    .getByRole("heading", { name: "Versions", exact: true })
+    .isVisible(),
+};
+await mobileCanvas.page.screenshot({
+  path: path.join(outputDir, "canvas-mobile-versions-390.png"),
+  fullPage: false,
+});
+
 await mobileCanvasInputTab.click();
 await mobileWorkbench.waitFor({ state: "visible" });
 const mobileCanvasReturnState = {
@@ -1880,6 +2509,12 @@ const mobileCanvasPassed =
   mobileCanvasAgentState.previewHidden &&
   mobileCanvasAgentState.agentVisible &&
   mobileCanvasAgentState.contextDisclosureVisible &&
+  mobileCanvasVersionsState.pane === "versions" &&
+  mobileCanvasVersionsState.selected &&
+  mobileCanvasVersionsState.workbenchHidden &&
+  mobileCanvasVersionsState.resultVisible &&
+  mobileCanvasVersionsState.versionsVisible &&
+  mobileCanvasVersionsState.headingVisible &&
   mobileCanvasReturnState.pane === "input" &&
   mobileCanvasReturnState.selected &&
   mobileCanvasReturnState.workbenchVisible &&
@@ -1890,6 +2525,7 @@ results.push({
   input: mobileCanvasInputState,
   preview: mobileCanvasPreviewState,
   agent: mobileCanvasAgentState,
+  versions: mobileCanvasVersionsState,
   returnedInput: mobileCanvasReturnState,
 });
 if (!mobileCanvasPassed) {
@@ -1898,6 +2534,7 @@ if (!mobileCanvasPassed) {
     input: mobileCanvasInputState,
     preview: mobileCanvasPreviewState,
     agent: mobileCanvasAgentState,
+    versions: mobileCanvasVersionsState,
     returnedInput: mobileCanvasReturnState,
   });
 }

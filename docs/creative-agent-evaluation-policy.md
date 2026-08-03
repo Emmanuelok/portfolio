@@ -56,6 +56,13 @@ At least the immediately previous protocol should remain recoverable through Git
 
 ## Changelog
 
+### 2026-08-03 — `kxci-2026-08-03.2`
+
+- Bound every Agent result to the exact reviewed Canvas draft before it can be applied or attached to a handoff.
+- Added atomic HTML, CSS, and JavaScript proposals for Code reviews.
+- Replaced breakable prompt markup with canonical JSON inside fresh high-entropy untrusted-data boundaries.
+- Added input digests, code-aware transforms, version comparison checks, and expanded deterministic governance coverage.
+
 ### 2026-08-02 — `kxci-2026-08-02.1`
 
 - Established the first fixed governance corpus.

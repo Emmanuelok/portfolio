@@ -8,8 +8,11 @@ import {
   CircleStop,
   Code2,
   Download,
+  FileUp,
   FileCode2,
   FileText,
+  FolderKanban,
+  GitCompare,
   History,
   Lightbulb,
   LoaderCircle,
@@ -23,6 +26,7 @@ import {
   Send,
   Settings2,
   Sparkles,
+  TriangleAlert,
   WandSparkles,
   X,
 } from "lucide-react";
@@ -38,46 +42,57 @@ import {
   useState,
 } from "react";
 
-import { transformDraft } from "@/lib/workspace/local-analysis";
+import {
+  summarizeDraftChanges,
+  transformDraft,
+} from "@/lib/workspace/local-analysis";
 import {
   initialDraft,
   modeDetails,
   starterText,
   transformLabels,
 } from "@/lib/workspace/presets";
+import {
+  createWorkspaceLibrary,
+  createWorkspaceProject,
+  importWorkspaceProjectBundle,
+  loadWorkspaceLibrary,
+  saveWorkspaceLibrary,
+  serializeWorkspaceProjectBundle,
+  WORKSPACE_BUNDLE_CHARACTER_LIMIT,
+  WORKSPACE_PROJECT_LIMIT,
+  WORKSPACE_STORAGE_KEY,
+  WORKSPACE_VERSION_LIMIT,
+} from "@/lib/workspace/storage";
 import type {
   AgentReviewResponse,
   CodeFiles,
+  TextByMode,
   WorkspaceDraft,
+  WorkspaceLibraryV2,
   WorkspaceMode,
+  WorkspaceProject,
+  WorkspaceProjectContent,
   WorkspaceVersion,
 } from "@/lib/workspace/types";
 import { workspaceModes } from "@/lib/workspace/types";
 
+import { ProjectLibraryDialog } from "./ProjectLibraryDialog";
 import { WorkspacePreview } from "./WorkspacePreview";
 import styles from "./CreativeWorkspace.module.css";
 
-type TextByMode = Record<Exclude<WorkspaceMode, "code">, string>;
 type RightTab = "preview" | "agent" | "versions";
-type MobilePane = "input" | "preview" | "agent";
+type MobilePane = "input" | "preview" | "agent" | "versions";
 type CodeFileKey = keyof CodeFiles;
-
-type StoredWorkspace = Readonly<{
-  mode: WorkspaceMode;
-  title: string;
-  textByMode: TextByMode;
-  code: CodeFiles;
-  committedCode: CodeFiles;
-  versions: readonly WorkspaceVersion[];
-}>;
 
 type CreativeWorkspaceProps = Readonly<{
   entrepreneurshipUrl: string | null;
+  initialMode: WorkspaceMode | null;
 }>;
 
-const STORAGE_KEY = "kingxford:canvas:v1";
 const HANDOFF_KEY = "kingxford:canvas-handoff:v1";
-const VERSION_LIMIT = 16;
+const CREATIVE_INPUT_FILE_LIMIT = 1_000_000;
+const EMPTY_CODE: CodeFiles = { html: "", css: "", javascript: "" };
 
 const modeIcons = {
   idea: Lightbulb,
@@ -107,6 +122,76 @@ function cloneDraft(draft: WorkspaceDraft): WorkspaceDraft {
     ...draft,
     code: { ...draft.code },
   };
+}
+
+function draftFingerprint(draft: WorkspaceDraft) {
+  return JSON.stringify([
+    draft.mode,
+    draft.title,
+    draft.text,
+    draft.code.html,
+    draft.code.css,
+    draft.code.javascript,
+  ]);
+}
+
+function createInitialProjectContent(
+  mode: WorkspaceMode = initialDraft.mode,
+): WorkspaceProjectContent {
+  return {
+    mode,
+    title: initialDraft.title,
+    textByMode: {
+      idea: starterText.idea,
+      mindmap: starterText.mindmap,
+      prompt: starterText.prompt,
+      brief: starterText.brief,
+    },
+    code: { ...initialDraft.code },
+    committedCode: { ...initialDraft.code },
+    versions: [],
+  };
+}
+
+function downloadTextFile(content: string, type: string, fileName: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function versionContextSource(version: WorkspaceVersion) {
+  if (version.draft.mode !== "code") return version.draft.text.slice(0, 1800);
+  return JSON.stringify(version.draft.code).slice(0, 1800);
+}
+
+function handleTabArrow<T extends string>(
+  event: KeyboardEvent<HTMLButtonElement>,
+  values: readonly T[],
+  current: T,
+  select: (value: T) => void,
+  idForValue: (value: T) => string,
+) {
+  const currentIndex = values.indexOf(current);
+  let nextIndex = currentIndex;
+  if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+    nextIndex = (currentIndex + 1) % values.length;
+  } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+    nextIndex = (currentIndex - 1 + values.length) % values.length;
+  } else if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = values.length - 1;
+  } else {
+    return;
+  }
+  event.preventDefault();
+  const next = values[nextIndex];
+  select(next);
+  window.requestAnimationFrame(() => document.getElementById(idForValue(next))?.focus());
 }
 
 function formatTime(value: string) {
@@ -164,6 +249,7 @@ function AgentReviewPanel({
   instruction,
   depth,
   canReview,
+  reviewIsCurrent,
   includeLogs,
   includeVersions,
   onInstruction,
@@ -180,6 +266,7 @@ function AgentReviewPanel({
   instruction: string;
   depth: "standard" | "deep";
   canReview: boolean;
+  reviewIsCurrent: boolean;
   includeLogs: boolean;
   includeVersions: boolean;
   onInstruction: (value: string) => void;
@@ -263,6 +350,18 @@ function AgentReviewPanel({
 
       {review && !isRunning && (
         <div className={styles.reviewResult}>
+          {!reviewIsCurrent ? (
+            <div className={styles.staleReview} role="alert">
+              <TriangleAlert aria-hidden="true" />
+              <div className={styles.versionNumber}>
+                <strong>This review belongs to an earlier source.</strong>
+                <span>
+                  Your current work is protected. Review the current version
+                  before applying or attaching Agent changes.
+                </span>
+              </div>
+            </div>
+          ) : null}
           <div className={styles.reviewSummary}>
             <div>
               <span data-status={review.status}>{review.status}</span>
@@ -304,11 +403,19 @@ function AgentReviewPanel({
             </ol>
             <details>
               <summary>Inspect proposed source</summary>
-              <pre>{review.improvedInput}</pre>
+              {review.improvedCode ? (
+                <div className={styles.proposedCodeFiles}>
+                  <section><span>HTML</span><pre>{review.improvedCode.html}</pre></section>
+                  <section><span>CSS</span><pre>{review.improvedCode.css}</pre></section>
+                  <section><span>JavaScript</span><pre>{review.improvedCode.javascript}</pre></section>
+                </div>
+              ) : (
+                <pre>{review.improvedInput}</pre>
+              )}
             </details>
-            <button type="button" onClick={onApply}>
+            <button type="button" disabled={!reviewIsCurrent} onClick={onApply}>
               <WandSparkles aria-hidden="true" />
-              Apply as a new version
+              {reviewIsCurrent ? "Apply as a new version" : "Review is out of date"}
             </button>
           </section>
 
@@ -392,15 +499,19 @@ function AgentReviewPanel({
 
 function VersionPanel({
   versions,
+  currentDraft,
   onSave,
   onRestore,
   onClear,
 }: Readonly<{
   versions: readonly WorkspaceVersion[];
+  currentDraft: WorkspaceDraft;
   onSave: () => void;
   onRestore: (version: WorkspaceVersion) => void;
   onClear: () => void;
 }>) {
+  const [comparisonId, setComparisonId] = useState<string | null>(null);
+
   return (
     <section className={styles.versionPanel} aria-labelledby="version-panel-heading">
       <header>
@@ -429,10 +540,30 @@ function VersionPanel({
                 <h3>{version.name}</h3>
                 <p>{formatTime(version.createdAt)} · {version.source}</p>
               </section>
-              <button type="button" onClick={() => onRestore(version)}>
-                <RotateCcw aria-hidden="true" />
-                Restore copy
-              </button>
+              <div className={styles.versionActions}>
+                <button
+                  type="button"
+                  aria-pressed={comparisonId === version.id}
+                  onClick={() => setComparisonId((current) => current === version.id ? null : version.id)}
+                >
+                  <GitCompare aria-hidden="true" />
+                  Compare
+                </button>
+                <button type="button" onClick={() => onRestore(version)}>
+                  <RotateCcw aria-hidden="true" />
+                  Restore copy
+                </button>
+              </div>
+              {comparisonId === version.id ? (
+                <div className={styles.versionComparison}>
+                  <span>Checkpoint → current source</span>
+                  <ul>
+                    {summarizeDraftChanges(version.draft, currentDraft).map((change) => (
+                      <li key={change}>{change}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </li>
           ))}
         </ol>
@@ -452,14 +583,20 @@ function VersionPanel({
   );
 }
 
-export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProps) {
+export function CreativeWorkspace({
+  entrepreneurshipUrl,
+  initialMode,
+}: CreativeWorkspaceProps) {
   const router = useRouter();
   const shellRef = useRef<HTMLDivElement>(null);
   const handoffRef = useRef<HTMLDialogElement>(null);
+  const creativeInputRef = useRef<HTMLInputElement>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const draggingRef = useRef(false);
+  const projectsRef = useRef<readonly WorkspaceProject[]>([]);
+  const libraryRevisionRef = useRef(0);
 
-  const [mode, setMode] = useState<WorkspaceMode>(initialDraft.mode);
+  const [mode, setMode] = useState<WorkspaceMode>(initialMode ?? initialDraft.mode);
   const [title, setTitle] = useState(initialDraft.title);
   const [textByMode, setTextByMode] = useState<TextByMode>({
     idea: starterText.idea,
@@ -479,6 +616,7 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
   const [status, setStatus] = useState("Preview current · Saved on this device");
   const [codeLogs, setCodeLogs] = useState<readonly string[]>([]);
   const [reviewResponse, setReviewResponse] = useState<AgentReviewResponse | null>(null);
+  const [reviewDraftFingerprint, setReviewDraftFingerprint] = useState<string | null>(null);
   const [reviewInstruction, setReviewInstruction] = useState("");
   const [reviewDepth, setReviewDepth] = useState<"standard" | "deep">("deep");
   const [reviewError, setReviewError] = useState("");
@@ -488,6 +626,10 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
   const [isOnline, setIsOnline] = useState(true);
   const [handoffAgent, setHandoffAgent] = useState(true);
   const [handoffVersions, setHandoffVersions] = useState(false);
+  const [projects, setProjects] = useState<readonly WorkspaceProject[]>([]);
+  const [activeProjectId, setActiveProjectId] = useState("");
+  const [projectLibraryOpen, setProjectLibraryOpen] = useState(false);
+  const [persistenceSuspended, setPersistenceSuspended] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   const currentText = mode === "code" ? "" : textByMode[mode];
@@ -495,12 +637,64 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
     () => ({ mode, title, text: currentText, code }),
     [code, currentText, mode, title],
   );
+  const currentDraftFingerprint = useMemo(() => draftFingerprint(draft), [draft]);
+  const reviewIsCurrent = Boolean(
+    reviewResponse &&
+      reviewDraftFingerprint === `${activeProjectId}:${currentDraftFingerprint}`,
+  );
   const canReview = mode === "code"
     ? Boolean(code.html.trim() || code.css.trim() || code.javascript.trim())
     : currentText.trim().length > 2;
   const sourceLength = mode === "code"
     ? code.html.length + code.css.length + code.javascript.length
     : currentText.length;
+
+  const replaceProjects = useCallback((nextProjects: readonly WorkspaceProject[]) => {
+    projectsRef.current = nextProjects;
+    setProjects(nextProjects);
+  }, []);
+
+  const loadProjectIntoEditor = useCallback(
+    (project: WorkspaceProject, requestedMode?: WorkspaceMode | null) => {
+      controllerRef.current?.abort();
+      setMode(requestedMode ?? project.mode);
+      setTitle(project.title);
+      setTextByMode(project.textByMode);
+      setCode(project.code);
+      setCommittedCode(project.committedCode);
+      setVersions(project.versions.slice(0, WORKSPACE_VERSION_LIMIT));
+      setCodeFile("html");
+      setCodeLogs([]);
+      setReviewResponse(null);
+      setReviewDraftFingerprint(null);
+      setReviewError("");
+      setReviewRunning(false);
+      setRightTab("preview");
+      setMobilePane("input");
+      setRunId((value) => value + 1);
+    },
+    [],
+  );
+
+  const persistProjects = useCallback(
+    (nextProjects: readonly WorkspaceProject[], nextActiveProjectId: string) => {
+      if (persistenceSuspended) return false;
+      const library: WorkspaceLibraryV2 = {
+        schemaVersion: 2,
+        revision: libraryRevisionRef.current + 1,
+        activeProjectId: nextActiveProjectId,
+        projects: nextProjects,
+      };
+      const result = saveWorkspaceLibrary(window.localStorage, library);
+      if (!result.ok) {
+        setStatus(`${result.error.message} Current edits remain open.`);
+        return false;
+      }
+      libraryRevisionRef.current = library.revision;
+      return true;
+    },
+    [persistenceSuspended],
+  );
 
   useEffect(() => {
     const online = () => setIsOnline(true);
@@ -510,19 +704,43 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
 
     const hydrateFrame = window.requestAnimationFrame(() => {
       setIsOnline(navigator.onLine);
-      try {
-        const stored = window.localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored) as Partial<StoredWorkspace>;
-          if (parsed.mode && workspaceModes.includes(parsed.mode)) setMode(parsed.mode);
-          if (typeof parsed.title === "string") setTitle(parsed.title);
-          if (parsed.textByMode) setTextByMode(parsed.textByMode);
-          if (parsed.code) setCode(parsed.code);
-          if (parsed.committedCode) setCommittedCode(parsed.committedCode);
-          if (Array.isArray(parsed.versions)) setVersions(parsed.versions.slice(0, VERSION_LIMIT));
+      const loaded = loadWorkspaceLibrary(window.localStorage);
+      if (loaded.status === "ready") {
+        const active = loaded.library.projects.find(
+          (project) => project.id === loaded.library.activeProjectId,
+        ) ?? loaded.library.projects[0];
+        replaceProjects(loaded.library.projects);
+        libraryRevisionRef.current = loaded.library.revision;
+        setActiveProjectId(active.id);
+        loadProjectIntoEditor(active, initialMode);
+        if (loaded.needsPersistence) {
+          const migrated = saveWorkspaceLibrary(window.localStorage, loaded.library);
+          setStatus(
+            migrated.ok
+              ? "Previous Canvas work migrated into your project library"
+              : `${migrated.error.message} Current edits remain open.`,
+          );
         }
-      } catch {
-        setStatus("A fresh local workspace was opened.");
+      } else if (loaded.status === "empty") {
+        const project = createWorkspaceProject(
+          createInitialProjectContent(initialMode ?? initialDraft.mode),
+        );
+        const library = createWorkspaceLibrary(project);
+        replaceProjects(library.projects);
+        libraryRevisionRef.current = library.revision;
+        setActiveProjectId(project.id);
+        loadProjectIntoEditor(project, initialMode);
+        const saved = saveWorkspaceLibrary(window.localStorage, library);
+        if (!saved.ok) setStatus(`${saved.error.message} Current edits remain open.`);
+      } else {
+        const project = createWorkspaceProject(
+          createInitialProjectContent(initialMode ?? initialDraft.mode),
+        );
+        replaceProjects([project]);
+        setActiveProjectId(project.id);
+        loadProjectIntoEditor(project, initialMode);
+        setPersistenceSuspended(true);
+        setStatus(`${loaded.error.message} Autosave is paused to preserve the original data.`);
       }
       setHydrated(true);
     });
@@ -532,24 +750,65 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
       window.removeEventListener("online", online);
       window.removeEventListener("offline", offline);
     };
-  }, []);
+  }, [initialMode, loadProjectIntoEditor, replaceProjects]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !activeProjectId) return;
     const saveTimer = window.setTimeout(() => {
-      const payload: StoredWorkspace = {
-        mode,
-        title,
-        textByMode,
-        code,
-        committedCode,
-        versions,
-      };
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      setStatus("Saved on this device");
+      const now = new Date().toISOString();
+      const nextProjects = projectsRef.current.map((project) =>
+        project.id === activeProjectId
+          ? {
+              ...project,
+              mode,
+              title,
+              textByMode,
+              code: { ...code },
+              committedCode: { ...committedCode },
+              versions: versions.slice(0, WORKSPACE_VERSION_LIMIT),
+              updatedAt: now,
+            }
+          : project,
+      );
+      replaceProjects(nextProjects);
+      if (persistProjects(nextProjects, activeProjectId)) {
+        setStatus("Saved on this device");
+      }
     }, 180);
     return () => window.clearTimeout(saveTimer);
-  }, [code, committedCode, hydrated, mode, textByMode, title, versions]);
+  }, [
+    activeProjectId,
+    code,
+    committedCode,
+    hydrated,
+    mode,
+    persistProjects,
+    replaceProjects,
+    textByMode,
+    title,
+    versions,
+  ]);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== WORKSPACE_STORAGE_KEY || !event.newValue) return;
+      try {
+        const incomingRevision = (JSON.parse(event.newValue) as { revision?: unknown }).revision;
+        if (
+          typeof incomingRevision === "number" &&
+          incomingRevision > libraryRevisionRef.current
+        ) {
+          setPersistenceSuspended(true);
+          setStatus("Another tab updated this Canvas library. Autosave paused to prevent an overwrite.");
+        }
+      } catch {
+        setPersistenceSuspended(true);
+        setStatus("Another tab changed local Canvas data. Autosave paused for safety.");
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   useEffect(() => {
     if (!autoRun || mode !== "code") return;
@@ -562,20 +821,30 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
     return () => window.clearTimeout(timer);
   }, [autoRun, code, mode]);
 
-  const saveVersion = useCallback(
-    (source: WorkspaceVersion["source"] = "manual", name?: string) => {
+  const saveDraftVersion = useCallback(
+    (
+      sourceDraft: WorkspaceDraft,
+      source: WorkspaceVersion["source"] = "manual",
+      name?: string,
+    ) => {
       const version: WorkspaceVersion = {
         id: makeId(),
-        name: name || title || "Untitled version",
+        name: name || sourceDraft.title || "Untitled version",
         createdAt: new Date().toISOString(),
         source,
-        draft: cloneDraft(draft),
+        draft: cloneDraft(sourceDraft),
       };
-      setVersions((current) => [version, ...current].slice(0, VERSION_LIMIT));
+      setVersions((current) => [version, ...current].slice(0, WORKSPACE_VERSION_LIMIT));
       setStatus(`Checkpoint saved · ${version.name}`);
       return version;
     },
-    [draft, title],
+    [],
+  );
+
+  const saveVersion = useCallback(
+    (source: WorkspaceVersion["source"] = "manual", name?: string) =>
+      saveDraftVersion(draft, source, name),
+    [draft, saveDraftVersion],
   );
 
   const runPreview = useCallback(() => {
@@ -606,7 +875,15 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
       }
       if (!isTyping && event.key === "F6") {
         event.preventDefault();
-        setMobilePane((current) => current === "input" ? "preview" : current === "preview" ? "agent" : "input");
+        setMobilePane((current) =>
+          current === "input"
+            ? "preview"
+            : current === "preview"
+              ? "agent"
+              : current === "agent"
+                ? "versions"
+                : "input",
+        );
       }
     };
     window.addEventListener("keydown", handleShortcut);
@@ -631,9 +908,225 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
     setStatus(`${modeDetails[nextMode].label} workspace active`);
   };
 
+  const snapshotActiveProject = useCallback(
+    (projectList: readonly WorkspaceProject[]) => {
+      const now = new Date().toISOString();
+      return projectList.map((project) =>
+        project.id === activeProjectId
+          ? {
+              ...project,
+              mode,
+              title,
+              textByMode,
+              code: { ...code },
+              committedCode: { ...committedCode },
+              versions: versions.slice(0, WORKSPACE_VERSION_LIMIT),
+              updatedAt: now,
+            }
+          : project,
+      );
+    },
+    [activeProjectId, code, committedCode, mode, textByMode, title, versions],
+  );
+
+  const openProject = (projectId: string) => {
+    if (projectId === activeProjectId) {
+      setProjectLibraryOpen(false);
+      return;
+    }
+    const nextProjects = snapshotActiveProject(projectsRef.current);
+    const target = nextProjects.find((project) => project.id === projectId);
+    if (!target) return;
+    replaceProjects(nextProjects);
+    setActiveProjectId(target.id);
+    loadProjectIntoEditor(target);
+    persistProjects(nextProjects, target.id);
+    setProjectLibraryOpen(false);
+    setStatus(`Opened ${target.title || "Untitled Canvas project"}`);
+  };
+
+  const createProject = () => {
+    if (projectsRef.current.length >= WORKSPACE_PROJECT_LIMIT) return;
+    const savedProjects = snapshotActiveProject(projectsRef.current);
+    const nextProject = createWorkspaceProject({
+      ...createInitialProjectContent("idea"),
+      title: "Untitled Canvas project",
+    });
+    const nextProjects = [nextProject, ...savedProjects];
+    replaceProjects(nextProjects);
+    setActiveProjectId(nextProject.id);
+    loadProjectIntoEditor(nextProject);
+    persistProjects(nextProjects, nextProject.id);
+    setProjectLibraryOpen(false);
+    setStatus("New private Canvas project created");
+  };
+
+  const duplicateProject = (projectId: string) => {
+    if (projectsRef.current.length >= WORKSPACE_PROJECT_LIMIT) return;
+    const savedProjects = snapshotActiveProject(projectsRef.current);
+    const source = savedProjects.find((project) => project.id === projectId);
+    if (!source) return;
+    const duplicate = createWorkspaceProject({
+      mode: source.mode,
+      title: `${source.title || "Untitled Canvas project"} copy`,
+      textByMode: source.textByMode,
+      code: source.code,
+      committedCode: source.committedCode,
+      versions: source.versions,
+    });
+    const nextProjects = [duplicate, ...savedProjects];
+    replaceProjects(nextProjects);
+    setActiveProjectId(duplicate.id);
+    loadProjectIntoEditor(duplicate);
+    persistProjects(nextProjects, duplicate.id);
+    setProjectLibraryOpen(false);
+    setStatus(`Duplicated ${source.title || "Canvas project"}`);
+  };
+
+  const deleteProject = (projectId: string) => {
+    if (projectsRef.current.length <= 1) return;
+    const savedProjects = snapshotActiveProject(projectsRef.current);
+    const nextProjects = savedProjects.filter((project) => project.id !== projectId);
+    const nextActiveId = projectId === activeProjectId
+      ? nextProjects[0].id
+      : activeProjectId;
+    replaceProjects(nextProjects);
+    setActiveProjectId(nextActiveId);
+    if (projectId === activeProjectId) loadProjectIntoEditor(nextProjects[0]);
+    persistProjects(nextProjects, nextActiveId);
+    setStatus("Local project deleted");
+  };
+
+  const exportProjectBundle = (projectId: string) => {
+    const savedProjects = snapshotActiveProject(projectsRef.current);
+    const project = savedProjects.find((value) => value.id === projectId);
+    if (!project) return;
+    replaceProjects(savedProjects);
+    const serialized = serializeWorkspaceProjectBundle(project);
+    downloadTextFile(
+      serialized,
+      "application/json;charset=utf-8",
+      `${safeFileName(project.title)}.kxcanvas.json`,
+    );
+    setStatus("Lossless Canvas project bundle exported");
+  };
+
+  const importProjectBundle = async (file: File) => {
+    if (file.size > WORKSPACE_BUNDLE_CHARACTER_LIMIT) {
+      setStatus("That project bundle exceeds the supported local import size.");
+      return;
+    }
+    try {
+      const raw = await file.text();
+      const savedProjects = snapshotActiveProject(projectsRef.current);
+      const imported = importWorkspaceProjectBundle(
+        raw,
+        savedProjects.map((project) => project.id),
+      );
+      const nextProjects = [imported, ...savedProjects];
+      replaceProjects(nextProjects);
+      setActiveProjectId(imported.id);
+      loadProjectIntoEditor(imported);
+      persistProjects(nextProjects, imported.id);
+      setProjectLibraryOpen(false);
+      setStatus(`Imported ${imported.title || "Canvas project"} as a new project`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "That project bundle could not be imported safely.");
+    }
+  };
+
+  const importCreativeInput = async (file: File) => {
+    if (file.size > CREATIVE_INPUT_FILE_LIMIT) {
+      setStatus("Creative input files must be smaller than 1 MB.");
+      return;
+    }
+    try {
+      const source = await file.text();
+      if (!source.trim() || source.includes("\u0000")) {
+        throw new Error("Choose a non-empty text-based creative input file.");
+      }
+      if (sourceLength > 2) {
+        saveVersion("manual", `${title || "Untitled"} · before import`);
+      }
+
+      const normalizedName = file.name.toLocaleLowerCase();
+      const baseName = file.name.replace(/\.[^.]+$/, "").trim();
+      if (normalizedName.endsWith(".html") || normalizedName.endsWith(".htm")) {
+        const parsed = new DOMParser().parseFromString(source, "text/html");
+        const body = parsed.body.cloneNode(true) as HTMLElement;
+        body.querySelectorAll("script,style").forEach((node) => node.remove());
+        const inlineCss = Array.from(parsed.querySelectorAll("style"))
+          .map((node) => node.textContent ?? "")
+          .join("\n\n");
+        const inlineJavaScript = Array.from(parsed.querySelectorAll("script:not([src])"))
+          .map((node) => node.textContent ?? "")
+          .join("\n\n");
+        const nextCode = {
+          html: body.innerHTML.trim() || source,
+          css: inlineCss.trim() || code.css,
+          javascript: inlineJavaScript.trim() || code.javascript,
+        };
+        setCode(nextCode);
+        setCommittedCode(nextCode);
+        setMode("code");
+        setCodeFile("html");
+        setRunId((value) => value + 1);
+      } else if (normalizedName.endsWith(".css")) {
+        const nextCode = { ...code, css: source };
+        setCode(nextCode);
+        setCommittedCode(nextCode);
+        setMode("code");
+        setCodeFile("css");
+        setRunId((value) => value + 1);
+      } else if (normalizedName.endsWith(".js") || normalizedName.endsWith(".mjs")) {
+        const nextCode = { ...code, javascript: source };
+        setCode(nextCode);
+        setCommittedCode(nextCode);
+        setMode("code");
+        setCodeFile("javascript");
+        setRunId((value) => value + 1);
+      } else {
+        const targetMode: Exclude<WorkspaceMode, "code"> =
+          /\.(mmd|mindmap|map\.md)$/.test(normalizedName)
+            ? "mindmap"
+            : normalizedName.includes("prompt")
+              ? "prompt"
+              : normalizedName.includes("brief")
+                ? "brief"
+                : mode === "code"
+                  ? "idea"
+                  : mode;
+        setTextByMode((current) => ({ ...current, [targetMode]: source }));
+        setMode(targetMode);
+      }
+      if (!title.trim() || title === initialDraft.title) setTitle(baseName || "Imported concept");
+      setRightTab("preview");
+      setMobilePane("input");
+      setStatus(`${file.name} imported locally · previous source checkpointed`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "That creative input could not be imported.");
+    }
+  };
+
   const transformTo = (target: WorkspaceMode) => {
     if (target === mode) return;
     const transformed = transformDraft(draft, target);
+    const targetDraft: WorkspaceDraft = {
+      mode: target,
+      title,
+      text: target === "code" ? "" : textByMode[target],
+      code,
+    };
+    const targetHasSource = target === "code"
+      ? Boolean(code.html.trim() || code.css.trim() || code.javascript.trim())
+      : Boolean(targetDraft.text.trim());
+    if (targetHasSource) {
+      saveDraftVersion(
+        targetDraft,
+        "manual",
+        `${title || "Untitled"} · ${transformLabels[target]} before transform`,
+      );
+    }
     if (target === "code") {
       setCode(transformed.code);
       setCommittedCode(transformed.code);
@@ -667,22 +1160,24 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
   const exportCurrent = () => {
     const content = mode === "code" ? buildCodeExport(code) : currentText;
     const type = mode === "code" ? "text/html;charset=utf-8" : "text/markdown;charset=utf-8";
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${safeFileName(title)}-${mode}.${fileExtension(mode)}`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadTextFile(
+      content,
+      type,
+      `${safeFileName(title)}-${mode}.${fileExtension(mode)}`,
+    );
     setStatus(`Exported ${transformLabels[mode].toLocaleLowerCase()}`);
   };
 
   const requestReview = async (quickInstruction?: string) => {
     if (!canReview || reviewRunning) return;
+    const submittedDraft = cloneDraft(draft);
+    const submittedFingerprint = `${activeProjectId}:${draftFingerprint(submittedDraft)}`;
     const controller = new AbortController();
     controllerRef.current = controller;
     setReviewRunning(true);
     setReviewError("");
+    setReviewResponse(null);
+    setReviewDraftFingerprint(null);
     setRightTab("agent");
     setMobilePane("agent");
     const objective = quickInstruction || reviewInstruction || "Review this version rigorously and propose the next useful improvement.";
@@ -693,10 +1188,10 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
         body: JSON.stringify({
-          mode,
-          title,
-          text: currentText,
-          code,
+          mode: submittedDraft.mode,
+          title: submittedDraft.title,
+          text: submittedDraft.text,
+          code: submittedDraft.mode === "code" ? submittedDraft.code : EMPTY_CODE,
           objective,
           depth: reviewDepth,
           context: {
@@ -705,7 +1200,7 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
               ? versions.slice(0, 3).map((version) => ({
                   name: version.name,
                   mode: version.draft.mode,
-                  text: version.draft.text.slice(0, 1800),
+                  text: versionContextSource(version),
                 }))
               : [],
           },
@@ -716,6 +1211,7 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
         throw new Error(payload.error || "The review did not complete.");
       }
       setReviewResponse(payload);
+      setReviewDraftFingerprint(submittedFingerprint);
       setStatus(`Review complete · ${payload.source === "openai" ? "Uses AI" : "Local fallback"}`);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
@@ -731,14 +1227,29 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
 
   const applyAgentVersion = () => {
     const review = reviewResponse?.review;
-    if (!review) return;
+    if (
+      !review ||
+      !reviewIsCurrent ||
+      (mode === "code" && !review.improvedCode)
+    ) return;
     saveVersion("agent", `${title || "Untitled"} · before Agent change`);
-    if (mode === "code") {
-      setCode((current) => ({ ...current, html: review.improvedInput }));
-      setCommittedCode((current) => ({ ...current, html: review.improvedInput }));
+    if (mode === "code" && review.improvedCode) {
+      const nextCode = { ...review.improvedCode };
+      const nextDraft = { ...draft, code: nextCode };
+      setCode(nextCode);
+      setCommittedCode(nextCode);
+      setReviewDraftFingerprint(
+        `${activeProjectId}:${draftFingerprint(nextDraft)}`,
+      );
+      saveDraftVersion(nextDraft, "agent", `${title || "Untitled"} · Agent proposal`);
       setRunId((value) => value + 1);
     } else {
+      const nextDraft = { ...draft, text: review.improvedInput };
       setTextByMode((current) => ({ ...current, [mode]: review.improvedInput }));
+      setReviewDraftFingerprint(
+        `${activeProjectId}:${draftFingerprint(nextDraft)}`,
+      );
+      saveDraftVersion(nextDraft, "agent", `${title || "Untitled"} · Agent proposal`);
     }
     setRightTab("preview");
     setMobilePane("preview");
@@ -751,7 +1262,8 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
     const packageValue = {
       generatedAt: new Date().toISOString(),
       current: draft,
-      agentReview: handoffAgent ? reviewResponse?.review ?? null : null,
+      agentReview:
+        handoffAgent && reviewIsCurrent ? reviewResponse?.review ?? null : null,
       versions: handoffVersions ? versions.slice(0, 6) : [],
     };
     window.sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(packageValue));
@@ -813,12 +1325,36 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
               onChange={(event) => setTitle(event.target.value)}
             />
           </div>
+          <button
+            className={styles.projectLibraryButton}
+            type="button"
+            onClick={() => setProjectLibraryOpen(true)}
+          >
+            <FolderKanban aria-hidden="true" />
+            Projects <span>{projects.length}</span>
+          </button>
         </div>
         <div className={styles.topbarStatus} aria-live="polite">
           <span>{isOnline ? status : "Offline · Local previews still work"}</span>
           <small>Private until you ask the Agent</small>
         </div>
         <div className={styles.topbarActions}>
+          <button type="button" onClick={() => creativeInputRef.current?.click()}>
+            <FileUp aria-hidden="true" />
+            Import input
+          </button>
+          <input
+            ref={creativeInputRef}
+            className={styles.hiddenFileInput}
+            type="file"
+            aria-label="Import a creative input file"
+            accept=".txt,.md,.markdown,.html,.htm,.css,.js,.mjs,.mmd,.mindmap,text/plain,text/markdown,text/html,text/css,text/javascript"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void importCreativeInput(file);
+              event.currentTarget.value = "";
+            }}
+          />
           <button type="button" onClick={() => saveVersion()}>
             <Save aria-hidden="true" />
             Save version
@@ -840,6 +1376,7 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
             ["input", PanelLeft, "Input"],
             ["preview", PanelRight, "Preview"],
             ["agent", Bot, "Agent"],
+            ["versions", History, `Versions ${versions.length}`],
           ] as const
         ).map(([value, Icon, label]) => (
           <button
@@ -849,6 +1386,7 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
               setMobilePane(value);
               if (value === "preview") setRightTab("preview");
               if (value === "agent") setRightTab("agent");
+              if (value === "versions") setRightTab("versions");
             }}
             key={value}
           >
@@ -874,8 +1412,18 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
                   role="tab"
                   aria-selected={mode === value}
                   aria-controls="workspace-editor"
+                  tabIndex={mode === value ? 0 : -1}
                   title={`${modeDetails[value].label} · Alt+${index + 1}`}
                   onClick={() => switchMode(value)}
+                  onKeyDown={(event) =>
+                    handleTabArrow(
+                      event,
+                      workspaceModes,
+                      mode,
+                      switchMode,
+                      (nextMode) => `workspace-mode-${nextMode}`,
+                    )
+                  }
                   key={value}
                 >
                   <Icon aria-hidden="true" />
@@ -885,7 +1433,12 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
             })}
           </nav>
 
-          <div className={styles.editorPane}>
+          <div
+            id="workspace-editor"
+            className={styles.editorPane}
+            role="tabpanel"
+            aria-labelledby={`workspace-mode-${mode}`}
+          >
             <header className={styles.editorHeading}>
               <div>
                 <span>{modeDetails[mode].label} workbench</span>
@@ -1011,11 +1564,22 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
               ] as const
             ).map(([value, Icon, label]) => (
               <button
+                id={`workspace-result-tab-${value}`}
                 type="button"
                 role="tab"
                 aria-selected={rightTab === value}
                 aria-controls={`workspace-${value}-panel`}
+                tabIndex={rightTab === value ? 0 : -1}
                 onClick={() => setRightTab(value)}
+                onKeyDown={(event) =>
+                  handleTabArrow(
+                    event,
+                    ["preview", "agent", "versions"] as const,
+                    rightTab,
+                    setRightTab,
+                    (nextTab) => `workspace-result-tab-${nextTab}`,
+                  )
+                }
                 key={value}
               >
                 <Icon aria-hidden="true" />
@@ -1031,6 +1595,7 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
             id="workspace-preview-panel"
             className={styles.resultView}
             role="tabpanel"
+            aria-labelledby="workspace-result-tab-preview"
             hidden={rightTab !== "preview"}
           >
             <WorkspacePreview
@@ -1044,6 +1609,7 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
             id="workspace-agent-panel"
             className={styles.resultView}
             role="tabpanel"
+            aria-labelledby="workspace-result-tab-agent"
             hidden={rightTab !== "agent"}
           >
             <AgentReviewPanel
@@ -1053,6 +1619,7 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
               instruction={reviewInstruction}
               depth={reviewDepth}
               canReview={canReview && isOnline}
+              reviewIsCurrent={reviewIsCurrent}
               includeLogs={includeLogs}
               includeVersions={includeVersions}
               onInstruction={setReviewInstruction}
@@ -1068,10 +1635,12 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
             id="workspace-versions-panel"
             className={styles.resultView}
             role="tabpanel"
+            aria-labelledby="workspace-result-tab-versions"
             hidden={rightTab !== "versions"}
           >
             <VersionPanel
               versions={versions}
+              currentDraft={draft}
               onSave={() => saveVersion()}
               onRestore={restoreVersion}
               onClear={() => {
@@ -1140,11 +1709,11 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
             <label>
               <input
                 type="checkbox"
-                checked={handoffAgent && Boolean(reviewResponse)}
-                disabled={!reviewResponse}
+                checked={handoffAgent && reviewIsCurrent}
+                disabled={!reviewIsCurrent}
                 onChange={(event) => setHandoffAgent(event.target.checked)}
               />
-              Agent review
+              Agent review {reviewResponse && !reviewIsCurrent ? "(out of date)" : ""}
             </label>
             <label>
               <input
@@ -1178,6 +1747,20 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
           )}
         </div>
       </dialog>
+
+      <ProjectLibraryDialog
+        open={projectLibraryOpen}
+        projects={projects}
+        activeProjectId={activeProjectId}
+        projectLimit={WORKSPACE_PROJECT_LIMIT}
+        onClose={() => setProjectLibraryOpen(false)}
+        onCreate={createProject}
+        onOpen={openProject}
+        onDuplicate={duplicateProject}
+        onExport={exportProjectBundle}
+        onDelete={deleteProject}
+        onImport={(file) => void importProjectBundle(file)}
+      />
     </main>
   );
 }

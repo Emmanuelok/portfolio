@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CreativeWorkspace } from "@/components/workspace/CreativeWorkspace";
+import { workspaceModes, type WorkspaceMode } from "@/lib/workspace/types";
 
 export const metadata: Metadata = {
   title: "Kingxford Canvas — Creative intelligence workspace",
@@ -22,7 +23,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CreativeWorkspacePage() {
+type CreativeWorkspacePageProps = Readonly<{
+  searchParams: Promise<Readonly<Record<string, string | string[] | undefined>>>;
+}>;
+
+function resolveWorkspaceMode(value: string | string[] | undefined): WorkspaceMode | null {
+  const candidate = Array.isArray(value) ? value[0] : value;
+  return workspaceModes.find((mode) => mode === candidate) ?? null;
+}
+
+export default async function CreativeWorkspacePage({
+  searchParams,
+}: CreativeWorkspacePageProps) {
+  const query = await searchParams;
+  const initialMode = resolveWorkspaceMode(query.mode);
   const entrepreneurshipUrl =
     process.env.NEXT_PUBLIC_AI_ENTREPRENEURSHIP_URL?.trim() || null;
 
@@ -58,7 +72,11 @@ export default function CreativeWorkspacePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
       />
-      <CreativeWorkspace entrepreneurshipUrl={entrepreneurshipUrl} />
+      <CreativeWorkspace
+        key={initialMode ?? "saved-workspace"}
+        entrepreneurshipUrl={entrepreneurshipUrl}
+        initialMode={initialMode}
+      />
     </>
   );
 }

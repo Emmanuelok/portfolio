@@ -1,5 +1,6 @@
 import type {
   AgentReview,
+  CodeFiles,
   MindMapNode,
   ParsedConcept,
   WorkspaceDraft,
@@ -7,6 +8,93 @@ import type {
 } from "@/lib/workspace/types";
 
 const clean = (value: string) => value.trim().replace(/\s+/g, " ");
+
+function decodeBasicHtmlEntities(value: string) {
+  return value
+    .replaceAll("&nbsp;", " ")
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#039;", "'");
+}
+
+function visibleCodeLines(code: CodeFiles) {
+  return decodeBasicHtmlEntities(
+    code.html
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(?:address|article|aside|blockquote|button|div|footer|form|h[1-6]|header|li|main|nav|p|section)>/gi, "\n")
+      .replace(/<[^>]+>/g, " "),
+  )
+    .split(/\r?\n/)
+    .map(clean)
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+function codeConcept(draft: WorkspaceDraft): ParsedConcept {
+  const visibleLines = visibleCodeLines(draft.code);
+  const visibleSummary = visibleLines.join(" ").slice(0, 1600);
+  const eventTypes = [
+    ...draft.code.javascript.matchAll(
+      /addEventListener\s*\(\s*["']([a-zA-Z][a-zA-Z0-9:-]*)["']/g,
+    ),
+  ].map((match) => match[1]);
+  const uniqueEvents = [...new Set(eventTypes)].slice(0, 5);
+  const title = draft.title || visibleLines[0] || "Untitled code prototype";
+
+  return {
+    title,
+    purpose: visibleSummary || "Inspect and refine the supplied front-end prototype.",
+    audience: "The intended audience is not explicit in the front-end source.",
+    problem: "The underlying user problem is not explicit in the front-end source.",
+    change: visibleSummary
+      ? `Make the represented experience usable: ${visibleSummary}`
+      : "Turn the existing HTML, CSS and JavaScript into a usable tested experience.",
+    constraints: `Preserve the existing three-file structure (${draft.code.html.length} HTML, ${draft.code.css.length} CSS and ${draft.code.javascript.length} JavaScript characters)${uniqueEvents.length ? ` and its ${uniqueEvents.join(", ")} interaction${uniqueEvents.length === 1 ? "" : "s"}` : ""}.`,
+    evidence: "Run the isolated preview and verify the visible content, responsive layout, keyboard path, interactions and console output.",
+  };
+}
+
+export function parseDraftConcept(draft: WorkspaceDraft): ParsedConcept {
+  return draft.mode === "code"
+    ? codeConcept(draft)
+    : parseConcept(draft.text, draft.title);
+}
+
+function signedCharacterDelta(before: string, after: string) {
+  const delta = after.length - before.length;
+  return `${delta >= 0 ? "+" : ""}${delta}`;
+}
+
+export function summarizeDraftChanges(
+  before: WorkspaceDraft,
+  after: WorkspaceDraft,
+): readonly string[] {
+  const changes: string[] = [];
+  if (before.mode !== after.mode) {
+    changes.push(`Mode: ${before.mode} → ${after.mode}`);
+  }
+  if (before.title !== after.title) {
+    changes.push("Title changed");
+  }
+  if (before.text !== after.text) {
+    changes.push(`Text: ${signedCharacterDelta(before.text, after.text)} characters`);
+  }
+  if (before.code.html !== after.code.html) {
+    changes.push(`HTML: ${signedCharacterDelta(before.code.html, after.code.html)} characters`);
+  }
+  if (before.code.css !== after.code.css) {
+    changes.push(`CSS: ${signedCharacterDelta(before.code.css, after.code.css)} characters`);
+  }
+  if (before.code.javascript !== after.code.javascript) {
+    changes.push(`JavaScript: ${signedCharacterDelta(before.code.javascript, after.code.javascript)} characters`);
+  }
+  return changes.length ? changes : ["No source changes"];
+}
 
 function field(text: string, labels: readonly string[]) {
   const lines = text.split(/\r?\n/);
@@ -116,7 +204,7 @@ export function promptSignals(text: string) {
 }
 
 export function transformDraft(draft: WorkspaceDraft, target: WorkspaceMode): WorkspaceDraft {
-  const concept = parseConcept(draft.text, draft.title);
+  const concept = parseDraftConcept(draft);
   if (target === draft.mode) return draft;
 
   if (target === "mindmap") {
@@ -162,18 +250,23 @@ export function transformDraft(draft: WorkspaceDraft, target: WorkspaceMode): Wo
   };
 }
 
-export function buildLocalReview(draft: WorkspaceDraft): AgentReview {
+export function buildLocalReview(
+  draft: WorkspaceDraft,
+): AgentReview & Readonly<{ improvedCode: CodeFiles | null }> {
   const source = draft.mode === "code"
     ? `${draft.code.html}\n${draft.code.css}\n${draft.code.javascript}`
     : draft.text;
-  const concept = parseConcept(draft.text, draft.title);
+  const concept = parseDraftConcept(draft);
   const words = source.trim().split(/\s+/).filter(Boolean).length;
   const strengths = [
     source.trim() ? "There is a concrete source version to inspect and preserve." : "The workspace structure is ready for an initial source version.",
     words > 45 ? "The draft contains enough material to support a meaningful first test." : "The draft is compact enough to refine without losing its central intention.",
   ];
+  const audienceIsUnresolved =
+    concept.audience.startsWith("The people") ||
+    concept.audience.includes("not explicit");
   const uncertainties = [
-    concept.audience.startsWith("The people") ? "The primary audience is not yet explicit." : "The audience is named, but its most important decision still needs definition.",
+    audienceIsUnresolved ? "The primary audience is not yet explicit." : "The audience is named, but its most important decision still needs definition.",
     concept.evidence.startsWith("Define") ? "The evidence threshold for success is unresolved." : "The stated evidence needs a collection method and decision threshold.",
   ];
   const modeRisk: Record<WorkspaceMode, string> = {
@@ -198,6 +291,7 @@ export function buildLocalReview(draft: WorkspaceDraft): AgentReview {
       "Move the most consequential constraint into the visible experience.",
     ],
     improvedInput: draft.mode === "code" ? draft.code.html : `${draft.text.trim()}\n\nNEXT TEST\nValidate the primary decision with representative users, record the evidence threshold, and preserve unresolved assumptions in the next version.`,
+    improvedCode: draft.mode === "code" ? { ...draft.code } : null,
     buildBrief: {
       title: draft.title || concept.title,
       oneLine: concept.change,

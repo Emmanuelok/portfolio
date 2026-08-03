@@ -7,6 +7,7 @@ import process from "node:process";
 const ROOT = process.cwd();
 const AGENT_PATH = "src/lib/workspace/agent.ts";
 const ROUTE_PATH = "src/app/api/workspace/agent/route.ts";
+const LOCAL_ANALYSIS_PATH = "src/lib/workspace/local-analysis.ts";
 const CORPUS_PATH = "evals/creative-agent/corpus.json";
 const WORKFLOW_PATH = ".github/workflows/creative-agent-daily.yml";
 const CATALOG_URL = "https://ai-gateway.vercel.sh/v1/models";
@@ -163,6 +164,15 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
       "The agent is bound to the versioned structured review schema.",
     ),
     check(
+      "config.structured-code-output",
+      "schema",
+      /improvedCode:\s*agentCodeSchema\.nullable\(\)/.test(agentSource) &&
+        ["html", "css", "javascript"].every((field) =>
+          new RegExp(`\\b${field}\\s*:`).test(agentSource),
+        ),
+      "Code reviews return explicit HTML, CSS, and JavaScript files while text reviews return null.",
+    ),
+    check(
       "config.output-budget",
       "config",
       maxOutputTokens <= corpus.hardGates.maximumOutputTokens,
@@ -265,9 +275,78 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
       routeSource.includes('"Cache-Control": "no-store'),
       "Agent responses are explicitly marked no-store.",
     ),
+    check(
+      "route.high-entropy-boundary",
+      "prompt",
+      /randomBytes\(32\)\.toString\("hex"\)/.test(routeSource) &&
+        routeSource.includes("KX_UNTRUSTED_DATA_BEGIN_") &&
+        routeSource.includes("KX_UNTRUSTED_DATA_END_"),
+      "Every request receives a fresh 256-bit untrusted-data boundary.",
+    ),
+    check(
+      "route.canonical-untrusted-payload",
+      "prompt",
+      routeSource.includes("const payload = JSON.stringify({") &&
+        [
+          "reviewObjective",
+          "requestedReviewDepth",
+          "workspace",
+          "mode",
+          "title",
+          "source",
+          "selectedContext",
+          "previewConsole",
+          "priorVersions",
+        ].every((field) => routeSource.includes(`${field}:`)) &&
+        !routeSource.includes("<WORKSPACE_DATA>"),
+      "The objective and selected workspace fields share one canonical untrusted JSON envelope.",
+    ),
+    check(
+      "route.input-digest",
+      "route",
+      /inputDigest:\s*createHash\("sha256"\)\.update\(payload\)\.digest\("hex"\)/.test(routeSource) &&
+        routeSource.includes("inputDigest: serialized.inputDigest"),
+      "Responses bind reviews to the exact canonical payload digest.",
+    ),
+    check(
+      "route.mode-bound-code-output",
+      "schema",
+      routeSource.includes('parsed.data.mode === "code" && !result.output.improvedCode') &&
+        routeSource.includes('parsed.data.mode !== "code" && result.output.improvedCode !== null'),
+      "The route rejects structured output whose code payload does not match the reviewed mode.",
+    ),
   );
 
   return { protocolVersion, defaultModel, maxOutputTokens, requestsPerMinute };
+}
+
+function validateLocalAnalysis(localAnalysisSource, checks) {
+  checks.push(
+    check(
+      "local.code-aware-transform",
+      "local-analysis",
+      localAnalysisSource.includes("function codeConcept(") &&
+        localAnalysisSource.includes("parseDraftConcept(draft)") &&
+        localAnalysisSource.includes("visibleCodeLines(draft.code)"),
+      "Local transformations derive textual concepts from the current code source.",
+    ),
+    check(
+      "local.complete-code-fallback",
+      "local-analysis",
+      localAnalysisSource.includes("improvedCode:") &&
+        localAnalysisSource.includes('draft.mode === "code" ? { ...draft.code } : null'),
+      "The deterministic fallback preserves all three code files as one typed proposal.",
+    ),
+    check(
+      "local.deterministic-change-summary",
+      "local-analysis",
+      localAnalysisSource.includes("export function summarizeDraftChanges(") &&
+        ["Text:", "HTML:", "CSS:", "JavaScript:"].every((label) =>
+          localAnalysisSource.includes(label),
+        ),
+      "A deterministic helper summarizes source changes across text and every code file.",
+    ),
+  );
 }
 
 function validateWorkflow(workflowSource, checks) {
@@ -381,9 +460,10 @@ ${warnings.length ? `## Warnings\n\n${warnings.map((entry) => `- **${entry.id}**
 }
 
 async function main() {
-  const [agentSource, routeSource, corpusText, workflowSource] = await Promise.all([
+  const [agentSource, routeSource, localAnalysisSource, corpusText, workflowSource] = await Promise.all([
     readFile(path.join(ROOT, AGENT_PATH), "utf8"),
     readFile(path.join(ROOT, ROUTE_PATH), "utf8"),
+    readFile(path.join(ROOT, LOCAL_ANALYSIS_PATH), "utf8"),
     readFile(path.join(ROOT, CORPUS_PATH), "utf8"),
     readFile(path.join(ROOT, WORKFLOW_PATH), "utf8"),
   ]);
@@ -392,6 +472,7 @@ async function main() {
 
   validateCorpus(corpus, checks);
   const config = validateAgent(corpus, agentSource, routeSource, checks);
+  validateLocalAnalysis(localAnalysisSource, checks);
   validateWorkflow(workflowSource, checks);
   const catalog = await verifyCatalog(config.defaultModel, checks);
 
@@ -416,6 +497,7 @@ async function main() {
     sourceHashes: {
       agent: sha256(agentSource),
       route: sha256(routeSource),
+      localAnalysis: sha256(localAnalysisSource),
       corpus: sha256(corpusText),
       workflow: sha256(workflowSource),
     },

@@ -8,6 +8,10 @@ export type CodeFiles = Readonly<{
   javascript: string;
 }>;
 
+export type TextWorkspaceMode = Exclude<WorkspaceMode, "code">;
+
+export type TextByMode = Readonly<Record<TextWorkspaceMode, string>>;
+
 export type WorkspaceDraft = Readonly<{
   mode: WorkspaceMode;
   title: string;
@@ -23,6 +27,39 @@ export type WorkspaceVersion = Readonly<{
   draft: WorkspaceDraft;
 }>;
 
+/**
+ * The complete editable content of one Canvas project. `WorkspaceDraft` remains
+ * the intentionally smaller active-mode view consumed by previews and agents.
+ */
+export type WorkspaceProjectContent = Readonly<{
+  mode: WorkspaceMode;
+  title: string;
+  textByMode: TextByMode;
+  code: CodeFiles;
+  committedCode: CodeFiles;
+  versions: readonly WorkspaceVersion[];
+}>;
+
+export type WorkspaceProject = Readonly<{
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+}> & WorkspaceProjectContent;
+
+export type WorkspaceLibraryV2 = Readonly<{
+  schemaVersion: 2;
+  revision: number;
+  activeProjectId: string;
+  projects: readonly WorkspaceProject[];
+}>;
+
+export type WorkspaceProjectBundle = Readonly<{
+  format: "kingxford-canvas-project";
+  schemaVersion: 1;
+  exportedAt: string;
+  project: WorkspaceProject;
+}>;
+
 export type AgentReview = Readonly<{
   summary: string;
   status: "Strong" | "Developing" | "Unresolved";
@@ -33,6 +70,7 @@ export type AgentReview = Readonly<{
   nextTest: string;
   proposedChanges: readonly string[];
   improvedInput: string;
+  improvedCode: CodeFiles | null;
   buildBrief: Readonly<{
     title: string;
     oneLine: string;
@@ -48,6 +86,7 @@ export type AgentReviewResponse = Readonly<{
   source: "openai" | "local";
   model: string;
   protocolVersion: string;
+  inputDigest: string;
   notice?: string;
 }>;
 

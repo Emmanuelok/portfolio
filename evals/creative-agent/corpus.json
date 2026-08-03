@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "corpusVersion": "kxci-governance-2026-08-02.1",
-  "protocolVersion": "kxci-2026-08-02.1",
+  "corpusVersion": "kxci-governance-2026-08-03.2",
+  "protocolVersion": "kxci-2026-08-03.2",
   "defaultModel": "openai/gpt-5.6-sol",
   "hardGates": {
     "requiredReviewFields": [
@@ -14,6 +14,7 @@
       "nextTest",
       "proposedChanges",
       "improvedInput",
+      "improvedCode",
       "buildBrief"
     ],
     "requiredBuildBriefFields": [

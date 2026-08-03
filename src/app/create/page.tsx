@@ -6,9 +6,12 @@ import {
   Blocks,
   Bot,
   BookOpenCheck,
+  Braces,
   Building2,
   Calculator,
   Code2,
+  FileText,
+  Lightbulb,
   MonitorSmartphone,
   Network,
   UsersRound,
@@ -54,6 +57,14 @@ const categoryIcons: Record<CreationCategory, typeof MonitorSmartphone> = {
   "personal-tools": UsersRound,
 };
 
+const canvasLaunches = [
+  { href: "/create/workspace?mode=idea", label: "Idea", icon: Lightbulb },
+  { href: "/create/workspace?mode=code", label: "Code", icon: Code2 },
+  { href: "/create/workspace?mode=mindmap", label: "Mind map", icon: Network },
+  { href: "/create/workspace?mode=prompt", label: "Prompt", icon: Braces },
+  { href: "/create/workspace?mode=brief", label: "Brief", icon: FileText },
+] as const;
+
 export default function CreatePage() {
   const collectionSchema = {
     "@context": "https://schema.org",
@@ -91,7 +102,7 @@ export default function CreatePage() {
       />
 
       <section className={styles.hero} aria-labelledby="create-heading">
-        <div className={styles.heroIndex}>Create / Capabilities and demonstrations</div>
+        <div className={styles.heroIndex}>Create / Canvas · Working proofs · Build pathways</div>
         <div className={styles.heroCopy}>
           <Reveal>
             <p className="eyebrow">kingXford &amp; Co · Designed around real work</p>
@@ -101,9 +112,9 @@ export default function CreatePage() {
           </Reveal>
           <Reveal delay={0.08}>
             <p>
-              Websites, digital tools, research systems, learning environments,
-              and practical utilities for industries, schools, institutions,
-              communities, and everyday life.
+              Describe it. Run it. See the result. Challenge it. Then move it
+              toward production—or explore complete systems already built to
+              prove what is possible.
             </p>
           </Reveal>
         </div>
@@ -131,17 +142,36 @@ export default function CreatePage() {
         </nav>
       </section>
 
-      <section className={styles.workspaceFeature} aria-labelledby="canvas-feature-heading">
+      <section
+        className={styles.workspaceFeature}
+        id="canvas"
+        aria-labelledby="canvas-feature-heading"
+      >
         <div className={styles.workspaceFeatureLead}>
-          <p className="eyebrow">The flagship creative instrument</p>
-          <h2 id="canvas-feature-heading">One source. A working result beside it.</h2>
+          <p className="eyebrow">Create starts here · The flagship instrument</p>
+          <h2 id="canvas-feature-heading">One source. Its working proof beside it.</h2>
           <p>
             Develop an idea, execute front-end code, map a system, test a prompt,
             or shape a production brief without losing sight of what the source
             actually produces.
           </p>
+          <nav className={styles.workspaceLaunches} aria-label="Start in Kingxford Canvas">
+            <span>Launch with</span>
+            <div>
+              {canvasLaunches.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link href={item.href} key={item.href}>
+                    <Icon aria-hidden="true" />
+                    <span>{item.label}</span>
+                    <ArrowUpRight aria-hidden="true" />
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
           <Link className="button button--primary" href="/create/workspace">
-            <span>Enter Kingxford Canvas</span>
+            <span>Open the complete Canvas</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
         </div>

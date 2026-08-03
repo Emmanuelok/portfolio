@@ -56,6 +56,7 @@ export function createCreativeAgent(
     model,
     instructions: creativeAgentInstructions,
     reasoning: depth === "deep" ? "xhigh" : "medium",
+    maxRetries: 0,
     maxOutputTokens: 3200,
     output: Output.object({ schema: agentReviewSchema }),
   });

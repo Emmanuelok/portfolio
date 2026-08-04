@@ -8,8 +8,15 @@ import chromiumBinary from "@sparticuz/chromium";
 import { chromium } from "playwright-core";
 
 const baseUrl = process.env.VERIFY_BASE_URL ?? "http://127.0.0.1:3000";
+const vercelShareToken = process.env.VERIFY_VERCEL_SHARE_TOKEN ?? "";
 const outputDir = path.resolve("verification");
 await fs.mkdir(outputDir, { recursive: true });
+
+function verificationUrl(route) {
+  const url = new URL(route, baseUrl);
+  if (vercelShareToken) url.searchParams.set("_vercel_share", vercelShareToken);
+  return url.toString();
+}
 
 // Some container filesystems reject the ownership metadata inside Sparticuz's
 // font archive. Pre-inflating only the browser binary avoids that unrelated
@@ -86,7 +93,7 @@ async function inspectPage(name, route, viewport, options = {}) {
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
-  const response = await page.goto(`${baseUrl}${route}`, {
+  const response = await page.goto(verificationUrl(route), {
     waitUntil: "domcontentloaded",
   });
   await page.waitForSelector("main");
@@ -595,7 +602,7 @@ if (!createIndexPassed) {
 }
 
 const sitemapResponse = await create.context.request.get(
-  `${baseUrl}/sitemap.xml`,
+  verificationUrl("/sitemap.xml"),
 );
 const sitemapText = await sitemapResponse.text();
 const expectedCreateSitemapPaths = [

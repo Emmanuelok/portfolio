@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CreativeWorkspace } from "@/components/workspace/CreativeWorkspace";
+import { platformPhases, type PlatformPhase } from "@/lib/platform/types";
 import { workspaceModes, type WorkspaceMode } from "@/lib/workspace/types";
 
 export const metadata: Metadata = {
@@ -32,11 +33,18 @@ function resolveWorkspaceMode(value: string | string[] | undefined): WorkspaceMo
   return workspaceModes.find((mode) => mode === candidate) ?? null;
 }
 
+function resolvePlatformPhase(value: string | string[] | undefined): PlatformPhase | null {
+  const candidate = Array.isArray(value) ? value[0] : value;
+  return platformPhases.find((phase) => phase === candidate) ?? null;
+}
+
 export default async function CreativeWorkspacePage({
   searchParams,
 }: CreativeWorkspacePageProps) {
   const query = await searchParams;
   const initialMode = resolveWorkspaceMode(query.mode);
+  const initialPhase = resolvePlatformPhase(query.phase);
+  const startFromSeed = (Array.isArray(query.start) ? query.start[0] : query.start) === "seed";
   const entrepreneurshipUrl =
     process.env.NEXT_PUBLIC_AI_ENTREPRENEURSHIP_URL?.trim() || null;
 
@@ -76,6 +84,8 @@ export default async function CreativeWorkspacePage({
         key={initialMode ?? "saved-workspace"}
         entrepreneurshipUrl={entrepreneurshipUrl}
         initialMode={initialMode}
+        initialPhase={initialPhase}
+        startFromSeed={startFromSeed}
       />
     </>
   );

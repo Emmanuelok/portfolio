@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -11,9 +11,12 @@ import {
   CREATIVE_AGENT_PROTOCOL_VERSION,
 } from "@/lib/workspace/agent";
 import { buildLocalReview } from "@/lib/workspace/local-analysis";
-import { workspaceModes } from "@/lib/workspace/types";
+import { workspaceAgentRoles, workspaceModes } from "@/lib/workspace/types";
 
 export const maxDuration = 120;
+
+const MAX_REQUEST_BYTES = 192000;
+const CREATIVE_AGENT_ATTEMPT_TIMEOUT_MS = 52000;
 
 const codeSchema = z.object({
   html: z.string().max(16000),
@@ -29,6 +32,7 @@ const requestSchema = z
     code: codeSchema,
     objective: z.string().min(1).max(600),
     depth: z.enum(["standard", "deep"]),
+    agentRole: z.enum(workspaceAgentRoles).default("conductor"),
     context: z.object({
       codeLogs: z.array(z.string().max(1000)).max(12),
       versions: z
@@ -63,6 +67,10 @@ type RateBucket = { count: number; resetsAt: number };
 const rateBuckets = new Map<string, RateBucket>();
 const WINDOW_MS = 60_000;
 const REQUESTS_PER_WINDOW = 6;
+const CLIENT_KEY_SECRET =
+  process.env.KINGXFORD_CLIENT_HASH_SECRET ||
+  process.env.AI_GATEWAY_API_KEY ||
+  randomBytes(32).toString("hex");
 
 function responseHeaders(extra?: HeadersInit) {
   return {
@@ -75,7 +83,14 @@ function responseHeaders(extra?: HeadersInit) {
 function sameOrigin(request: NextRequest) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
-  if (!origin || !host) return true;
+  const fetchSite = request.headers.get("sec-fetch-site");
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!host) return false;
+  if (!origin) return !isProduction;
+  if (fetchSite && fetchSite !== "same-origin") return false;
+  if (isProduction && fetchSite !== "same-origin") return false;
+
   try {
     return new URL(origin).host === host;
   } catch {
@@ -86,11 +101,19 @@ function sameOrigin(request: NextRequest) {
 function clientKey(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const address = forwarded || request.headers.get("x-real-ip") || "local";
-  return createHash("sha256").update(address).digest("hex").slice(0, 24);
+  return createHmac("sha256", CLIENT_KEY_SECRET)
+    .update(address)
+    .digest("hex")
+    .slice(0, 24);
 }
 
 function rateLimit(key: string) {
   const now = Date.now();
+  if (rateBuckets.size > 512) {
+    for (const [bucketKey, bucket] of rateBuckets) {
+      if (bucket.resetsAt <= now) rateBuckets.delete(bucketKey);
+    }
+  }
   const current = rateBuckets.get(key);
   if (!current || current.resetsAt <= now) {
     const next = { count: 1, resetsAt: now + WINDOW_MS };
@@ -118,48 +141,101 @@ function containsLikelySecret(value: string) {
   return secretPatterns.some((pattern) => pattern.test(value));
 }
 
-function reportAgentFailure(error: unknown, model: string, attempt: number) {
+class RequestBodyTooLargeError extends Error {}
+class AgentContractError extends Error {}
+
+async function readJsonBody(request: NextRequest): Promise<unknown> {
+  const reader = request.body?.getReader();
+  if (!reader) throw new SyntaxError("Missing request body.");
+
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  let bytesRead = 0;
+  let text = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytesRead += value.byteLength;
+    if (bytesRead > MAX_REQUEST_BYTES) {
+      await reader.cancel().catch(() => undefined);
+      throw new RequestBodyTooLargeError();
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+
+  text += decoder.decode();
+  return JSON.parse(text) as unknown;
+}
+
+type AgentFailureCode =
+  | "agent_attempt_timeout"
+  | "agent_client_aborted"
+  | "agent_output_invalid"
+  | "provider_auth_rejected"
+  | "provider_budget_exhausted"
+  | "provider_rate_limited"
+  | "provider_request_rejected"
+  | "provider_unavailable"
+  | "provider_unknown_failure";
+
+function statusCodeFrom(error: unknown) {
   const candidate = error && typeof error === "object"
     ? (error as {
-        name?: unknown;
-        message?: unknown;
         statusCode?: unknown;
         cause?: unknown;
       })
     : undefined;
   const cause = candidate?.cause && typeof candidate.cause === "object"
     ? (candidate.cause as {
-        name?: unknown;
-        message?: unknown;
         statusCode?: unknown;
       })
     : undefined;
-  const compact = (value: unknown) =>
-    typeof value === "string"
-      ? value
-          .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, "[redacted]")
-          .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
-          .slice(0, 600)
-      : undefined;
+  if (typeof candidate?.statusCode === "number") return candidate.statusCode;
+  if (typeof cause?.statusCode === "number") return cause.statusCode;
+  return undefined;
+}
 
-  console.error("[workspace-agent] OpenAI review failed", {
-    name: compact(candidate?.name),
-    message: compact(candidate?.message),
-    statusCode:
-      typeof candidate?.statusCode === "number" ? candidate.statusCode : undefined,
-    causeName: compact(cause?.name),
-    causeMessage: compact(cause?.message),
-    causeStatusCode:
-      typeof cause?.statusCode === "number" ? cause.statusCode : undefined,
-    model,
-    attempt,
-  });
+function classifyAgentFailure(
+  error: unknown,
+  requestAborted: boolean,
+  timedOut: boolean,
+): AgentFailureCode {
+  if (requestAborted) return "agent_client_aborted";
+  if (timedOut) return "agent_attempt_timeout";
+  if (error instanceof AgentContractError) return "agent_output_invalid";
+
+  const statusCode = statusCodeFrom(error);
+  if (statusCode === 401 || statusCode === 403) return "provider_auth_rejected";
+  if (statusCode === 402) return "provider_budget_exhausted";
+  if (statusCode === 429) return "provider_rate_limited";
+  if (statusCode !== undefined && statusCode >= 400 && statusCode < 500) {
+    return "provider_request_rejected";
+  }
+  if (statusCode !== undefined && statusCode >= 500) return "provider_unavailable";
+  return "provider_unknown_failure";
+}
+
+function reportAgentFailure(code: AgentFailureCode, attempt: number) {
+  console.error("[workspace-agent] agent_attempt_failed", { code, attempt });
+}
+
+function canAttemptFallback(code: AgentFailureCode) {
+  switch (code) {
+    case "agent_client_aborted":
+    case "provider_auth_rejected":
+    case "provider_budget_exhausted":
+    case "provider_request_rejected":
+      return false;
+    default:
+      return true;
+  }
 }
 
 function serializeWorkspace(value: z.infer<typeof requestSchema>) {
   const payload = JSON.stringify({
     reviewObjective: value.objective,
     requestedReviewDepth: value.depth,
+    requestedAgentRole: value.agentRole,
     workspace: {
       mode: value.mode,
       title: value.title || "Untitled",
@@ -209,6 +285,7 @@ function localResponse(
       }),
       source: "local",
       model: "local-readiness-rules-v1",
+      agentRole: input.agentRole,
       protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
       inputDigest,
       notice,
@@ -224,9 +301,13 @@ export async function GET() {
       available: configured,
       mode: configured ? "openai" : "local-fallback",
       model: CREATIVE_AGENT_MODEL.replace(/^openai\//, ""),
+      agentRoles: workspaceAgentRoles,
+      defaultAgentRole: "conductor",
       protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
       dailyEvaluationEnabled: true,
-      improvementPolicy: "versioned-evaluation-human-approval-rollback",
+      evaluationScope: "deterministic-configuration-and-safety-governance-gates",
+      dailyModelQualityEvaluationEnabled: false,
+      improvementPolicy: "versioned-change-human-approval-rollback-no-autonomous-deployment",
     },
     { headers: responseHeaders() },
   );
@@ -248,14 +329,15 @@ export async function POST(request: NextRequest) {
   }
 
   const declaredLength = Number(request.headers.get("content-length") || 0);
-  if (declaredLength > 90_000) {
+  if (declaredLength > MAX_REQUEST_BYTES) {
     return NextResponse.json(
       { error: "The selected workspace context is too large for one review." },
       { status: 413, headers: responseHeaders() },
     );
   }
 
-  const limit = rateLimit(clientKey(request));
+  const requestIdentity = clientKey(request);
+  const limit = rateLimit(requestIdentity);
   if (!limit.allowed) {
     return NextResponse.json(
       { error: "Review limit reached. Keep working locally and try again shortly." },
@@ -271,8 +353,14 @@ export async function POST(request: NextRequest) {
 
   let raw: unknown;
   try {
-    raw = await request.json();
-  } catch {
+    raw = await readJsonBody(request);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { error: "The selected workspace context is too large for one review." },
+        { status: 413, headers: responseHeaders() },
+      );
+    }
     return NextResponse.json(
       { error: "The workspace request could not be read." },
       { status: 400, headers: responseHeaders() },
@@ -309,24 +397,39 @@ export async function POST(request: NextRequest) {
   const candidateModels = [
     CREATIVE_AGENT_MODEL,
     ...CREATIVE_AGENT_FALLBACK_MODELS,
-  ].filter((model, index, models) => models.indexOf(model) === index);
+  ]
+    .filter((model, index, models) => models.indexOf(model) === index)
+    .slice(0, 2);
 
   for (const [attempt, model] of candidateModels.entries()) {
+    const attemptTimeoutSignal = AbortSignal.timeout(
+      CREATIVE_AGENT_ATTEMPT_TIMEOUT_MS,
+    );
+    const attemptSignal = AbortSignal.any([
+      request.signal,
+      attemptTimeoutSignal,
+    ]);
+
     try {
-      const agent = createCreativeAgent(parsed.data.depth, model);
+      const agent = createCreativeAgent(
+        parsed.data.depth,
+        model,
+        requestIdentity,
+        parsed.data.agentRole,
+      );
       const result = await agent.generate({
         prompt: serialized.prompt,
-        abortSignal: request.signal,
+        abortSignal: attemptSignal,
       });
 
       if (!result.output) {
-        throw new Error("Structured review was empty.");
+        throw new AgentContractError();
       }
       if (parsed.data.mode === "code" && !result.output.improvedCode) {
-        throw new Error("Structured code review did not contain all three code files.");
+        throw new AgentContractError();
       }
       if (parsed.data.mode !== "code" && result.output.improvedCode !== null) {
-        throw new Error("Structured text review unexpectedly contained code files.");
+        throw new AgentContractError();
       }
 
       const review = parsed.data.mode === "code" && result.output.improvedCode
@@ -340,13 +443,14 @@ export async function POST(request: NextRequest) {
         {
           review,
           source: "openai",
-          model: model.replace(/^openai\//, ""),
+          model: result.response.modelId.replace(/^openai\//, ""),
+          agentRole: parsed.data.agentRole,
           protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
           inputDigest: serialized.inputDigest,
           ...(attempt > 0
             ? {
                 notice:
-                  "The frontier target was unavailable for this request, so the review was completed by the strongest configured fallback model.",
+                  "The frontier target was unavailable for this request, so a configured GPT-5.6 family fallback completed the review.",
               }
             : {}),
         },
@@ -357,7 +461,13 @@ export async function POST(request: NextRequest) {
         },
       );
     } catch (error) {
-      reportAgentFailure(error, model, attempt + 1);
+      const failureCode = classifyAgentFailure(
+        error,
+        request.signal.aborted,
+        attemptTimeoutSignal.aborted,
+      );
+      reportAgentFailure(failureCode, attempt + 1);
+      if (!canAttemptFallback(failureCode)) break;
     }
   }
 

@@ -7,6 +7,7 @@ import process from "node:process";
 const ROOT = process.cwd();
 const AGENT_PATH = "src/lib/workspace/agent.ts";
 const ROUTE_PATH = "src/app/api/workspace/agent/route.ts";
+const TYPES_PATH = "src/lib/workspace/types.ts";
 const LOCAL_ANALYSIS_PATH = "src/lib/workspace/local-analysis.ts";
 const CORPUS_PATH = "evals/creative-agent/corpus.json";
 const WORKFLOW_PATH = ".github/workflows/creative-agent-daily.yml";
@@ -62,6 +63,7 @@ function validateCorpus(corpus, checks) {
     "secret-handling",
   ];
   const modes = new Set(corpus.cases.map((entry) => entry.mode));
+  const agentRoles = new Set(corpus.cases.map((entry) => entry.agentRole));
   const ids = corpus.cases.map((entry) => entry.id);
   const tags = new Set(corpus.cases.flatMap((entry) => entry.tags || []));
 
@@ -69,7 +71,7 @@ function validateCorpus(corpus, checks) {
     check(
       "corpus.schema-version",
       "corpus",
-      corpus.schemaVersion === 1,
+      corpus.schemaVersion === 2,
       "The corpus uses the supported schema version.",
     ),
     check(
@@ -91,6 +93,14 @@ function validateCorpus(corpus, checks) {
       ["idea", "code", "mindmap", "prompt", "brief"].every((mode) => modes.has(mode)),
       "Every public workspace mode is represented.",
       [...modes].sort().join(", "),
+    ),
+    check(
+      "corpus.agent-role-coverage",
+      "corpus",
+      corpus.hardGates.requiredAgentRoles.every((role) => agentRoles.has(role)) &&
+        [...agentRoles].every((role) => corpus.hardGates.requiredAgentRoles.includes(role)),
+      "Every allowlisted specialist role is represented by the fixed governance corpus.",
+      [...agentRoles].sort().join(", "),
     ),
     check(
       "corpus.challenge-coverage",
@@ -121,10 +131,22 @@ function validateCorpus(corpus, checks) {
       ),
       "Every fixture stays inside the production workspace character budget.",
     ),
+    check(
+      "corpus.truthful-evaluation-policy",
+      "corpus",
+      corpus.evaluationPolicy?.scope ===
+        "deterministic-configuration-and-safety-governance-gates" &&
+        corpus.evaluationPolicy?.callsModels === false &&
+        corpus.evaluationPolicy?.usesProductionData === false &&
+        corpus.evaluationPolicy?.autonomousPromotion === false &&
+        corpus.evaluationPolicy?.promotion ===
+          "versioned-change-human-approval-rollback",
+      "The corpus truthfully distinguishes static governance gates from model-quality evaluation and autonomous promotion.",
+    ),
   );
 }
 
-function validateAgent(corpus, agentSource, routeSource, checks) {
+function validateAgent(corpus, agentSource, routeSource, typesSource, checks) {
   const protocolVersion = extract(
     agentSource,
     /CREATIVE_AGENT_PROTOCOL_VERSION\s*=\s*"([^"]+)"/,
@@ -135,8 +157,26 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
     /KINGXFORD_CREATIVE_MODEL\s*\|\|\s*"([^"]+)"/,
     "creative-agent default model",
   );
+  const fallbackModels = extract(
+    agentSource,
+    /KINGXFORD_CREATIVE_FALLBACK_MODELS\s*\|\|\s*"([^"]+)"/,
+    "creative-agent fallback models",
+  )
+    .split(",")
+    .map((model) => model.trim())
+    .filter(Boolean);
   const maxOutputTokens = Number(
     extract(agentSource, /maxOutputTokens:\s*(\d+)/, "maximum output tokens"),
+  );
+  const maximumRequestBytes = Number(
+    extract(routeSource, /MAX_REQUEST_BYTES\s*=\s*(\d+)/, "maximum request bytes"),
+  );
+  const attemptTimeoutMilliseconds = Number(
+    extract(
+      routeSource,
+      /CREATIVE_AGENT_ATTEMPT_TIMEOUT_MS\s*=\s*(\d+)/,
+      "agent attempt timeout",
+    ),
   );
   const requestsPerMinute = Number(
     extract(routeSource, /REQUESTS_PER_WINDOW\s*=\s*(\d+)/, "request limit"),
@@ -158,6 +198,49 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
       defaultModel,
     ),
     check(
+      "config.current-family-fallback",
+      "config",
+      fallbackModels.length > 0 &&
+        fallbackModels.every((model) => /^openai\/gpt-5\.6-(?:sol|terra|luna)$/.test(model)),
+      "Every default fallback remains within the current GPT-5.6 family.",
+      fallbackModels.join(", "),
+    ),
+    check(
+      "config.agent-role-contract",
+      "schema",
+      corpus.hardGates.requiredAgentRoles.every(
+        (role) =>
+          typesSource.includes(`"${role}"`) &&
+          new RegExp(`\\b${role}:`).test(agentSource),
+      ) &&
+        typesSource.includes("export type WorkspaceAgentRole") &&
+        typesSource.includes("agentRole: WorkspaceAgentRole") &&
+        routeSource.includes(
+          'agentRole: z.enum(workspaceAgentRoles).default("conductor")',
+        ),
+      "The shared contract and route expose only the seven allowlisted roles and default older clients to Conductor.",
+    ),
+    check(
+      "config.versioned-role-mandates",
+      "prompt",
+      /CREATIVE_AGENT_ROLE_MANDATE_VERSION\s*=\s*"kx-role-[^"]+"/.test(
+        agentSource,
+      ) &&
+        agentSource.includes("roleMandate(agentRole)") &&
+        agentSource.includes("This role changes analytical emphasis only") &&
+        agentSource.includes("It grants no tools, external access, execution authority, or side effects"),
+      "Every specialist selection applies a versioned, bounded mandate without expanding capability.",
+    ),
+    check(
+      "route.agent-role-binding",
+      "route",
+      routeSource.includes("requestedAgentRole: value.agentRole") &&
+        routeSource.includes("parsed.data.agentRole") &&
+        routeSource.includes("agentRole: input.agentRole") &&
+        routeSource.includes("agentRole: parsed.data.agentRole"),
+      "The selected specialist is bound into the untrusted payload, model mandate, and response provenance.",
+    ),
+    check(
       "config.structured-output",
       "schema",
       /Output\.object\(\{\s*schema:\s*agentReviewSchema\s*\}\)/s.test(agentSource),
@@ -175,16 +258,20 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
     check(
       "config.output-budget",
       "config",
-      maxOutputTokens <= corpus.hardGates.maximumOutputTokens,
-      "The configured output budget does not exceed the governance ceiling.",
+      maxOutputTokens === corpus.hardGates.maximumOutputTokens,
+      "The configured output budget matches the reviewed structured-artifact budget.",
       String(maxOutputTokens),
     ),
     check(
       "config.reasoning-bounds",
       "config",
       corpus.hardGates.allowedReasoning.every((value) => agentSource.includes(`"${value}"`)) &&
-        !/reasoning:\s*"(?:max|pro)"/.test(agentSource),
-      "Reasoning settings remain within the reviewed standard/deep bounds.",
+        /reasoningEffort:\s*depth\s*===\s*"deep"\s*\?\s*"max"\s*:\s*"medium"/.test(
+          agentSource,
+        ) &&
+        /reasoningMode:\s*"standard"/.test(agentSource) &&
+        !/reasoningMode:\s*"pro"/.test(agentSource),
+      "Standard uses medium effort and Deep uses documented max effort without enabling Pro mode.",
     ),
     check(
       "config.no-tools",
@@ -192,7 +279,38 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
       corpus.hardGates.forbiddenAgentProperties.every(
         (property) => !new RegExp(`\\b${property}\\s*:`).test(agentSource),
       ),
-      "The public agent exposes no external tools or provider-side capability expansion.",
+      "The public review agent exposes no external tools or side-effect capability.",
+    ),
+    check(
+      "config.openai-provider-options",
+      "privacy",
+      /providerOptions:\s*\{/.test(agentSource) &&
+        corpus.hardGates.requiredOpenAIProviderOptions.every((property) =>
+          new RegExp(`\\b${property}\\s*:`).test(agentSource),
+        ) &&
+        /store:\s*false/.test(agentSource) &&
+        /reasoningSummary:\s*null/.test(agentSource) &&
+        /reasoningContext:\s*"current_turn"/.test(agentSource),
+      "OpenAI requests use explicit effort, retention, reasoning-context, and safety options.",
+    ),
+    check(
+      "config.gateway-provider-options",
+      "privacy",
+      corpus.hardGates.requiredGatewayProviderOptions.every((property) =>
+        new RegExp(`\\b${property}\\s*:`).test(agentSource),
+      ) &&
+        /disallowPromptTraining:\s*true/.test(agentSource) &&
+        agentSource.includes("feature:creative-workspace") &&
+        agentSource.includes("protocol:"),
+      "Gateway requests opt out of prompt-training routes and carry governed attribution tags.",
+    ),
+    check(
+      "config.explicit-auth-availability",
+      "privacy",
+      agentSource.includes("process.env.AI_GATEWAY_API_KEY") &&
+        agentSource.includes("process.env.VERCEL_OIDC_TOKEN") &&
+        !/process\.env\.VERCEL\s*[,|)]/.test(agentSource),
+      "Provider availability requires explicit Gateway credentials rather than a generic deployment flag.",
     ),
     check(
       "route.request-rate",
@@ -206,6 +324,33 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
       "route",
       routeSource.includes(`total > ${corpus.hardGates.maximumWorkspaceCharacters}`),
       "The route enforces the governed workspace character ceiling.",
+    ),
+    check(
+      "route.byte-budget",
+      "route",
+      maximumRequestBytes === corpus.hardGates.maximumRequestBytes &&
+        routeSource.includes("value.byteLength") &&
+        routeSource.includes("RequestBodyTooLargeError") &&
+        routeSource.includes("status: 413"),
+      "The route enforces its byte ceiling while streaming the body, including requests without Content-Length.",
+      `${maximumRequestBytes} bytes`,
+    ),
+    check(
+      "route.attempt-timeout",
+      "route",
+      attemptTimeoutMilliseconds === corpus.hardGates.attemptTimeoutMilliseconds &&
+        routeSource.includes("AbortSignal.timeout(") &&
+        routeSource.includes("AbortSignal.any(["),
+      "Every provider attempt has a bounded timeout composed with client cancellation.",
+      `${attemptTimeoutMilliseconds} ms`,
+    ),
+    check(
+      "route.bounded-fallback-chain",
+      "route",
+      routeSource.includes(`.slice(0, ${corpus.hardGates.maximumProviderAttempts})`) &&
+        routeSource.includes("canAttemptFallback(failureCode)"),
+      "The synchronous route caps provider attempts and stops fallback on non-recoverable failures.",
+      `${corpus.hardGates.maximumProviderAttempts} provider attempts maximum`,
     ),
   );
 
@@ -276,6 +421,37 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
       "Agent responses are explicitly marked no-store.",
     ),
     check(
+      "route.strict-production-origin",
+      "route",
+      routeSource.includes('request.headers.get("origin")') &&
+        routeSource.includes('request.headers.get("host")') &&
+        routeSource.includes('request.headers.get("sec-fetch-site")') &&
+        routeSource.includes('process.env.NODE_ENV === "production"') &&
+        routeSource.includes('fetchSite !== "same-origin"') &&
+        routeSource.includes("new URL(origin).host === host"),
+      "Production requests require matching Origin, Host, and same-origin browser fetch metadata.",
+    ),
+    check(
+      "route.fixed-code-logging",
+      "privacy",
+      routeSource.includes('console.error("[workspace-agent] agent_attempt_failed", { code, attempt })') &&
+        !routeSource.includes("candidate?.message") &&
+        !routeSource.includes("causeMessage") &&
+        !routeSource.includes("Bearer [redacted]") &&
+        !/console\.error\([^\n]*(?:error|model)/.test(routeSource),
+      "Provider failures log only a fixed classification code and attempt number, never upstream messages or payloads.",
+    ),
+    check(
+      "route.truthful-daily-policy",
+      "governance",
+      routeSource.includes(
+        'evaluationScope: "deterministic-configuration-and-safety-governance-gates"',
+      ) &&
+        routeSource.includes("dailyModelQualityEvaluationEnabled: false") &&
+        routeSource.includes("no-autonomous-deployment"),
+      "The capability response truthfully describes daily static gates and does not imply autonomous model improvement.",
+    ),
+    check(
       "route.high-entropy-boundary",
       "prompt",
       /randomBytes\(32\)\.toString\("hex"\)/.test(routeSource) &&
@@ -290,6 +466,7 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
         [
           "reviewObjective",
           "requestedReviewDepth",
+          "requestedAgentRole",
           "workspace",
           "mode",
           "title",
@@ -317,7 +494,15 @@ function validateAgent(corpus, agentSource, routeSource, checks) {
     ),
   );
 
-  return { protocolVersion, defaultModel, maxOutputTokens, requestsPerMinute };
+  return {
+    protocolVersion,
+    defaultModel,
+    fallbackModels,
+    maxOutputTokens,
+    maximumRequestBytes,
+    attemptTimeoutMilliseconds,
+    requestsPerMinute,
+  };
 }
 
 function validateLocalAnalysis(localAnalysisSource, checks) {
@@ -366,7 +551,7 @@ function validateWorkflow(workflowSource, checks) {
       "workflow",
       /permissions:\s*\n\s+contents:\s*read\b/.test(workflowSource) &&
         forbiddenWritePaths.every((pattern) => !pattern.test(workflowSource)),
-      "The scheduled workflow has read-only repository permissions and no write command path.",
+      "The governance workflow has read-only repository permissions and no write command path.",
     ),
     check(
       "workflow.no-persisted-credentials",
@@ -379,6 +564,27 @@ function validateWorkflow(workflowSource, checks) {
       "workflow",
       /schedule:/.test(workflowSource) && /workflow_dispatch:/.test(workflowSource),
       "Governance verification supports a daily schedule and explicit manual runs.",
+    ),
+    check(
+      "workflow.pull-request-gate",
+      "workflow",
+      /pull_request:\s*\n\s+paths:/.test(workflowSource) &&
+        [
+          "src/lib/workspace/agent.ts",
+          "src/lib/workspace/types.ts",
+          "src/app/api/workspace/agent/route.ts",
+          "evals/creative-agent/**",
+          "scripts/verify-creative-agent.mjs",
+        ].every((path) => workflowSource.includes(path)),
+      "The deterministic gate runs on pull requests that change the governed agent surface.",
+    ),
+    check(
+      "workflow.truthful-static-scope",
+      "workflow",
+      workflowSource.includes("Creative agent deterministic governance") &&
+        workflowSource.includes("Verify deterministic configuration and safety gates") &&
+        workflowSource.includes("Run deterministic governance verification"),
+      "Workflow labels accurately describe deterministic governance rather than live model-quality evaluation.",
     ),
     check(
       "workflow.report-artifact",
@@ -460,9 +666,17 @@ ${warnings.length ? `## Warnings\n\n${warnings.map((entry) => `- **${entry.id}**
 }
 
 async function main() {
-  const [agentSource, routeSource, localAnalysisSource, corpusText, workflowSource] = await Promise.all([
+  const [
+    agentSource,
+    routeSource,
+    typesSource,
+    localAnalysisSource,
+    corpusText,
+    workflowSource,
+  ] = await Promise.all([
     readFile(path.join(ROOT, AGENT_PATH), "utf8"),
     readFile(path.join(ROOT, ROUTE_PATH), "utf8"),
+    readFile(path.join(ROOT, TYPES_PATH), "utf8"),
     readFile(path.join(ROOT, LOCAL_ANALYSIS_PATH), "utf8"),
     readFile(path.join(ROOT, CORPUS_PATH), "utf8"),
     readFile(path.join(ROOT, WORKFLOW_PATH), "utf8"),
@@ -471,7 +685,13 @@ async function main() {
   const checks = [];
 
   validateCorpus(corpus, checks);
-  const config = validateAgent(corpus, agentSource, routeSource, checks);
+  const config = validateAgent(
+    corpus,
+    agentSource,
+    routeSource,
+    typesSource,
+    checks,
+  );
   validateLocalAnalysis(localAnalysisSource, checks);
   validateWorkflow(workflowSource, checks);
   const catalog = await verifyCatalog(config.defaultModel, checks);
@@ -483,7 +703,7 @@ async function main() {
     skipped: checks.filter((entry) => entry.status === "skip").length,
   };
   const report = {
-    reportSchemaVersion: 1,
+    reportSchemaVersion: 2,
     generatedAt: new Date().toISOString(),
     outcome: summary.failed === 0 ? "pass" : "fail",
     commit: process.env.GITHUB_SHA || null,
@@ -491,12 +711,18 @@ async function main() {
     corpusVersion: corpus.corpusVersion,
     defaultModel: config.defaultModel,
     configuration: {
+      fallbackModels: config.fallbackModels,
       maxOutputTokens: config.maxOutputTokens,
+      maximumRequestBytes: config.maximumRequestBytes,
+      attemptTimeoutMilliseconds: config.attemptTimeoutMilliseconds,
+      maximumProviderAttempts: corpus.hardGates.maximumProviderAttempts,
       requestsPerMinute: config.requestsPerMinute,
+      evaluationScope: corpus.evaluationPolicy.scope,
     },
     sourceHashes: {
       agent: sha256(agentSource),
       route: sha256(routeSource),
+      types: sha256(typesSource),
       localAnalysis: sha256(localAnalysisSource),
       corpus: sha256(corpusText),
       workflow: sha256(workflowSource),
@@ -527,7 +753,7 @@ main().catch(async (error) => {
   const directory = reportDirectory();
   await mkdir(directory, { recursive: true });
   const fatalReport = {
-    reportSchemaVersion: 1,
+    reportSchemaVersion: 2,
     generatedAt: new Date().toISOString(),
     outcome: "fail",
     commit: process.env.GITHUB_SHA || null,

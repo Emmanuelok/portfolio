@@ -31,6 +31,7 @@ import {
   parseMindMap,
   promptSignals,
 } from "@/lib/workspace/local-analysis";
+import type { PlatformMapViewState } from "@/lib/platform/types";
 import type {
   CodeFiles,
   MindMapNode,
@@ -46,6 +47,8 @@ type WorkspacePreviewProps = Readonly<{
   committedCode: CodeFiles;
   runId: number;
   onCodeLogs: (logs: readonly string[]) => void;
+  initialMapView?: PlatformMapViewState | null;
+  onMapViewCommit?: (view: PlatformMapViewState) => void;
 }>;
 
 function ConceptPreview({ draft }: Readonly<{ draft: WorkspaceDraft }>) {
@@ -292,11 +295,19 @@ function MapBranch({
   );
 }
 
-function MindMapPreview({ text }: Readonly<{ text: string }>) {
+function MindMapPreview({
+  text,
+  initialView,
+  onViewCommit,
+}: Readonly<{
+  text: string;
+  initialView?: PlatformMapViewState | null;
+  onViewCommit?: (view: PlatformMapViewState) => void;
+}>) {
   const nodes = useMemo(() => parseMindMap(text), [text]);
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState<MapPoint>({ x: 0, y: 0 });
-  const [offsets, setOffsets] = useState<MapOffsets>({});
+  const [zoom, setZoom] = useState(initialView?.zoom ?? 1);
+  const [pan, setPan] = useState<MapPoint>(initialView?.pan ?? { x: 0, y: 0 });
+  const [offsets, setOffsets] = useState<MapOffsets>(initialView?.nodeOffsets ?? {});
   const [connections, setConnections] = useState<readonly MapConnection[]>([]);
   const [structureVersion, setStructureVersion] = useState(0);
   const [dragging, setDragging] = useState<"canvas" | string | null>(null);
@@ -318,6 +329,24 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
       }
     | null
   >(null);
+  const viewRef = useRef<PlatformMapViewState>({
+    zoom: initialView?.zoom ?? 1,
+    pan: initialView?.pan ?? { x: 0, y: 0 },
+    nodeOffsets: initialView?.nodeOffsets ?? {},
+  });
+
+  useEffect(() => {
+    viewRef.current = { zoom, pan, nodeOffsets: offsets };
+  }, [offsets, pan, zoom]);
+
+  const commitView = useCallback(
+    (next?: PlatformMapViewState) => {
+      const committed = next ?? viewRef.current;
+      viewRef.current = committed;
+      onViewCommit?.(committed);
+    },
+    [onViewCommit],
+  );
 
   const refreshConnections = useCallback(() => {
     const canvas = canvasRef.current;
@@ -451,16 +480,22 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
       y: event.clientY - drag.start.y,
     };
     if (drag.kind === "canvas") {
-      setPan({ x: drag.origin.x + delta.x, y: drag.origin.y + delta.y });
+      const nextPan = { x: drag.origin.x + delta.x, y: drag.origin.y + delta.y };
+      viewRef.current = { zoom, pan: nextPan, nodeOffsets: offsets };
+      setPan(nextPan);
       return;
     }
-    setOffsets((current) => ({
-      ...current,
-      [drag.nodeId]: {
+    setOffsets((current) => {
+      const next = {
+        ...current,
+        [drag.nodeId]: {
         x: drag.origin.x + delta.x / zoom,
         y: drag.origin.y + delta.y / zoom,
-      },
-    }));
+        },
+      };
+      viewRef.current = { zoom, pan, nodeOffsets: next };
+      return next;
+    });
   };
 
   const endDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -470,6 +505,7 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+    commitView();
   };
 
   const handleLostPointerCapture = (
@@ -478,6 +514,7 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
     if (dragRef.current?.pointerId !== event.pointerId) return;
     dragRef.current = null;
     setDragging(null);
+    commitView();
   };
 
   const moveNodeWithKeyboard = (
@@ -496,10 +533,12 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
     event.stopPropagation();
     setOffsets((current) => {
       const origin = current[nodeId] ?? { x: 0, y: 0 };
-      return {
+      const next = {
         ...current,
         [nodeId]: { x: origin.x + delta.x, y: origin.y + delta.y },
       };
+      commitView({ zoom, pan, nodeOffsets: next });
+      return next;
     });
   };
 
@@ -513,10 +552,14 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
     }[event.key];
     if (!delta) return;
     event.preventDefault();
-    setPan((current) => ({
-      x: current.x + delta.x,
-      y: current.y + delta.y,
-    }));
+    setPan((current) => {
+      const next = {
+        x: current.x + delta.x,
+        y: current.y + delta.y,
+      };
+      commitView({ zoom, pan: next, nodeOffsets: offsets });
+      return next;
+    });
   };
 
   const fitMap = () => {
@@ -563,17 +606,27 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
     const centeredX = margin + (availableWidth - contentWidth * nextZoom) / 2;
     const centeredY = margin + (availableHeight - contentHeight * nextZoom) / 2;
 
-    setZoom(nextZoom);
-    setPan({
+    const nextPan = {
       x: centeredX - paddingLeft - minX * nextZoom,
       y: centeredY - paddingTop - minY * nextZoom,
-    });
+    };
+    setZoom(nextZoom);
+    setPan(nextPan);
+    commitView({ zoom: nextZoom, pan: nextPan, nodeOffsets: offsets });
   };
 
   const resetMap = () => {
-    setPan({ x: 0, y: 0 });
+    const nextPan = { x: 0, y: 0 };
+    setPan(nextPan);
     setZoom(1);
     setOffsets({});
+    commitView({ zoom: 1, pan: nextPan, nodeOffsets: {} });
+  };
+
+  const changeZoom = (next: number) => {
+    const bounded = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, next));
+    setZoom(bounded);
+    commitView({ zoom: bounded, pan, nodeOffsets: offsets });
   };
 
   return (
@@ -590,7 +643,7 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
           <button
             type="button"
             aria-label="Zoom out"
-            onClick={() => setZoom((value) => Math.max(MAP_MIN_ZOOM, value - 0.1))}
+            onClick={() => changeZoom(zoom - 0.1)}
           >
             <Minus aria-hidden="true" />
           </button>
@@ -598,7 +651,7 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
           <button
             type="button"
             aria-label="Zoom in"
-            onClick={() => setZoom((value) => Math.min(MAP_MAX_ZOOM, value + 0.1))}
+            onClick={() => changeZoom(zoom + 0.1)}
           >
             <Plus aria-hidden="true" />
           </button>
@@ -756,6 +809,8 @@ export function WorkspacePreview({
   committedCode,
   runId,
   onCodeLogs,
+  initialMapView,
+  onMapViewCommit,
 }: WorkspacePreviewProps) {
   if (draft.mode === "code") {
     return (
@@ -767,7 +822,15 @@ export function WorkspacePreview({
       />
     );
   }
-  if (draft.mode === "mindmap") return <MindMapPreview text={draft.text} />;
+  if (draft.mode === "mindmap") {
+    return (
+      <MindMapPreview
+        text={draft.text}
+        initialView={initialMapView}
+        onViewCommit={onMapViewCommit}
+      />
+    );
+  }
   if (draft.mode === "prompt") return <PromptPreview text={draft.text} />;
   if (draft.mode === "brief") return <BriefPreview draft={draft} />;
   return <ConceptPreview draft={draft} />;

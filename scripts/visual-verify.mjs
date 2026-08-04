@@ -186,6 +186,24 @@ const desktop = await inspectPage(
   { width: 1440, height: 1000 },
 );
 
+const homeNexusState = await desktop.page.evaluate(() => {
+  const startButton = document.querySelector("form button[type='submit']");
+  const buttonRect = startButton?.getBoundingClientRect();
+  return {
+    h1Count: document.querySelectorAll("h1").length,
+    phaseCount: document.querySelectorAll("[aria-label='Connected project lifecycle'] button").length,
+    startVisibleInViewport: Boolean(
+      buttonRect && buttonRect.top >= 0 && buttonRect.bottom <= window.innerHeight,
+    ),
+  };
+});
+const homeNexusPassed =
+  homeNexusState.h1Count === 1 &&
+  homeNexusState.phaseCount === 6 &&
+  homeNexusState.startVisibleInViewport;
+results.push({ interaction: "home-intelligence-nexus", passed: homeNexusPassed, ...homeNexusState });
+if (!homeNexusPassed) failures.push({ interaction: "home-intelligence-nexus", ...homeNexusState });
+
 const selectedDesktopTheme = desktop.page.locator(
   ".site-header__theme [role='radio'][aria-checked='true']",
 );
@@ -421,6 +439,33 @@ await desktop.page.screenshot({
   path: path.join(outputDir, "kingxford-idea-router.png"),
   fullPage: false,
 });
+
+const routedIdea = "A research platform for scientific evidence and academic data";
+await Promise.all([
+  desktop.page.waitForURL("**/create/workspace?start=seed&phase=discover&mode=idea"),
+  desktop.page.getByRole("button", { name: "Start this project" }).click(),
+]);
+await desktop.page.locator("#workspace-text-editor").waitFor({ state: "visible" });
+const ideaTransferState = await desktop.page.evaluate(() => ({
+  input: document.querySelector("#workspace-text-editor")?.value ?? "",
+  seedConsumed: window.sessionStorage.getItem("kingxford:platform-seed:v1") === null,
+  userContentInUrl: window.location.href.includes("scientific evidence"),
+  projectCount: (() => {
+    try {
+      const value = JSON.parse(window.localStorage.getItem("kingxford:canvas:v2") ?? "null");
+      return Array.isArray(value?.projects) ? value.projects.length : 0;
+    } catch {
+      return 0;
+    }
+  })(),
+}));
+const ideaTransferPassed =
+  ideaTransferState.input === routedIdea &&
+  ideaTransferState.seedConsumed &&
+  !ideaTransferState.userContentInUrl &&
+  ideaTransferState.projectCount >= 1;
+results.push({ interaction: "idea-to-project-context-transfer", passed: ideaTransferPassed, ...ideaTransferState });
+if (!ideaTransferPassed) failures.push({ interaction: "idea-to-project-context-transfer", ...ideaTransferState });
 
 await desktop.context.close();
 
@@ -1560,7 +1605,8 @@ await advancedPage.route("**/api/workspace/agent", async (route) => {
       source: "openai",
       model: "gpt-5.6-sol",
       protocolVersion: "browser-test",
-      inputDigest: "browser-stale-digest",
+      inputDigest: "a".repeat(64),
+      agentRole: "conductor",
     }),
   });
 });
@@ -1631,7 +1677,8 @@ await advancedPage.route("**/api/workspace/agent", async (route) => {
       source: "openai",
       model: "gpt-5.6-sol",
       protocolVersion: "browser-test",
-      inputDigest: "browser-current-digest",
+      inputDigest: "b".repeat(64),
+      agentRole: "conductor",
     }),
   });
 });

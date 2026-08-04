@@ -1,16 +1,54 @@
+import type { GatewayProviderOptions } from "@ai-sdk/gateway";
 import { Output, ToolLoopAgent } from "ai";
 import { z } from "zod";
+
+import type { WorkspaceAgentRole } from "@/lib/workspace/types";
 
 export const CREATIVE_AGENT_MODEL =
   process.env.KINGXFORD_CREATIVE_MODEL || "openai/gpt-5.6-sol";
 export const CREATIVE_AGENT_FALLBACK_MODELS = (
   process.env.KINGXFORD_CREATIVE_FALLBACK_MODELS ||
-  "openai/gpt-5.2,openai/gpt-5.4-mini"
+  "openai/gpt-5.6-terra"
 )
   .split(",")
   .map((model) => model.trim())
   .filter(Boolean);
-export const CREATIVE_AGENT_PROTOCOL_VERSION = "kxci-2026-08-03.2";
+export const CREATIVE_AGENT_PROTOCOL_VERSION = "kxci-2026-08-04.1";
+export const CREATIVE_AGENT_ROLE_MANDATE_VERSION = "kx-role-2026-08-04.1";
+
+type CreativeOpenAIResponsesOptions = {
+  reasoningContext: "current_turn";
+  reasoningEffort: "medium" | "max";
+  reasoningMode: "standard";
+  reasoningSummary: null;
+  safetyIdentifier: string;
+  store: false;
+  textVerbosity: "high";
+};
+
+const roleMandates: Record<WorkspaceAgentRole, string> = {
+  conductor:
+    "Integrate the relevant creative phases into one coherent review, identify conflicts and dependencies, and name the single best next handoff. Do not imply that other agents ran unless their results are present in the supplied workspace.",
+  discovery:
+    "Clarify the problem, intended audience, desired change, constraints, assumptions, and smallest responsible discovery test. Do not turn assumptions into evidence.",
+  evidence:
+    "Audit claims, supplied sources, missing evidence, counter-evidence, and uncertainty. Use only material supplied in the workspace and never imply that external research or validation occurred.",
+  systems:
+    "Map relationships, dependencies, interfaces, state changes, constraints, and failure modes. Make unresolved links explicit and do not claim that a simulation or systems test ran.",
+  prototype:
+    "Strengthen the proposed artifact into a complete, testable prototype while preserving intent, accessibility, failure recovery, and all required files. Never execute, deploy, or publish it.",
+  validation:
+    "Challenge the concept against explicit acceptance criteria, accessibility, privacy, safety, edge cases, and falsifiable tests. Do not claim that any proposed test was performed.",
+  delivery:
+    "Turn the concept into a sequenced implementation and handoff brief with bounded deliverables, dependencies, decision points, and a realistic next build step. Never deploy, purchase, publish, or contact anyone.",
+};
+
+function roleMandate(agentRole: WorkspaceAgentRole) {
+  return `Role mandate (${CREATIVE_AGENT_ROLE_MANDATE_VERSION})
+- Active role: ${agentRole}
+- Mandate: ${roleMandates[agentRole]}
+- Scope limit: This role changes analytical emphasis only. It grants no tools, external access, execution authority, or side effects. All global boundaries above still apply.`;
+}
 
 export const agentCodeSchema = z.object({
   html: z.string().max(16000),
@@ -60,13 +98,41 @@ Return only the required structured review.`;
 export function createCreativeAgent(
   depth: "standard" | "deep",
   model = CREATIVE_AGENT_MODEL,
+  safetyIdentifier = "anonymous-workspace",
+  agentRole: WorkspaceAgentRole = "conductor",
 ) {
+  // These option names are the current OpenAI Responses provider contract.
+  // The model is still routed through Gateway, so the narrow local type avoids
+  // adding a direct provider runtime dependency solely for type declarations.
+  const openaiOptions: CreativeOpenAIResponsesOptions = {
+    reasoningContext: "current_turn",
+    reasoningEffort: depth === "deep" ? "max" : "medium",
+    reasoningMode: "standard",
+    reasoningSummary: null,
+    safetyIdentifier,
+    store: false,
+    textVerbosity: "high",
+  };
+  const gatewayOptions = {
+    disallowPromptTraining: true,
+    tags: [
+      "application:kingxford",
+      "feature:creative-workspace",
+      `protocol:${CREATIVE_AGENT_PROTOCOL_VERSION}`,
+      `role:${agentRole}`,
+      `environment:${process.env.VERCEL_ENV === "production" ? "production" : process.env.VERCEL_ENV === "preview" ? "preview" : "development"}`,
+    ],
+  } satisfies GatewayProviderOptions;
+
   return new ToolLoopAgent({
     model,
-    instructions: creativeAgentInstructions,
-    reasoning: depth === "deep" ? "xhigh" : "medium",
+    instructions: `${creativeAgentInstructions}\n\n${roleMandate(agentRole)}`,
     maxRetries: 0,
-    maxOutputTokens: 3200,
+    maxOutputTokens: 32000,
+    providerOptions: {
+      gateway: gatewayOptions,
+      openai: openaiOptions,
+    },
     output: Output.object({ schema: agentReviewSchema }),
   });
 }
@@ -74,7 +140,6 @@ export function createCreativeAgent(
 export function canUseCreativeAgent() {
   return Boolean(
     process.env.AI_GATEWAY_API_KEY ||
-      process.env.VERCEL_OIDC_TOKEN ||
-      process.env.VERCEL,
+      process.env.VERCEL_OIDC_TOKEN,
   );
 }

@@ -2,12 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpRight, CornerDownLeft } from "lucide-react";
 import {
   useDeferredValue,
   useMemo,
   useState,
 } from "react";
+
+import { createPlatformSeed, writePlatformSeed } from "@/lib/platform/seed";
 
 type WorldId = "studio" | "living-room" | "lab";
 
@@ -265,13 +268,32 @@ const ideaPrompts = [
 ] as const;
 
 export function IdeaRouter() {
+  const router = useRouter();
   const [idea, setIdea] = useState("");
+  const [status, setStatus] = useState("");
   const deferredIdea = useDeferredValue(idea);
   const recommendation = useMemo(
     () => scoreIntent(deferredIdea),
     [deferredIdea],
   );
   const hasIdea = deferredIdea.trim().length > 2;
+
+  const startProject = () => {
+    const input = idea.trim();
+    if (input.length < 3) return;
+    const seed = createPlatformSeed(input, {
+      phase: "discover",
+      mode: "idea",
+      source: "idea-router",
+    });
+    const saved = writePlatformSeed(window.sessionStorage, seed);
+    if (!saved.ok) {
+      setStatus("This browser could not prepare the private project start. Your words were not sent anywhere.");
+      return;
+    }
+    setStatus("Project prepared. Opening the same idea in the workspace…");
+    router.push("/create/workspace?start=seed&phase=discover&mode=idea");
+  };
 
   return (
     <section
@@ -286,7 +308,8 @@ export function IdeaRouter() {
         </h2>
         <p>
           Describe the problem, idea, or project plainly. kingXford &amp; Co will
-          point you toward the delivery environment best equipped to begin.
+          identify the most useful specialist lens, then carry your original
+          words into one continuing project.
         </p>
       </div>
 
@@ -327,14 +350,15 @@ export function IdeaRouter() {
             data-world={recommendation.id}
           >
             <div>
-              <span>Recommended room</span>
+              <span>Recommended first specialist lens</span>
               <strong>{recommendation.title}</strong>
             </div>
             <p>{recommendation.body}</p>
-            <Link href={recommendation.href}>
-              {recommendation.cta}
+            <button type="button" onClick={startProject}>
+              Start this project
               <ArrowUpRight aria-hidden="true" />
-            </Link>
+            </button>
+            <p className="sr-only" role="status" aria-live="polite">{status}</p>
           </div>
         )}
       </div>

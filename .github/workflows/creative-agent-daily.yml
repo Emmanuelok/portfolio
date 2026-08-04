@@ -1,6 +1,17 @@
-name: Creative agent daily governance
+name: Creative agent deterministic governance
 
 on:
+  pull_request:
+    paths:
+      - "src/lib/workspace/agent.ts"
+      - "src/lib/workspace/types.ts"
+      - "src/app/api/workspace/agent/route.ts"
+      - "src/lib/workspace/local-analysis.ts"
+      - "evals/creative-agent/**"
+      - "scripts/verify-creative-agent.mjs"
+      - ".github/workflows/creative-agent-daily.yml"
+      - "package.json"
+      - "package-lock.json"
   schedule:
     - cron: "17 12 * * *"
   workflow_dispatch:
@@ -20,12 +31,12 @@ concurrency:
 
 jobs:
   evaluate:
-    name: Verify fixed hard gates
+    name: Verify deterministic configuration and safety gates
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       CREATIVE_AGENT_REPORT_DIR: ${{ runner.temp }}/creative-agent-evaluation
-      VERIFY_GATEWAY_MODEL_CATALOG: ${{ github.event_name == 'schedule' || inputs.verify_gateway_catalog }}
+      VERIFY_GATEWAY_MODEL_CATALOG: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.verify_gateway_catalog) }}
 
     steps:
       - name: Check out the evaluated commit without write credentials

@@ -5,10 +5,10 @@ import { KingxfordLogo } from "@/components/KingxfordLogo";
 
 const footerNavigation = [
   { href: "/#mission", label: "Mission" },
-  { href: "/lab", label: "R&D / Lab" },
-  { href: "/create", label: "Create" },
-  { href: "/work", label: "Work" },
-  { href: "/media", label: "Media" },
+  { href: "/create", label: "Intelligence workspace" },
+  { href: "/lab", label: "Evidence" },
+  { href: "/work", label: "Proofs" },
+  { href: "/media", label: "Insights" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -56,10 +56,7 @@ export function SiteFooter() {
         <div className="site-footer__source">
           <p className="site-footer__label">Craft signature</p>
           <p>Complex ideas. Unforgettable form.</p>
-          <p>
-            Studio, The Living Room, and Lab are our delivery environments—not
-            the limit of the mission.
-          </p>
+          <p>One project system · Discover · Investigate · Model · Build · Validate · Launch.</p>
         </div>
 
         <div className="site-footer__base">

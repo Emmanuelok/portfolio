@@ -26,12 +26,12 @@ import { ThemeControls } from "@/components/ThemeControls";
 
 const navigationBeforeCreate = [
   { href: "/#mission", label: "Mission" },
-  { href: "/lab", label: "R&D / Lab" },
+  { href: "/lab", label: "Evidence" },
 ] as const;
 
 const navigationAfterCreate = [
-  { href: "/work", label: "Work" },
-  { href: "/media", label: "Media" },
+  { href: "/work", label: "Proofs" },
+  { href: "/media", label: "Insights" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -168,30 +168,30 @@ function CreateDesktopMenu({
         <section
           className="site-header__create-panel"
           id="site-header-create-panel"
-          aria-label="Create workspace and demonstrations"
+          aria-label="Kingxford Intelligence workspace and project starting points"
         >
           <header className="site-header__create-panel-topline">
-            <span>Create system · Think / Test / Build</span>
+            <span>Kingxford Intelligence · Discover → Launch</span>
             <span className="site-header__create-live">
-              <i aria-hidden="true" /> Canvas available
+              <i aria-hidden="true" /> Conductor ready
             </span>
           </header>
 
           <div className="site-header__create-panel-grid">
             <div className="site-header__create-intro">
-              <span className="site-header__create-kicker">One creation environment</span>
-              <h2>From first thought to working proof.</h2>
+              <span className="site-header__create-kicker">One project · Six connected phases</span>
+              <h2>Think, test, prove, and launch in one system.</h2>
               <p>
-                Begin in the live workspace, examine complete concept systems,
-                or move a serious idea into a Kingxford build plan.
+                The Conductor keeps your source, evidence, decisions, prototypes,
+                and validation connected from the first question to delivery.
               </p>
-              <ol aria-label="Create process">
-                <li><span>01</span> Think</li>
-                <li><span>02</span> Test</li>
-                <li><span>03</span> Build</li>
+              <ol aria-label="Kingxford Intelligence project lifecycle">
+                <li><span>01–02</span> Discover</li>
+                <li><span>03–04</span> Create</li>
+                <li><span>05–06</span> Deliver</li>
               </ol>
               <Link href="/create" onClick={onClose}>
-                Explore the full Create system
+                Enter Kingxford Intelligence
                 <ArrowUpRight aria-hidden="true" />
               </Link>
             </div>
@@ -202,25 +202,25 @@ function CreateDesktopMenu({
               onClick={onClose}
             >
               <span className="site-header__create-canvas-label">
-                <Sparkles aria-hidden="true" /> Flagship workspace
+                <Sparkles aria-hidden="true" /> Live project workspace
               </span>
-              <strong>Open Canvas</strong>
+              <strong>Open the workspace</strong>
               <p>
-                Work with any creative input on the left. Inspect the live result
-                and rigorous Agent review on the right.
+                Work with any creative input on the left. Inspect the result,
+                evidence, specialist review, and versions on the right.
               </p>
               <span className="site-header__create-canvas-panes" aria-hidden="true">
                 <i><b>Input</b><em>Idea · Code · Map</em></i>
                 <i><b>Live</b><em>Preview · Review</em></i>
               </span>
               <span className="site-header__create-canvas-cta">
-                Enter the workspace <ArrowUpRight aria-hidden="true" />
+                Continue the same project <ArrowUpRight aria-hidden="true" />
               </span>
             </Link>
 
             <div className="site-header__create-start">
               <div>
-                <span>Launch directly</span>
+                <span>Choose an instrument</span>
                 <small>Your work stays on this device</small>
               </div>
               <div className="site-header__create-modes">
@@ -241,7 +241,7 @@ function CreateDesktopMenu({
 
           <footer className="site-header__create-panel-footer">
             <div className="site-header__create-proofs" aria-label="Interactive concept demonstrations">
-              <span>Explore working proofs</span>
+              <span>Explore live starting proofs</span>
               {createProofs.map((item) => (
                 <Link href={item.href} onClick={onClose} key={item.href}>
                   <small>{item.index}</small> {item.label}
@@ -283,7 +283,7 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
       <summary>
         <span>
           <strong>Create</strong>
-          <small>Canvas · Prototypes · Build</small>
+          <small>One project · Six phases · Live proof</small>
         </span>
         <ChevronDown aria-hidden="true" />
       </summary>
@@ -294,9 +294,9 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
           aria-current={isWorkspaceCurrent ? "page" : undefined}
           onClick={onNavigate}
         >
-          <span><Sparkles aria-hidden="true" /> Flagship workspace</span>
-          <strong>Open Canvas</strong>
-          <small>Input left · Live result right · Agent on request</small>
+          <span><Sparkles aria-hidden="true" /> Kingxford Intelligence</span>
+          <strong>Open the workspace</strong>
+          <small>Source · Live result · Conductor · Versions</small>
           <ArrowUpRight aria-hidden="true" />
         </Link>
 

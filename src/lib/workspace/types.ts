@@ -2,6 +2,18 @@ export const workspaceModes = ["idea", "code", "mindmap", "prompt", "brief"] as 
 
 export type WorkspaceMode = (typeof workspaceModes)[number];
 
+export const workspaceAgentRoles = [
+  "conductor",
+  "discovery",
+  "evidence",
+  "systems",
+  "prototype",
+  "validation",
+  "delivery",
+] as const;
+
+export type WorkspaceAgentRole = (typeof workspaceAgentRoles)[number];
+
 export type CodeFiles = Readonly<{
   html: string;
   css: string;
@@ -85,6 +97,7 @@ export type AgentReviewResponse = Readonly<{
   review: AgentReview;
   source: "openai" | "local";
   model: string;
+  agentRole: WorkspaceAgentRole;
   protocolVersion: string;
   inputDigest: string;
   notice?: string;

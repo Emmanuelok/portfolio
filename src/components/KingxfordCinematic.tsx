@@ -352,10 +352,10 @@ function StaticCinematic() {
           decorative
         />
         <p>kingXford &amp; Co / Intelligence for shared progress</p>
-        <h1 id="kx-static-title">
+        <h2 id="kx-static-title">
           Prepare for
           <em>sustainable abundance.</em>
-        </h1>
+        </h2>
         <div>
           <p>
             We research, develop, and apply responsible AI to help people and

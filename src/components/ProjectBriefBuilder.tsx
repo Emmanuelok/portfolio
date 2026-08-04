@@ -34,6 +34,24 @@ type CanvasHandoff = Readonly<{
 }>;
 
 const CANVAS_HANDOFF_KEY = "kingxford:canvas-handoff:v1";
+const CANVAS_HANDOFF_CHARACTER_LIMIT = 1_000_000;
+const CANVAS_HANDOFF_VERSION_LIMIT = 6;
+
+const briefSelections: Readonly<Record<string, string>> = {
+  create: "Open-ended creation or development need",
+  "digital-tool": "Digital tool",
+  "institutional-system": "Institutional system",
+  "research-ai": "Research or responsible-AI tool",
+  operations: "Operational tool",
+  education: "Education tool",
+  "personal-tool": "Everyday personal tool",
+  "science-website": "Scientific-research website",
+  "finance-website": "Institutional-finance website",
+  "education-website": "Education website",
+  lab: "Research and development challenge",
+  "research-development": "Research and development challenge",
+  "r-and-d": "Research and development challenge",
+};
 
 const initialBrief: BriefState = {
   problem: "",
@@ -74,10 +92,15 @@ function parseCanvasHandoff(raw: string): CanvasHandoff | null {
     typeof mode !== "string" ||
     !workspaceModes.includes(mode as WorkspaceMode) ||
     typeof current.title !== "string" ||
+    current.title.length > 120 ||
     typeof current.text !== "string" ||
+    current.text.length > 250_000 ||
     typeof code.html !== "string" ||
+    code.html.length > 500_000 ||
     typeof code.css !== "string" ||
-    typeof code.javascript !== "string"
+    code.css.length > 500_000 ||
+    typeof code.javascript !== "string" ||
+    code.javascript.length > 500_000
   ) {
     return null;
   }
@@ -95,7 +118,35 @@ function parseCanvasHandoff(raw: string): CanvasHandoff | null {
       },
     },
     agentReview: asRecord(parsed.agentReview),
-    versions: Array.isArray(parsed.versions) ? parsed.versions : [],
+    versions: Array.isArray(parsed.versions)
+      ? parsed.versions.slice(0, CANVAS_HANDOFF_VERSION_LIMIT)
+      : [],
+  };
+}
+
+function loadSelectedStartingPoint(search: URLSearchParams): Readonly<{
+  brief: BriefState;
+  notice: HandoffNotice;
+}> | null {
+  const briefKey = search.get("brief")?.trim().toLocaleLowerCase() ?? "";
+  const worldKey = search.get("world")?.trim().toLocaleLowerCase() ?? "";
+  const label = briefSelections[briefKey] ?? (
+    worldKey === "living-room" ? "Complex mandate or uncommon brief" : ""
+  );
+
+  if (!label) return null;
+
+  return {
+    brief: {
+      ...initialBrief,
+      problem: `Selected starting point: ${label}.`,
+    },
+    notice: {
+      state: "ready",
+      heading: `Starting point selected: ${label}`,
+      detail:
+        "Only the project direction you deliberately selected was prefilled. No scope, evidence, budget, timeline, requirement, or result was inferred, and nothing was submitted. Replace or expand the starting point with your actual context before copying or downloading the brief.",
+    },
   };
 }
 
@@ -205,9 +256,24 @@ function loadCanvasHandoff(): Readonly<{
   notice: HandoffNotice;
 }> | null {
   const search = new URLSearchParams(window.location.search);
-  if (search.get("brief") !== "workspace") return null;
+  if (search.get("brief") !== "workspace") {
+    return loadSelectedStartingPoint(search);
+  }
 
-  const raw = window.sessionStorage.getItem(CANVAS_HANDOFF_KEY);
+  let raw: string | null;
+  try {
+    raw = window.sessionStorage.getItem(CANVAS_HANDOFF_KEY);
+  } catch {
+    return {
+      notice: {
+        state: "invalid",
+        heading: "Canvas handoff storage is unavailable in this browser.",
+        detail:
+          "Nothing was imported or submitted. Your Canvas project remains unchanged; return to Canvas and export the current project if you need a portable copy.",
+      },
+    };
+  }
+
   if (!raw) {
     return {
       notice: {
@@ -215,6 +281,17 @@ function loadCanvasHandoff(): Readonly<{
         heading: "No Canvas handoff was found in this tab.",
         detail:
           "The worksheet remains private and blank. Return to Canvas and choose “Prepare a build request” to carry a version here.",
+      },
+    };
+  }
+
+  if (raw.length > CANVAS_HANDOFF_CHARACTER_LIMIT) {
+    return {
+      notice: {
+        state: "invalid",
+        heading: "This Canvas handoff is too large to prefill safely.",
+        detail:
+          "Nothing was imported or submitted. Return to Canvas, exclude optional Agent or version context, or export the project as a Canvas bundle.",
       },
     };
   }

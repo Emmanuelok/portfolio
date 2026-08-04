@@ -5,15 +5,21 @@ people and institutions for sustainable abundance. It combines rigorous
 inquiry, responsible AI, systems intelligence, and product development to solve
 complex problems and turn ambitious ideas and projects into durable capability.
 
+The platform now centres on one continuous **Kingxford Intelligence** project
+system. Work moves through Discover, Investigate, Model, Build, Validate, and
+Launch without discarding its source or decisions. A Conductor coordinates
+governed specialist passes inside the same project rather than presenting a
+collection of disconnected AI tools.
+
 The `& Co` represents investors of every kind: people and institutions who
 contribute capital, time, knowledge, research, technology, infrastructure,
 access, or trust to consequential work.
 
-- **Studio** develops intelligent tools, AI-enabled products, decision-support
+- **Studio** is the Build lens for intelligent tools, AI-enabled products, decision-support
   systems, web applications, digital infrastructure, and communication systems.
-- **The Living Room** is a strategic situation room for complex mandates,
+- **The Living Room** is the systems lens for complex mandates,
   foresight, institutional transformation, venture development, and coalitions.
-- **Lab** conducts and translates research, experimentation, responsible-AI
+- **Lab** is the evidence lens for research, experimentation, responsible-AI
   evaluation, evidence synthesis, data systems, and scientific communication.
 
 The landing page uses a long native-scroll cinematic built from high-resolution
@@ -36,6 +42,13 @@ Articles support an optional narrated edition, but no audio asset is shipped in
 this release. A player appears only when an approved audio record exists;
 future narration must meet the consent, editorial, disclosure, transcript, and
 listening-review requirements in `creative/narration-policy.md`.
+
+The public routes remain useful lenses into one platform. `/create` contains the
+real creation workspace, while `/create/workspace` remains the focused entry for
+ideas, code, mind maps, prompts, briefs, live previews, versions, and governed AI
+review. The implementation plan and architectural decision are documented in
+[`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) and
+[`docs/adr/0001-unified-intelligence-platform.md`](docs/adr/0001-unified-intelligence-platform.md).
 
 The current build is expected to generate 23 public and framework routes,
 including eight case studies, the Media index, and two Media articles.

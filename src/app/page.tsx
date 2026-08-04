@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import { KingxfordCinematic } from "@/components/KingxfordCinematic";
+import { PlatformNexus } from "@/components/platform/PlatformNexus";
 import {
   IdeaRouter,
   KingxfordWorlds,
@@ -40,6 +41,7 @@ export default function HomePage() {
 
   return (
     <main className="page page--home">
+      <PlatformNexus />
       <KingxfordCinematic />
       <KingxfordWorlds />
       <SelectedWorkRunway items={featured} />

@@ -5414,7 +5414,7 @@ a {
   text-transform: uppercase;
 }
 
-.kx-cinematic__chapter h2 {
+.kx-cinematic__chapter :is(h1, h2) {
   max-width: 12.5ch;
   margin: 0 0 1.15rem;
   font-size: clamp(3.7rem, 8.3vw, 9.6rem);
@@ -5424,15 +5424,15 @@ a {
   text-wrap: balance;
 }
 
-.kx-cinematic__chapter[data-chapter="mission"] h2 {
+.kx-cinematic__chapter[data-chapter="mission"] h1 {
   max-width: 9.3ch;
 }
 
-.kx-cinematic__chapter[data-chapter="mission"] h2::first-line {
+.kx-cinematic__chapter[data-chapter="mission"] h1::first-line {
   color: #fffaf0;
 }
 
-.kx-cinematic__chapter[data-align="end"] h2,
+.kx-cinematic__chapter[data-align="end"] :is(h1, h2),
 .kx-cinematic__chapter[data-align="end"] > p:last-of-type {
   margin-left: auto;
 }
@@ -5608,7 +5608,7 @@ a {
   text-transform: uppercase;
 }
 
-.kx-static__hero h1 {
+.kx-static__hero :is(h1, h2) {
   max-width: 9.5ch;
   margin: 4rem 0;
   font-size: clamp(4rem, 11vw, 11rem);
@@ -5617,7 +5617,7 @@ a {
   line-height: 0.8;
 }
 
-.kx-static__hero h1 em {
+.kx-static__hero :is(h1, h2) em {
   display: block;
   color: #8491ff;
   font-family: var(--font-serif);
@@ -6271,16 +6271,19 @@ a {
   font-size: 0.88rem;
 }
 
-.idea-router__result a {
+.idea-router__result > a,
+.idea-router__result > button {
   display: inline-flex;
   justify-self: end;
   align-items: center;
   gap: 0.5rem;
   padding-bottom: 0.35rem;
   border-bottom: 1px solid rgba(244, 239, 228, 0.5);
+  color: inherit;
 }
 
-.idea-router__result a svg {
+.idea-router__result > a svg,
+.idea-router__result > button svg {
   width: 0.9rem;
 }
 
@@ -6527,13 +6530,13 @@ a {
     text-align: left;
   }
 
-  .kx-cinematic__chapter h2 {
+  .kx-cinematic__chapter :is(h1, h2) {
     max-width: 11ch;
     font-size: clamp(3.25rem, 15vw, 6rem);
     line-height: 0.86;
   }
 
-  .kx-cinematic__chapter[data-align="end"] h2,
+  .kx-cinematic__chapter[data-align="end"] :is(h1, h2),
   .kx-cinematic__chapter[data-align="end"] > p:last-of-type {
     margin-left: 0;
   }
@@ -6572,7 +6575,7 @@ a {
     padding-top: calc(var(--header-height) + 2rem);
   }
 
-  .kx-static__hero h1 {
+  .kx-static__hero :is(h1, h2) {
     font-size: clamp(3.8rem, 18vw, 7rem);
   }
 
@@ -6760,7 +6763,7 @@ a {
     max-width: 18rem;
   }
 
-  .kx-cinematic__chapter h2 {
+  .kx-cinematic__chapter :is(h1, h2) {
     font-size: clamp(3rem, 14.8vw, 4.6rem);
   }
 

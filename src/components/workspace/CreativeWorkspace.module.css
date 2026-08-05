@@ -1237,6 +1237,65 @@
   font-size: 0.66rem;
 }
 
+.lensSelector {
+  display: grid;
+  margin-top: 1rem;
+  grid-template-columns: minmax(12rem, 0.38fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(166, 171, 255, 0.18);
+  background: rgba(12, 12, 17, 0.72);
+}
+
+.lensSelector label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.lensSelector label > span,
+.reviewProvenance span,
+.reviewGrounding summary,
+.reviewRequestId,
+.reviewHistory summary > span {
+  color: #a6abff;
+  font: 0.5rem var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lensSelector select {
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(243, 239, 229, 0.2);
+  outline: 0;
+  background: #15151b;
+  color: #f3efe5;
+  font-size: 0.66rem;
+}
+
+.lensSelector select:focus-visible {
+  border-color: #7b83ff;
+}
+
+.lensSelector select:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.lensSelector p {
+  margin: 0;
+  color: #92908a;
+  font-size: 0.63rem;
+  line-height: 1.55;
+}
+
+.lensSelector p strong {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: #d8d5cd;
+}
+
 .agentEmpty {
   display: grid;
   min-height: 31rem;
@@ -1399,6 +1458,106 @@
   border-color: #e8b865;
   background: rgba(232, 184, 101, 0.07);
   color: #e8c98f;
+}
+
+.reviewProvenance {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid rgba(243, 239, 229, 0.14);
+  border-left: 1px solid rgba(243, 239, 229, 0.14);
+}
+
+.reviewProvenance > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.3rem;
+  padding: 0.8rem;
+  border-right: 1px solid rgba(243, 239, 229, 0.14);
+  border-bottom: 1px solid rgba(243, 239, 229, 0.14);
+  background: #111116;
+}
+
+.reviewProvenance strong {
+  overflow: hidden;
+  color: #d8d5cd;
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reviewGrounding {
+  border: 1px solid rgba(166, 171, 255, 0.2);
+  background: rgba(123, 131, 255, 0.045);
+}
+
+.reviewGrounding summary {
+  display: flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  cursor: pointer;
+}
+
+.reviewGrounding summary span {
+  color: #777ba6;
+}
+
+.reviewGrounding ul {
+  display: grid;
+  margin: 0;
+  padding: 0 0.85rem 0.85rem;
+  border-top: 1px solid rgba(166, 171, 255, 0.12);
+  list-style: none;
+}
+
+.reviewGrounding li {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) 1fr;
+  gap: 0.7rem;
+  padding-block: 0.65rem;
+  border-bottom: 1px solid rgba(166, 171, 255, 0.1);
+  color: #b7b4ac;
+  font-size: 0.63rem;
+}
+
+.reviewGrounding li:last-child {
+  border-bottom: 0;
+}
+
+.reviewGrounding li span {
+  overflow: hidden;
+  color: #7377a5;
+  font: 0.5rem var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reviewRequestId {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+  margin: -0.5rem 0 0;
+  color: #777ba6;
+}
+
+.reviewRequestId code {
+  min-width: 0;
+  overflow: hidden;
+  color: #aaa8a2;
+  font: inherit;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.reviewRequestId span {
+  margin-left: auto;
+  color: #6e6b66;
+  text-align: right;
+  text-transform: none;
 }
 
 .reviewColumns {
@@ -1595,6 +1754,107 @@
   margin: 0;
   color: #77746f;
   font-size: 0.56rem;
+}
+
+.reviewHistory {
+  margin-top: 1.25rem;
+  border-top: 1px solid rgba(243, 239, 229, 0.16);
+}
+
+.reviewHistory > summary {
+  display: flex;
+  min-height: 3.4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.reviewHistory > summary strong {
+  color: #7d7a74;
+  font: 0.52rem var(--font-mono);
+}
+
+.reviewHistoryHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(243, 239, 229, 0.1);
+}
+
+.reviewHistoryHeading p {
+  margin: 0;
+  color: #77746f;
+  font-size: 0.58rem;
+}
+
+.reviewHistoryHeading button {
+  padding: 0.4rem 0.55rem;
+  border: 1px solid rgba(243, 239, 229, 0.18);
+  background: transparent;
+  color: #aaa8a2;
+  cursor: pointer;
+  font-size: 0.55rem;
+}
+
+.reviewHistory ol {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid rgba(243, 239, 229, 0.12);
+  list-style: none;
+}
+
+.reviewHistory li {
+  border-bottom: 1px solid rgba(243, 239, 229, 0.1);
+}
+
+.reviewHistory li > button {
+  display: grid;
+  width: 100%;
+  gap: 0.3rem;
+  padding: 0.8rem 0.7rem;
+  background: transparent;
+  color: #d8d5cd;
+  cursor: pointer;
+  text-align: left;
+}
+
+.reviewHistory li > button:hover,
+.reviewHistory li > button:focus-visible {
+  background: rgba(123, 131, 255, 0.08);
+}
+
+.reviewHistory li span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #8e92d2;
+  font: 0.5rem var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.reviewHistory li time {
+  color: #686660;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.reviewHistory li strong {
+  font-size: 0.66rem;
+}
+
+.reviewHistory li small {
+  overflow: hidden;
+  color: #77746f;
+  font-size: 0.56rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .versionPanel > header button {
@@ -2073,6 +2333,10 @@ button.entrepreneurshipLink:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .reviewProvenance {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .agentContext {
     align-items: stretch;
     flex-direction: column;
@@ -2166,9 +2430,14 @@ button.entrepreneurshipLink:disabled {
   .conceptGrid,
   .promptSignals,
   .reviewColumns,
+  .reviewProvenance,
   .quickActions,
   .buildBriefCard,
   .handoffOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .lensSelector {
     grid-template-columns: 1fr;
   }
 
@@ -2187,6 +2456,22 @@ button.entrepreneurshipLink:disabled {
 
   .reviewSummary p {
     font-size: 1.2rem;
+  }
+
+  .reviewRequestId {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .reviewRequestId span {
+    width: 100%;
+    margin-left: 0;
+    text-align: left;
+  }
+
+  .reviewGrounding li {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
   }
 
   .versionList button {

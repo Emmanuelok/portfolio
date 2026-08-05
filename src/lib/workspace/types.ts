@@ -1,3 +1,5 @@
+import type { AgentLens } from "./lenses";
+
 export const workspaceModes = ["idea", "code", "mindmap", "prompt", "brief"] as const;
 
 export type WorkspaceMode = (typeof workspaceModes)[number];
@@ -48,7 +50,41 @@ export type AgentReviewResponse = Readonly<{
   source: "openai" | "local";
   model: string;
   protocolVersion: string;
+  agent: Readonly<{
+    id: AgentLens;
+    label: string;
+  }>;
+  grounding: readonly Readonly<{
+    id: string;
+    title: string;
+  }>[];
+  request: Readonly<{
+    id: string;
+    durationMs: number;
+    depth: "standard" | "deep";
+  }>;
+  usage?: Readonly<{
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+  }>;
+  limits?: Readonly<{
+    minuteRemaining: number;
+    minuteResetsAt: string;
+    dailyCreditsRemaining: number;
+    dailyResetsAt: string;
+    creditCost: number;
+  }>;
   notice?: string;
+}>;
+
+export type AgentReviewRecord = Readonly<{
+  id: string;
+  createdAt: string;
+  projectTitle: string;
+  mode: WorkspaceMode;
+  instruction: string;
+  response: AgentReviewResponse;
 }>;
 
 export type ParsedConcept = Readonly<{

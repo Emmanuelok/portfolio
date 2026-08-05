@@ -40,6 +40,26 @@ listening-review requirements in `creative/narration-policy.md`.
 The current build is expected to generate 23 public and framework routes,
 including eight case studies, the Media index, and two Media articles.
 
+## Kingxford Creative Intelligence
+
+The Canvas at `/create/workspace` includes a server-mediated AI review layer.
+It combines seven selectable specialist lenses, a fixed Kingxford playbook,
+structured reviews, standard/deep Gateway routing, deterministic local fallback,
+and private review history stored in the current browser.
+
+The public reviewer is intentionally bounded: workspace content is treated as
+untrusted, the agent has no external-action tools, credentials are rejected
+before model generation, and responses expose the selected lens, grounding,
+request ID, elapsed time, token usage, model, and remaining process-local
+allowance. Vercel AI Gateway receives a pseudonymous user identifier and
+operational tags; workspace prompts are not used to train Kingxford models.
+
+See [`docs/intelligence-layer.md`](docs/intelligence-layer.md) for architecture,
+environment variables, deployment instructions, limitations, and the owner
+checklist. Governance policy and fixed cases live in
+[`docs/creative-agent-evaluation-policy.md`](docs/creative-agent-evaluation-policy.md)
+and [`evals/creative-agent/corpus.json`](evals/creative-agent/corpus.json).
+
 ## Run locally
 
 ```bash
@@ -52,7 +72,11 @@ npm run dev
 ```bash
 npm run typecheck
 npm run lint
+npm run verify:creative-agent
 npm run build
 ```
 
-The project uses Next.js App Router and is designed for Vercel deployment. No environment variables are required for the public portfolio.
+The project requires Node.js 22 or newer and uses Next.js App Router. No
+environment variables are required for the public portfolio or deterministic
+local Canvas review. Configure Vercel AI Gateway/OIDC to enable model-generated
+reviews; start from `.env.example` and never commit real credentials.

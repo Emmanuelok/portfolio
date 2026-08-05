@@ -45,7 +45,14 @@ import {
   starterText,
   transformLabels,
 } from "@/lib/workspace/presets";
+import {
+  agentLensDetails,
+  agentLenses,
+  isAgentLens,
+  type AgentLens,
+} from "@/lib/workspace/lenses";
 import type {
+  AgentReviewRecord,
   AgentReviewResponse,
   CodeFiles,
   WorkspaceDraft,
@@ -69,6 +76,9 @@ type StoredWorkspace = Readonly<{
   code: CodeFiles;
   committedCode: CodeFiles;
   versions: readonly WorkspaceVersion[];
+  reviewHistory?: readonly AgentReviewRecord[];
+  reviewLens?: AgentLens;
+  includeKnowledge?: boolean;
 }>;
 
 type CreativeWorkspaceProps = Readonly<{
@@ -78,6 +88,7 @@ type CreativeWorkspaceProps = Readonly<{
 const STORAGE_KEY = "kingxford:canvas:v1";
 const HANDOFF_KEY = "kingxford:canvas-handoff:v1";
 const VERSION_LIMIT = 16;
+const REVIEW_HISTORY_LIMIT = 8;
 
 const modeIcons = {
   idea: Lightbulb,
@@ -154,7 +165,34 @@ function formatAgentModel(model: string) {
   return model
     .replace(/^openai\//, "")
     .replace(/^gpt-/i, "GPT-")
-    .replace(/-sol$/i, " Sol");
+    .replace(/-sol$/i, " Sol")
+    .replace(/-terra$/i, " Terra")
+    .replace(/-luna$/i, " Luna");
+}
+
+function formatDuration(milliseconds: number) {
+  return milliseconds < 1000
+    ? `${Math.max(0, Math.round(milliseconds))} ms`
+    : `${(milliseconds / 1000).toFixed(1)} s`;
+}
+
+function formatTokens(value: number | undefined) {
+  return typeof value === "number" ? value.toLocaleString() : "Not reported";
+}
+
+function isAgentReviewRecord(value: unknown): value is AgentReviewRecord {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<AgentReviewRecord>;
+  return Boolean(
+    typeof candidate.id === "string"
+      && typeof candidate.createdAt === "string"
+      && typeof candidate.projectTitle === "string"
+      && Boolean(candidate.mode && workspaceModes.includes(candidate.mode))
+      && typeof candidate.instruction === "string"
+      && candidate.response?.review
+      && isAgentLens(candidate.response.agent?.id)
+      && candidate.response.request,
+  );
 }
 
 function AgentReviewPanel({
@@ -163,34 +201,49 @@ function AgentReviewPanel({
   error,
   instruction,
   depth,
+  lens,
   canReview,
   includeLogs,
   includeVersions,
+  includeKnowledge,
+  reviewHistory,
   onInstruction,
   onDepth,
+  onLens,
   onIncludeLogs,
   onIncludeVersions,
+  onIncludeKnowledge,
   onReview,
   onStop,
   onApply,
+  onOpenHistory,
+  onClearHistory,
 }: Readonly<{
   response: AgentReviewResponse | null;
   isRunning: boolean;
   error: string;
   instruction: string;
   depth: "standard" | "deep";
+  lens: AgentLens;
   canReview: boolean;
   includeLogs: boolean;
   includeVersions: boolean;
+  includeKnowledge: boolean;
+  reviewHistory: readonly AgentReviewRecord[];
   onInstruction: (value: string) => void;
   onDepth: (value: "standard" | "deep") => void;
+  onLens: (value: AgentLens) => void;
   onIncludeLogs: (value: boolean) => void;
   onIncludeVersions: (value: boolean) => void;
+  onIncludeKnowledge: (value: boolean) => void;
   onReview: (instruction?: string) => void;
   onStop: () => void;
   onApply: () => void;
+  onOpenHistory: (record: AgentReviewRecord) => void;
+  onClearHistory: () => void;
 }>) {
   const review = response?.review;
+  const lensDetail = agentLensDetails[lens];
 
   return (
     <section className={styles.agentPanel} aria-labelledby="agent-panel-heading">
@@ -206,9 +259,11 @@ function AgentReviewPanel({
           <span>
             {response?.source === "openai"
               ? formatAgentModel(response.model)
-              : "GPT-5.6 Sol target"}
+              : depth === "deep"
+                ? "GPT-5.6 Sol target"
+                : "GPT-5.6 Terra target"}
           </span>
-          <small>Daily-evaluated protocol</small>
+          <small>{response?.agent.label ?? lensDetail.label}</small>
         </div>
       </header>
 
@@ -218,6 +273,28 @@ function AgentReviewPanel({
           Capabilities are evaluated daily and released only after quality and
           safety checks. The Agent does not rewrite itself or learn from your
           private work.
+        </p>
+      </div>
+
+      <div className={styles.lensSelector}>
+        <label htmlFor="agent-lens">
+          <span>Specialist lens</span>
+          <select
+            id="agent-lens"
+            value={lens}
+            disabled={isRunning}
+            onChange={(event) => onLens(event.target.value as AgentLens)}
+          >
+            {agentLenses.map((value) => (
+              <option value={value} key={value}>
+                {agentLensDetails[value].label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p>
+          <strong>{lensDetail.shortLabel}</strong>
+          {lensDetail.description}
         </p>
       </div>
 
@@ -272,6 +349,51 @@ function AgentReviewPanel({
           </div>
 
           {response.notice && <p className={styles.reviewNotice}>{response.notice}</p>}
+
+          <section className={styles.reviewProvenance} aria-label="Review provenance and usage">
+            <div>
+              <span>Specialist</span>
+              <strong>{response.agent.label}</strong>
+            </div>
+            <div>
+              <span>Completed in</span>
+              <strong>{formatDuration(response.request.durationMs)}</strong>
+            </div>
+            <div>
+              <span>Total tokens</span>
+              <strong>{formatTokens(response.usage?.totalTokens)}</strong>
+            </div>
+            <div>
+              <span>Daily credits</span>
+              <strong>
+                {response.limits
+                  ? `${response.limits.dailyCreditsRemaining} remaining`
+                  : "Not metered"}
+              </strong>
+            </div>
+          </section>
+
+          {response.grounding.length > 0 && (
+            <details className={styles.reviewGrounding}>
+              <summary>
+                Kingxford playbook grounding
+                <span>{response.grounding.length} notes</span>
+              </summary>
+              <ul>
+                {response.grounding.map((item) => (
+                  <li key={item.id}>
+                    <span>{item.id}</span>
+                    {item.title}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          <p className={styles.reviewRequestId}>
+            Request <code>{response.request.id}</code>
+            <span>{response.request.depth} review · protocol {response.protocolVersion}</span>
+          </p>
 
           <div className={styles.reviewColumns}>
             <section>
@@ -338,6 +460,14 @@ function AgentReviewPanel({
           <div>
             <span>Choose what the Agent can see</span>
             <label><input type="checkbox" checked readOnly /> Current input</label>
+            <label title="Retrieve relevant notes from Kingxford's fixed, versioned playbook.">
+              <input
+                type="checkbox"
+                checked={includeKnowledge}
+                onChange={(event) => onIncludeKnowledge(event.target.checked)}
+              />
+              Kingxford playbook
+            </label>
             <label>
               <input
                 type="checkbox"
@@ -386,6 +516,33 @@ function AgentReviewPanel({
           Remove secrets or confidential material first.
         </p>
       </div>
+
+      {reviewHistory.length > 0 && (
+        <details className={styles.reviewHistory}>
+          <summary>
+            <span>Private review memory</span>
+            <strong>{reviewHistory.length} / {REVIEW_HISTORY_LIMIT}</strong>
+          </summary>
+          <div className={styles.reviewHistoryHeading}>
+            <p>Saved in this browser only. Open a prior review without sending anything.</p>
+            <button type="button" onClick={onClearHistory}>Clear</button>
+          </div>
+          <ol>
+            {reviewHistory.map((record) => (
+              <li key={record.id}>
+                <button type="button" onClick={() => onOpenHistory(record)}>
+                  <span>
+                    {record.response.agent.label}
+                    <time dateTime={record.createdAt}>{formatTime(record.createdAt)}</time>
+                  </span>
+                  <strong>{record.projectTitle || "Untitled concept"}</strong>
+                  <small>{record.instruction}</small>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
     </section>
   );
 }
@@ -479,12 +636,15 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
   const [status, setStatus] = useState("Preview current · Saved on this device");
   const [codeLogs, setCodeLogs] = useState<readonly string[]>([]);
   const [reviewResponse, setReviewResponse] = useState<AgentReviewResponse | null>(null);
+  const [reviewHistory, setReviewHistory] = useState<readonly AgentReviewRecord[]>([]);
   const [reviewInstruction, setReviewInstruction] = useState("");
-  const [reviewDepth, setReviewDepth] = useState<"standard" | "deep">("deep");
+  const [reviewDepth, setReviewDepth] = useState<"standard" | "deep">("standard");
+  const [reviewLens, setReviewLens] = useState<AgentLens>("conductor");
   const [reviewError, setReviewError] = useState("");
   const [reviewRunning, setReviewRunning] = useState(false);
   const [includeLogs, setIncludeLogs] = useState(false);
   const [includeVersions, setIncludeVersions] = useState(false);
+  const [includeKnowledge, setIncludeKnowledge] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
   const [handoffAgent, setHandoffAgent] = useState(true);
   const [handoffVersions, setHandoffVersions] = useState(false);
@@ -520,6 +680,17 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
           if (parsed.code) setCode(parsed.code);
           if (parsed.committedCode) setCommittedCode(parsed.committedCode);
           if (Array.isArray(parsed.versions)) setVersions(parsed.versions.slice(0, VERSION_LIMIT));
+          if (Array.isArray(parsed.reviewHistory)) {
+            setReviewHistory(
+              parsed.reviewHistory
+                .filter(isAgentReviewRecord)
+                .slice(0, REVIEW_HISTORY_LIMIT),
+            );
+          }
+          if (isAgentLens(parsed.reviewLens)) setReviewLens(parsed.reviewLens);
+          if (typeof parsed.includeKnowledge === "boolean") {
+            setIncludeKnowledge(parsed.includeKnowledge);
+          }
         }
       } catch {
         setStatus("A fresh local workspace was opened.");
@@ -544,12 +715,26 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
         code,
         committedCode,
         versions,
+        reviewHistory,
+        reviewLens,
+        includeKnowledge,
       };
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       setStatus("Saved on this device");
     }, 180);
     return () => window.clearTimeout(saveTimer);
-  }, [code, committedCode, hydrated, mode, textByMode, title, versions]);
+  }, [
+    code,
+    committedCode,
+    hydrated,
+    includeKnowledge,
+    mode,
+    reviewHistory,
+    reviewLens,
+    textByMode,
+    title,
+    versions,
+  ]);
 
   useEffect(() => {
     if (!autoRun || mode !== "code") return;
@@ -699,6 +884,8 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
           code,
           objective,
           depth: reviewDepth,
+          lens: reviewLens,
+          includeKnowledge,
           context: {
             codeLogs: includeLogs ? codeLogs : [],
             versions: includeVersions
@@ -716,6 +903,15 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
         throw new Error(payload.error || "The review did not complete.");
       }
       setReviewResponse(payload);
+      const record: AgentReviewRecord = {
+        id: payload.request.id,
+        createdAt: new Date().toISOString(),
+        projectTitle: title,
+        mode,
+        instruction: objective,
+        response: payload,
+      };
+      setReviewHistory((current) => [record, ...current].slice(0, REVIEW_HISTORY_LIMIT));
       setStatus(`Review complete · ${payload.source === "openai" ? "Uses AI" : "Local fallback"}`);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
@@ -1052,16 +1248,32 @@ export function CreativeWorkspace({ entrepreneurshipUrl }: CreativeWorkspaceProp
               error={reviewError}
               instruction={reviewInstruction}
               depth={reviewDepth}
+              lens={reviewLens}
               canReview={canReview && isOnline}
               includeLogs={includeLogs}
               includeVersions={includeVersions}
+              includeKnowledge={includeKnowledge}
+              reviewHistory={reviewHistory}
               onInstruction={setReviewInstruction}
               onDepth={setReviewDepth}
+              onLens={setReviewLens}
               onIncludeLogs={setIncludeLogs}
               onIncludeVersions={setIncludeVersions}
+              onIncludeKnowledge={setIncludeKnowledge}
               onReview={requestReview}
               onStop={() => controllerRef.current?.abort()}
               onApply={applyAgentVersion}
+              onOpenHistory={(record) => {
+                setReviewResponse(record.response);
+                setReviewInstruction(record.instruction);
+                setReviewLens(record.response.agent.id);
+                setReviewError("");
+                setStatus(`Opened local review · ${formatTime(record.createdAt)}`);
+              }}
+              onClearHistory={() => {
+                setReviewHistory([]);
+                setStatus("Private review memory cleared");
+              }}
             />
           </div>
           <div

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -6,12 +6,32 @@ import { z } from "zod";
 import {
   canUseCreativeAgent,
   createCreativeAgent,
-  CREATIVE_AGENT_FALLBACK_MODELS,
-  CREATIVE_AGENT_MODEL,
   CREATIVE_AGENT_PROTOCOL_VERSION,
+  getCreativeAgentModelRoute,
 } from "@/lib/workspace/agent";
+import {
+  formatKingxfordKnowledgeContext,
+  KINGXFORD_PLAYBOOK_VERSION,
+  retrieveKingxfordKnowledge,
+  type KingxfordKnowledgeMatch,
+} from "@/lib/workspace/knowledge";
+import {
+  agentLensDetails,
+  agentLenses,
+} from "@/lib/workspace/lenses";
 import { buildLocalReview } from "@/lib/workspace/local-analysis";
-import { workspaceModes } from "@/lib/workspace/types";
+import {
+  beginWorkspaceRequest,
+  consumeWorkspaceCredits,
+  finishWorkspaceRequest,
+  getWorkspaceUsage,
+  workspaceUsagePolicy,
+  type WorkspaceUsageSnapshot,
+} from "@/lib/workspace/usage-policy";
+import {
+  workspaceModes,
+  type AgentReviewResponse,
+} from "@/lib/workspace/types";
 
 export const maxDuration = 120;
 
@@ -29,6 +49,8 @@ const requestSchema = z
     code: codeSchema,
     objective: z.string().min(1).max(600),
     depth: z.enum(["standard", "deep"]),
+    lens: z.enum(agentLenses).default("conductor"),
+    includeKnowledge: z.boolean().default(true),
     context: z.object({
       codeLogs: z.array(z.string().max(1000)).max(12),
       versions: z
@@ -59,23 +81,50 @@ const requestSchema = z
     }
   });
 
-type RateBucket = { count: number; resetsAt: number };
-const rateBuckets = new Map<string, RateBucket>();
-const WINDOW_MS = 60_000;
-const REQUESTS_PER_WINDOW = 6;
+type WorkspaceRequest = z.infer<typeof requestSchema>;
 
-function responseHeaders(extra?: HeadersInit) {
+function responseHeaders(
+  requestId: string,
+  extra: Readonly<Record<string, string>> = {},
+) {
   return {
     "Cache-Control": "no-store, max-age=0",
     "X-Content-Type-Options": "nosniff",
+    "X-Kingxford-Request-Id": requestId,
     ...extra,
   };
+}
+
+function errorResponse(
+  message: string,
+  status: number,
+  requestId: string,
+  options?: Readonly<{
+    headers?: Readonly<Record<string, string>>;
+    limits?: WorkspaceUsageSnapshot;
+  }>,
+) {
+  return NextResponse.json(
+    {
+      error: message,
+      requestId,
+      ...(options?.limits ? { limits: options.limits } : {}),
+    },
+    {
+      status,
+      headers: responseHeaders(requestId, options?.headers),
+    },
+  );
 }
 
 function sameOrigin(request: NextRequest) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
-  if (!origin || !host) return true;
+
+  if (!origin || !host) {
+    return process.env.NODE_ENV !== "production";
+  }
+
   try {
     return new URL(origin).host === host;
   } catch {
@@ -85,25 +134,25 @@ function sameOrigin(request: NextRequest) {
 
 function clientKey(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const address = forwarded || request.headers.get("x-real-ip") || "local";
-  return createHash("sha256").update(address).digest("hex").slice(0, 24);
-}
+  const address = (
+    forwarded ||
+    request.headers.get("x-real-ip") ||
+    "local"
+  ).slice(0, 256);
+  const userAgent = (request.headers.get("user-agent") || "unknown").slice(0, 256);
+  const salt =
+    process.env.KINGXFORD_USAGE_HASH_SALT ||
+    process.env.VERCEL_PROJECT_ID ||
+    "kingxford-public-usage-v1";
 
-function rateLimit(key: string) {
-  const now = Date.now();
-  const current = rateBuckets.get(key);
-  if (!current || current.resetsAt <= now) {
-    const next = { count: 1, resetsAt: now + WINDOW_MS };
-    rateBuckets.set(key, next);
-    return { allowed: true, remaining: REQUESTS_PER_WINDOW - 1, retryAfter: 0 };
-  }
-  current.count += 1;
-  rateBuckets.set(key, current);
-  return {
-    allowed: current.count <= REQUESTS_PER_WINDOW,
-    remaining: Math.max(0, REQUESTS_PER_WINDOW - current.count),
-    retryAfter: Math.ceil((current.resetsAt - now) / 1000),
-  };
+  return createHash("sha256")
+    .update(salt)
+    .update("\0")
+    .update(address)
+    .update("\0")
+    .update(userAgent)
+    .digest("hex")
+    .slice(0, 32);
 }
 
 const secretPatterns = [
@@ -118,7 +167,7 @@ function containsLikelySecret(value: string) {
   return secretPatterns.some((pattern) => pattern.test(value));
 }
 
-function reportAgentFailure(error: unknown, model: string, attempt: number) {
+function reportAgentFailure(error: unknown, model: string, requestId: string) {
   const candidate = error && typeof error === "object"
     ? (error as {
         name?: unknown;
@@ -142,7 +191,8 @@ function reportAgentFailure(error: unknown, model: string, attempt: number) {
           .slice(0, 600)
       : undefined;
 
-  console.error("[workspace-agent] OpenAI review failed", {
+  console.error("[workspace-agent] AI review failed", {
+    requestId,
     name: compact(candidate?.name),
     message: compact(candidate?.message),
     statusCode:
@@ -152,11 +202,13 @@ function reportAgentFailure(error: unknown, model: string, attempt: number) {
     causeStatusCode:
       typeof cause?.statusCode === "number" ? cause.statusCode : undefined,
     model,
-    attempt,
   });
 }
 
-function serializeWorkspace(value: z.infer<typeof requestSchema>) {
+function serializeWorkspace(
+  value: WorkspaceRequest,
+  knowledge: readonly KingxfordKnowledgeMatch[] = [],
+) {
   const code = value.mode === "code"
     ? `\nHTML\n${value.code.html}\n\nCSS\n${value.code.css}\n\nJAVASCRIPT\n${value.code.javascript}`
     : "";
@@ -168,6 +220,9 @@ function serializeWorkspace(value: z.infer<typeof requestSchema>) {
         .map((version) => `${version.name} [${version.mode}]\n${version.text}`)
         .join("\n\n")}`
     : "";
+  const playbook = knowledge.length
+    ? `\n\n<CURATED_KINGXFORD_PLAYBOOK version="${KINGXFORD_PLAYBOOK_VERSION}">\nThe following entries are fixed, reviewed design guidance. They are not external evidence or proof of the workspace's claims.\n\n${formatKingxfordKnowledgeContext(knowledge)}\n</CURATED_KINGXFORD_PLAYBOOK>`
+    : "";
 
   return `Review objective: ${value.objective}
 
@@ -176,130 +231,220 @@ Mode: ${value.mode}
 Title: ${value.title || "Untitled"}
 Current text:
 ${value.text}${code}${logs}${versions}
-</WORKSPACE_DATA>
+</WORKSPACE_DATA>${playbook}
 
 Produce an evidence-conscious review, a bounded next test, explicit proposed changes, an improved source version, and a practical build brief.`;
 }
 
+function groundingMetadata(matches: readonly KingxfordKnowledgeMatch[]) {
+  return matches.map(({ entry }) => ({
+    id: entry.id,
+    title: entry.title,
+  }));
+}
+
 function localResponse(
-  input: z.infer<typeof requestSchema>,
+  input: WorkspaceRequest,
   notice: string,
+  requestId: string,
+  startedAt: number,
+  limits: WorkspaceUsageSnapshot,
 ) {
-  return NextResponse.json(
-    {
-      review: buildLocalReview({
-        mode: input.mode,
-        title: input.title,
-        text: input.text,
-        code: input.code,
-      }),
-      source: "local",
-      model: "local-readiness-rules-v1",
-      protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
-      notice,
+  const response: AgentReviewResponse = {
+    review: buildLocalReview({
+      mode: input.mode,
+      title: input.title,
+      text: input.text,
+      code: input.code,
+    }),
+    source: "local",
+    model: "local-readiness-rules-v1",
+    protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
+    agent: {
+      id: input.lens,
+      label: agentLensDetails[input.lens].label,
     },
-    { headers: responseHeaders() },
-  );
+    grounding: [],
+    request: {
+      id: requestId,
+      durationMs: Math.max(0, Date.now() - startedAt),
+      depth: input.depth,
+    },
+    limits,
+    notice,
+  };
+
+  return NextResponse.json(response, {
+    headers: responseHeaders(requestId, {
+      "X-RateLimit-Remaining": String(limits.minuteRemaining),
+    }),
+  });
+}
+
+function isPrimaryModel(actual: string, configured: string) {
+  return actual === configured || configured.endsWith(`/${actual}`);
 }
 
 export async function GET() {
+  const requestId = randomUUID();
   const configured = canUseCreativeAgent();
+  const standard = getCreativeAgentModelRoute("standard");
+  const deep = getCreativeAgentModelRoute("deep");
+
   return NextResponse.json(
     {
       available: configured,
       mode: configured ? "openai" : "local-fallback",
-      model: CREATIVE_AGENT_MODEL.replace(/^openai\//, ""),
+      gateway: configured,
+      model: deep.model.replace(/^openai\//, ""),
+      routing: {
+        standard,
+        deep,
+      },
+      agents: agentLenses.map((id) => ({
+        id,
+        label: agentLensDetails[id].label,
+        description: agentLensDetails[id].description,
+      })),
+      knowledge: {
+        available: true,
+        version: KINGXFORD_PLAYBOOK_VERSION,
+        source: "reviewed-local-allowlist",
+        maximumEntriesPerReview: 3,
+      },
+      limits: workspaceUsagePolicy,
       protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
       dailyEvaluationEnabled: true,
       improvementPolicy: "versioned-evaluation-human-approval-rollback",
+      toolsEnabled: false,
     },
-    { headers: responseHeaders() },
+    { headers: responseHeaders(requestId) },
   );
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = randomUUID();
+  const startedAt = Date.now();
+
   if (!sameOrigin(request)) {
-    return NextResponse.json(
-      { error: "This review endpoint accepts requests only from Kingxford Canvas." },
-      { status: 403, headers: responseHeaders() },
+    return errorResponse(
+      "This review endpoint accepts requests only from Kingxford Canvas.",
+      403,
+      requestId,
     );
   }
 
   if (!request.headers.get("content-type")?.includes("application/json")) {
-    return NextResponse.json(
-      { error: "A JSON workspace request is required." },
-      { status: 415, headers: responseHeaders() },
+    return errorResponse(
+      "A JSON workspace request is required.",
+      415,
+      requestId,
     );
   }
 
   const declaredLength = Number(request.headers.get("content-length") || 0);
   if (declaredLength > 90_000) {
-    return NextResponse.json(
-      { error: "The selected workspace context is too large for one review." },
-      { status: 413, headers: responseHeaders() },
+    return errorResponse(
+      "The selected workspace context is too large for one review.",
+      413,
+      requestId,
     );
   }
 
-  const limit = rateLimit(clientKey(request));
-  if (!limit.allowed) {
-    return NextResponse.json(
-      { error: "Review limit reached. Keep working locally and try again shortly." },
-      {
-        status: 429,
-        headers: responseHeaders({
-          "Retry-After": String(limit.retryAfter),
-          "X-RateLimit-Remaining": "0",
-        }),
+  const key = clientKey(request);
+  const admission = beginWorkspaceRequest(key);
+  if (!admission.allowed) {
+    const message = admission.reason === "concurrency"
+      ? "Two reviews are already running for this visitor. Let one finish before starting another."
+      : "Review limit reached. Keep working locally and try again shortly.";
+
+    return errorResponse(message, 429, requestId, {
+      headers: {
+        "Retry-After": String(admission.retryAfter),
+        "X-RateLimit-Remaining": "0",
       },
-    );
+      limits: admission.usage,
+    });
   }
 
-  let raw: unknown;
   try {
-    raw = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "The workspace request could not be read." },
-      { status: 400, headers: responseHeaders() },
-    );
-  }
-
-  const parsed = requestSchema.safeParse(raw);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message || "The workspace request is invalid." },
-      { status: 400, headers: responseHeaders() },
-    );
-  }
-
-  const serialized = serializeWorkspace(parsed.data);
-  if (containsLikelySecret(serialized)) {
-    return NextResponse.json(
-      {
-        error:
-          "A likely credential or private key was detected. Remove it before asking for AI review.",
-      },
-      { status: 422, headers: responseHeaders() },
-    );
-  }
-
-  if (!canUseCreativeAgent()) {
-    return localResponse(
-      parsed.data,
-      "AI analysis is not configured in this environment. This is a local structural review, not model-generated feedback.",
-    );
-  }
-
-  const candidateModels = [
-    CREATIVE_AGENT_MODEL,
-    ...CREATIVE_AGENT_FALLBACK_MODELS,
-  ].filter((model, index, models) => models.indexOf(model) === index);
-
-  for (const [attempt, model] of candidateModels.entries()) {
+    let raw: unknown;
     try {
-      const agent = createCreativeAgent(parsed.data.depth, model);
+      raw = await request.json();
+    } catch {
+      return errorResponse(
+        "The workspace request could not be read.",
+        400,
+        requestId,
+        { limits: admission.usage },
+      );
+    }
+
+    const parsed = requestSchema.safeParse(raw);
+    if (!parsed.success) {
+      return errorResponse(
+        parsed.error.issues[0]?.message || "The workspace request is invalid.",
+        400,
+        requestId,
+        { limits: admission.usage },
+      );
+    }
+
+    const input = parsed.data;
+    const ungroundedPrompt = serializeWorkspace(input);
+    if (containsLikelySecret(ungroundedPrompt)) {
+      return errorResponse(
+        "A likely credential or private key was detected. Remove it before asking for AI review.",
+        422,
+        requestId,
+        { limits: getWorkspaceUsage(key, input.depth) },
+      );
+    }
+
+    if (!canUseCreativeAgent()) {
+      return localResponse(
+        input,
+        "AI analysis is not configured in this environment. This is a local structural review, not model-generated feedback.",
+        requestId,
+        startedAt,
+        {
+          ...getWorkspaceUsage(key, input.depth),
+          creditCost: 0,
+        },
+      );
+    }
+
+    const credits = consumeWorkspaceCredits(key, input.depth);
+    if (!credits.allowed) {
+      return errorResponse(
+        "The anonymous AI review allowance has been used for today. Local Canvas work remains available.",
+        429,
+        requestId,
+        {
+          headers: {
+            "Retry-After": String(credits.retryAfter),
+            "X-RateLimit-Remaining": String(credits.usage.minuteRemaining),
+          },
+          limits: credits.usage,
+        },
+      );
+    }
+
+    const knowledge = input.includeKnowledge
+      ? retrieveKingxfordKnowledge(ungroundedPrompt, input.lens)
+      : [];
+    const prompt = serializeWorkspace(input, knowledge);
+    const modelRoute = getCreativeAgentModelRoute(input.depth);
+
+    try {
+      const agent = createCreativeAgent({
+        depth: input.depth,
+        lens: input.lens,
+        userId: `anonymous-${key}`,
+        tags: [`mode-${input.mode}`],
+      });
       const result = await agent.generate({
-        prompt: serialized,
+        prompt,
         abortSignal: request.signal,
       });
 
@@ -307,32 +452,62 @@ export async function POST(request: NextRequest) {
         throw new Error("Structured review was empty.");
       }
 
-      return NextResponse.json(
-        {
-          review: result.output,
-          source: "openai",
-          model: model.replace(/^openai\//, ""),
-          protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
-          ...(attempt > 0
-            ? {
-                notice:
-                  "The frontier target was unavailable for this request, so the review was completed by the strongest configured fallback model.",
-              }
-            : {}),
+      const completedModel = result.response.modelId || modelRoute.model;
+      const response: AgentReviewResponse = {
+        review: result.output,
+        source: "openai",
+        model: completedModel,
+        protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
+        agent: {
+          id: input.lens,
+          label: agentLensDetails[input.lens].label,
         },
-        {
-          headers: responseHeaders({
-            "X-RateLimit-Remaining": String(limit.remaining),
-          }),
+        grounding: groundingMetadata(knowledge),
+        request: {
+          id: requestId,
+          durationMs: Math.max(0, Date.now() - startedAt),
+          depth: input.depth,
         },
-      );
-    } catch (error) {
-      reportAgentFailure(error, model, attempt + 1);
-    }
-  }
+        usage: {
+          inputTokens: result.usage.inputTokens,
+          outputTokens: result.usage.outputTokens,
+          totalTokens: result.usage.totalTokens,
+        },
+        limits: credits.usage,
+        ...(!isPrimaryModel(completedModel, modelRoute.model)
+          ? {
+              notice:
+                "The primary model was unavailable for this request, so the review was completed by an approved Gateway fallback model.",
+            }
+          : {}),
+      };
 
-  return localResponse(
-    parsed.data,
-    "The OpenAI review was temporarily unavailable. Your input was not changed; this fallback uses local structural rules.",
-  );
+      return NextResponse.json(response, {
+        headers: responseHeaders(requestId, {
+          "X-RateLimit-Remaining": String(credits.usage.minuteRemaining),
+        }),
+      });
+    } catch (error) {
+      reportAgentFailure(error, modelRoute.model, requestId);
+
+      if (request.signal.aborted) {
+        return errorResponse(
+          "The review was cancelled before it completed.",
+          499,
+          requestId,
+          { limits: credits.usage },
+        );
+      }
+
+      return localResponse(
+        input,
+        "The AI review was temporarily unavailable. Your input was not changed; this fallback uses local structural rules.",
+        requestId,
+        startedAt,
+        credits.usage,
+      );
+    }
+  } finally {
+    finishWorkspaceRequest(key);
+  }
 }

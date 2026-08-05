@@ -2,6 +2,9 @@
   "name": "kingxford",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,7 +16,7 @@
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
     "@fontsource-variable/newsreader": "^5.2.8",
-    "ai": "^7.0.48",
+    "ai": "^7.0.52",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.26",
     "next": "16.2.11",

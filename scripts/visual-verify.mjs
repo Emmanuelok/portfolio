@@ -62,6 +62,107 @@ const browser = await chromium.launch({
 const results = [];
 const failures = [];
 
+function mockIntelligenceResponse(request, review, digestCharacter = "a") {
+  const digest = digestCharacter.repeat(64);
+  const timestamp = "2026-08-04T12:00:00.000Z";
+  const phase = request?.projectContext?.phase ?? "build";
+  const runId = `run-browser-${digestCharacter}`;
+  const planArtifactId = `artifact-plan-browser-${digestCharacter}`;
+  const artifactId = `artifact-browser-${digestCharacter}`;
+  const requestedCapabilities =
+    request?.capabilityNegotiation?.requested ?? ["structured-review"];
+
+  return {
+    runId,
+    status: "completed",
+    review,
+    source: "openai",
+    model: "openai/gpt-5.6-sol",
+    phase,
+    agentRole: "conductor",
+    protocolVersion: "kx-intelligence-2026-08-04.1",
+    inputDigest: digest,
+    orchestration: {
+      plan: {
+        phase,
+        summary: "Run a bounded source-revision verification.",
+        phaseObjective: "Keep the proposal bound to the tested project revision.",
+        specialists: [],
+        sequence: ["Review the current source and preserve its provenance."],
+        acceptanceCriteria: ["The proposal remains bound to its source revision."],
+        conflicts: [],
+        boundaries: ["No publishing, contact, or deployment occurs automatically."],
+        handoff: "Return the validated proposal to the user for an explicit decision.",
+      },
+      passes: [],
+    },
+    capabilityNegotiation: {
+      requested: requestedCapabilities,
+      granted: requestedCapabilities.filter((capability) =>
+        [
+          "structured-review",
+          "phase-planning",
+          "parallel-specialists",
+          "project-context",
+          "artifact-provenance",
+        ].includes(capability),
+      ),
+      declined: requestedCapabilities
+        .filter((capability) =>
+          ["external-research", "code-execution", "autonomous-deployment"].includes(
+            capability,
+          ),
+        )
+        .map((capability) => ({
+          capability,
+          reason: "This browser verification run has no external side-effect tools.",
+        })),
+    },
+    artifacts: [
+      {
+        id: planArtifactId,
+        kind: "conductor-plan",
+        title: "Browser verification plan",
+        phase,
+        role: "conductor",
+        digest,
+        parentArtifactIds: request?.projectContext?.artifacts?.map((item) => item.id) ?? [],
+        createdAt: timestamp,
+      },
+      {
+        id: artifactId,
+        kind: "synthesis",
+        title: "Browser verification synthesis",
+        phase,
+        role: "conductor",
+        digest,
+        parentArtifactIds: [planArtifactId],
+        createdAt: timestamp,
+      },
+    ],
+    provenance: {
+      providerCalls: [
+        {
+          id: `call-browser-${digestCharacter}`,
+          stage: "synthesis",
+          role: "conductor",
+          model: "openai/gpt-5.6-sol",
+          status: "completed",
+          startedAt: timestamp,
+          completedAt: timestamp,
+          latencyMs: 120,
+          inputDigest: digest,
+          outputDigest: digest,
+        },
+      ],
+      parentArtifactIds: request?.projectContext?.artifacts?.map((item) => item.id) ?? [],
+      finalArtifactId: artifactId,
+    },
+    startedAt: timestamp,
+    completedAt: timestamp,
+  };
+}
+
 async function inspectPage(name, route, viewport, options = {}) {
   const context = await browser.newContext({
     viewport,
@@ -269,13 +370,19 @@ const scienceLabCommandResults = await desktop.page
       text: option.textContent?.replace(/\s+/g, " ").trim() ?? "",
     })),
   );
-const scienceLabCommandPassed = scienceLabCommandResults.some(
-  (result) =>
-    result.id === "command-create" &&
-    /create/i.test(result.text) &&
-    /canvas/i.test(result.text) &&
-    /working proofs?/i.test(result.text),
-);
+const scienceLabCommandPassed =
+  scienceLabCommandResults.some(
+    (result) =>
+      result.id === "command-create" &&
+      /kingxford intelligence/i.test(result.text) &&
+      /continuous project/i.test(result.text) &&
+      /working proof/i.test(result.text),
+  ) &&
+  scienceLabCommandResults.some(
+    (result) =>
+      result.id === "command-create-science" &&
+      /lumen vale laboratory/i.test(result.text),
+  );
 results.push({
   interaction: "command-search-science-lab",
   passed: scienceLabCommandPassed,
@@ -292,167 +399,66 @@ await desktop.page
   .locator("dialog.command-palette[open]")
   .waitFor({ state: "hidden" });
 
-const missionImage = desktop.page.locator(
-  ".kx-reality-plate[data-plate='mission'] img",
-);
-await missionImage.waitFor({ state: "visible" });
-await desktop.page.waitForFunction(() => {
-  const image = document.querySelector(
-    ".kx-reality-plate[data-plate='mission'] img",
-  );
-  return (
-    image instanceof HTMLImageElement &&
-    image.complete &&
-    image.naturalWidth > 0
-  );
-});
-
-const storyMetrics = await desktop.page.locator(".kx-cinematic").evaluate((story) => {
-  const stage = story.querySelector(".kx-cinematic__stage");
-  const arrival = story.querySelector(
-    ".kx-reality-plate[data-plate='mission'] img",
-  );
-  const rect = story.getBoundingClientRect();
-  return {
-    top: rect.top + window.scrollY,
-    height: rect.height,
-    viewportHeight: window.innerHeight,
-    chapterCount: story.querySelectorAll(".kx-cinematic__chapter").length,
-    plateCount: story.querySelectorAll(".kx-reality-plate").length,
-    videoCount: story.querySelectorAll("video").length,
-    stagePosition: stage ? getComputedStyle(stage).position : null,
-    arrivalReady:
-      arrival instanceof HTMLImageElement &&
-      arrival.complete &&
-      arrival.naturalWidth > 0,
-  };
-});
-const storyStructurePassed =
-  storyMetrics.chapterCount === 6 &&
-  storyMetrics.plateCount === 6 &&
-  storyMetrics.videoCount === 0 &&
-  storyMetrics.stagePosition === "sticky" &&
-  storyMetrics.arrivalReady &&
-  storyMetrics.height > storyMetrics.viewportHeight * 6;
-results.push({
-  interaction: "kingxford-cinematic-structure",
-  passed: storyStructurePassed,
-  ...storyMetrics,
-});
-if (!storyStructurePassed) {
-  failures.push({
-    interaction: "kingxford-cinematic-structure",
-    ...storyMetrics,
-  });
-}
-
-await desktop.page.addStyleTag({
-  content: "html, body { scroll-behavior: auto !important; }",
-});
-
-for (const [captureName, expectedChapter, progress] of [
-  ["mission", "mission", 0.05],
-  ["intelligence", "intelligence", 0.27],
-  ["research-development", "research-development", 0.445],
-  ["responsible-ai", "responsible-ai", 0.625],
-  ["and-co", "and-co", 0.79],
-  ["abundant-future", "abundant-future", 0.95],
-]) {
-  await desktop.page.evaluate(
-    ({ top, height, viewportHeight, progress }) => {
-      window.scrollTo({
-        top: top + (height - viewportHeight) * progress,
-        behavior: "auto",
-      });
-    },
-    {
-      top: storyMetrics.top,
-      height: storyMetrics.height,
-      viewportHeight: storyMetrics.viewportHeight,
-      progress,
-    },
-  );
-  await desktop.page.waitForTimeout(180);
-  const chapterVisibility = await desktop.page
-    .locator(".kx-cinematic__chapter")
-    .evaluateAll((chapters) =>
-      chapters.map((chapter) => ({
-        id: chapter.getAttribute("data-chapter"),
-        opacity: Number.parseFloat(getComputedStyle(chapter).opacity),
-      })),
-    );
-  const visibleChapters = chapterVisibility.filter(
-    (chapter) => chapter.opacity > 0.05,
-  );
-  const chapterIsolationPassed =
-    visibleChapters.length === 1 &&
-    visibleChapters[0].id === expectedChapter &&
-    visibleChapters[0].opacity > 0.95;
-  results.push({
-    interaction: `chapter-isolation-${expectedChapter}`,
-    passed: chapterIsolationPassed,
-    chapterVisibility,
-  });
-  if (!chapterIsolationPassed) {
-    failures.push({
-      interaction: `chapter-isolation-${expectedChapter}`,
-      chapterVisibility,
-    });
-  }
-  await desktop.page.screenshot({
-    path: path.join(outputDir, `kingxford-${captureName}.png`),
-    fullPage: false,
-  });
-}
-
-await desktop.page.locator(".worlds__portal").scrollIntoViewIfNeeded();
-await desktop.page.locator("#living-room").hover();
-await desktop.page.waitForTimeout(250);
-const activeWorld = await desktop.page
-  .locator(".world-panel[data-active='true']")
-  .getAttribute("id");
-results.push({
-  interaction: "three-world-portal",
-  passed:
-    (await desktop.page.locator(".world-panel").count()) === 3 &&
-    activeWorld === "living-room",
-  activeWorld,
-});
-if (activeWorld !== "living-room") {
-  failures.push({ interaction: "three-world-portal", activeWorld });
-}
-await desktop.page.screenshot({
-  path: path.join(outputDir, "kingxford-three-worlds.png"),
-  fullPage: false,
-});
-
-await desktop.page.locator(".idea-router").scrollIntoViewIfNeeded();
-await desktop.page
-  .locator("#idea-router-input")
-  .fill("A research platform for scientific evidence and academic data");
-await desktop.page.waitForTimeout(250);
-const routedWorld = await desktop.page
-  .locator(".idea-router__result strong")
-  .textContent();
-results.push({
-  interaction: "idea-router",
-  passed: routedWorld?.trim() === "Lab",
-  routedWorld,
-});
-if (routedWorld?.trim() !== "Lab") {
-  failures.push({ interaction: "idea-router", routedWorld });
-}
-await desktop.page.screenshot({
-  path: path.join(outputDir, "kingxford-idea-router.png"),
-  fullPage: false,
-});
-
 const routedIdea = "A research platform for scientific evidence and academic data";
+await desktop.page.locator("#intelligence-system").scrollIntoViewIfNeeded();
+const operatingSystemState = await desktop.page.locator("#intelligence-system").evaluate((system) => ({
+  entryPointCount: system.querySelectorAll("[aria-label='Platform entry lenses'] a").length,
+  memoryFieldCount: (system.querySelector("[aria-label='Project memory'] strong")?.textContent ?? "")
+    .split("·")
+    .filter((field) => field.trim().length > 0).length,
+  specialistCount: system.querySelectorAll("[aria-label='Specialist agents'] article").length,
+  lifecycleCount: system.querySelectorAll("[aria-label='Six connected project phases'] button").length,
+  hasConductor: /Conductor/.test(system.querySelector("#conductor-title")?.textContent ?? ""),
+  legacyCinematicCount: document.querySelectorAll(".kx-cinematic, .worlds__portal, .idea-router").length,
+}));
+const operatingSystemPassed =
+  operatingSystemState.entryPointCount === 4 &&
+  operatingSystemState.memoryFieldCount === 4 &&
+  operatingSystemState.specialistCount === 6 &&
+  operatingSystemState.lifecycleCount === 6 &&
+  operatingSystemState.hasConductor &&
+  operatingSystemState.legacyCinematicCount === 0;
+results.push({
+  interaction: "unified-intelligence-operating-system",
+  passed: operatingSystemPassed,
+  ...operatingSystemState,
+});
+if (!operatingSystemPassed) {
+  failures.push({
+    interaction: "unified-intelligence-operating-system",
+    ...operatingSystemState,
+  });
+}
+await desktop.page.screenshot({
+  path: path.join(outputDir, "kingxford-intelligence-operating-system.png"),
+  fullPage: false,
+});
+
+await desktop.page.locator("#platform-project-start").scrollIntoViewIfNeeded();
+await desktop.page.locator("#platform-project-start").fill(routedIdea);
 await Promise.all([
   desktop.page.waitForURL("**/create/workspace?start=seed&phase=discover&mode=idea"),
-  desktop.page.getByRole("button", { name: "Start this project" }).click(),
+  desktop.page.getByRole("button", { name: /Start project/ }).click(),
 ]);
 await desktop.page.locator("#workspace-text-editor").waitFor({ state: "visible" });
+await desktop.page.waitForFunction((expectedInput) => {
+  const editor = document.querySelector("#workspace-text-editor");
+  let projectCount = 0;
+  try {
+    const library = JSON.parse(
+      window.localStorage.getItem("kingxford:canvas:v2") ?? "null",
+    );
+    projectCount = Array.isArray(library?.projects) ? library.projects.length : 0;
+  } catch {
+    projectCount = 0;
+  }
+  return (
+    editor instanceof HTMLTextAreaElement &&
+    editor.value === expectedInput &&
+    projectCount >= 1 &&
+    window.sessionStorage.getItem("kingxford:platform-seed:v1") === null
+  );
+}, routedIdea);
 const ideaTransferState = await desktop.page.evaluate(() => ({
   input: document.querySelector("#workspace-text-editor")?.value ?? "",
   seedConsumed: window.sessionStorage.getItem("kingxford:platform-seed:v1") === null,
@@ -686,7 +692,10 @@ const canvas = await inspectPage(
 const canvasAgentRequests = [];
 const canvasPostRequests = [];
 canvas.page.on("request", (request) => {
-  if (request.url().includes("/api/workspace/agent")) {
+  if (
+    request.method() === "POST" &&
+    request.url().includes("/api/intelligence/runs")
+  ) {
     canvasAgentRequests.push({
       method: request.method(),
       url: request.url(),
@@ -900,7 +909,7 @@ if (!canvasRoutePassed) {
 const canvasModeChecks = [];
 for (const expected of [
   { mode: "idea", previewSelector: "[aria-label='Local concept preview']", text: "Concept specimen" },
-  { mode: "code", previewSelector: "iframe[title='Live code preview']", text: "Isolated browser" },
+  { mode: "code", previewSelector: "iframe[title='Live code preview']", text: "Script sandbox" },
   { mode: "mindmap", previewSelector: "[aria-label='Mind map preview']", text: "Relationship view" },
   { mode: "prompt", previewSelector: "#workspace-preview-panel article", text: "Prompt instrument" },
   { mode: "brief", previewSelector: "#workspace-preview-panel article", text: "Working production brief" },
@@ -1400,7 +1409,7 @@ const advancedPage = canvasAdvanced.page;
 const projectButton = advancedPage.getByRole("button", { name: /^Projects/ });
 await projectButton.click();
 const projectDialog = advancedPage.getByRole("dialog", {
-  name: "Your Canvas workspaces",
+  name: "Your intelligence projects",
 });
 await projectDialog.waitFor({ state: "visible" });
 const initialProjectCount = await projectDialog.locator("ol > li").count();
@@ -1578,14 +1587,14 @@ const staleReviewGate = new Promise((resolve) => {
   releaseStaleReview = resolve;
 });
 let staleReviewRequest = null;
-await advancedPage.route("**/api/workspace/agent", async (route) => {
+await advancedPage.route("**/api/intelligence/runs", async (route) => {
   staleReviewRequest = route.request().postDataJSON();
   await staleReviewGate;
   await route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({
-      review: {
+    body: JSON.stringify(
+      mockIntelligenceResponse(staleReviewRequest, {
         summary: "A bounded code review for browser verification.",
         status: "Developing",
         strengths: ["The three-file source is explicit."],
@@ -1608,13 +1617,8 @@ await advancedPage.route("**/api/workspace/agent", async (route) => {
           deliverables: ["Bound review", "Three-file proposal"],
           complexity: "Focused",
         },
-      },
-      source: "openai",
-      model: "gpt-5.6-sol",
-      protocolVersion: "browser-test",
-      inputDigest: "a".repeat(64),
-      agentRole: "conductor",
-    }),
+      }, "a"),
+    ),
   });
 });
 await advancedPage.getByRole("button", { name: "Review this version" }).click();
@@ -1649,19 +1653,20 @@ if (!staleReviewPassed) {
     ...staleReviewState,
   });
 }
-await advancedPage.unroute("**/api/workspace/agent");
+await advancedPage.unroute("**/api/intelligence/runs");
 
 const proposedCode = {
   html: "<main id='agent-three-file'>Three-file proposal applied</main>",
   css: "#agent-three-file { color: rgb(80, 90, 220); }",
   javascript: "document.body.dataset.agentFiles = 'applied';",
 };
-await advancedPage.route("**/api/workspace/agent", async (route) => {
+await advancedPage.route("**/api/intelligence/runs", async (route) => {
+  const request = route.request().postDataJSON();
   await route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({
-      review: {
+    body: JSON.stringify(
+      mockIntelligenceResponse(request, {
         summary: "All source files are ready for one atomic proposal.",
         status: "Strong",
         strengths: ["The proposal keeps source boundaries explicit."],
@@ -1680,13 +1685,8 @@ await advancedPage.route("**/api/workspace/agent", async (route) => {
           deliverables: ["HTML source", "CSS source", "JavaScript source"],
           complexity: "Layered",
         },
-      },
-      source: "openai",
-      model: "gpt-5.6-sol",
-      protocolVersion: "browser-test",
-      inputDigest: "b".repeat(64),
-      agentRole: "conductor",
-    }),
+      }, "b"),
+    ),
   });
 });
 await advancedPage.getByRole("button", { name: "Review this version" }).click();
@@ -1720,7 +1720,7 @@ if (!atomicCodePassed) {
     appliedJavaScript,
   });
 }
-await advancedPage.unroute("**/api/workspace/agent");
+await advancedPage.unroute("**/api/intelligence/runs");
 
 await advancedPage.getByRole("tab", { name: /^Versions/ }).click();
 const compareButton = advancedPage.getByRole("button", { name: "Compare" }).nth(1);
@@ -2319,31 +2319,43 @@ await mobile.page.screenshot({
   fullPage: false,
 });
 await menuSummary.click();
-await mobile.page.addStyleTag({
-  content: "html, body { scroll-behavior: auto !important; }",
+const mobileNexusState = await mobile.page.evaluate(() => {
+  const projectInput = document.querySelector("#platform-project-start");
+  const startButton = document.querySelector("form button[type='submit']");
+  const inputRect = projectInput?.getBoundingClientRect();
+  return {
+    h1Count: document.querySelectorAll("h1").length,
+    projectInputVisible: Boolean(
+      inputRect && inputRect.top < window.innerHeight && inputRect.bottom > 0,
+    ),
+    startButtonPresent: Boolean(startButton),
+    phaseCount: document.querySelectorAll("[aria-label='Connected project lifecycle'] button").length,
+  };
 });
-const mobileStoryMetrics = await mobile.page
-  .locator(".kx-cinematic")
-  .evaluate((story) => {
-    const rect = story.getBoundingClientRect();
-    return {
-      top: rect.top + window.scrollY,
-      height: rect.height,
-      viewportHeight: window.innerHeight,
-    };
+const mobileNexusPassed =
+  mobileNexusState.h1Count === 1 &&
+  mobileNexusState.projectInputVisible &&
+  mobileNexusState.startButtonPresent &&
+  mobileNexusState.phaseCount === 6;
+results.push({
+  interaction: "home-mobile-intelligence-nexus",
+  passed: mobileNexusPassed,
+  ...mobileNexusState,
+});
+if (!mobileNexusPassed) {
+  failures.push({
+    interaction: "home-mobile-intelligence-nexus",
+    ...mobileNexusState,
   });
-await mobile.page.evaluate(
-  ({ top, height, viewportHeight }) => {
-    window.scrollTo({
-      top: top + (height - viewportHeight) * 0.34,
-      behavior: "auto",
-    });
-  },
-  mobileStoryMetrics,
-);
+}
+await mobile.page.screenshot({
+  path: path.join(outputDir, "kingxford-mobile-nexus.png"),
+  fullPage: false,
+});
+await mobile.page.locator("#intelligence-system").scrollIntoViewIfNeeded();
 await mobile.page.waitForTimeout(180);
 await mobile.page.screenshot({
-  path: path.join(outputDir, "kingxford-mobile-studio.png"),
+  path: path.join(outputDir, "kingxford-mobile-operating-system.png"),
   fullPage: false,
 });
 await mobile.context.close();
@@ -2603,6 +2615,16 @@ const mobileMapSurface = mobileMapPreview.locator("[data-map-canvas]");
 const mobileMapNodes = mobileMapPreview.locator("[data-map-node-id]");
 await mobileMapViewport.waitFor({ state: "visible" });
 await mobileMapViewport.scrollIntoViewIfNeeded();
+const mobileTouchPanToggle = mobileMapPreview.getByRole("button", {
+  name: "Toggle touch background panning",
+});
+await mobileTouchPanToggle.click();
+await mobileCanvas.page.waitForFunction(
+  () =>
+    document
+      .querySelector("[aria-label='Toggle touch background panning']")
+      ?.getAttribute("aria-pressed") === "true",
+);
 const mobileTouchCapability = await mobileCanvas.page.evaluate(() => ({
   maxTouchPoints: navigator.maxTouchPoints,
   coarsePointer: matchMedia("(pointer: coarse)").matches,
@@ -2846,25 +2868,27 @@ if (!reducedMotionMatches) {
   failures.push({ interaction: "reduced-motion-emulation" });
 }
 await reduced.page.waitForTimeout(500);
-const reducedStory = await reduced.page.locator(".kx-static").evaluate((story) => {
-  return {
-    sourceCount: story.querySelectorAll("video source").length,
-    chapterCount: story.querySelectorAll(".kx-static__chapter").length,
-    heroVisible: Boolean(story.querySelector(".kx-static__hero")),
-  };
-});
+const reducedStory = await reduced.page.evaluate(() => ({
+  h1Count: document.querySelectorAll("h1").length,
+  hasNexus: Boolean(document.querySelector("#platform-nexus-title")),
+  hasOperatingSystem: Boolean(document.querySelector("#intelligence-system")),
+  hasProjectStart: Boolean(document.querySelector("#platform-project-start")),
+  legacyStoryCount: document.querySelectorAll(".kx-static, .kx-cinematic").length,
+}));
 const reducedStoryPassed =
-  reducedStory.sourceCount === 0 &&
-  reducedStory.heroVisible &&
-  reducedStory.chapterCount === 5;
+  reducedStory.h1Count === 1 &&
+  reducedStory.hasNexus &&
+  reducedStory.hasOperatingSystem &&
+  reducedStory.hasProjectStart &&
+  reducedStory.legacyStoryCount === 0;
 results.push({
-  interaction: "kingxford-reduced-motion-fallback",
+  interaction: "kingxford-reduced-motion-platform",
   passed: reducedStoryPassed,
   ...reducedStory,
 });
 if (!reducedStoryPassed) {
   failures.push({
-    interaction: "kingxford-reduced-motion-fallback",
+    interaction: "kingxford-reduced-motion-platform",
     ...reducedStory,
   });
 }

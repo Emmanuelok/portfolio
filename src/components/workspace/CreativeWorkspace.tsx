@@ -14,6 +14,7 @@ import {
   FolderKanban,
   GitCompare,
   History,
+  Layers3,
   Lightbulb,
   LoaderCircle,
   Network,
@@ -46,7 +47,13 @@ import {
   summarizeDraftChanges,
   transformDraft,
 } from "@/lib/workspace/local-analysis";
-import { agentReviewResponseSchema } from "@/lib/workspace/agent-response";
+import {
+  intelligenceCapabilities,
+  intelligenceRunRequestSchema,
+  intelligenceRunResponseSchema,
+  type IntelligenceRunRequest,
+  type IntelligenceRunResponse,
+} from "@/lib/intelligence/contracts";
 import {
   getPlatformPhase,
   getPrimaryPhaseForMode,
@@ -63,6 +70,9 @@ import {
   createPlatformProjectIntelligence,
   dispatchPlatformChange,
   loadPlatformSidecar,
+  PLATFORM_CHANGE_EVENT,
+  PLATFORM_STORAGE_KEY,
+  removePlatformProject,
   savePlatformSidecar,
   upsertPlatformProject,
 } from "@/lib/platform/storage";
@@ -74,6 +84,11 @@ import type {
   PlatformSidecarV1,
 } from "@/lib/platform/types";
 import {
+  importPlatformProjectBundle,
+  PLATFORM_PROJECT_BUNDLE_CHARACTER_LIMIT,
+  serializePlatformProjectBundle,
+} from "@/lib/platform/project-bundle";
+import {
   initialDraft,
   modeDetails,
   starterText,
@@ -82,17 +97,13 @@ import {
 import {
   createWorkspaceLibrary,
   createWorkspaceProject,
-  importWorkspaceProjectBundle,
   loadWorkspaceLibrary,
   saveWorkspaceLibrary,
-  serializeWorkspaceProjectBundle,
-  WORKSPACE_BUNDLE_CHARACTER_LIMIT,
   WORKSPACE_PROJECT_LIMIT,
   WORKSPACE_STORAGE_KEY,
   WORKSPACE_VERSION_LIMIT,
 } from "@/lib/workspace/storage";
 import type {
-  AgentReviewResponse,
   CodeFiles,
   TextByMode,
   WorkspaceDraft,
@@ -104,12 +115,13 @@ import type {
 } from "@/lib/workspace/types";
 import { workspaceModes } from "@/lib/workspace/types";
 
+import { ProjectIntelligencePanel } from "./ProjectIntelligencePanel";
 import { ProjectLibraryDialog } from "./ProjectLibraryDialog";
 import { WorkspacePreview } from "./WorkspacePreview";
 import styles from "./CreativeWorkspace.module.css";
 
-type RightTab = "preview" | "agent" | "versions";
-type MobilePane = "input" | "preview" | "agent" | "versions";
+type RightTab = "preview" | "intelligence" | "agent" | "versions";
+type MobilePane = "input" | "preview" | "intelligence" | "agent" | "versions";
 type CodeFileKey = keyof CodeFiles;
 
 type CreativeWorkspaceProps = Readonly<{
@@ -309,7 +321,7 @@ function AgentReviewPanel({
   onStop,
   onApply,
 }: Readonly<{
-  response: AgentReviewResponse | null;
+  response: IntelligenceRunResponse | null;
   roleLabel: string;
   isRunning: boolean;
   error: string;
@@ -422,6 +434,29 @@ function AgentReviewPanel({
 
           {response.notice && <p className={styles.reviewNotice}>{response.notice}</p>}
 
+          <section className={styles.conductorPlan}>
+            <header>
+              <div>
+                <span>Conductor plan</span>
+                <h3>{response.orchestration.plan.phaseObjective}</h3>
+              </div>
+              <small>{response.status}</small>
+            </header>
+            <p>{response.orchestration.plan.summary}</p>
+            <ol>
+              {response.orchestration.plan.sequence.map((step) => <li key={step}>{step}</li>)}
+            </ol>
+            <div>
+              {response.orchestration.passes.map((pass) => (
+                <article key={pass.id} data-status={pass.status}>
+                  <span>{pass.role}</span>
+                  <strong>{pass.status}</strong>
+                  <small>{formatAgentModel(pass.model)} · {pass.source}</small>
+                </article>
+              ))}
+            </div>
+          </section>
+
           <div className={styles.reviewColumns}>
             <section>
               <span>What is working</span>
@@ -479,6 +514,16 @@ function AgentReviewPanel({
               {review.buildBrief.deliverables.map((item) => <li key={item}>{item}</li>)}
             </ul>
           </section>
+
+          <details className={styles.agentProvenance}>
+            <summary>Inspect run provenance</summary>
+            <div>
+              <p>{response.artifacts.length} versioned artifacts · {response.provenance.providerCalls.length} provider calls</p>
+              <code>Final artifact: {response.provenance.finalArtifactId}</code>
+              <code>Input digest: {response.inputDigest}</code>
+              <code>Protocol: {response.protocolVersion}</code>
+            </div>
+          </details>
         </div>
       )}
 
@@ -488,6 +533,7 @@ function AgentReviewPanel({
           id="agent-instruction"
           value={instruction}
           rows={3}
+          maxLength={600}
           placeholder="Challenge the assumptions and make the next test more rigorous…"
           onChange={(event) => onInstruction(event.target.value)}
         />
@@ -495,6 +541,7 @@ function AgentReviewPanel({
           <div>
             <span>Choose what the Agent can see</span>
             <label><input type="checkbox" checked readOnly /> Current input</label>
+            <label><input type="checkbox" checked readOnly /> Project intelligence ledger</label>
             <label>
               <input
                 type="checkbox"
@@ -525,7 +572,7 @@ function AgentReviewPanel({
               aria-pressed={depth === "deep"}
               onClick={() => onDepth("deep")}
             >
-              Deep
+              Deep · Max
             </button>
           </div>
           <button
@@ -649,6 +696,7 @@ export function CreativeWorkspace({
   const projectsRef = useRef<readonly WorkspaceProject[]>([]);
   const libraryRevisionRef = useRef(0);
   const platformSidecarRef = useRef<PlatformSidecarV1>(createEmptyPlatformSidecar());
+  const intelligenceIssueRef = useRef("");
 
   const [mode, setMode] = useState<WorkspaceMode>(initialMode ?? initialDraft.mode);
   const [title, setTitle] = useState(initialDraft.title);
@@ -669,7 +717,7 @@ export function CreativeWorkspace({
   const [paneWidth, setPaneWidth] = useState(51);
   const [status, setStatus] = useState("Preview current · Saved on this device");
   const [codeLogs, setCodeLogs] = useState<readonly string[]>([]);
-  const [reviewResponse, setReviewResponse] = useState<AgentReviewResponse | null>(null);
+  const [reviewResponse, setReviewResponse] = useState<IntelligenceRunResponse | null>(null);
   const [reviewDraftFingerprint, setReviewDraftFingerprint] = useState<string | null>(null);
   const [reviewInstruction, setReviewInstruction] = useState("");
   const [reviewDepth, setReviewDepth] = useState<"standard" | "deep">("deep");
@@ -691,6 +739,8 @@ export function CreativeWorkspace({
   );
   const [agentRole, setAgentRole] = useState<PlatformAgentRole>("conductor");
   const [mapView, setMapView] = useState<PlatformMapViewState | null>(null);
+  const [activeIntelligence, setActiveIntelligence] = useState<PlatformProjectIntelligence | null>(null);
+  const [intelligenceStorageError, setIntelligenceStorageError] = useState("");
 
   const currentText = mode === "code" ? "" : textByMode[mode];
   const draft = useMemo<WorkspaceDraft>(
@@ -722,7 +772,15 @@ export function CreativeWorkspace({
     projectId: string,
     update: (current: PlatformProjectIntelligence) => PlatformProjectIntelligence,
   ) => {
-    const current = platformSidecarRef.current.projects[projectId] ??
+    const latest = loadPlatformSidecar(window.localStorage);
+    if (latest.status === "error") {
+      intelligenceIssueRef.current = latest.error.message;
+      setIntelligenceStorageError(latest.error.message);
+      setStatus(`${latest.error.message} The existing record was not overwritten.`);
+      return false;
+    }
+    platformSidecarRef.current = latest.sidecar;
+    const current = latest.sidecar.projects[projectId] ??
       createPlatformProjectIntelligence(projectId, { phase: initialPhase ?? "discover" });
     let nextSidecar: PlatformSidecarV1;
     try {
@@ -731,15 +789,23 @@ export function CreativeWorkspace({
         update(current),
       );
     } catch {
-      setStatus("Project intelligence could not be validated. Editable work remains safe.");
+      const message = "Project intelligence could not be validated.";
+      intelligenceIssueRef.current = message;
+      setIntelligenceStorageError(message);
+      setStatus(`${message} Editable work remains safe.`);
       return false;
     }
     const saved = savePlatformSidecar(window.localStorage, nextSidecar);
     if (!saved.ok) {
+      intelligenceIssueRef.current = saved.error.message;
+      setIntelligenceStorageError(saved.error.message);
       setStatus(`${saved.error.message} Editable work remains safe.`);
       return false;
     }
     platformSidecarRef.current = nextSidecar;
+    setActiveIntelligence(nextSidecar.projects[projectId]);
+    intelligenceIssueRef.current = "";
+    setIntelligenceStorageError("");
     dispatchPlatformChange({
       revision: nextSidecar.revision,
       projectId,
@@ -762,6 +828,11 @@ export function CreativeWorkspace({
         requestedPhase ?? intelligence?.phase ?? getPrimaryPhaseForMode(nextMode).id,
       );
       setMapView(intelligence?.mapView ?? null);
+      setActiveIntelligence(
+        intelligence ?? createPlatformProjectIntelligence(project.id, {
+          phase: requestedPhase ?? getPrimaryPhaseForMode(nextMode).id,
+        }),
+      );
       setTitle(project.title);
       setTextByMode(project.textByMode);
       setCode(project.code);
@@ -781,17 +852,20 @@ export function CreativeWorkspace({
   );
 
   const selectPhase = (nextPhase: PlatformPhase) => {
-    setPhaseState(nextPhase);
     const definition = getPlatformPhase(nextPhase);
     const firstSpecialist = definition?.agents.find((role) => role !== "conductor");
-    setAgentRole(firstSpecialist ?? "conductor");
-    if (activeProjectId) {
-      saveProjectIntelligence(activeProjectId, (current) => ({
-        ...current,
-        phase: nextPhase,
-        updatedAt: new Date().toISOString(),
-      }));
+    if (!activeProjectId) {
+      setStatus("Wait for the local project to finish loading before changing phase.");
+      return;
     }
+    const saved = saveProjectIntelligence(activeProjectId, (current) => ({
+      ...current,
+      phase: nextPhase,
+      updatedAt: new Date().toISOString(),
+    }));
+    if (!saved) return;
+    setPhaseState(nextPhase);
+    setAgentRole(firstSpecialist ?? "conductor");
     setStatus(`${definition?.label ?? "Project"} phase active · Context preserved`);
   };
 
@@ -825,6 +899,40 @@ export function CreativeWorkspace({
     [persistenceSuspended],
   );
 
+  const persistSidecar = useCallback((
+    nextSidecar: PlatformSidecarV1,
+    projectId: string | null,
+    reason: "saved" | "removed" | "recovered" = "saved",
+  ) => {
+    const loaded = loadPlatformSidecar(window.localStorage);
+    if (loaded.status === "error") {
+      intelligenceIssueRef.current = loaded.error.message;
+      setIntelligenceStorageError(loaded.error.message);
+      setStatus(`${loaded.error.message} The existing intelligence record was not overwritten.`);
+      return false;
+    }
+    if (loaded.sidecar.revision !== platformSidecarRef.current.revision) {
+      platformSidecarRef.current = loaded.sidecar;
+      const message = "Project intelligence changed in another tab. Review it and retry this operation.";
+      intelligenceIssueRef.current = message;
+      setIntelligenceStorageError(message);
+      setStatus(message);
+      return false;
+    }
+    const saved = savePlatformSidecar(window.localStorage, nextSidecar);
+    if (!saved.ok) {
+      intelligenceIssueRef.current = saved.error.message;
+      setIntelligenceStorageError(saved.error.message);
+      setStatus(`${saved.error.message} Editable source remains safe.`);
+      return false;
+    }
+    platformSidecarRef.current = nextSidecar;
+    intelligenceIssueRef.current = "";
+    setIntelligenceStorageError("");
+    dispatchPlatformChange({ revision: nextSidecar.revision, projectId, reason });
+    return true;
+  }, []);
+
   useEffect(() => {
     const online = () => setIsOnline(true);
     const offline = () => setIsOnline(false);
@@ -834,10 +942,15 @@ export function CreativeWorkspace({
     const hydrateFrame = window.requestAnimationFrame(() => {
       setIsOnline(navigator.onLine);
       const loadedIntelligence = loadPlatformSidecar(window.localStorage);
+      const intelligenceAvailable = loadedIntelligence.status !== "error";
       if (loadedIntelligence.status === "ready" || loadedIntelligence.status === "empty") {
         platformSidecarRef.current = loadedIntelligence.sidecar;
+        intelligenceIssueRef.current = "";
+        setIntelligenceStorageError("");
       } else {
         platformSidecarRef.current = createEmptyPlatformSidecar();
+        intelligenceIssueRef.current = loadedIntelligence.error.message;
+        setIntelligenceStorageError(loadedIntelligence.error.message);
         setStatus(`${loadedIntelligence.error.message} Editable Canvas work remains available.`);
       }
 
@@ -876,19 +989,40 @@ export function CreativeWorkspace({
           objective: seed.input,
           phase: seed.phase,
         });
+        let intelligenceSaved = false;
         try {
+          if (!intelligenceAvailable) throw new Error("Project intelligence storage is not readable.");
           const nextSidecar = upsertPlatformProject(
             platformSidecarRef.current,
             intelligence,
           );
           const sidecarSaved = savePlatformSidecar(window.localStorage, nextSidecar);
-          if (sidecarSaved.ok) platformSidecarRef.current = nextSidecar;
-        } catch {
-          // The editable project is already safely stored; intelligence can recover later.
+          if (sidecarSaved.ok) {
+            intelligenceSaved = true;
+            platformSidecarRef.current = nextSidecar;
+            intelligenceIssueRef.current = "";
+            setIntelligenceStorageError("");
+            dispatchPlatformChange({
+              revision: nextSidecar.revision,
+              projectId: project.id,
+              reason: "saved",
+            });
+          } else {
+            intelligenceIssueRef.current = sidecarSaved.error.message;
+            setIntelligenceStorageError(sidecarSaved.error.message);
+          }
+        } catch (error) {
+          const message = error instanceof Error
+            ? error.message
+            : "Project intelligence could not be persisted.";
+          if (!intelligenceIssueRef.current) intelligenceIssueRef.current = message;
+          setIntelligenceStorageError(intelligenceIssueRef.current);
         }
         consumePlatformSeed(window.sessionStorage);
         loadProjectIntoEditor(project, seed.mode, seed.phase);
-        setStatus("New project created from your original idea · Discovery context preserved");
+        setStatus(intelligenceSaved
+          ? "New project created from your original idea · Discovery context preserved"
+          : `Editable project created. Intelligence warning: ${intelligenceIssueRef.current}`);
         return true;
       };
 
@@ -901,6 +1035,20 @@ export function CreativeWorkspace({
         const active = loaded.library.projects.find(
           (project) => project.id === loaded.library.activeProjectId,
         ) ?? loaded.library.projects[0];
+        if (intelligenceAvailable) {
+          const projectIds = new Set(loaded.library.projects.map((project) => project.id));
+          let reconciled = platformSidecarRef.current;
+          for (const projectId of Object.keys(reconciled.projects)) {
+            if (!projectIds.has(projectId)) reconciled = removePlatformProject(reconciled, projectId);
+          }
+          if (reconciled.revision !== platformSidecarRef.current.revision) {
+            const savedReconciled = savePlatformSidecar(window.localStorage, reconciled);
+            if (savedReconciled.ok) {
+              platformSidecarRef.current = reconciled;
+              dispatchPlatformChange({ revision: reconciled.revision, projectId: null, reason: "recovered" });
+            }
+          }
+        }
         replaceProjects(loaded.library.projects);
         libraryRevisionRef.current = loaded.library.revision;
         setActiveProjectId(active.id);
@@ -968,7 +1116,9 @@ export function CreativeWorkspace({
       );
       replaceProjects(nextProjects);
       if (persistProjects(nextProjects, activeProjectId)) {
-        setStatus("Saved on this device");
+        setStatus(intelligenceIssueRef.current
+          ? `Editable source saved. Intelligence warning: ${intelligenceIssueRef.current}`
+          : "Saved on this device");
       }
     }, 180);
     return () => window.clearTimeout(saveTimer);
@@ -1005,6 +1155,30 @@ export function CreativeWorkspace({
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
+
+  useEffect(() => {
+    if (!activeProjectId) return;
+    const reloadIntelligence = (event: Event) => {
+      if (event instanceof StorageEvent && event.key !== PLATFORM_STORAGE_KEY) return;
+      const loaded = loadPlatformSidecar(window.localStorage);
+      if (loaded.status === "error") {
+        setIntelligenceStorageError(loaded.error.message);
+        return;
+      }
+      platformSidecarRef.current = loaded.sidecar;
+      setIntelligenceStorageError("");
+      const current = loaded.sidecar.projects[activeProjectId] ??
+        createPlatformProjectIntelligence(activeProjectId, { phase });
+      setActiveIntelligence(current);
+      setMapView(current.mapView);
+    };
+    window.addEventListener("storage", reloadIntelligence);
+    window.addEventListener(PLATFORM_CHANGE_EVENT, reloadIntelligence);
+    return () => {
+      window.removeEventListener("storage", reloadIntelligence);
+      window.removeEventListener(PLATFORM_CHANGE_EVENT, reloadIntelligence);
+    };
+  }, [activeProjectId, phase]);
 
   useEffect(() => {
     if (!autoRun || mode !== "code") return;
@@ -1076,7 +1250,7 @@ export function CreativeWorkspace({
       }
       if (!isTyping && event.key === "F6") {
         event.preventDefault();
-        const panes: readonly MobilePane[] = ["input", "preview", "agent", "versions"];
+        const panes: readonly MobilePane[] = ["input", "preview", "intelligence", "agent", "versions"];
         const currentIndex = panes.indexOf(mobilePane);
         selectMobilePane(panes[(currentIndex + 1) % panes.length]);
       }
@@ -1132,10 +1306,10 @@ export function CreativeWorkspace({
     const nextProjects = snapshotActiveProject(projectsRef.current);
     const target = nextProjects.find((project) => project.id === projectId);
     if (!target) return;
+    if (!persistProjects(nextProjects, target.id)) return;
     replaceProjects(nextProjects);
     setActiveProjectId(target.id);
     loadProjectIntoEditor(target);
-    persistProjects(nextProjects, target.id);
     setProjectLibraryOpen(false);
     setStatus(`Opened ${target.title || "Untitled Canvas project"}`);
   };
@@ -1148,12 +1322,24 @@ export function CreativeWorkspace({
       title: "Untitled Canvas project",
     });
     const nextProjects = [nextProject, ...savedProjects];
+    if (!persistProjects(nextProjects, nextProject.id)) return;
+    let intelligenceSaved = false;
+    try {
+      const nextSidecar = upsertPlatformProject(
+        platformSidecarRef.current,
+        createPlatformProjectIntelligence(nextProject.id, { phase: "discover" }),
+      );
+      intelligenceSaved = persistSidecar(nextSidecar, nextProject.id);
+    } catch {
+      intelligenceSaved = false;
+    }
     replaceProjects(nextProjects);
     setActiveProjectId(nextProject.id);
     loadProjectIntoEditor(nextProject);
-    persistProjects(nextProjects, nextProject.id);
     setProjectLibraryOpen(false);
-    setStatus("New private Canvas project created");
+    setStatus(intelligenceSaved
+      ? "New private intelligence project created"
+      : "Project created; its intelligence ledger is temporarily unavailable");
   };
 
   const duplicateProject = (projectId: string) => {
@@ -1170,12 +1356,47 @@ export function CreativeWorkspace({
       versions: source.versions,
     });
     const nextProjects = [duplicate, ...savedProjects];
+    if (!persistProjects(nextProjects, duplicate.id)) return;
+    let intelligenceSaved = false;
+    const sourceIntelligence = platformSidecarRef.current.projects[source.id] ??
+      createPlatformProjectIntelligence(source.id, { phase: getPrimaryPhaseForMode(source.mode).id });
+    try {
+      const duplicateIntelligence: PlatformProjectIntelligence = {
+        ...sourceIntelligence,
+        projectId: duplicate.id,
+        evidence: sourceIntelligence.evidence.map((item) => ({ ...item })),
+        decisions: sourceIntelligence.decisions.map((item) => ({
+          ...item,
+          relatedArtifactIds: [...item.relatedArtifactIds],
+        })),
+        artifactRelationships: sourceIntelligence.artifactRelationships.map((item) => ({ ...item })),
+        agentRuns: sourceIntelligence.agentRuns.map((item) => ({
+          ...item,
+          artifactIds: [...item.artifactIds],
+        })),
+        mapView: sourceIntelligence.mapView ? {
+          zoom: sourceIntelligence.mapView.zoom,
+          pan: { ...sourceIntelligence.mapView.pan },
+          nodeOffsets: Object.fromEntries(
+            Object.entries(sourceIntelligence.mapView.nodeOffsets).map(([id, point]) => [id, { ...point }]),
+          ),
+        } : null,
+        updatedAt: new Date().toISOString(),
+      };
+      intelligenceSaved = persistSidecar(
+        upsertPlatformProject(platformSidecarRef.current, duplicateIntelligence),
+        duplicate.id,
+      );
+    } catch {
+      intelligenceSaved = false;
+    }
     replaceProjects(nextProjects);
     setActiveProjectId(duplicate.id);
     loadProjectIntoEditor(duplicate);
-    persistProjects(nextProjects, duplicate.id);
     setProjectLibraryOpen(false);
-    setStatus(`Duplicated ${source.title || "Canvas project"}`);
+    setStatus(intelligenceSaved
+      ? `Duplicated ${source.title || "project"} with its complete intelligence ledger`
+      : `Duplicated ${source.title || "project"}; its intelligence ledger could not be copied`);
   };
 
   const deleteProject = (projectId: string) => {
@@ -1185,11 +1406,23 @@ export function CreativeWorkspace({
     const nextActiveId = projectId === activeProjectId
       ? nextProjects[0].id
       : activeProjectId;
+    if (!persistProjects(nextProjects, nextActiveId)) return;
+    let intelligenceRemoved = false;
+    try {
+      intelligenceRemoved = persistSidecar(
+        removePlatformProject(platformSidecarRef.current, projectId),
+        projectId,
+        "removed",
+      );
+    } catch {
+      intelligenceRemoved = false;
+    }
     replaceProjects(nextProjects);
     setActiveProjectId(nextActiveId);
     if (projectId === activeProjectId) loadProjectIntoEditor(nextProjects[0]);
-    persistProjects(nextProjects, nextActiveId);
-    setStatus("Local project deleted");
+    setStatus(intelligenceRemoved
+      ? "Local project and intelligence ledger deleted"
+      : "Editable project deleted; intelligence cleanup is pending");
   };
 
   const exportProjectBundle = (projectId: string) => {
@@ -1197,34 +1430,51 @@ export function CreativeWorkspace({
     const project = savedProjects.find((value) => value.id === projectId);
     if (!project) return;
     replaceProjects(savedProjects);
-    const serialized = serializeWorkspaceProjectBundle(project);
+    const intelligence = platformSidecarRef.current.projects[project.id] ??
+      createPlatformProjectIntelligence(project.id, { phase: getPrimaryPhaseForMode(project.mode).id });
+    const serialized = serializePlatformProjectBundle(project, intelligence);
     downloadTextFile(
       serialized,
       "application/json;charset=utf-8",
-      `${safeFileName(project.title)}.kxcanvas.json`,
+      `${safeFileName(project.title)}.kxproject.json`,
     );
-    setStatus("Lossless Canvas project bundle exported");
+    setStatus("Complete project source and intelligence bundle exported");
   };
 
   const importProjectBundle = async (file: File) => {
-    if (file.size > WORKSPACE_BUNDLE_CHARACTER_LIMIT) {
+    if (file.size > PLATFORM_PROJECT_BUNDLE_CHARACTER_LIMIT) {
       setStatus("That project bundle exceeds the supported local import size.");
       return;
     }
     try {
       const raw = await file.text();
       const savedProjects = snapshotActiveProject(projectsRef.current);
-      const imported = importWorkspaceProjectBundle(
+      if (savedProjects.length >= WORKSPACE_PROJECT_LIMIT) {
+        throw new Error(`Your ${WORKSPACE_PROJECT_LIMIT} project limit is full.`);
+      }
+      const importedBundle = importPlatformProjectBundle(
         raw,
         savedProjects.map((project) => project.id),
       );
+      const imported = importedBundle.project;
       const nextProjects = [imported, ...savedProjects];
+      if (!persistProjects(nextProjects, imported.id)) return;
+      let intelligenceSaved = false;
+      try {
+        intelligenceSaved = persistSidecar(
+          upsertPlatformProject(platformSidecarRef.current, importedBundle.intelligence),
+          imported.id,
+        );
+      } catch {
+        intelligenceSaved = false;
+      }
       replaceProjects(nextProjects);
       setActiveProjectId(imported.id);
       loadProjectIntoEditor(imported);
-      persistProjects(nextProjects, imported.id);
       setProjectLibraryOpen(false);
-      setStatus(`Imported ${imported.title || "Canvas project"} as a new project`);
+      setStatus(intelligenceSaved
+        ? `Imported ${imported.title || "project"} with complete intelligence`
+        : `Imported ${imported.title || "project"}; intelligence restoration is pending`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "That project bundle could not be imported safely.");
     }
@@ -1375,32 +1625,93 @@ export function CreativeWorkspace({
     setReviewDraftFingerprint(null);
     setRightTab("agent");
     setMobilePane("agent");
-    const objective = quickInstruction || reviewInstruction || "Review this version rigorously and propose the next useful improvement.";
+    const objective = (quickInstruction || reviewInstruction || "Review this version rigorously and propose the next useful improvement.").slice(0, 600);
+    const projectIntelligence = activeIntelligence ??
+      createPlatformProjectIntelligence(activeProjectId, { phase });
 
     try {
-      const response = await fetch("/api/workspace/agent", {
+      const requestCandidate: IntelligenceRunRequest = {
+        mode: submittedDraft.mode,
+        title: submittedDraft.title.slice(0, 120),
+        text: submittedDraft.text.slice(0, 22_000),
+        code: submittedDraft.mode === "code" ? {
+          html: submittedDraft.code.html.slice(0, 16_000),
+          css: submittedDraft.code.css.slice(0, 16_000),
+          javascript: submittedDraft.code.javascript.slice(0, 16_000),
+        } : EMPTY_CODE,
+        objective,
+        depth: reviewDepth,
+        projectContext: {
+          projectId: activeProjectId,
+          objective: projectIntelligence.objective.slice(0, 600),
+          phase,
+          evidence: projectIntelligence.evidence.slice(-24).map((item) => ({
+            ...item,
+            title: item.title.slice(0, 180),
+            source: item.source.slice(0, 2_000),
+            claim: item.claim.slice(0, 2_000),
+          })),
+          decisions: projectIntelligence.decisions.slice(-24).map((item) => ({
+            ...item,
+            title: item.title.slice(0, 180),
+            decision: item.decision.slice(0, 2_000),
+            rationale: item.rationale.slice(0, 2_000),
+            relatedArtifactIds: item.relatedArtifactIds.slice(0, 16),
+          })),
+          acceptedRuns: projectIntelligence.agentRuns.slice(-24).map((item) => ({
+            ...item,
+            summary: item.summary.slice(0, 1_600),
+            artifactIds: item.artifactIds.slice(0, 16),
+          })),
+          artifacts: [
+            {
+              id: `source:${activeProjectId}`,
+              title: (submittedDraft.title || "Current workspace source").slice(0, 180),
+              kind: "workspace-source" as const,
+              summary: (submittedDraft.mode === "code"
+                ? "Current HTML, CSS, and JavaScript working source."
+                : submittedDraft.text).slice(0, 1_600),
+              createdAt: new Date().toISOString(),
+            },
+            ...versions.slice(0, 6).map((version) => ({
+              id: version.id,
+              title: version.name.slice(0, 180),
+              kind: "version" as const,
+              summary: versionContextSource(version).slice(0, 1_600),
+              createdAt: version.createdAt,
+            })),
+          ],
+          artifactRelationships: projectIntelligence.artifactRelationships.slice(-48).map((item) => ({
+            ...item,
+            label: item.label.slice(0, 300),
+          })),
+        },
+        context: {
+          codeLogs: includeLogs ? codeLogs.slice(-12).map((log) => log.slice(0, 1_000)) : [],
+          versions: includeVersions
+            ? versions.slice(0, 3).map((version) => ({
+                id: version.id,
+                name: version.name.slice(0, 120),
+                mode: version.draft.mode,
+                text: versionContextSource(version),
+              }))
+            : [],
+        },
+        orchestration: {
+          maxSpecialistPasses: reviewDepth === "deep" ? 2 : 1,
+          requestedRoles: agentRole === "conductor" ? [] : [agentRole],
+        },
+        capabilityNegotiation: { requested: [...intelligenceCapabilities] },
+      };
+      const parsedRequest = intelligenceRunRequestSchema.safeParse(requestCandidate);
+      if (!parsedRequest.success) {
+        throw new Error(parsedRequest.error.issues[0]?.message ?? "The selected project context exceeds the Agent run contract.");
+      }
+      const response = await fetch("/api/intelligence/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
-        body: JSON.stringify({
-          mode: submittedDraft.mode,
-          title: submittedDraft.title,
-          text: submittedDraft.text,
-          code: submittedDraft.mode === "code" ? submittedDraft.code : EMPTY_CODE,
-          objective,
-          depth: reviewDepth,
-          agentRole,
-          context: {
-            codeLogs: includeLogs ? codeLogs : [],
-            versions: includeVersions
-              ? versions.slice(0, 3).map((version) => ({
-                  name: version.name,
-                  mode: version.draft.mode,
-                  text: versionContextSource(version),
-                }))
-              : [],
-          },
-        }),
+        body: JSON.stringify(parsedRequest.data),
       });
       const rawPayload = await response.json() as unknown;
       if (!response.ok) {
@@ -1410,11 +1721,11 @@ export function CreativeWorkspace({
           : "The review did not complete.";
         throw new Error(message);
       }
-      const parsedPayload = agentReviewResponseSchema.safeParse(rawPayload);
+      const parsedPayload = intelligenceRunResponseSchema.safeParse(rawPayload);
       if (!parsedPayload.success) {
         throw new Error("The Agent returned an invalid review contract. Your source was not changed.");
       }
-      const payload: AgentReviewResponse = parsedPayload.data;
+      const payload: IntelligenceRunResponse = parsedPayload.data;
       setReviewResponse(payload);
       setReviewDraftFingerprint(submittedFingerprint);
       setStatus(`Review complete · ${payload.source === "openai" ? "Uses AI" : "Local fallback"}`);
@@ -1444,7 +1755,7 @@ export function CreativeWorkspace({
       setCode(nextCode);
       setCommittedCode(nextCode);
       setReviewDraftFingerprint(
-        `${activeProjectId}:${draftFingerprint(nextDraft)}`,
+        `${activeProjectId}:${phase}:${agentRole}:${draftFingerprint(nextDraft)}`,
       );
       saveDraftVersion(nextDraft, "agent", `${title || "Untitled"} · Agent proposal`);
       setRunId((value) => value + 1);
@@ -1452,12 +1763,13 @@ export function CreativeWorkspace({
       const nextDraft = { ...draft, text: review.improvedInput };
       setTextByMode((current) => ({ ...current, [mode]: review.improvedInput }));
       setReviewDraftFingerprint(
-        `${activeProjectId}:${draftFingerprint(nextDraft)}`,
+        `${activeProjectId}:${phase}:${agentRole}:${draftFingerprint(nextDraft)}`,
       );
       saveDraftVersion(nextDraft, "agent", `${title || "Untitled"} · Agent proposal`);
     }
+    let provenanceSaved = true;
     if (reviewResponse && activeProjectId) {
-      saveProjectIntelligence(activeProjectId, (current) => ({
+      provenanceSaved = saveProjectIntelligence(activeProjectId, (current) => ({
         ...current,
         agentRuns: [
           ...current.agentRuns,
@@ -1470,7 +1782,7 @@ export function CreativeWorkspace({
             protocolVersion: reviewResponse.protocolVersion,
             inputDigest: reviewResponse.inputDigest,
             summary: review.summary.slice(0, 2_000),
-            artifactIds: [],
+            artifactIds: [reviewResponse.provenance.finalArtifactId],
             acceptedAt: new Date().toISOString(),
           },
         ].slice(-128),
@@ -1480,7 +1792,9 @@ export function CreativeWorkspace({
     setReviewDraftFingerprint(null);
     setRightTab("preview");
     setMobilePane("preview");
-    setStatus("Agent proposal applied as a new version");
+    setStatus(provenanceSaved
+      ? "Agent proposal applied as a new version · Provenance accepted into project intelligence"
+      : `Agent proposal applied locally. Intelligence warning: ${intelligenceIssueRef.current || "provenance could not be stored"}`);
   };
 
   const openHandoff = () => {
@@ -1492,6 +1806,15 @@ export function CreativeWorkspace({
     const packageValue = {
       generatedAt: new Date().toISOString(),
       current: draft,
+      projectIntelligence: activeIntelligence ? {
+        projectId: activeIntelligence.projectId,
+        objective: activeIntelligence.objective,
+        phase: activeIntelligence.phase,
+        evidence: activeIntelligence.evidence.slice(-24),
+        decisions: activeIntelligence.decisions.slice(-24),
+        acceptedAgentRuns: activeIntelligence.agentRuns.slice(-12),
+        artifactRelationships: activeIntelligence.artifactRelationships.slice(-24),
+      } : null,
       agentReview:
         handoffAgent && reviewIsCurrent ? reviewResponse?.review ?? null : null,
       versions: handoffVersions ? versions.slice(0, 6) : [],
@@ -1689,6 +2012,7 @@ export function CreativeWorkspace({
           [
             ["input", PanelLeft, "Input"],
             ["preview", PanelRight, "Preview"],
+            ["intelligence", Layers3, "Intelligence"],
             ["agent", Bot, "Agent"],
             ["versions", History, `Versions ${versions.length}`],
           ] as const
@@ -1890,6 +2214,7 @@ export function CreativeWorkspace({
             {(
               [
                 ["preview", PanelRight, "Live preview"],
+                ["intelligence", Layers3, "Project intelligence"],
                 ["agent", Bot, "Agent review"],
                 ["versions", History, `Versions ${versions.length}`],
               ] as const
@@ -1905,7 +2230,7 @@ export function CreativeWorkspace({
                 onKeyDown={(event) =>
                   handleTabArrow(
                     event,
-                    ["preview", "agent", "versions"] as const,
+                    ["preview", "intelligence", "agent", "versions"] as const,
                     rightTab,
                     setRightTab,
                     (nextTab) => `workspace-result-tab-${nextTab}`,
@@ -1940,6 +2265,26 @@ export function CreativeWorkspace({
             />
           </div>
           <div
+            id="workspace-intelligence-panel"
+            className={styles.resultView}
+            role="tabpanel"
+            aria-labelledby="workspace-result-tab-intelligence"
+            hidden={rightTab !== "intelligence"}
+          >
+            {activeProjectId && activeIntelligence ? (
+              <ProjectIntelligencePanel
+                key={activeProjectId}
+                projectTitle={title}
+                intelligence={activeIntelligence}
+                storageError={intelligenceStorageError}
+                onChange={(next) => saveProjectIntelligence(
+                  activeProjectId,
+                  () => next,
+                )}
+              />
+            ) : null}
+          </div>
+          <div
             id="workspace-agent-panel"
             className={styles.resultView}
             role="tabpanel"
@@ -1948,7 +2293,9 @@ export function CreativeWorkspace({
           >
             <AgentReviewPanel
               response={reviewResponse}
-              roleLabel={PLATFORM_AGENTS.find((item) => item.id === (reviewResponse?.agentRole ?? agentRole))?.label ?? "Conductor"}
+              roleLabel={agentRole === "conductor"
+                ? "Conductor"
+                : `Conductor + ${PLATFORM_AGENTS.find((item) => item.id === agentRole)?.shortLabel ?? "specialist"}`}
               isRunning={reviewRunning}
               error={reviewError}
               instruction={reviewInstruction}

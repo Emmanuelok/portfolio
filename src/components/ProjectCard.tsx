@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { m, useReducedMotion } from "motion/react";
 
+import { ProjectCaptureAction } from "@/components/platform/ProjectCaptureAction";
 import type { Project } from "@/data/projects";
 
 type ProjectCardProps = Readonly<{
@@ -78,6 +79,15 @@ export function ProjectCard({
           </ul>
         </div>
       </Link>
+      <div className="project-card__capture">
+        <ProjectCaptureAction
+          compact
+          title={project.title}
+          claim={project.summary}
+          referenceHref={`/work/${project.slug}`}
+          source="work"
+        />
+      </div>
     </m.article>
   );
 }

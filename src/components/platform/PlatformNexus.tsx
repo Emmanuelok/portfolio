@@ -74,23 +74,29 @@ export function PlatformNexus() {
       return;
     }
 
-    const seed = createPlatformSeed(normalizedInput, {
-      phase: "discover",
-      mode: "idea",
-      source: "home-nexus",
-    });
-    const result = writePlatformSeed(window.sessionStorage, seed);
-    if (!result.ok) {
-      setStatus(
-        "This browser could not prepare the private project start. Your words have not been submitted or sent anywhere.",
-      );
-      return;
-    }
+    try {
+      const seed = createPlatformSeed(normalizedInput, {
+        phase: "discover",
+        mode: "idea",
+        source: "home-nexus",
+      });
+      const result = writePlatformSeed(window.sessionStorage, seed);
+      if (!result.ok) {
+        setStatus(
+          "This browser could not prepare the private project start. Your words have not been submitted or sent anywhere.",
+        );
+        return;
+      }
 
-    setStatus("Private project start prepared. Opening the workspace…");
-    router.push(
-      "/create/workspace?start=seed&phase=discover&mode=idea",
-    );
+      setStatus("Private project start prepared. Opening the workspace…");
+      router.push(
+        "/create/workspace?start=seed&phase=discover&mode=idea",
+      );
+    } catch {
+      setStatus(
+        "This project start could not be prepared safely. Your words have not been submitted or sent anywhere.",
+      );
+    }
   };
 
   return (

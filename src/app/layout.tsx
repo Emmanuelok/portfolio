@@ -3,6 +3,7 @@ import Script from "next/script";
 import type { ReactNode } from "react";
 
 import { MotionProvider } from "@/components/MotionProvider";
+import { PlatformContinuityDock } from "@/components/platform/PlatformContinuityDock";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -36,9 +37,10 @@ export const metadata: Metadata = {
     "website and digital platform development",
     "digital tools",
     "educational technology",
-    "Studio",
-    "Living Room",
-    "Lab",
+    "project intelligence",
+    "creative intelligence workspace",
+    "governed AI agents",
+    "connected project lifecycle",
   ],
   authors: [{ name: "kingXford & Co", url: siteUrl }],
   creator: "kingXford & Co",
@@ -198,6 +200,7 @@ export default function RootLayout({
             {children}
           </div>
           <SiteFooter />
+          <PlatformContinuityDock />
         </MotionProvider>
       </body>
     </html>

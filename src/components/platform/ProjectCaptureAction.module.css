@@ -1,0 +1,72 @@
+.action {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.action button {
+  display: inline-flex;
+  min-height: 2.7rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.62rem 0.78rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--canvas) 88%, transparent);
+  color: var(--text-soft);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  font-weight: 720;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.action button:hover:not(:disabled),
+.action button:focus-visible {
+  border-color: color-mix(in srgb, var(--blue-bright) 68%, var(--border));
+  background: color-mix(in srgb, var(--blue) 14%, var(--canvas));
+  color: var(--text);
+  transform: translateY(-0.08rem);
+}
+
+.action button:disabled { cursor: wait; opacity: 0.68; }
+.action button svg { width: 0.82rem; height: 0.82rem; color: var(--blue-bright); }
+.action[data-state="saved"] button { border-color: color-mix(in srgb, var(--success) 48%, var(--border)); }
+.action[data-state="saved"] button svg { color: var(--success); }
+.action[data-state="error"] button svg { color: var(--danger); }
+.action[data-compact="true"] button { min-height: 2.35rem; padding: 0.48rem 0.65rem; }
+
+.message {
+  max-width: 24rem;
+  color: var(--text-faint);
+  font-size: 0.6rem;
+  line-height: 1.35;
+}
+
+.spin { animation: captureSpin 900ms linear infinite; }
+
+@keyframes captureSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 620px) {
+  .action { align-items: flex-start; flex-direction: column; }
+  .message { max-width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation: none; }
+}

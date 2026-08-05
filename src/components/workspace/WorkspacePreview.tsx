@@ -99,10 +99,22 @@ function buildCodeDocument(code: CodeFiles, channel: string) {
   const bridge = `
     (() => {
       const channel = ${JSON.stringify(channel)};
-      const emit = (type, values) => parent.postMessage({ channel, type, values: values.map((value) => {
-        try { return typeof value === 'string' ? value : JSON.stringify(value); }
-        catch { return String(value); }
-      }) }, '*');
+      const allowedTypes = new Set(['log', 'warn', 'error']);
+      let emitted = 0;
+      const emit = (type, values) => {
+        if (!allowedTypes.has(type) || emitted >= 100) return;
+        emitted += 1;
+        parent.postMessage({
+          channel,
+          type,
+          values: values.slice(0, 8).map((value) => {
+            let serialized = '';
+            try { serialized = typeof value === 'string' ? value : JSON.stringify(value); }
+            catch { serialized = String(value); }
+            return String(serialized ?? '').slice(0, 2000);
+          }),
+        }, '*');
+      };
       ['log', 'warn', 'error'].forEach((method) => {
         const original = console[method];
         console[method] = (...values) => { emit(method, values); original.apply(console, values); };
@@ -144,15 +156,25 @@ function CodePreview({
   const srcDoc = useMemo(() => buildCodeDocument(code, channel), [channel, code]);
 
   useEffect(() => {
+    let acceptedMessages = 0;
     const receive = (event: MessageEvent) => {
       if (event.source !== iframeRef.current?.contentWindow) return;
       const data = event.data as
         | { channel?: string; type?: string; values?: readonly string[] }
         | undefined;
-      if (!data || data.channel !== channel || !Array.isArray(data.values)) return;
-      const line = `[${data.type ?? "log"}] ${data.values.join(" ")}`;
+      if (
+        !data ||
+        data.channel !== channel ||
+        !["log", "warn", "error"].includes(data.type ?? "") ||
+        !Array.isArray(data.values) ||
+        data.values.length > 8 ||
+        acceptedMessages >= 100 ||
+        data.values.some((value) => typeof value !== "string" || value.length > 2_000)
+      ) return;
+      acceptedMessages += 1;
+      const line = `[${data.type}] ${data.values.join(" ")}`.slice(0, 8_000);
       setLogs((current) => {
-        const next = [...current, line].slice(-12);
+        const next = [...current, line].slice(-30);
         onCodeLogs(next);
         return next;
       });
@@ -183,13 +205,14 @@ function CodePreview({
             </button>
           ))}
         </div>
-        <span>Isolated browser · network disabled</span>
+        <span>Script sandbox · never paste secrets · preview navigation can leave this page</span>
       </div>
       <div className={styles.iframeWell} data-device={device}>
         <iframe
           ref={iframeRef}
           title="Live code preview"
           sandbox="allow-scripts"
+          referrerPolicy="no-referrer"
           srcDoc={srcDoc}
         />
       </div>
@@ -215,6 +238,18 @@ type MapConnection = Readonly<{ id: string; path: string }>;
 
 const MAP_MIN_ZOOM = 0.4;
 const MAP_MAX_ZOOM = 1.5;
+
+function collectMapNodeIds(nodes: readonly MindMapNode[]) {
+  const identifiers = new Set<string>();
+  const visit = (entries: readonly MindMapNode[]) => {
+    for (const node of entries) {
+      identifiers.add(node.id);
+      visit(node.children);
+    }
+  };
+  visit(nodes);
+  return identifiers;
+}
 
 function MapBranch({
   node,
@@ -311,6 +346,7 @@ function MindMapPreview({
   const [connections, setConnections] = useState<readonly MapConnection[]>([]);
   const [structureVersion, setStructureVersion] = useState(0);
   const [dragging, setDragging] = useState<"canvas" | string | null>(null);
+  const [touchPanEnabled, setTouchPanEnabled] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<
@@ -335,9 +371,24 @@ function MindMapPreview({
     nodeOffsets: initialView?.nodeOffsets ?? {},
   });
 
+  const activeNodeIds = useMemo(() => collectMapNodeIds(nodes), [nodes]);
+  const visibleOffsets = useMemo(
+    () => Object.fromEntries(
+      Object.entries(offsets).filter(([nodeId]) => activeNodeIds.has(nodeId)),
+    ),
+    [activeNodeIds, offsets],
+  );
+
   useEffect(() => {
-    viewRef.current = { zoom, pan, nodeOffsets: offsets };
-  }, [offsets, pan, zoom]);
+    viewRef.current = { zoom, pan, nodeOffsets: visibleOffsets };
+  }, [pan, visibleOffsets, zoom]);
+
+  useEffect(() => {
+    if (Object.keys(visibleOffsets).length === Object.keys(offsets).length) return;
+    const pruned = { zoom, pan, nodeOffsets: visibleOffsets };
+    viewRef.current = pruned;
+    onViewCommit?.(pruned);
+  }, [offsets, onViewCommit, pan, visibleOffsets, zoom]);
 
   const commitView = useCallback(
     (next?: PlatformMapViewState) => {
@@ -428,17 +479,31 @@ function MindMapPreview({
     };
   }, [refreshConnections, nodes]);
 
+  const rollbackDrag = useCallback(() => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    dragRef.current = null;
+    setDragging(null);
+    if (drag.kind === "canvas") {
+      setPan(drag.origin);
+      viewRef.current = { zoom, pan: drag.origin, nodeOffsets: visibleOffsets };
+      return;
+    }
+    setOffsets((current) => {
+      const next = { ...current, [drag.nodeId]: drag.origin };
+      viewRef.current = { zoom, pan, nodeOffsets: next };
+      return next;
+    });
+  }, [pan, visibleOffsets, zoom]);
+
   useEffect(() => {
-    const cancelDrag = () => {
-      dragRef.current = null;
-      setDragging(null);
-    };
-    window.addEventListener("blur", cancelDrag);
-    return () => window.removeEventListener("blur", cancelDrag);
-  }, []);
+    window.addEventListener("blur", rollbackDrag);
+    return () => window.removeEventListener("blur", rollbackDrag);
+  }, [rollbackDrag]);
 
   const beginCanvasDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || event.button !== 0 || dragRef.current) return;
+    if (event.pointerType === "touch" && !touchPanEnabled) return;
     const target = event.target as HTMLElement;
     if (target.closest("[data-map-node-id], button")) return;
     event.preventDefault();
@@ -481,7 +546,7 @@ function MindMapPreview({
     };
     if (drag.kind === "canvas") {
       const nextPan = { x: drag.origin.x + delta.x, y: drag.origin.y + delta.y };
-      viewRef.current = { zoom, pan: nextPan, nodeOffsets: offsets };
+      viewRef.current = { zoom, pan: nextPan, nodeOffsets: visibleOffsets };
       setPan(nextPan);
       return;
     }
@@ -512,9 +577,7 @@ function MindMapPreview({
     event: ReactPointerEvent<HTMLDivElement>,
   ) => {
     if (dragRef.current?.pointerId !== event.pointerId) return;
-    dragRef.current = null;
-    setDragging(null);
-    commitView();
+    rollbackDrag();
   };
 
   const moveNodeWithKeyboard = (
@@ -557,7 +620,7 @@ function MindMapPreview({
         x: current.x + delta.x,
         y: current.y + delta.y,
       };
-      commitView({ zoom, pan: next, nodeOffsets: offsets });
+      commitView({ zoom, pan: next, nodeOffsets: visibleOffsets });
       return next;
     });
   };
@@ -612,7 +675,7 @@ function MindMapPreview({
     };
     setZoom(nextZoom);
     setPan(nextPan);
-    commitView({ zoom: nextZoom, pan: nextPan, nodeOffsets: offsets });
+    commitView({ zoom: nextZoom, pan: nextPan, nodeOffsets: visibleOffsets });
   };
 
   const resetMap = () => {
@@ -626,7 +689,7 @@ function MindMapPreview({
   const changeZoom = (next: number) => {
     const bounded = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, next));
     setZoom(bounded);
-    commitView({ zoom: bounded, pan, nodeOffsets: offsets });
+    commitView({ zoom: bounded, pan, nodeOffsets: visibleOffsets });
   };
 
   return (
@@ -636,10 +699,19 @@ function MindMapPreview({
           <span>Relationship view</span>
           <strong>{nodes.length} root {nodes.length === 1 ? "system" : "systems"}</strong>
           <small id="mindmap-drag-instructions" className={styles.mapHint}>
-            <Move aria-hidden="true" /> Drag to move · Arrow keys to nudge · Shift for larger steps
+            <Move aria-hidden="true" /> Drag to move · Touch: enable pan first · Arrow keys to nudge
           </small>
         </div>
         <div role="group" aria-label="Map zoom controls">
+          <button
+            type="button"
+            aria-label="Toggle touch background panning"
+            aria-pressed={touchPanEnabled}
+            title="Enable this before dragging the map background on a touch screen"
+            onClick={() => setTouchPanEnabled((value) => !value)}
+          >
+            <Move aria-hidden="true" />
+          </button>
           <button
             type="button"
             aria-label="Zoom out"
@@ -667,12 +739,13 @@ function MindMapPreview({
         ref={viewportRef}
         className={styles.mapViewport}
         data-dragging={dragging === "canvas"}
+        data-touch-pan={touchPanEnabled}
         data-map-viewport
         tabIndex={0}
         aria-label="Interactive mind map canvas. Drag the background to pan and drag nodes to move them."
         onKeyDown={panWithKeyboard}
         onLostPointerCapture={handleLostPointerCapture}
-        onPointerCancel={endDrag}
+        onPointerCancel={rollbackDrag}
         onPointerDown={beginCanvasDrag}
         onPointerMove={moveDrag}
         onPointerUp={endDrag}
@@ -703,7 +776,7 @@ function MindMapPreview({
               {nodes.map((node) => (
                 <MapBranch
                   node={node}
-                  offsets={offsets}
+                  offsets={visibleOffsets}
                   draggingNodeId={dragging === "canvas" ? null : dragging}
                   onNodePointerDown={beginNodeDrag}
                   onNodeKeyDown={moveNodeWithKeyboard}

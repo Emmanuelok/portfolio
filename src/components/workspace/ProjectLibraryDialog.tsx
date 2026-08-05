@@ -87,7 +87,7 @@ export function ProjectLibraryDialog({
         <header className={styles.heading}>
           <div>
             <span>Local project library</span>
-            <h2 id="project-library-title">Your Canvas workspaces</h2>
+            <h2 id="project-library-title">Your intelligence projects</h2>
             <p>
               Keep separate ideas, prototypes and briefs without one project
               overwriting another.
@@ -116,8 +116,8 @@ export function ProjectLibraryDialog({
               ref={fileInputRef}
               className={styles.fileInput}
               type="file"
-              aria-label="Import a Kingxford Canvas project bundle"
-              accept=".kxcanvas.json,.json,application/json"
+              aria-label="Import a complete Kingxford project bundle"
+              accept=".kxproject.json,.kxcanvas.json,.json,application/json"
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 if (file) onImport(file);
@@ -200,8 +200,10 @@ export function ProjectLibraryDialog({
 
         <footer>
           <p>
-            Project bundles use <code>.kxcanvas.json</code> so they can be
-            backed up or moved to another browser without flattening the source.
+            Complete bundles use <code>.kxproject.json</code> to preserve the
+            editable source, versions, evidence, decisions, map layout, and
+            accepted Agent provenance. Legacy <code>.kxcanvas.json</code> files
+            remain importable.
           </p>
           <span>Nothing is uploaded by this library.</span>
         </footer>

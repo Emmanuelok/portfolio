@@ -24,9 +24,9 @@ import {
 import styles from "./CreatePage.module.css";
 
 export const metadata: Metadata = {
-  title: "Create",
+  title: "Kingxford Intelligence Workspace",
   description:
-    "Use Kingxford Canvas to test ideas, code, mind maps, prompts, and briefs, then explore websites, digital tools, research systems, and practical utilities created by kingXford & Co.",
+    "Use one Kingxford Intelligence Workspace to test ideas, code, mind maps, prompts, and briefs, preserve project evidence and decisions, and move the same work toward delivery.",
   alternates: { canonical: "/create" },
   openGraph: {
     title: "What we create — kingXford & Co",
@@ -66,7 +66,7 @@ export default function CreatePage() {
       {
         "@type": "WebApplication",
         position: 1,
-        name: "Kingxford Canvas",
+        name: "Kingxford Intelligence Workspace",
         description:
           "A dual-pane creative intelligence workspace for testing ideas, front-end code, mind maps, prompts, and briefs.",
         url: "/create/workspace",

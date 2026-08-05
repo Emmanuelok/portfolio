@@ -10,6 +10,27 @@
     "autonomousPromotion": false,
     "promotion": "versioned-change-human-approval-rollback"
   },
+  "intelligenceRuntime": {
+    "protocolVersion": "kx-intelligence-2026-08-04.1",
+    "phases": ["discover", "investigate", "model", "build", "validate", "launch"],
+    "specialistRoles": ["discovery", "evidence", "systems", "prototype", "validation", "delivery"],
+    "maximumSpecialistPasses": 2,
+    "maximumProviderCalls": 4,
+    "supportedCapabilities": [
+      "structured-review",
+      "phase-planning",
+      "parallel-specialists",
+      "project-context",
+      "artifact-provenance"
+    ],
+    "declinedCapabilities": [
+      "external-research",
+      "code-execution",
+      "autonomous-deployment"
+    ],
+    "fallbackPolicy": "frontier-then-current-family-then-truthful-local",
+    "improvementPolicy": "deterministic-daily-gates-versioned-change-human-approval-rollback"
+  },
   "hardGates": {
     "requiredAgentRoles": [
       "conductor",

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
+import { ProjectCaptureAction } from "@/components/platform/ProjectCaptureAction";
 import { Reveal } from "@/components/Reveal";
 import type { Project } from "@/data/projects";
 
@@ -20,8 +21,8 @@ export function SelectedWorkRunway({
     >
       <header className="work-runway__header">
         <Reveal className="work-runway__index">
-          <span>03 / Mission in practice</span>
-          <span>Evidence across our delivery environments</span>
+          <span>02 / Mission in practice</span>
+          <span>Evidence and precedents for the same project system</span>
         </Reveal>
         <Reveal className="work-runway__heading" delay={0.05}>
           <h2 id="work-runway-title">
@@ -79,6 +80,15 @@ export function SelectedWorkRunway({
                 </span>
               </div>
             </Link>
+            <div className="work-runway__capture">
+              <ProjectCaptureAction
+                compact
+                title={project.title}
+                claim={project.summary}
+                referenceHref={`/work/${project.slug}`}
+                source="work"
+              />
+            </div>
           </Reveal>
         ))}
       </div>

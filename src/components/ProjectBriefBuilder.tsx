@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Download } from "lucide-react";
+import { Check, Copy, Download, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { parseConcept } from "@/lib/workspace/local-analysis";
@@ -29,6 +29,7 @@ type HandoffNotice = Readonly<{
 type CanvasHandoff = Readonly<{
   generatedAt: string;
   current: WorkspaceDraft;
+  projectIntelligence: Record<string, unknown> | null;
   agentReview: Record<string, unknown> | null;
   versions: readonly unknown[];
 }>;
@@ -117,6 +118,10 @@ function parseCanvasHandoff(raw: string): CanvasHandoff | null {
         javascript: code.javascript,
       },
     },
+    projectIntelligence:
+      parsed.projectIntelligence === null
+        ? null
+        : asRecord(parsed.projectIntelligence),
     agentReview: asRecord(parsed.agentReview),
     versions: Array.isArray(parsed.versions)
       ? parsed.versions.slice(0, CANVAS_HANDOFF_VERSION_LIMIT)
@@ -176,9 +181,39 @@ function versionSummary(versions: readonly unknown[]) {
 }
 
 function buildHandoffBrief(handoff: CanvasHandoff): BriefState {
-  const { current, agentReview, versions } = handoff;
+  const { current, projectIntelligence, agentReview, versions } = handoff;
   const concept = parseConcept(current.text, current.title || "Untitled concept");
   const buildBrief = asRecord(agentReview?.buildBrief);
+  const phase = asString(projectIntelligence?.phase);
+  const objective = asString(projectIntelligence?.objective);
+  const projectEvidence = Array.isArray(projectIntelligence?.evidence)
+    ? projectIntelligence.evidence.flatMap((value) => {
+        const entry = asRecord(value);
+        const title = asString(entry?.title);
+        const claim = asString(entry?.claim);
+        const source = asString(entry?.source);
+        if (!title && !claim) return [];
+        return [
+          [title, claim, source ? `Source: ${source}` : ""]
+            .filter(Boolean)
+            .join(" — "),
+        ];
+      })
+    : [];
+  const projectDecisions = Array.isArray(projectIntelligence?.decisions)
+    ? projectIntelligence.decisions.flatMap((value) => {
+        const entry = asRecord(value);
+        const title = asString(entry?.title);
+        const decision = asString(entry?.decision);
+        const rationale = asString(entry?.rationale);
+        if (!title && !decision) return [];
+        return [
+          [title, decision, rationale ? `Rationale: ${rationale}` : ""]
+            .filter(Boolean)
+            .join(" — "),
+        ];
+      })
+    : [];
   const currentSource =
     current.mode === "code"
       ? [
@@ -202,6 +237,9 @@ function buildHandoffBrief(handoff: CanvasHandoff): BriefState {
 
   const evidence = [
     usefulConceptValue(concept.evidence, "Define what would count"),
+    phase ? `CURRENT PROJECT PHASE\n${phase}` : "",
+    objective ? `PROJECT OBJECTIVE\n${objective}` : "",
+    listSection("PROJECT EVIDENCE REGISTER", projectEvidence),
     reviewSummary ? `CANVAS AGENT REVIEW INCLUDED BY YOU\n${reviewSummary}` : "",
     listSection("STRENGTHS IDENTIFIED", strengths),
     listSection("UNKNOWNS TO RESOLVE", uncertainties),
@@ -220,6 +258,7 @@ function buildHandoffBrief(handoff: CanvasHandoff): BriefState {
     coreExperience ? `CORE EXPERIENCE\n${coreExperience}` : "",
     listSection("PROPOSED CHANGES", proposedChanges),
     listSection("POSSIBLE DELIVERABLES", deliverables),
+    listSection("PROJECT DECISION LOG", projectDecisions),
   ].filter(Boolean).join("\n\n");
 
   return {
@@ -354,7 +393,9 @@ function buildBrief(value: BriefState) {
   ].join("\n\n");
 }
 
-export function ProjectBriefBuilder() {
+export function ProjectBriefBuilder({
+  contactEmail = null,
+}: Readonly<{ contactEmail?: string | null }>) {
   const [brief, setBrief] = useState<BriefState>(initialBrief);
   const [status, setStatus] = useState("");
   const [handoffNotice, setHandoffNotice] = useState<HandoffNotice | null>(null);
@@ -399,6 +440,26 @@ export function ProjectBriefBuilder() {
     anchor.click();
     URL.revokeObjectURL(url);
     setStatus("Brief downloaded to your device.");
+  };
+
+  const openEmailDraft = () => {
+    if (!contactEmail) return;
+    const title = brief.problem.split("\n", 1)[0]?.trim() || "Project brief";
+    const href = `mailto:${encodeURIComponent(contactEmail)}?subject=${encodeURIComponent(
+      `Kingxford build brief — ${title.slice(0, 100)}`,
+    )}&body=${encodeURIComponent(output)}`;
+
+    if (href.length > 8_000) {
+      setStatus(
+        "This brief is too large for a dependable email draft. Download the .txt file and attach it through your email app.",
+      );
+      return;
+    }
+
+    window.location.href = href;
+    setStatus(
+      "An addressed draft was opened in your email app. Review it there and send only when you choose.",
+    );
   };
 
   return (
@@ -507,6 +568,16 @@ export function ProjectBriefBuilder() {
             <Download aria-hidden="true" />
             Download .txt
           </button>
+          {contactEmail ? (
+            <button
+              className={styles.emailAction}
+              type="button"
+              onClick={openEmailDraft}
+            >
+              <Mail aria-hidden="true" />
+              Open addressed email draft
+            </button>
+          ) : null}
           <p className={styles.status} aria-live="polite">{status}</p>
         </div>
 
@@ -514,7 +585,8 @@ export function ProjectBriefBuilder() {
           Privacy: this worksheet runs locally in your browser. It does not
           submit or transmit the information you enter, and changes made here
           are not saved automatically. Copying or downloading creates a copy
-          only when you choose that action.
+          only when you choose that action. If the addressed-draft option is
+          configured, it opens your email app; it never sends on your behalf.
         </p>
       </form>
     </section>

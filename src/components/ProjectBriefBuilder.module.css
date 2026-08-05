@@ -138,9 +138,14 @@
   font-weight: 720;
 }
 
-.actions button:last-of-type {
+.actions button:nth-of-type(2),
+.actions .emailAction {
   background: transparent;
   color: var(--text);
+}
+
+.actions .emailAction {
+  border-color: color-mix(in srgb, var(--blue-bright) 58%, var(--border));
 }
 
 .actions button:hover {

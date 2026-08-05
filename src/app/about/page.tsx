@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import { Reveal } from "@/components/Reveal";
+import { PLATFORM_LIFECYCLE } from "@/lib/platform/registry";
 
 export const metadata: Metadata = {
   title: "About kingXford & Co",
@@ -40,29 +41,6 @@ const capabilities = [
   },
 ] as const;
 
-const method = [
-  {
-    title: "Investigate",
-    text:
-      "Examine the system, evidence, incentives, affected people, and long-term stakes before defining the intervention.",
-  },
-  {
-    title: "Model",
-    text:
-      "Make relationships, assumptions, scenarios, uncertainties, and decision paths explicit enough to test.",
-  },
-  {
-    title: "Develop",
-    text:
-      "Build the research programme, prototype, intelligent system, platform, or coalition that the mission requires.",
-  },
-  {
-    title: "Validate",
-    text:
-      "Evaluate usefulness, responsibility, resilience, inclusion, and ecological consequence before wider deployment.",
-  },
-] as const;
-
 export default function AboutPage() {
   return (
     <main className="page page--about">
@@ -91,9 +69,9 @@ export default function AboutPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            A company for research, development, responsible AI, and the
-            advancement of complex ideas and projects with durable human and
-            ecological value.
+            One connected platform for research, development, responsible AI,
+            and the advancement of complex ideas and projects with durable
+            human and ecological value.
           </p>
         </Reveal>
       </section>
@@ -144,7 +122,7 @@ export default function AboutPage() {
             </div>
             <div>
               <dt>Delivery</dt>
-              <dd>Studio · Living Room · Lab</dd>
+              <dd>One project · Six connected phases</dd>
             </div>
           </dl>
         </Reveal>
@@ -179,16 +157,16 @@ export default function AboutPage() {
         <div className="section-heading section-heading--split">
           <p className="eyebrow">How we work</p>
           <h2 id="method-heading">
-            Evidence before certainty. Responsibility before scale.
+            One intelligence thread from first question to governed launch.
           </h2>
         </div>
         <ol className="method__track">
-          {method.map((step, index) => (
-            <li className="method__entry" key={step.title}>
+          {PLATFORM_LIFECYCLE.map((step, index) => (
+            <li className="method__entry" key={step.id}>
               <Reveal className="method__step" delay={index * 0.06}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
+                <span>{step.index}</span>
+                <h3>{step.label}</h3>
+                <p>{step.description}</p>
               </Reveal>
             </li>
           ))}
@@ -209,12 +187,12 @@ export default function AboutPage() {
         <p className="eyebrow">Advance the mission</p>
         <h2>Bring the complex problem, ambitious idea, or consequential project.</h2>
         <div className="page-cta__actions">
-          <Link className="button button--primary" href="/contact">
-            <span>Start a conversation</span>
+          <Link className="button button--primary" href="/create/workspace?phase=discover&mode=idea">
+            <span>Start in the workspace</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
-          <Link className="button button--quiet" href="/work">
-            <span>Explore the work</span>
+          <Link className="button button--quiet" href="/contact">
+            <span>Prepare a build brief</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
         </div>

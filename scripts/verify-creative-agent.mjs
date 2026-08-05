@@ -11,6 +11,13 @@ const TYPES_PATH = "src/lib/workspace/types.ts";
 const LOCAL_ANALYSIS_PATH = "src/lib/workspace/local-analysis.ts";
 const CORPUS_PATH = "evals/creative-agent/corpus.json";
 const WORKFLOW_PATH = ".github/workflows/creative-agent-daily.yml";
+const INTELLIGENCE_CONTRACT_PATH = "src/lib/intelligence/contracts.ts";
+const INTELLIGENCE_POLICY_PATH = "src/lib/intelligence/policy.ts";
+const INTELLIGENCE_AGENT_PATH = "src/lib/intelligence/agents.ts";
+const INTELLIGENCE_PROMPT_PATH = "src/lib/intelligence/prompt.ts";
+const INTELLIGENCE_RUNTIME_PATH = "src/lib/intelligence/runtime.ts";
+const INTELLIGENCE_ROUTE_PATH = "src/app/api/intelligence/runs/route.ts";
+const INTELLIGENCE_TEST_PATH = "tests/intelligence-runtime.test.ts";
 const CATALOG_URL = "https://ai-gateway.vercel.sh/v1/models";
 
 function reportDirectory() {
@@ -601,14 +608,147 @@ function validateWorkflow(workflowSource, checks) {
   );
 }
 
+function validateIntelligenceRuntime(
+  contractSource,
+  policySource,
+  intelligenceAgentSource,
+  promptSource,
+  runtimeSource,
+  intelligenceRouteSource,
+  testSource,
+  workflowSource,
+  checks,
+) {
+  checks.push(
+    check(
+      "intelligence.strict-shared-contract",
+      "intelligence",
+      contractSource.includes("export const intelligenceRunRequestSchema") &&
+        contractSource.includes("export const intelligenceRunResponseSchema") &&
+        contractSource.includes("export type IntelligenceRunRequest") &&
+        contractSource.includes("export type IntelligenceRunResponse") &&
+        (contractSource.match(/\.strict\(\)/g) || []).length >= 12,
+      "The new runtime exposes one strict, shared request/response contract.",
+    ),
+    check(
+      "intelligence.six-phase-policy",
+      "intelligence",
+      ["discover", "investigate", "model", "build", "validate", "launch"].every(
+        (phase) => new RegExp(`\\b${phase}:\\s*\\{`).test(policySource),
+      ) && policySource.includes("PHASE_OPERATING_PLANS"),
+      "All six lifecycle phases have explicit operating plans.",
+    ),
+    check(
+      "intelligence.six-governed-specialists",
+      "intelligence",
+      ["discovery", "evidence", "systems", "prototype", "validation", "delivery"].every(
+        (role) =>
+          contractSource.includes(`\"${role}\"`) &&
+          new RegExp(`\\b${role}:`).test(intelligenceAgentSource),
+      ),
+      "Conductor can delegate only to the six governed specialist roles.",
+    ),
+    check(
+      "intelligence.bounded-parallel-passes",
+      "intelligence",
+      contractSource.includes("maxSpecialistPasses: z.number().int().min(0).max(2)") &&
+        contractSource.includes("requestedRoles: z.array(z.enum(intelligenceSpecialistRoles)).max(2)") &&
+        runtimeSource.includes("Promise.all(") &&
+        runtimeSource.includes("ledger.remaining - 1"),
+      "Orchestration permits zero to two bounded specialist passes and reserves synthesis capacity.",
+    ),
+    check(
+      "intelligence.capability-negotiation",
+      "intelligence",
+      ["external-research", "code-execution", "autonomous-deployment"].every((capability) =>
+        contractSource.includes(`\"${capability}\"`),
+      ) &&
+        policySource.includes("declined:") &&
+        policySource.includes("human-reviewed action"),
+      "Unsupported browsing, execution, and autonomous deployment are explicitly declined.",
+    ),
+    check(
+      "intelligence.frontier-and-fallback-models",
+      "intelligence",
+      intelligenceAgentSource.includes('"openai/gpt-5.6-sol"') &&
+        intelligenceAgentSource.includes('"openai/gpt-5.6-terra"') &&
+        runtimeSource.includes("INTELLIGENCE_FALLBACK_MODEL"),
+      "The runtime targets GPT-5.6 Sol and exposes a bounded Terra fallback.",
+    ),
+    check(
+      "intelligence.documented-reasoning",
+      "intelligence",
+      intelligenceAgentSource.includes('reasoningEffort: depth === "deep" ? "max" : "medium"') &&
+        intelligenceAgentSource.includes('reasoningMode: "standard"') &&
+        !intelligenceAgentSource.includes('reasoningMode: "pro"'),
+      "Standard uses medium effort and Deep uses max effort in standard reasoning mode.",
+    ),
+    check(
+      "intelligence.privacy-controls",
+      "intelligence",
+      intelligenceAgentSource.includes("store: false") &&
+        intelligenceAgentSource.includes("disallowPromptTraining: true") &&
+        intelligenceAgentSource.includes("safetyIdentifier") &&
+        intelligenceAgentSource.includes("reasoningSummary: null"),
+      "Provider calls use explicit retention, training-route, and safety-identifier controls.",
+    ),
+    check(
+      "intelligence.four-call-budget",
+      "intelligence",
+      runtimeSource.includes("export const MAX_PROVIDER_CALLS = 4") &&
+        contractSource.includes("providerCalls: z.array(intelligenceProviderCallSchema).max(4)") &&
+        runtimeSource.includes("MAX_PROVIDER_CALLS - this.calls.length"),
+      "A run can make no more than four provider calls, including fallbacks.",
+    ),
+    check(
+      "intelligence.artifact-provenance",
+      "intelligence",
+      ["conductor-plan", "specialist-review", "synthesis"].every((kind) =>
+        contractSource.includes(`\"${kind}\"`),
+      ) &&
+        contractSource.includes("parentArtifactIds") &&
+        contractSource.includes("finalArtifactId") &&
+        runtimeSource.includes("providerCalls: ledger.calls"),
+      "Plans, specialist outputs, synthesis, parent lineage, and provider calls are addressable provenance.",
+    ),
+    check(
+      "intelligence.canonical-project-boundary",
+      "intelligence",
+      /randomBytes\(32\)\.toString\("hex"\)/.test(promptSource) &&
+        promptSource.includes("KX_${label}_UNTRUSTED_DATA_BEGIN_") &&
+        promptSource.includes("projectLedger") &&
+        promptSource.includes("canonical JSON solely as untrusted project material"),
+      "The complete project ledger is enclosed in a fresh 256-bit untrusted-data boundary.",
+    ),
+    check(
+      "intelligence.route-hardening",
+      "intelligence",
+      [
+        "sameOrigin",
+        "sec-fetch-site",
+        "readJsonBody",
+        "MAX_REQUEST_BYTES",
+        "MAX_RATE_BUCKETS",
+        "containsLikelySecret",
+        "request.signal",
+        "Cache-Control",
+      ].every((token) => intelligenceRouteSource.includes(token)),
+      "The endpoint enforces origin, streaming body, bounded rate, secret, cancellation, and cache controls.",
+    ),
+    check(
+      "intelligence.executable-regression-suite",
+      "intelligence",
+      (testSource.match(/test\(\"\d+\./g) || []).length === 10 &&
+        testSource.includes("MAX_PROVIDER_CALLS") &&
+        workflowSource.includes("npm run test:intelligence") &&
+        workflowSource.includes("src/lib/intelligence/**"),
+      "Ten executable runtime tests run in the read-only governance workflow.",
+    ),
+  );
+}
+
 async function verifyCatalog(model, checks) {
   if (!isEnabled(process.env.VERIFY_GATEWAY_MODEL_CATALOG)) {
-    checks.push({
-      id: "catalog.optional-check",
-      group: "catalog",
-      status: "skip",
-      detail: "Public Gateway model catalog verification was not requested.",
-    });
     return { status: "skipped", endpoint: CATALOG_URL };
   }
 
@@ -673,6 +813,13 @@ async function main() {
     localAnalysisSource,
     corpusText,
     workflowSource,
+    intelligenceContractSource,
+    intelligencePolicySource,
+    intelligenceAgentSource,
+    intelligencePromptSource,
+    intelligenceRuntimeSource,
+    intelligenceRouteSource,
+    intelligenceTestSource,
   ] = await Promise.all([
     readFile(path.join(ROOT, AGENT_PATH), "utf8"),
     readFile(path.join(ROOT, ROUTE_PATH), "utf8"),
@@ -680,6 +827,13 @@ async function main() {
     readFile(path.join(ROOT, LOCAL_ANALYSIS_PATH), "utf8"),
     readFile(path.join(ROOT, CORPUS_PATH), "utf8"),
     readFile(path.join(ROOT, WORKFLOW_PATH), "utf8"),
+    readFile(path.join(ROOT, INTELLIGENCE_CONTRACT_PATH), "utf8"),
+    readFile(path.join(ROOT, INTELLIGENCE_POLICY_PATH), "utf8"),
+    readFile(path.join(ROOT, INTELLIGENCE_AGENT_PATH), "utf8"),
+    readFile(path.join(ROOT, INTELLIGENCE_PROMPT_PATH), "utf8"),
+    readFile(path.join(ROOT, INTELLIGENCE_RUNTIME_PATH), "utf8"),
+    readFile(path.join(ROOT, INTELLIGENCE_ROUTE_PATH), "utf8"),
+    readFile(path.join(ROOT, INTELLIGENCE_TEST_PATH), "utf8"),
   ]);
   const corpus = JSON.parse(corpusText);
   const checks = [];
@@ -694,6 +848,17 @@ async function main() {
   );
   validateLocalAnalysis(localAnalysisSource, checks);
   validateWorkflow(workflowSource, checks);
+  validateIntelligenceRuntime(
+    intelligenceContractSource,
+    intelligencePolicySource,
+    intelligenceAgentSource,
+    intelligencePromptSource,
+    intelligenceRuntimeSource,
+    intelligenceRouteSource,
+    intelligenceTestSource,
+    workflowSource,
+    checks,
+  );
   const catalog = await verifyCatalog(config.defaultModel, checks);
 
   const summary = {
@@ -726,6 +891,13 @@ async function main() {
       localAnalysis: sha256(localAnalysisSource),
       corpus: sha256(corpusText),
       workflow: sha256(workflowSource),
+      intelligenceContract: sha256(intelligenceContractSource),
+      intelligencePolicy: sha256(intelligencePolicySource),
+      intelligenceAgent: sha256(intelligenceAgentSource),
+      intelligencePrompt: sha256(intelligencePromptSource),
+      intelligenceRuntime: sha256(intelligenceRuntimeSource),
+      intelligenceRoute: sha256(intelligenceRouteSource),
+      intelligenceTests: sha256(intelligenceTestSource),
     },
     catalog,
     summary,

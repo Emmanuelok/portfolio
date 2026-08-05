@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "verify:creative-agent": "node scripts/verify-creative-agent.mjs"
+    "verify:creative-agent": "node scripts/verify-creative-agent.mjs",
+    "test:intelligence": "node --import tsx --test tests/intelligence-runtime.test.ts",
+    "test:platform": "node --import tsx --test tests/platform-project-bundle.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
@@ -16,7 +18,7 @@
     "ai": "^7.0.51",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.26",
-    "next": "16.2.11",
+    "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.4.3"
@@ -24,11 +26,12 @@
   "devDependencies": {
     "@sparticuz/chromium": "^149.0.0",
     "@types/node": "^24.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
     "eslint": "^9.0.0",
-    "eslint-config-next": "16.2.11",
+    "eslint-config-next": "16.3.0",
     "playwright-core": "^1.62.0",
+    "tsx": "4.23.5",
     "typescript": "^5.9.0"
   }
 }

@@ -10,7 +10,11 @@ import {
   useState,
 } from "react";
 
-import { createPlatformSeed, writePlatformSeed } from "@/lib/platform/seed";
+import {
+  PLATFORM_SEED_INPUT_LIMIT,
+  createPlatformSeed,
+  writePlatformSeed,
+} from "@/lib/platform/seed";
 
 type WorldId = "studio" | "living-room" | "lab";
 
@@ -281,18 +285,22 @@ export function IdeaRouter() {
   const startProject = () => {
     const input = idea.trim();
     if (input.length < 3) return;
-    const seed = createPlatformSeed(input, {
-      phase: "discover",
-      mode: "idea",
-      source: "idea-router",
-    });
-    const saved = writePlatformSeed(window.sessionStorage, seed);
-    if (!saved.ok) {
-      setStatus("This browser could not prepare the private project start. Your words were not sent anywhere.");
-      return;
+    try {
+      const seed = createPlatformSeed(input, {
+        phase: "discover",
+        mode: "idea",
+        source: "idea-router",
+      });
+      const saved = writePlatformSeed(window.sessionStorage, seed);
+      if (!saved.ok) {
+        setStatus("This browser could not prepare the private project start. Your words were not sent anywhere.");
+        return;
+      }
+      setStatus("Project prepared. Opening the same idea in the workspace…");
+      router.push("/create/workspace?start=seed&phase=discover&mode=idea");
+    } catch {
+      setStatus("This project could not be prepared safely. Your words were not sent anywhere.");
     }
-    setStatus("Project prepared. Opening the same idea in the workspace…");
-    router.push("/create/workspace?start=seed&phase=discover&mode=idea");
   };
 
   return (
@@ -322,11 +330,18 @@ export function IdeaRouter() {
             id="idea-router-input"
             value={idea}
             rows={3}
+            maxLength={PLATFORM_SEED_INPUT_LIMIT}
             placeholder="We need to understand, develop, or build…"
-            onChange={(event) => setIdea(event.target.value)}
+            onChange={(event) => {
+              setIdea(event.target.value);
+              setStatus("");
+            }}
           />
           <CornerDownLeft aria-hidden="true" />
         </div>
+        <p className="idea-router__count">
+          {idea.length.toLocaleString()} / {PLATFORM_SEED_INPUT_LIMIT.toLocaleString()}
+        </p>
 
         {!hasIdea && (
           <div className="idea-router__prompts" aria-label="Example ideas">
@@ -358,9 +373,9 @@ export function IdeaRouter() {
               Start this project
               <ArrowUpRight aria-hidden="true" />
             </button>
-            <p className="sr-only" role="status" aria-live="polite">{status}</p>
           </div>
         )}
+        <p className="sr-only" role="status" aria-live="polite">{status}</p>
       </div>
     </section>
   );

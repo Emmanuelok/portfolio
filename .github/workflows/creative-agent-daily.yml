@@ -1,12 +1,27 @@
 name: Creative agent deterministic governance
 
 on:
+  push:
+    branches:
+      - "agent/**"
+    paths:
+      - "src/lib/intelligence/**"
+      - "src/app/api/intelligence/runs/route.ts"
+      - "tests/intelligence-runtime.test.ts"
+      - "evals/creative-agent/**"
+      - "scripts/verify-creative-agent.mjs"
+      - ".github/workflows/creative-agent-daily.yml"
+      - "package.json"
+      - "package-lock.json"
   pull_request:
     paths:
       - "src/lib/workspace/agent.ts"
       - "src/lib/workspace/types.ts"
       - "src/app/api/workspace/agent/route.ts"
       - "src/lib/workspace/local-analysis.ts"
+      - "src/lib/intelligence/**"
+      - "src/app/api/intelligence/runs/route.ts"
+      - "tests/intelligence-runtime.test.ts"
       - "evals/creative-agent/**"
       - "scripts/verify-creative-agent.mjs"
       - ".github/workflows/creative-agent-daily.yml"
@@ -48,9 +63,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
+      - name: Install the locked dependency graph
+        run: npm ci --ignore-scripts
 
       - name: Run deterministic governance verification
         run: npm run verify:creative-agent
+
+      - name: Run governed intelligence runtime tests
+        run: npm run test:intelligence
 
       - name: Publish the report in the workflow summary
         if: always()

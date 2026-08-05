@@ -21,7 +21,13 @@ const usefulDetails = [
   "The forms of investment available: capital, knowledge, time, infrastructure, networks, or trust",
 ] as const;
 
+function configuredContactEmail() {
+  const value = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() ?? "";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : null;
+}
+
 export default function ContactPage() {
+  const contactEmail = configuredContactEmail();
   return (
     <main className="page page--contact">
       <section
@@ -57,7 +63,7 @@ export default function ContactPage() {
         </Reveal>
       </section>
 
-      <ProjectBriefBuilder />
+      <ProjectBriefBuilder contactEmail={contactEmail} />
 
       <section className="brief-guide" aria-labelledby="brief-guide-heading">
         <div className="section-heading section-heading--split">

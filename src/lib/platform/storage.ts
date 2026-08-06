@@ -4,6 +4,8 @@ import {
   platformArtifactRelations,
   platformDecisionStatuses,
   platformEvidenceKinds,
+  isLegacyPlatformPhase,
+  normalizePlatformPhase,
   platformPhases,
   type PlatformAcceptedAgentRun,
   type PlatformArtifactRelationship,
@@ -156,6 +158,14 @@ function enumValue<T extends readonly string[]>(
     invalid(path, `expected one of: ${allowed.join(", ")}.`);
   }
   return value as T[number];
+}
+
+function phaseValue(value: unknown, path: string) {
+  const phase = normalizePlatformPhase(value);
+  if (!phase) {
+    invalid(path, `expected one of: ${platformPhases.join(", ")}.`);
+  }
+  return phase;
 }
 
 function boundedArray(value: unknown, path: string, maximum: number) {
@@ -368,7 +378,7 @@ function acceptedAgentRun(
   return {
     id: identifier(record.id, `${path}.id`),
     role: enumValue(record.role, `${path}.role`, platformAgentRoles),
-    phase: enumValue(record.phase, `${path}.phase`, platformPhases),
+    phase: phaseValue(record.phase, `${path}.phase`),
     source: enumValue(
       record.source,
       `${path}.source`,
@@ -461,7 +471,7 @@ function projectIntelligence(
       OBJECTIVE_LIMIT,
       { empty: true },
     ),
-    phase: enumValue(record.phase, `${path}.phase`, platformPhases),
+    phase: phaseValue(record.phase, `${path}.phase`),
     artifactRelationships,
     evidence,
     decisions,
@@ -514,6 +524,37 @@ function sidecar(value: unknown): PlatformSidecarV1 {
     revision: record.revision,
     projects,
   };
+}
+
+function containsLegacyPhaseAlias(value: unknown) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const projects = (value as UnknownRecord).projects;
+  if (projects === null || typeof projects !== "object" || Array.isArray(projects)) {
+    return false;
+  }
+  return Object.values(projects as UnknownRecord).some((projectValue) => {
+    if (
+      projectValue === null ||
+      typeof projectValue !== "object" ||
+      Array.isArray(projectValue)
+    ) {
+      return false;
+    }
+    const project = projectValue as UnknownRecord;
+    if (isLegacyPlatformPhase(project.phase)) return true;
+    return (
+      Array.isArray(project.agentRuns) &&
+      project.agentRuns.some(
+        (run) =>
+          run !== null &&
+          typeof run === "object" &&
+          !Array.isArray(run) &&
+          isLegacyPlatformPhase((run as UnknownRecord).phase),
+      )
+    );
+  });
 }
 
 function parseJson(raw: string): unknown {
@@ -576,7 +617,7 @@ export function createPlatformProjectIntelligence(
   const value: PlatformProjectIntelligence = {
     projectId,
     objective: options.objective ?? "",
-    phase: options.phase ?? "discover",
+    phase: options.phase ?? "discovery",
     artifactRelationships: [],
     evidence: [],
     decisions: [],
@@ -620,7 +661,12 @@ export function loadPlatformSidecar(
     return { status: "empty", sidecar: createEmptyPlatformSidecar() };
   }
   try {
-    return { status: "ready", sidecar: parsePlatformSidecar(raw) };
+    const rawValue = parseJson(raw);
+    const parsedSidecar = sidecar(rawValue);
+    if (containsLegacyPhaseAlias(rawValue)) {
+      storage.setItem(PLATFORM_STORAGE_KEY, serializePlatformSidecar(parsedSidecar));
+    }
+    return { status: "ready", sidecar: parsedSidecar };
   } catch (error) {
     return { status: "error", error: asStorageError(error) };
   }

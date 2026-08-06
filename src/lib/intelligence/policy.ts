@@ -33,7 +33,7 @@ const sharedMandates: Readonly<Record<IntelligenceSpecialistRole, string>> = {
 };
 
 export const PHASE_OPERATING_PLANS: Readonly<Record<PlatformPhase, PhaseOperatingPlan>> = {
-  discover: {
+  discovery: {
     objective:
       "Convert the initial intention into a bounded problem, audience, outcome, constraint set, and responsible first test.",
     specialists: ["discovery", "evidence"],
@@ -49,7 +49,7 @@ export const PHASE_OPERATING_PLANS: Readonly<Record<PlatformPhase, PhaseOperatin
     ],
     handoff: "Advance to Investigate with a testable problem frame and an evidence plan.",
   },
-  investigate: {
+  evidence: {
     objective:
       "Distinguish supported claims from assumptions and assemble the minimum evidence needed for a defensible direction.",
     specialists: ["evidence", "discovery"],
@@ -65,7 +65,7 @@ export const PHASE_OPERATING_PLANS: Readonly<Record<PlatformPhase, PhaseOperatin
     ],
     handoff: "Advance to Model with traceable evidence and explicitly unresolved uncertainty.",
   },
-  model: {
+  systems: {
     objective:
       "Create a coherent system model whose relationships, dependencies, failure paths, and evidence links can be inspected.",
     specialists: ["systems", "evidence"],
@@ -81,7 +81,7 @@ export const PHASE_OPERATING_PLANS: Readonly<Record<PlatformPhase, PhaseOperatin
     ],
     handoff: "Advance to Build with a bounded architecture and explicit acceptance criteria.",
   },
-  build: {
+  prototype: {
     objective:
       "Turn the model into a coherent, accessible prototype that preserves provenance and can be evaluated safely.",
     specialists: ["prototype", "systems"],
@@ -97,7 +97,7 @@ export const PHASE_OPERATING_PLANS: Readonly<Record<PlatformPhase, PhaseOperatin
     ],
     handoff: "Advance to Validate with a complete prototype proposal and falsifiable criteria.",
   },
-  validate: {
+  validation: {
     objective:
       "Test whether the proposed experience satisfies its stated purpose without concealing uncertainty, risk, or failure.",
     specialists: ["validation", "evidence"],
@@ -111,9 +111,9 @@ export const PHASE_OPERATING_PLANS: Readonly<Record<PlatformPhase, PhaseOperatin
       "Every test states what is observed, what is not measured, and which decision follows.",
       "No proposed test is described as completed unless its result exists in project evidence.",
     ],
-    handoff: "Advance to Launch only after evidence supports the release decision and its limits.",
+    handoff: "Advance to Deliver only after evidence supports the release decision and its limits.",
   },
-  launch: {
+  delivery: {
     objective:
       "Prepare a governed release and handoff that makes dependencies, ownership, evidence, rollback, and next decisions explicit.",
     specialists: ["delivery", "validation"],

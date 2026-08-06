@@ -567,6 +567,74 @@
   .continue { display: flex; }
 }
 
+/* Keep the complete, truthful project-start contract in the opening viewport
+   on common laptop and presentation displays without hiding any content. */
+@media (min-width: 62rem) and (max-height: 67rem) {
+  .nexus {
+    padding-top: calc(var(--header-height) + 0.8rem);
+    padding-bottom: 0.7rem;
+  }
+
+  .frame {
+    min-height: calc(100svh - var(--header-height) - 1.5rem);
+  }
+
+  .mainGrid {
+    padding-block: 1.15rem 0.6rem;
+  }
+
+  .eyebrow {
+    margin-bottom: 0.6rem;
+  }
+
+  .proposition h1 {
+    margin-bottom: 0.75rem;
+    font-size: clamp(4.1rem, 5.55vw, 6.4rem);
+    line-height: 0.83;
+  }
+
+  .lede {
+    margin-bottom: 1rem;
+    font-size: clamp(0.94rem, 1vw, 1.05rem);
+  }
+
+  .startForm > label {
+    margin-bottom: 0.4rem;
+  }
+
+  .inputShell textarea {
+    min-height: 5.25rem;
+    padding: 0.75rem 0.9rem 0.55rem;
+  }
+
+  .inputMeta {
+    padding: 0.4rem 0.7rem;
+  }
+
+  .starters {
+    padding-block: 0.35rem 0.05rem;
+  }
+
+  .starters button {
+    padding: 0.35rem 0.55rem;
+  }
+
+  .formActions {
+    margin-top: 0.5rem;
+  }
+
+  .formActions > button,
+  .formActions > a {
+    min-height: 3.1rem;
+  }
+
+  .privacy,
+  .status {
+    margin-top: 0.4rem;
+    line-height: 1.35;
+  }
+}
+
 @media (max-width: 47rem) {
   .nexus { padding-inline: 1rem; }
   .topline p { display: none; }

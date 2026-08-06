@@ -1,5 +1,11 @@
 import { workspaceModes, type WorkspaceMode } from "@/lib/workspace/types";
-import { platformPhases, type PlatformPhase } from "@/lib/platform/types";
+import {
+  isLegacyPlatformPhase,
+  normalizePlatformPhase,
+  platformPhases,
+  type PlatformPhase,
+} from "@/lib/platform/types";
+import { writeProjectSeed } from "@/lib/workspace/project-seed";
 
 export const PLATFORM_SEED_STORAGE_KEY = "kingxford:platform-seed:v1";
 export const PLATFORM_SEED_SCHEMA_VERSION = 1 as const;
@@ -105,6 +111,14 @@ function enumValue<T extends readonly string[]>(
   return value as T[number];
 }
 
+function phaseValue(value: unknown, path: string): PlatformPhase {
+  const phase = normalizePlatformPhase(value);
+  if (!phase) {
+    invalid(path, `expected one of: ${platformPhases.join(", ")}.`);
+  }
+  return phase;
+}
+
 function validateSeed(value: unknown): PlatformSeedV1 {
   const candidate = record(value);
   const expectedKeys = [
@@ -159,7 +173,7 @@ function validateSeed(value: unknown): PlatformSeedV1 {
       "root.input",
       PLATFORM_SEED_INPUT_LIMIT,
     ),
-    phase: enumValue(candidate.phase, "root.phase", platformPhases),
+    phase: phaseValue(candidate.phase, "root.phase"),
     mode: enumValue(candidate.mode, "root.mode", workspaceModes),
     source: enumValue(candidate.source, "root.source", platformSeedSources),
   };
@@ -206,13 +220,13 @@ export function createPlatformSeed(
     createdAt: options.now ?? new Date().toISOString(),
     title: options.title ?? seedTitle(input),
     input,
-    phase: options.phase ?? "discover",
+    phase: options.phase ?? "discovery",
     mode: options.mode ?? "idea",
     source: options.source ?? "platform",
   });
 }
 
-export function parsePlatformSeed(raw: string): PlatformSeedV1 {
+function parseSeedJson(raw: string): unknown {
   if (raw.length > PLATFORM_SEED_CHARACTER_LIMIT) {
     throw new PlatformSeedError(
       "too-large",
@@ -229,7 +243,11 @@ export function parsePlatformSeed(raw: string): PlatformSeedV1 {
       { cause: error },
     );
   }
-  return validateSeed(value);
+  return value;
+}
+
+export function parsePlatformSeed(raw: string): PlatformSeedV1 {
+  return validateSeed(parseSeedJson(raw));
 }
 
 export function serializePlatformSeed(seed: PlatformSeedV1) {
@@ -254,7 +272,18 @@ export function readPlatformSeed(
   }
   if (raw === null) return { status: "empty" };
   try {
-    return { status: "ready", seed: parsePlatformSeed(raw) };
+    const rawValue = parseSeedJson(raw);
+    const rawPhase =
+      rawValue !== null &&
+      typeof rawValue === "object" &&
+      !Array.isArray(rawValue)
+        ? (rawValue as Record<string, unknown>).phase
+        : undefined;
+    const seed = validateSeed(rawValue);
+    if (isLegacyPlatformPhase(rawPhase)) {
+      storage.setItem(PLATFORM_SEED_STORAGE_KEY, serializePlatformSeed(seed));
+    }
+    return { status: "ready", seed };
   } catch (error) {
     return { status: "error", error: asSeedError(error) };
   }
@@ -265,9 +294,48 @@ export function writePlatformSeed(
   seed: PlatformSeedV1,
 ): PlatformSeedWriteResult {
   try {
-    const serialized = serializePlatformSeed(seed);
-    storage.setItem(PLATFORM_SEED_STORAGE_KEY, serialized);
-    return { ok: true, serializedCharacters: serialized.length };
+    const validated = validateSeed(seed);
+    const sourceKind = validated.source === "work"
+      ? "work"
+      : validated.source === "media"
+        ? "media"
+        : validated.source === "lab"
+          ? "lab"
+          : validated.source === "showcase"
+            ? "create"
+            : "idea-router";
+    const sourceHref = validated.source === "work"
+      ? "/work"
+      : validated.source === "media"
+        ? "/media"
+        : validated.source === "lab"
+          ? "/lab"
+          : validated.source === "showcase"
+            ? "/create"
+            : "/";
+    const canonical = writeProjectSeed({
+      action: "start-project",
+      source: {
+        kind: sourceKind,
+        href: sourceHref,
+        label: validated.title || "Kingxford project start",
+      },
+      payload: {
+        title: validated.title || "Untitled Kingxford project",
+        brief: validated.input,
+        tags: [validated.phase, validated.mode, validated.source],
+      },
+    }, storage);
+    if (!canonical) {
+      throw new PlatformSeedError(
+        "storage-unavailable",
+        "The canonical Project Atlas handoff could not be stored.",
+      );
+    }
+    return {
+      ok: true,
+      serializedCharacters: JSON.stringify(canonical).length,
+    };
   } catch (error) {
     return { ok: false, error: asSeedError(error) };
   }

@@ -72,7 +72,7 @@ export default function HomePage() {
           </h2>
         </Reveal>
         <Reveal className="home-finale__action" delay={0.08}>
-          <Link href="/create/workspace?phase=discover&mode=idea" className="circle-link">
+          <Link href="/create/workspace?phase=discovery&mode=idea" className="circle-link">
             <span>Start a project</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>

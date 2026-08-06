@@ -100,7 +100,7 @@ const governanceSignals = [
 
 export function IntelligenceOperatingSystem() {
   const [activePhase, setActivePhase] =
-    useState<PlatformPhase>("discover");
+    useState<PlatformPhase>("discovery");
   const phase =
     PLATFORM_LIFECYCLE.find((item) => item.id === activePhase) ??
     PLATFORM_LIFECYCLE[0];

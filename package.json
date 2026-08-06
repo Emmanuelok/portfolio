@@ -2,6 +2,9 @@
   "name": "kingxford",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,13 +12,14 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "verify:creative-agent": "node scripts/verify-creative-agent.mjs",
+    "verify:platform-journey": "bash scripts/run-platform-journey.sh",
     "test:intelligence": "node --import tsx --test tests/intelligence-runtime.test.ts",
-    "test:platform": "node --import tsx --test tests/platform-project-bundle.test.ts"
+    "test:platform": "node --import tsx --test tests/platform-project-bundle.test.ts tests/unified-project-migration.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
     "@fontsource-variable/newsreader": "^5.2.8",
-    "ai": "^7.0.51",
+    "ai": "^7.0.52",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.26",
     "next": "16.3.0",
@@ -26,8 +30,8 @@
   "devDependencies": {
     "@sparticuz/chromium": "^149.0.0",
     "@types/node": "^24.0.0",
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.3.0",
     "playwright-core": "^1.62.0",

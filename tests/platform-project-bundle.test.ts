@@ -35,7 +35,7 @@ test("aggregate bundles round-trip editable source and project intelligence", ()
   const intelligence = {
     ...createPlatformProjectIntelligence(project.id, {
       objective: "Validate the complete opportunity",
-      phase: "investigate",
+      phase: "evidence",
       now: "2026-08-04T12:00:00.000Z",
     }),
     evidence: [{
@@ -71,7 +71,7 @@ test("legacy Canvas bundles remain importable with a safe intelligence record", 
   assert.equal(imported.sourceFormat, "legacy-canvas");
   assert.notEqual(imported.project.id, project.id);
   assert.equal(imported.intelligence.projectId, imported.project.id);
-  assert.equal(imported.intelligence.phase, "discover");
+  assert.equal(imported.intelligence.phase, "discovery");
 });
 
 test("export rejects mismatched editable source and intelligence", () => {

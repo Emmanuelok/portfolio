@@ -2,19 +2,17 @@
 
 import {
   ArrowRight,
+  BrainCircuit,
   Bot,
   Braces,
   ChevronRight,
   CircleStop,
   Code2,
   Download,
-  FileUp,
   FileCode2,
   FileText,
   FolderKanban,
-  GitCompare,
   History,
-  Layers3,
   Lightbulb,
   LoaderCircle,
   Network,
@@ -27,7 +25,8 @@ import {
   Send,
   Settings2,
   Sparkles,
-  TriangleAlert,
+  Trash2,
+  Upload,
   WandSparkles,
   X,
 } from "lucide-react";
@@ -43,51 +42,7 @@ import {
   useState,
 } from "react";
 
-import {
-  summarizeDraftChanges,
-  transformDraft,
-} from "@/lib/workspace/local-analysis";
-import {
-  intelligenceCapabilities,
-  intelligenceRunRequestSchema,
-  intelligenceRunResponseSchema,
-  type IntelligenceRunRequest,
-  type IntelligenceRunResponse,
-} from "@/lib/intelligence/contracts";
-import {
-  getPlatformPhase,
-  getPrimaryPhaseForMode,
-  PLATFORM_AGENTS,
-  PLATFORM_LIFECYCLE,
-} from "@/lib/platform/registry";
-import {
-  consumePlatformSeed,
-  readPlatformSeed,
-  type PlatformSeedV1,
-} from "@/lib/platform/seed";
-import {
-  createEmptyPlatformSidecar,
-  createPlatformProjectIntelligence,
-  dispatchPlatformChange,
-  loadPlatformSidecar,
-  PLATFORM_CHANGE_EVENT,
-  PLATFORM_STORAGE_KEY,
-  removePlatformProject,
-  savePlatformSidecar,
-  upsertPlatformProject,
-} from "@/lib/platform/storage";
-import type {
-  PlatformAgentRole,
-  PlatformMapViewState,
-  PlatformPhase,
-  PlatformProjectIntelligence,
-  PlatformSidecarV1,
-} from "@/lib/platform/types";
-import {
-  importPlatformProjectBundle,
-  PLATFORM_PROJECT_BUNDLE_CHARACTER_LIMIT,
-  serializePlatformProjectBundle,
-} from "@/lib/platform/project-bundle";
+import { transformDraft } from "@/lib/workspace/local-analysis";
 import {
   initialDraft,
   modeDetails,
@@ -95,47 +50,137 @@ import {
   transformLabels,
 } from "@/lib/workspace/presets";
 import {
-  createWorkspaceLibrary,
-  createWorkspaceProject,
-  loadWorkspaceLibrary,
-  saveWorkspaceLibrary,
-  WORKSPACE_PROJECT_LIMIT,
-  WORKSPACE_STORAGE_KEY,
-  WORKSPACE_VERSION_LIMIT,
-} from "@/lib/workspace/storage";
+  agentLensDetails,
+  agentLenses,
+  isAgentLens,
+  type AgentLens,
+} from "@/lib/workspace/lenses";
+import { ProjectContinuum } from "@/components/workspace/ProjectContinuum";
+import {
+  ProjectIntelligencePanel,
+  type ManualEvidenceSubmission,
+} from "@/components/workspace/ProjectIntelligencePanel";
+import { ProjectLibraryDialog } from "@/components/workspace/ProjectLibraryDialog";
+import {
+  intelligenceCapabilities,
+  intelligenceRunRequestSchema,
+  intelligenceRunResponseSchema,
+  type IntelligenceRunRequest,
+  type IntelligenceRunResponse,
+} from "@/lib/intelligence/contracts";
+import type { PlatformPhaseId } from "@/lib/platform";
+import {
+  safeParseCanvasV1,
+  type CanvasV1StoredWorkspace,
+} from "@/lib/workspace/canvas-project";
+import {
+  addProjectReviewLink,
+  appendArtifactRevision,
+  codeRevisionBody,
+  connectProjectNodes,
+  createKingxfordProject,
+  hashRevisionBody,
+  parseKingxfordProject,
+  recordHumanGateDecision,
+  stableHash,
+  textRevisionBody,
+  upsertProjectNode,
+  type ArtifactKind,
+  type KingxfordProject,
+  type ProjectPhase,
+} from "@/lib/workspace/project-graph";
+import { buildProjectSnapshot } from "@/lib/workspace/project-snapshot-schema";
+import {
+  activeRepositoryProject,
+  createEmptyProjectRepository,
+  duplicateRepositoryProject,
+  exportProjectJson,
+  importProjectJson,
+  loadProjectRepository,
+  removeRepositoryProject,
+  saveProjectRepository,
+  selectRepositoryProject,
+  upsertRepositoryProject,
+  PROJECT_REPOSITORY_MAX_PROJECTS,
+  type ProjectRepositoryState,
+} from "@/lib/workspace/project-repository";
+import {
+  clearProjectSeed,
+  readProjectSeed,
+  type ProjectSeed,
+} from "@/lib/workspace/project-seed";
 import type {
+  AgentReviewRecord,
+  AgentReviewResponse,
   CodeFiles,
-  TextByMode,
   WorkspaceDraft,
-  WorkspaceLibraryV2,
   WorkspaceMode,
-  WorkspaceProject,
-  WorkspaceProjectContent,
   WorkspaceVersion,
 } from "@/lib/workspace/types";
 import { workspaceModes } from "@/lib/workspace/types";
 
-import { ProjectIntelligencePanel } from "./ProjectIntelligencePanel";
-import { ProjectLibraryDialog } from "./ProjectLibraryDialog";
 import { WorkspacePreview } from "./WorkspacePreview";
 import styles from "./CreativeWorkspace.module.css";
 
+type TextByMode = Record<Exclude<WorkspaceMode, "code">, string>;
 type RightTab = "preview" | "intelligence" | "agent" | "versions";
-type MobilePane = "input" | "preview" | "intelligence" | "agent" | "versions";
+type MobilePane = "input" | "preview" | "intelligence" | "agent";
 type CodeFileKey = keyof CodeFiles;
+
+type StoredWorkspace = Readonly<{
+  mode: WorkspaceMode;
+  title: string;
+  textByMode: TextByMode;
+  code: CodeFiles;
+  committedCode: CodeFiles;
+  versions: readonly WorkspaceVersion[];
+  reviewHistory?: readonly AgentReviewRecord[];
+  reviewLens?: AgentLens;
+  includeKnowledge?: boolean;
+}>;
 
 type CreativeWorkspaceProps = Readonly<{
   entrepreneurshipUrl: string | null;
-  initialMode: WorkspaceMode | null;
-  initialPhase?: PlatformPhase | null;
-  startFromSeed?: boolean;
   embedded?: boolean;
+  initialMode?: WorkspaceMode | null;
+  initialPhase?: PlatformPhaseId | null;
+  startFromSeed?: boolean;
 }>;
 
+const STORAGE_KEY = "kingxford:canvas:v1";
 const HANDOFF_KEY = "kingxford:canvas-handoff:v1";
-const HANDOFF_CHARACTER_LIMIT = 1_000_000;
-const CREATIVE_INPUT_FILE_LIMIT = 1_000_000;
-const EMPTY_CODE: CodeFiles = { html: "", css: "", javascript: "" };
+const VERSION_LIMIT = 16;
+const REVIEW_HISTORY_LIMIT = 8;
+const DRAFT_AUTOSAVE_DELAY_MS = 900;
+
+const modeProjectDetails: Readonly<Record<WorkspaceMode, Readonly<{
+  kind: ArtifactKind;
+  phase: ProjectPhase;
+  label: string;
+}>>> = {
+  idea: { kind: "idea", phase: "discovery", label: "Idea" },
+  mindmap: { kind: "system-map", phase: "systems", label: "System map" },
+  prompt: { kind: "prompt", phase: "prototype", label: "Prompt" },
+  code: { kind: "code", phase: "prototype", label: "Code prototype" },
+  brief: { kind: "brief", phase: "delivery", label: "Delivery brief" },
+};
+
+type ReviewBinding = Readonly<{
+  token: string;
+  projectId: string;
+  snapshotId: string;
+  snapshotHash: string;
+  artifactId: string;
+  artifactRevisionId: string;
+  draftHash: string;
+  editorHash: string;
+  reviewLinkId?: string;
+}>;
+
+type IntelligenceBinding = ReviewBinding & Readonly<{
+  runId?: string;
+  projectUpdatedAt?: string;
+}>;
 
 const modeIcons = {
   idea: Lightbulb,
@@ -167,91 +212,287 @@ function cloneDraft(draft: WorkspaceDraft): WorkspaceDraft {
   };
 }
 
-function draftFingerprint(draft: WorkspaceDraft) {
-  return JSON.stringify([
-    draft.mode,
-    draft.title,
-    draft.text,
-    draft.code.html,
-    draft.code.css,
-    draft.code.javascript,
-  ]);
+function projectBodyForDraft(draft: WorkspaceDraft) {
+  return draft.mode === "code"
+    ? codeRevisionBody(draft.code)
+    : textRevisionBody(draft.text);
 }
 
-function createInitialProjectContent(
-  mode: WorkspaceMode = initialDraft.mode,
-): WorkspaceProjectContent {
+function artifactForProjectMode(project: KingxfordProject, mode: WorkspaceMode) {
+  const descriptor = modeProjectDetails[mode];
+  return project.artifacts.find(
+    (artifact) => artifact.kind === descriptor.kind && artifact.phase === descriptor.phase,
+  );
+}
+
+function revisionForProjectMode(project: KingxfordProject, mode: WorkspaceMode) {
+  const artifact = artifactForProjectMode(project, mode);
+  return artifact
+    ? project.revisions.find((revision) => revision.id === artifact.activeRevisionId)
+    : undefined;
+}
+
+function canvasValuesForProject(project: KingxfordProject) {
+  const text = (mode: Exclude<WorkspaceMode, "code">) => {
+    const body = revisionForProjectMode(project, mode)?.body;
+    return body?.type === "text" ? body.text : starterText[mode];
+  };
+  const codeBody = revisionForProjectMode(project, "code")?.body;
+  const projectCode = codeBody?.type === "code"
+    ? { html: codeBody.html, css: codeBody.css, javascript: codeBody.javascript }
+    : initialDraft.code;
+  const activeArtifact = project.activeArtifactId
+    ? project.artifacts.find((artifact) => artifact.id === project.activeArtifactId)
+    : undefined;
+  const activeMode = activeArtifact
+    ? workspaceModes.find((candidate) => {
+        const details = modeProjectDetails[candidate];
+        return details.kind === activeArtifact.kind && details.phase === activeArtifact.phase;
+      }) ?? "idea"
+    : "idea";
   return {
-    mode,
-    title: initialDraft.title,
+    mode: activeMode,
+    title: project.title,
     textByMode: {
-      idea: starterText.idea,
-      mindmap: starterText.mindmap,
-      prompt: starterText.prompt,
-      brief: starterText.brief,
-    },
-    code: { ...initialDraft.code },
-    committedCode: { ...initialDraft.code },
-    versions: [],
+      idea: text("idea"),
+      mindmap: text("mindmap"),
+      prompt: text("prompt"),
+      brief: text("brief"),
+    } satisfies TextByMode,
+    code: projectCode,
   };
 }
 
-function createSeededProjectContent(seed: PlatformSeedV1): WorkspaceProjectContent {
-  const base = createInitialProjectContent(seed.mode);
-  return {
-    ...base,
-    title: seed.title || "Untitled Kingxford project",
-    textByMode: seed.mode === "code"
-      ? base.textByMode
-      : { ...base.textByMode, [seed.mode]: seed.input },
-    code: seed.mode === "code"
-      ? { html: seed.input, css: "", javascript: "" }
-      : base.code,
-    committedCode: seed.mode === "code"
-      ? { html: seed.input, css: "", javascript: "" }
-      : base.committedCode,
-  };
-}
-
-function downloadTextFile(content: string, type: string, fileName: string) {
-  const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
-function versionContextSource(version: WorkspaceVersion) {
-  if (version.draft.mode !== "code") return version.draft.text.slice(0, 1800);
-  return JSON.stringify(version.draft.code).slice(0, 1800);
-}
-
-function handleTabArrow<T extends string>(
-  event: KeyboardEvent<HTMLButtonElement>,
-  values: readonly T[],
-  current: T,
-  select: (value: T) => void,
-  idForValue: (value: T) => string,
+function appendDraftToProject(
+  project: KingxfordProject,
+  draft: WorkspaceDraft,
+  source: "human" | "local-transform" | "agent-proposal" | "agent-accepted" | "restored" = "human",
 ) {
-  const currentIndex = values.indexOf(current);
-  let nextIndex = currentIndex;
-  if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-    nextIndex = (currentIndex + 1) % values.length;
-  } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-    nextIndex = (currentIndex - 1 + values.length) % values.length;
-  } else if (event.key === "Home") {
-    nextIndex = 0;
-  } else if (event.key === "End") {
-    nextIndex = values.length - 1;
-  } else {
-    return;
+  const activePhase = project.activePhase;
+  const descriptor = modeProjectDetails[draft.mode];
+  const artifact = project.artifacts.find(
+    (candidate) => candidate.kind === descriptor.kind && candidate.phase === descriptor.phase,
+  );
+  const body = projectBodyForDraft(draft);
+  const currentRevision = artifact
+    ? project.revisions.find((revision) => revision.id === artifact.activeRevisionId)
+    : undefined;
+  if (currentRevision?.contentHash === hashRevisionBody(body)) return project;
+  const revised = appendArtifactRevision(project, {
+    ...(artifact ? { artifactId: artifact.id } : {}),
+    kind: descriptor.kind,
+    phase: descriptor.phase,
+    title: `${project.title} · ${descriptor.label}`,
+    body,
+    source,
+  });
+  // Workspace modes are reusable tools, not lifecycle transitions. Adding a
+  // brief while validating (for example) must not silently move the project to
+  // Delivery; only an explicit phase action changes activePhase.
+  return revised.activePhase === activePhase
+    ? revised
+    : parseKingxfordProject({ ...revised, activePhase });
+}
+
+function applyWorkspaceIntent(
+  project: KingxfordProject,
+  requestedMode: WorkspaceMode | null,
+  requestedPhase: PlatformPhaseId | null,
+) {
+  const requestedArtifact = requestedMode
+    ? artifactForProjectMode(project, requestedMode)
+    : undefined;
+  const activePhase = requestedPhase ?? project.activePhase;
+  const activeArtifactId = requestedArtifact?.id ?? project.activeArtifactId;
+  if (
+    activePhase === project.activePhase
+    && activeArtifactId === project.activeArtifactId
+  ) {
+    return project;
   }
-  event.preventDefault();
-  const next = values[nextIndex];
-  select(next);
-  window.requestAnimationFrame(() => document.getElementById(idForValue(next))?.focus());
+  return parseKingxfordProject({
+    ...project,
+    activePhase,
+    activeArtifactId,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+function appendDeliberatelyAcceptedDraft(
+  project: KingxfordProject,
+  draft: WorkspaceDraft,
+) {
+  const activePhase = project.activePhase;
+  const descriptor = modeProjectDetails[draft.mode];
+  const artifact = project.artifacts.find(
+    (candidate) =>
+      candidate.kind === descriptor.kind && candidate.phase === descriptor.phase,
+  );
+  const revised = appendArtifactRevision(project, {
+    ...(artifact ? { artifactId: artifact.id } : {}),
+    kind: descriptor.kind,
+    phase: descriptor.phase,
+    title: `${project.title} · ${descriptor.label}`,
+    body: projectBodyForDraft(draft),
+    source: "agent-accepted",
+  });
+  return revised.activePhase === activePhase
+    ? revised
+    : parseKingxfordProject({ ...revised, activePhase });
+}
+
+function revisionSummary(project: KingxfordProject, artifactId: string) {
+  const artifact = project.artifacts.find(({ id }) => id === artifactId);
+  const revision = artifact
+    ? project.revisions.find(({ id }) => id === artifact.activeRevisionId)
+    : undefined;
+  if (!revision) return "";
+  return revision.body.type === "text"
+    ? revision.body.text.slice(0, 1_600)
+    : [revision.body.html, revision.body.css, revision.body.javascript]
+        .filter(Boolean)
+        .join("\n\n")
+        .slice(0, 1_600);
+}
+
+function intelligenceProjectContext(
+  project: KingxfordProject,
+): IntelligenceRunRequest["projectContext"] {
+  return {
+    projectId: project.id,
+    objective: project.summary.slice(0, 600),
+    phase: project.activePhase,
+    evidence: project.nodes
+      .filter((node) => node.kind === "evidence")
+      .slice(-6)
+      .map((node) => ({
+        id: node.id,
+        kind: "note" as const,
+        title: node.label,
+        source: node.sourceRef || "Kingxford project graph",
+        claim: node.statement.slice(0, 400),
+        addedAt: node.createdAt,
+      })),
+    decisions: project.decisions.slice(-4).map((decision) => ({
+      id: decision.id,
+      title: `${decision.phase} gate ${decision.outcome}`,
+      decision: decision.outcome.slice(0, 500),
+      rationale: decision.rationale.slice(0, 500),
+      status: decision.outcome === "approved" ? "accepted" as const : "revisit" as const,
+      relatedArtifactIds: decision.evidenceArtifactIds,
+      createdAt: decision.provenance.recordedAt,
+    })),
+    acceptedRuns: [],
+    artifacts: project.artifacts.slice(-6).map((artifact) => ({
+      id: artifact.id,
+      title: artifact.title,
+      kind: artifact.kind === "evidence" ? "evidence" as const : "workspace-source" as const,
+      summary: revisionSummary(project, artifact.id).slice(0, 240),
+      createdAt: artifact.createdAt,
+    })),
+    artifactRelationships: [],
+  };
+}
+
+function createProjectFromDrafts(
+  title: string,
+  textByMode: TextByMode,
+  code: CodeFiles,
+  activeMode: WorkspaceMode,
+  requestedPhase: ProjectPhase = modeProjectDetails[activeMode].phase,
+) {
+  let project = createKingxfordProject({
+    title: title.trim() || "Untitled project",
+    summary: textByMode.idea.slice(0, 1200),
+    activePhase: requestedPhase,
+  });
+  for (const projectMode of workspaceModes) {
+    project = appendDraftToProject(project, {
+      mode: projectMode,
+      title: project.title,
+      text: projectMode === "code" ? "" : textByMode[projectMode],
+      code,
+    });
+  }
+  const selectedArtifact = artifactForProjectMode(project, activeMode);
+  return parseKingxfordProject({
+    ...project,
+    activePhase: requestedPhase,
+    activeArtifactId: selectedArtifact?.id ?? project.activeArtifactId,
+  });
+}
+
+function applySeedToProject(
+  currentProject: KingxfordProject | null,
+  seed: ProjectSeed,
+) {
+  let project = seed.action === "start-project" || !currentProject
+    ? createKingxfordProject({
+        title: seed.payload.title,
+        summary: seed.payload.brief.slice(0, 1200),
+        activePhase: seed.action === "add-evidence" ? "evidence" : "discovery",
+        idSeed: `public-seed:${seed.id}`,
+      })
+    : currentProject;
+
+  if (seed.action === "start-project") {
+    project = appendArtifactRevision(project, {
+      kind: "idea",
+      phase: "discovery",
+      title: `${seed.payload.title} · Idea`,
+      body: textRevisionBody(seed.payload.brief),
+      source: "human",
+    });
+    project = upsertProjectNode(project, {
+      key: `seed-problem:${seed.id}`,
+      kind: "problem",
+      phase: "discovery",
+      label: seed.payload.title,
+      statement: seed.payload.brief,
+      status: "unresolved",
+      sourceRef: seed.source.href,
+    });
+  }
+
+  const evidence = seed.payload.evidence ?? [];
+  if (evidence.length > 0) {
+    const artifact = project.artifacts.find(
+      (candidate) => candidate.kind === "evidence" && candidate.phase === "evidence",
+    );
+    const currentRevision = artifact
+      ? project.revisions.find((revision) => revision.id === artifact.activeRevisionId)
+      : undefined;
+    const currentText = currentRevision?.body.type === "text"
+      ? currentRevision.body.text.trim()
+      : "";
+    const incoming = evidence.map((item) => [
+      `## ${item.title}`,
+      item.content,
+      item.sourceUrl ? `Source: ${item.sourceUrl}` : `Source: ${seed.source.href}`,
+    ].join("\n")).join("\n\n---\n\n");
+    const combined = [currentText, incoming].filter(Boolean).join("\n\n---\n\n");
+    project = appendArtifactRevision(project, {
+      ...(artifact ? { artifactId: artifact.id } : {}),
+      kind: "evidence",
+      phase: "evidence",
+      title: `${project.title} · Evidence register`,
+      body: textRevisionBody(combined.slice(0, 60_000)),
+      source: "human",
+    });
+    for (const [index, item] of evidence.entries()) {
+      project = upsertProjectNode(project, {
+        key: `seed-evidence:${seed.id}:${index}`,
+        kind: "evidence",
+        phase: "evidence",
+        label: item.title,
+        statement: item.content,
+        status: "known",
+        sourceRef: item.sourceUrl ?? seed.source.href,
+      });
+    }
+  }
+
+  return parseKingxfordProject(project);
 }
 
 function formatTime(value: string) {
@@ -299,47 +540,110 @@ function formatAgentModel(model: string) {
   return model
     .replace(/^openai\//, "")
     .replace(/^gpt-/i, "GPT-")
-    .replace(/-sol$/i, " Sol");
+    .replace(/-sol$/i, " Sol")
+    .replace(/-terra$/i, " Terra")
+    .replace(/-luna$/i, " Luna");
+}
+
+function formatDuration(milliseconds: number) {
+  return milliseconds < 1000
+    ? `${Math.max(0, Math.round(milliseconds))} ms`
+    : `${(milliseconds / 1000).toFixed(1)} s`;
+}
+
+function formatTokens(value: number | undefined) {
+  return typeof value === "number" ? value.toLocaleString() : "Not reported";
+}
+
+function handleRovingTabKey(event: KeyboardEvent<HTMLButtonElement>) {
+  if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
+    return;
+  }
+  const tabs = event.currentTarget.parentElement
+    ? [...event.currentTarget.parentElement.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
+    : [];
+  if (!tabs.length) return;
+  const currentIndex = Math.max(0, tabs.indexOf(event.currentTarget));
+  const nextIndex = event.key === "Home"
+    ? 0
+    : event.key === "End"
+      ? tabs.length - 1
+      : (currentIndex + (event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1) + tabs.length) % tabs.length;
+  event.preventDefault();
+  tabs[nextIndex]?.focus();
+  tabs[nextIndex]?.click();
+}
+
+function isAgentReviewRecord(value: unknown): value is AgentReviewRecord {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<AgentReviewRecord>;
+  return Boolean(
+    typeof candidate.id === "string"
+      && typeof candidate.createdAt === "string"
+      && typeof candidate.projectTitle === "string"
+      && Boolean(candidate.mode && workspaceModes.includes(candidate.mode))
+      && typeof candidate.instruction === "string"
+      && candidate.response?.review
+      && isAgentLens(candidate.response.agent?.id)
+      && candidate.response.request,
+  );
 }
 
 function AgentReviewPanel({
   response,
-  roleLabel,
   isRunning,
   error,
   instruction,
   depth,
+  lens,
   canReview,
-  reviewIsCurrent,
   includeLogs,
   includeVersions,
+  includeKnowledge,
+  includeProjectGraph,
+  reviewHistory,
   onInstruction,
   onDepth,
+  onLens,
   onIncludeLogs,
   onIncludeVersions,
+  onIncludeKnowledge,
+  onIncludeProjectGraph,
   onReview,
   onStop,
   onApply,
+  canApply,
+  onOpenHistory,
+  onClearHistory,
 }: Readonly<{
-  response: IntelligenceRunResponse | null;
-  roleLabel: string;
+  response: AgentReviewResponse | null;
   isRunning: boolean;
   error: string;
   instruction: string;
   depth: "standard" | "deep";
+  lens: AgentLens;
   canReview: boolean;
-  reviewIsCurrent: boolean;
   includeLogs: boolean;
   includeVersions: boolean;
+  includeKnowledge: boolean;
+  includeProjectGraph: boolean;
+  reviewHistory: readonly AgentReviewRecord[];
   onInstruction: (value: string) => void;
   onDepth: (value: "standard" | "deep") => void;
+  onLens: (value: AgentLens) => void;
   onIncludeLogs: (value: boolean) => void;
   onIncludeVersions: (value: boolean) => void;
+  onIncludeKnowledge: (value: boolean) => void;
+  onIncludeProjectGraph: (value: boolean) => void;
   onReview: (instruction?: string) => void;
   onStop: () => void;
   onApply: () => void;
+  canApply: boolean;
+  onOpenHistory: (record: AgentReviewRecord) => void;
+  onClearHistory: () => void;
 }>) {
   const review = response?.review;
+  const lensDetail = agentLensDetails[lens];
 
   return (
     <section className={styles.agentPanel} aria-labelledby="agent-panel-heading">
@@ -347,26 +651,50 @@ function AgentReviewPanel({
         <div className={styles.agentIdentity}>
           <span className={styles.agentMark}><Sparkles aria-hidden="true" /></span>
           <div>
-            <span>Kingxford Intelligence · {roleLabel}</span>
-            <h2 id="agent-panel-heading">Governed specialist review</h2>
+            <span>Kingxford Agent</span>
+            <h2 id="agent-panel-heading">Creative intelligence review</h2>
           </div>
         </div>
         <div className={styles.agentProtocol}>
           <span>
             {response?.source === "openai"
               ? formatAgentModel(response.model)
-              : "GPT-5.6 Sol target"}
+              : depth === "deep"
+                ? "Deep reasoning route"
+                : "Standard reasoning route"}
           </span>
-          <small>Versioned evaluation protocol</small>
+          <small>{response?.agent.label ?? lensDetail.label}</small>
         </div>
       </header>
 
       <div className={styles.agentTruth}>
         <Bot aria-hidden="true" />
         <p>
-          Configuration and safety gates run daily. Capability changes are
-          reviewed, versioned, and rollbackable; the Agent does not rewrite
-          itself or learn from your private work.
+          Governance invariants are checked on every release and daily. AI output
+          can still be wrong; the Agent cannot auto-apply, rewrite itself, or learn
+          from your private work.
+        </p>
+      </div>
+
+      <div className={styles.lensSelector}>
+        <label htmlFor="agent-lens">
+          <span>Specialist lens</span>
+          <select
+            id="agent-lens"
+            value={lens}
+            disabled={isRunning}
+            onChange={(event) => onLens(event.target.value as AgentLens)}
+          >
+            {agentLenses.map((value) => (
+              <option value={value} key={value}>
+                {agentLensDetails[value].label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p>
+          <strong>{lensDetail.shortLabel}</strong>
+          {lensDetail.description}
         </p>
       </div>
 
@@ -412,18 +740,6 @@ function AgentReviewPanel({
 
       {review && !isRunning && (
         <div className={styles.reviewResult}>
-          {!reviewIsCurrent ? (
-            <div className={styles.staleReview} role="alert">
-              <TriangleAlert aria-hidden="true" />
-              <div className={styles.versionNumber}>
-                <strong>This review belongs to an earlier source.</strong>
-                <span>
-                  Your current work is protected. Review the current version
-                  before applying or attaching Agent changes.
-                </span>
-              </div>
-            </div>
-          ) : null}
           <div className={styles.reviewSummary}>
             <div>
               <span data-status={review.status}>{review.status}</span>
@@ -434,28 +750,58 @@ function AgentReviewPanel({
 
           {response.notice && <p className={styles.reviewNotice}>{response.notice}</p>}
 
-          <section className={styles.conductorPlan}>
-            <header>
-              <div>
-                <span>Conductor plan</span>
-                <h3>{response.orchestration.plan.phaseObjective}</h3>
-              </div>
-              <small>{response.status}</small>
-            </header>
-            <p>{response.orchestration.plan.summary}</p>
-            <ol>
-              {response.orchestration.plan.sequence.map((step) => <li key={step}>{step}</li>)}
-            </ol>
+          <section className={styles.reviewProvenance} aria-label="Review provenance and usage">
             <div>
-              {response.orchestration.passes.map((pass) => (
-                <article key={pass.id} data-status={pass.status}>
-                  <span>{pass.role}</span>
-                  <strong>{pass.status}</strong>
-                  <small>{formatAgentModel(pass.model)} · {pass.source}</small>
-                </article>
-              ))}
+              <span>Specialist</span>
+              <strong>{response.agent.label}</strong>
+            </div>
+            <div>
+              <span>Completed in</span>
+              <strong>{formatDuration(response.request.durationMs)}</strong>
+            </div>
+            <div>
+              <span>Total tokens</span>
+              <strong>{formatTokens(response.usage?.totalTokens)}</strong>
+            </div>
+            <div>
+              <span>Daily credits</span>
+              <strong>
+                {response.limits
+                  ? `${response.limits.dailyCreditsRemaining} remaining`
+                  : "Not metered"}
+              </strong>
+            </div>
+            <div>
+              <span>Project snapshot</span>
+              <strong>
+                {response.projectContext
+                  ? `${response.projectContext.counts.artifacts} artifacts · bound`
+                  : "Not shared"}
+              </strong>
             </div>
           </section>
+
+          {response.grounding.length > 0 && (
+            <details className={styles.reviewGrounding}>
+              <summary>
+                Kingxford playbook grounding
+                <span>{response.grounding.length} notes</span>
+              </summary>
+              <ul>
+                {response.grounding.map((item) => (
+                  <li key={item.id}>
+                    <span>{item.id}</span>
+                    {item.title}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          <p className={styles.reviewRequestId}>
+            Request <code>{response.request.id}</code>
+            <span>{response.request.depth} review · protocol {response.protocolVersion}</span>
+          </p>
 
           <div className={styles.reviewColumns}>
             <section>
@@ -488,19 +834,22 @@ function AgentReviewPanel({
             </ol>
             <details>
               <summary>Inspect proposed source</summary>
-              {review.improvedCode ? (
-                <div className={styles.proposedCodeFiles}>
-                  <section><span>HTML</span><pre>{review.improvedCode.html}</pre></section>
-                  <section><span>CSS</span><pre>{review.improvedCode.css}</pre></section>
-                  <section><span>JavaScript</span><pre>{review.improvedCode.javascript}</pre></section>
+              {review.proposedCode ? (
+                <div>
+                  <strong>HTML</strong>
+                  <pre>{review.proposedCode.html}</pre>
+                  <strong>CSS</strong>
+                  <pre>{review.proposedCode.css}</pre>
+                  <strong>JavaScript</strong>
+                  <pre>{review.proposedCode.javascript}</pre>
                 </div>
               ) : (
                 <pre>{review.improvedInput}</pre>
               )}
             </details>
-            <button type="button" disabled={!reviewIsCurrent} onClick={onApply}>
+            <button type="button" disabled={!canApply} onClick={onApply}>
               <WandSparkles aria-hidden="true" />
-              {reviewIsCurrent ? "Apply as a new version" : "Review is out of date"}
+              {canApply ? "Apply as a new version" : "Run a current bound review to apply"}
             </button>
           </section>
 
@@ -514,16 +863,6 @@ function AgentReviewPanel({
               {review.buildBrief.deliverables.map((item) => <li key={item}>{item}</li>)}
             </ul>
           </section>
-
-          <details className={styles.agentProvenance}>
-            <summary>Inspect run provenance</summary>
-            <div>
-              <p>{response.artifacts.length} versioned artifacts · {response.provenance.providerCalls.length} provider calls</p>
-              <code>Final artifact: {response.provenance.finalArtifactId}</code>
-              <code>Input digest: {response.inputDigest}</code>
-              <code>Protocol: {response.protocolVersion}</code>
-            </div>
-          </details>
         </div>
       )}
 
@@ -533,7 +872,6 @@ function AgentReviewPanel({
           id="agent-instruction"
           value={instruction}
           rows={3}
-          maxLength={600}
           placeholder="Challenge the assumptions and make the next test more rigorous…"
           onChange={(event) => onInstruction(event.target.value)}
         />
@@ -541,7 +879,22 @@ function AgentReviewPanel({
           <div>
             <span>Choose what the Agent can see</span>
             <label><input type="checkbox" checked readOnly /> Current input</label>
-            <label><input type="checkbox" checked readOnly /> Project intelligence ledger</label>
+            <label title="Retrieve relevant notes from Kingxford's fixed, versioned playbook.">
+              <input
+                type="checkbox"
+                checked={includeKnowledge}
+                onChange={(event) => onIncludeKnowledge(event.target.checked)}
+              />
+              Kingxford playbook
+            </label>
+            <label title="Share a bounded, integrity-checked snapshot of this local project graph.">
+              <input
+                type="checkbox"
+                checked={includeProjectGraph}
+                onChange={(event) => onIncludeProjectGraph(event.target.checked)}
+              />
+              Bounded project graph
+            </label>
             <label>
               <input
                 type="checkbox"
@@ -572,7 +925,7 @@ function AgentReviewPanel({
               aria-pressed={depth === "deep"}
               onClick={() => onDepth("deep")}
             >
-              Deep · Max
+              Deep
             </button>
           </div>
           <button
@@ -586,29 +939,53 @@ function AgentReviewPanel({
           </button>
         </div>
         <p>
-          Only the checked workspace context is sent when you press Review.
-          Remove secrets or confidential material first.
+          Only the checked workspace context and the visible bounded project
+          snapshot are sent when you press Review. The snapshot is treated as
+          untrusted reference material. Remove secrets or confidential material first.
         </p>
       </div>
+
+      {reviewHistory.length > 0 && (
+        <details className={styles.reviewHistory}>
+          <summary>
+            <span>Private review memory</span>
+            <strong>{reviewHistory.length} / {REVIEW_HISTORY_LIMIT}</strong>
+          </summary>
+          <div className={styles.reviewHistoryHeading}>
+            <p>Saved in this browser only. Open a prior review without sending anything.</p>
+            <button type="button" onClick={onClearHistory}>Clear</button>
+          </div>
+          <ol>
+            {reviewHistory.map((record) => (
+              <li key={record.id}>
+                <button type="button" onClick={() => onOpenHistory(record)}>
+                  <span>
+                    {record.response.agent.label}
+                    <time dateTime={record.createdAt}>{formatTime(record.createdAt)}</time>
+                  </span>
+                  <strong>{record.projectTitle || "Untitled concept"}</strong>
+                  <small>{record.instruction}</small>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
     </section>
   );
 }
 
 function VersionPanel({
   versions,
-  currentDraft,
   onSave,
   onRestore,
   onClear,
 }: Readonly<{
   versions: readonly WorkspaceVersion[];
-  currentDraft: WorkspaceDraft;
   onSave: () => void;
   onRestore: (version: WorkspaceVersion) => void;
   onClear: () => void;
 }>) {
-  const [comparisonId, setComparisonId] = useState<string | null>(null);
-
   return (
     <section className={styles.versionPanel} aria-labelledby="version-panel-heading">
       <header>
@@ -637,30 +1014,10 @@ function VersionPanel({
                 <h3>{version.name}</h3>
                 <p>{formatTime(version.createdAt)} · {version.source}</p>
               </section>
-              <div className={styles.versionActions}>
-                <button
-                  type="button"
-                  aria-pressed={comparisonId === version.id}
-                  onClick={() => setComparisonId((current) => current === version.id ? null : version.id)}
-                >
-                  <GitCompare aria-hidden="true" />
-                  Compare
-                </button>
-                <button type="button" onClick={() => onRestore(version)}>
-                  <RotateCcw aria-hidden="true" />
-                  Restore copy
-                </button>
-              </div>
-              {comparisonId === version.id ? (
-                <div className={styles.versionComparison}>
-                  <span>Checkpoint → current source</span>
-                  <ul>
-                    {summarizeDraftChanges(version.draft, currentDraft).map((change) => (
-                      <li key={change}>{change}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
+              <button type="button" onClick={() => onRestore(version)}>
+                <RotateCcw aria-hidden="true" />
+                Restore copy
+              </button>
             </li>
           ))}
         </ol>
@@ -682,23 +1039,33 @@ function VersionPanel({
 
 export function CreativeWorkspace({
   entrepreneurshipUrl,
-  initialMode,
-  initialPhase = null,
-  startFromSeed = false,
   embedded = false,
+  initialMode = null,
+  initialPhase = null,
 }: CreativeWorkspaceProps) {
   const router = useRouter();
   const shellRef = useRef<HTMLDivElement>(null);
   const handoffRef = useRef<HTMLDialogElement>(null);
-  const creativeInputRef = useRef<HTMLInputElement>(null);
+  const importRef = useRef<HTMLInputElement>(null);
   const controllerRef = useRef<AbortController | null>(null);
+  const intelligenceControllerRef = useRef<AbortController | null>(null);
+  const reviewBindingRef = useRef<ReviewBinding | null>(null);
+  const intelligenceBindingRef = useRef<IntelligenceBinding | null>(null);
+  const editorHashRef = useRef("");
+  const activeProjectRef = useRef<KingxfordProject | null>(null);
+  const seedHandledRef = useRef(false);
   const draggingRef = useRef(false);
-  const projectsRef = useRef<readonly WorkspaceProject[]>([]);
-  const libraryRevisionRef = useRef(0);
-  const platformSidecarRef = useRef<PlatformSidecarV1>(createEmptyPlatformSidecar());
-  const intelligenceIssueRef = useRef("");
+  const initialConfigurationRef = useRef({
+    mode: initialMode,
+    phase: initialPhase,
+  });
+  const appliedRouteIntentRef = useRef(
+    `${initialMode ?? ""}|${initialPhase ?? ""}`,
+  );
 
-  const [mode, setMode] = useState<WorkspaceMode>(initialMode ?? initialDraft.mode);
+  const [mode, setMode] = useState<WorkspaceMode>(
+    () => initialMode ?? initialDraft.mode,
+  );
   const [title, setTitle] = useState(initialDraft.title);
   const [textByMode, setTextByMode] = useState<TextByMode>({
     idea: starterText.idea,
@@ -717,40 +1084,40 @@ export function CreativeWorkspace({
   const [paneWidth, setPaneWidth] = useState(51);
   const [status, setStatus] = useState("Preview current · Saved on this device");
   const [codeLogs, setCodeLogs] = useState<readonly string[]>([]);
-  const [reviewResponse, setReviewResponse] = useState<IntelligenceRunResponse | null>(null);
-  const [reviewDraftFingerprint, setReviewDraftFingerprint] = useState<string | null>(null);
+  const [reviewResponse, setReviewResponse] = useState<AgentReviewResponse | null>(null);
+  const [reviewHistory, setReviewHistory] = useState<readonly AgentReviewRecord[]>([]);
   const [reviewInstruction, setReviewInstruction] = useState("");
-  const [reviewDepth, setReviewDepth] = useState<"standard" | "deep">("deep");
+  const [reviewDepth, setReviewDepth] = useState<"standard" | "deep">("standard");
+  const [reviewLens, setReviewLens] = useState<AgentLens>("conductor");
   const [reviewError, setReviewError] = useState("");
   const [reviewRunning, setReviewRunning] = useState(false);
   const [includeLogs, setIncludeLogs] = useState(false);
   const [includeVersions, setIncludeVersions] = useState(false);
+  const [includeKnowledge, setIncludeKnowledge] = useState(true);
+  const [includeProjectGraph, setIncludeProjectGraph] = useState(true);
+  const [activeProject, setActiveProject] = useState<KingxfordProject | null>(null);
+  const [projectRepository, setProjectRepository] = useState<ProjectRepositoryState>(
+    createEmptyProjectRepository,
+  );
+  const [reviewBinding, setReviewBinding] = useState<ReviewBinding | null>(null);
+  const [intelligenceResponse, setIntelligenceResponse] = useState<IntelligenceRunResponse | null>(null);
+  const [intelligenceBinding, setIntelligenceBinding] = useState<IntelligenceBinding | null>(null);
+  const [intelligenceDepth, setIntelligenceDepth] = useState<"standard" | "deep">("standard");
+  const [intelligenceRunning, setIntelligenceRunning] = useState(false);
+  const [intelligenceAccepting, setIntelligenceAccepting] = useState(false);
+  const [intelligenceError, setIntelligenceError] = useState("");
+  const [projectLibraryOpen, setProjectLibraryOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [handoffAgent, setHandoffAgent] = useState(true);
   const [handoffVersions, setHandoffVersions] = useState(false);
-  const [handoffError, setHandoffError] = useState("");
-  const [projects, setProjects] = useState<readonly WorkspaceProject[]>([]);
-  const [activeProjectId, setActiveProjectId] = useState("");
-  const [projectLibraryOpen, setProjectLibraryOpen] = useState(false);
-  const [persistenceSuspended, setPersistenceSuspended] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const [phase, setPhaseState] = useState<PlatformPhase>(
-    initialPhase ?? getPrimaryPhaseForMode(initialMode ?? initialDraft.mode).id,
-  );
-  const [agentRole, setAgentRole] = useState<PlatformAgentRole>("conductor");
-  const [mapView, setMapView] = useState<PlatformMapViewState | null>(null);
-  const [activeIntelligence, setActiveIntelligence] = useState<PlatformProjectIntelligence | null>(null);
-  const [intelligenceStorageError, setIntelligenceStorageError] = useState("");
+
+  const projectMutationLocked = reviewRunning || intelligenceRunning;
 
   const currentText = mode === "code" ? "" : textByMode[mode];
   const draft = useMemo<WorkspaceDraft>(
     () => ({ mode, title, text: currentText, code }),
     [code, currentText, mode, title],
-  );
-  const currentDraftFingerprint = useMemo(() => draftFingerprint(draft), [draft]);
-  const reviewIsCurrent = Boolean(
-    reviewResponse &&
-      reviewDraftFingerprint === `${activeProjectId}:${phase}:${agentRole}:${currentDraftFingerprint}`,
   );
   const canReview = mode === "code"
     ? Boolean(code.html.trim() || code.css.trim() || code.javascript.trim())
@@ -758,179 +1125,57 @@ export function CreativeWorkspace({
   const sourceLength = mode === "code"
     ? code.html.length + code.css.length + code.javascript.length
     : currentText.length;
-  const activePhase = getPlatformPhase(phase) ?? PLATFORM_LIFECYCLE[0];
-  const activeAgents = PLATFORM_AGENTS.filter((agent) =>
-    activePhase.agents.includes(agent.id),
-  );
+  const editorHash = useMemo(() => stableHash(draft), [draft]);
+  const activeArtifact = useMemo(() => {
+    if (!activeProject) return undefined;
+    const descriptor = modeProjectDetails[mode];
+    return activeProject.artifacts.find(
+      (artifact) => artifact.kind === descriptor.kind && artifact.phase === descriptor.phase,
+    );
+  }, [activeProject, mode]);
+  const intelligenceBindingIsCurrent = useMemo(() => {
+    if (!activeProject || !intelligenceBinding || !intelligenceResponse) return false;
+    const artifact = activeProject.artifacts.find(
+      ({ id }) => id === intelligenceBinding.artifactId,
+    );
+    if (
+      activeProject.id !== intelligenceBinding.projectId
+      || artifact?.activeRevisionId !== intelligenceBinding.artifactRevisionId
+      || editorHash !== intelligenceBinding.editorHash
+      || intelligenceResponse.runId !== intelligenceBinding.runId
+      || activeProject.updatedAt !== intelligenceBinding.projectUpdatedAt
+    ) {
+      return false;
+    }
+    return intelligenceResponse.projectContext.snapshotId === intelligenceBinding.snapshotId
+      && intelligenceResponse.projectContext.snapshotHash === intelligenceBinding.snapshotHash;
+  }, [activeProject, editorHash, intelligenceBinding, intelligenceResponse]);
 
-  const replaceProjects = useCallback((nextProjects: readonly WorkspaceProject[]) => {
-    projectsRef.current = nextProjects;
-    setProjects(nextProjects);
+  const persistProject = useCallback((project: KingxfordProject) => {
+    activeProjectRef.current = project;
+    setActiveProject(project);
+    setProjectRepository((current) => {
+      try {
+        const next = upsertRepositoryProject(current, project);
+        saveProjectRepository(next);
+        return next;
+      } catch (error) {
+        setStatus(error instanceof Error
+          ? `Local project save blocked · ${error.message}`
+          : "Local project save blocked.");
+        return current;
+      }
+    });
   }, []);
 
-  const saveProjectIntelligence = useCallback((
-    projectId: string,
-    update: (current: PlatformProjectIntelligence) => PlatformProjectIntelligence,
-  ) => {
-    const latest = loadPlatformSidecar(window.localStorage);
-    if (latest.status === "error") {
-      intelligenceIssueRef.current = latest.error.message;
-      setIntelligenceStorageError(latest.error.message);
-      setStatus(`${latest.error.message} The existing record was not overwritten.`);
-      return false;
-    }
-    platformSidecarRef.current = latest.sidecar;
-    const current = latest.sidecar.projects[projectId] ??
-      createPlatformProjectIntelligence(projectId, { phase: initialPhase ?? "discover" });
-    let nextSidecar: PlatformSidecarV1;
-    try {
-      nextSidecar = upsertPlatformProject(
-        platformSidecarRef.current,
-        update(current),
-      );
-    } catch {
-      const message = "Project intelligence could not be validated.";
-      intelligenceIssueRef.current = message;
-      setIntelligenceStorageError(message);
-      setStatus(`${message} Editable work remains safe.`);
-      return false;
-    }
-    const saved = savePlatformSidecar(window.localStorage, nextSidecar);
-    if (!saved.ok) {
-      intelligenceIssueRef.current = saved.error.message;
-      setIntelligenceStorageError(saved.error.message);
-      setStatus(`${saved.error.message} Editable work remains safe.`);
-      return false;
-    }
-    platformSidecarRef.current = nextSidecar;
-    setActiveIntelligence(nextSidecar.projects[projectId]);
-    intelligenceIssueRef.current = "";
-    setIntelligenceStorageError("");
-    dispatchPlatformChange({
-      revision: nextSidecar.revision,
-      projectId,
-      reason: "saved",
-    });
-    return true;
-  }, [initialPhase]);
+  useEffect(() => {
+    editorHashRef.current = editorHash;
+    activeProjectRef.current = activeProject;
+  }, [activeProject, editorHash]);
 
-  const loadProjectIntoEditor = useCallback(
-    (
-      project: WorkspaceProject,
-      requestedMode?: WorkspaceMode | null,
-      requestedPhase?: PlatformPhase | null,
-    ) => {
-      controllerRef.current?.abort();
-      const nextMode = requestedMode ?? project.mode;
-      const intelligence = platformSidecarRef.current.projects[project.id];
-      setMode(nextMode);
-      setPhaseState(
-        requestedPhase ?? intelligence?.phase ?? getPrimaryPhaseForMode(nextMode).id,
-      );
-      setMapView(intelligence?.mapView ?? null);
-      setActiveIntelligence(
-        intelligence ?? createPlatformProjectIntelligence(project.id, {
-          phase: requestedPhase ?? getPrimaryPhaseForMode(nextMode).id,
-        }),
-      );
-      setTitle(project.title);
-      setTextByMode(project.textByMode);
-      setCode(project.code);
-      setCommittedCode(project.committedCode);
-      setVersions(project.versions.slice(0, WORKSPACE_VERSION_LIMIT));
-      setCodeFile("html");
-      setCodeLogs([]);
-      setReviewResponse(null);
-      setReviewDraftFingerprint(null);
-      setReviewError("");
-      setReviewRunning(false);
-      setRightTab("preview");
-      setMobilePane("input");
-      setRunId((value) => value + 1);
-    },
-    [],
-  );
-
-  const selectPhase = (nextPhase: PlatformPhase) => {
-    const definition = getPlatformPhase(nextPhase);
-    const firstSpecialist = definition?.agents.find((role) => role !== "conductor");
-    if (!activeProjectId) {
-      setStatus("Wait for the local project to finish loading before changing phase.");
-      return;
-    }
-    const saved = saveProjectIntelligence(activeProjectId, (current) => ({
-      ...current,
-      phase: nextPhase,
-      updatedAt: new Date().toISOString(),
-    }));
-    if (!saved) return;
-    setPhaseState(nextPhase);
-    setAgentRole(firstSpecialist ?? "conductor");
-    setStatus(`${definition?.label ?? "Project"} phase active · Context preserved`);
-  };
-
-  const commitMapView = useCallback((nextView: PlatformMapViewState) => {
-    setMapView(nextView);
-    if (!activeProjectId) return;
-    saveProjectIntelligence(activeProjectId, (current) => ({
-      ...current,
-      mapView: nextView,
-      updatedAt: new Date().toISOString(),
-    }));
-  }, [activeProjectId, saveProjectIntelligence]);
-
-  const persistProjects = useCallback(
-    (nextProjects: readonly WorkspaceProject[], nextActiveProjectId: string) => {
-      if (persistenceSuspended) return false;
-      const library: WorkspaceLibraryV2 = {
-        schemaVersion: 2,
-        revision: libraryRevisionRef.current + 1,
-        activeProjectId: nextActiveProjectId,
-        projects: nextProjects,
-      };
-      const result = saveWorkspaceLibrary(window.localStorage, library);
-      if (!result.ok) {
-        setStatus(`${result.error.message} Current edits remain open.`);
-        return false;
-      }
-      libraryRevisionRef.current = library.revision;
-      return true;
-    },
-    [persistenceSuspended],
-  );
-
-  const persistSidecar = useCallback((
-    nextSidecar: PlatformSidecarV1,
-    projectId: string | null,
-    reason: "saved" | "removed" | "recovered" = "saved",
-  ) => {
-    const loaded = loadPlatformSidecar(window.localStorage);
-    if (loaded.status === "error") {
-      intelligenceIssueRef.current = loaded.error.message;
-      setIntelligenceStorageError(loaded.error.message);
-      setStatus(`${loaded.error.message} The existing intelligence record was not overwritten.`);
-      return false;
-    }
-    if (loaded.sidecar.revision !== platformSidecarRef.current.revision) {
-      platformSidecarRef.current = loaded.sidecar;
-      const message = "Project intelligence changed in another tab. Review it and retry this operation.";
-      intelligenceIssueRef.current = message;
-      setIntelligenceStorageError(message);
-      setStatus(message);
-      return false;
-    }
-    const saved = savePlatformSidecar(window.localStorage, nextSidecar);
-    if (!saved.ok) {
-      intelligenceIssueRef.current = saved.error.message;
-      setIntelligenceStorageError(saved.error.message);
-      setStatus(`${saved.error.message} Editable source remains safe.`);
-      return false;
-    }
-    platformSidecarRef.current = nextSidecar;
-    intelligenceIssueRef.current = "";
-    setIntelligenceStorageError("");
-    dispatchPlatformChange({ revision: nextSidecar.revision, projectId, reason });
-    return true;
+  useEffect(() => () => {
+    controllerRef.current?.abort();
+    intelligenceControllerRef.current?.abort();
   }, []);
 
   useEffect(() => {
@@ -941,150 +1186,92 @@ export function CreativeWorkspace({
 
     const hydrateFrame = window.requestAnimationFrame(() => {
       setIsOnline(navigator.onLine);
-      const loadedIntelligence = loadPlatformSidecar(window.localStorage);
-      const intelligenceAvailable = loadedIntelligence.status !== "error";
-      if (loadedIntelligence.status === "ready" || loadedIntelligence.status === "empty") {
-        platformSidecarRef.current = loadedIntelligence.sidecar;
-        intelligenceIssueRef.current = "";
-        setIntelligenceStorageError("");
-      } else {
-        platformSidecarRef.current = createEmptyPlatformSidecar();
-        intelligenceIssueRef.current = loadedIntelligence.error.message;
-        setIntelligenceStorageError(loadedIntelligence.error.message);
-        setStatus(`${loadedIntelligence.error.message} Editable Canvas work remains available.`);
-      }
-
-      const seedResult = startFromSeed
-        ? readPlatformSeed(window.sessionStorage)
-        : ({ status: "empty" } as const);
-      const seed = seedResult.status === "ready" ? seedResult.seed : null;
-
-      const openSeededProject = (
-        existingProjects: readonly WorkspaceProject[],
-        currentRevision: number,
-      ) => {
-        if (!seed) return false;
-        if (existingProjects.length >= WORKSPACE_PROJECT_LIMIT) {
-          setStatus(`Your ${WORKSPACE_PROJECT_LIMIT} project limit is full. Export or remove a project before starting this idea.`);
-          return false;
-        }
-        const project = createWorkspaceProject(createSeededProjectContent(seed));
-        const nextProjects = [project, ...existingProjects];
-        const library: WorkspaceLibraryV2 = {
-          schemaVersion: 2,
-          revision: currentRevision + 1,
-          activeProjectId: project.id,
-          projects: nextProjects,
-        };
-        const saved = saveWorkspaceLibrary(window.localStorage, library);
-        if (!saved.ok) {
-          setStatus(`${saved.error.message} The project start remains available in this tab.`);
-          return false;
-        }
-
-        replaceProjects(nextProjects);
-        libraryRevisionRef.current = library.revision;
-        setActiveProjectId(project.id);
-        const intelligence = createPlatformProjectIntelligence(project.id, {
-          objective: seed.input,
-          phase: seed.phase,
-        });
-        let intelligenceSaved = false;
-        try {
-          if (!intelligenceAvailable) throw new Error("Project intelligence storage is not readable.");
-          const nextSidecar = upsertPlatformProject(
-            platformSidecarRef.current,
-            intelligence,
-          );
-          const sidecarSaved = savePlatformSidecar(window.localStorage, nextSidecar);
-          if (sidecarSaved.ok) {
-            intelligenceSaved = true;
-            platformSidecarRef.current = nextSidecar;
-            intelligenceIssueRef.current = "";
-            setIntelligenceStorageError("");
-            dispatchPlatformChange({
-              revision: nextSidecar.revision,
-              projectId: project.id,
-              reason: "saved",
-            });
-          } else {
-            intelligenceIssueRef.current = sidecarSaved.error.message;
-            setIntelligenceStorageError(sidecarSaved.error.message);
-          }
-        } catch (error) {
-          const message = error instanceof Error
-            ? error.message
-            : "Project intelligence could not be persisted.";
-          if (!intelligenceIssueRef.current) intelligenceIssueRef.current = message;
-          setIntelligenceStorageError(intelligenceIssueRef.current);
-        }
-        consumePlatformSeed(window.sessionStorage);
-        loadProjectIntoEditor(project, seed.mode, seed.phase);
-        setStatus(intelligenceSaved
-          ? "New project created from your original idea · Discovery context preserved"
-          : `Editable project created. Intelligence warning: ${intelligenceIssueRef.current}`);
-        return true;
-      };
-
-      const loaded = loadWorkspaceLibrary(window.localStorage);
-      if (loaded.status === "ready") {
-        if (openSeededProject(loaded.library.projects, loaded.library.revision)) {
-          setHydrated(true);
-          return;
-        }
-        const active = loaded.library.projects.find(
-          (project) => project.id === loaded.library.activeProjectId,
-        ) ?? loaded.library.projects[0];
-        if (intelligenceAvailable) {
-          const projectIds = new Set(loaded.library.projects.map((project) => project.id));
-          let reconciled = platformSidecarRef.current;
-          for (const projectId of Object.keys(reconciled.projects)) {
-            if (!projectIds.has(projectId)) reconciled = removePlatformProject(reconciled, projectId);
-          }
-          if (reconciled.revision !== platformSidecarRef.current.revision) {
-            const savedReconciled = savePlatformSidecar(window.localStorage, reconciled);
-            if (savedReconciled.ok) {
-              platformSidecarRef.current = reconciled;
-              dispatchPlatformChange({ revision: reconciled.revision, projectId: null, reason: "recovered" });
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        let legacyWorkspace: CanvasV1StoredWorkspace | undefined;
+        if (stored) {
+          const raw = JSON.parse(stored) as unknown;
+          const result = safeParseCanvasV1(raw);
+          if (result.success) {
+            legacyWorkspace = result.data;
+            const parsed = result.data;
+            setVersions(parsed.versions.slice(0, VERSION_LIMIT));
+            if (parsed.reviewHistory) {
+              setReviewHistory(
+                parsed.reviewHistory
+                  .filter(isAgentReviewRecord)
+                  .slice(0, REVIEW_HISTORY_LIMIT),
+              );
+            }
+            if (isAgentLens(parsed.reviewLens)) setReviewLens(parsed.reviewLens);
+            if (typeof parsed.includeKnowledge === "boolean") {
+              setIncludeKnowledge(parsed.includeKnowledge);
             }
           }
         }
-        replaceProjects(loaded.library.projects);
-        libraryRevisionRef.current = loaded.library.revision;
-        setActiveProjectId(active.id);
-        loadProjectIntoEditor(active, initialMode, initialPhase);
-        if (loaded.needsPersistence) {
-          const migrated = saveWorkspaceLibrary(window.localStorage, loaded.library);
-          setStatus(
-            migrated.ok
-              ? "Previous Canvas work migrated into your project library"
-              : `${migrated.error.message} Current edits remain open.`,
-          );
+
+        let repository = loadProjectRepository();
+        let project = activeRepositoryProject(repository);
+        if (!project) {
+          project = legacyWorkspace
+            ? createProjectFromDrafts(
+                legacyWorkspace.title,
+                legacyWorkspace.textByMode,
+                legacyWorkspace.code,
+                legacyWorkspace.mode,
+              )
+            : createProjectFromDrafts(
+                initialDraft.title,
+                {
+                  idea: starterText.idea,
+                  mindmap: starterText.mindmap,
+                  prompt: starterText.prompt,
+                  brief: starterText.brief,
+                },
+                initialDraft.code,
+                initialConfigurationRef.current.mode ?? initialDraft.mode,
+                initialConfigurationRef.current.phase
+                  ?? modeProjectDetails[initialConfigurationRef.current.mode ?? initialDraft.mode].phase,
+              );
+          repository = upsertRepositoryProject(repository, project);
+          saveProjectRepository(repository);
         }
-      } else if (loaded.status === "empty") {
-        if (openSeededProject([], 0)) {
-          setHydrated(true);
-          return;
+
+        const intendedProject = applyWorkspaceIntent(
+          project,
+          initialConfigurationRef.current.mode,
+          initialConfigurationRef.current.phase,
+        );
+        if (intendedProject !== project) {
+          project = intendedProject;
+          repository = upsertRepositoryProject(repository, project);
+          saveProjectRepository(repository);
         }
-        const project = createWorkspaceProject(
-          createInitialProjectContent(initialMode ?? initialDraft.mode),
+        const canvas = canvasValuesForProject(project);
+        setMode(canvas.mode);
+        setTitle(canvas.title);
+        setTextByMode(canvas.textByMode);
+        setCode(canvas.code);
+        setCommittedCode(canvas.code);
+        setProjectRepository(repository);
+        setActiveProject(project);
+      } catch {
+        setStatus("A fresh local workspace was opened.");
+        const project = createProjectFromDrafts(
+          initialDraft.title,
+          {
+            idea: starterText.idea,
+            mindmap: starterText.mindmap,
+            prompt: starterText.prompt,
+            brief: starterText.brief,
+          },
+          initialDraft.code,
+          initialConfigurationRef.current.mode ?? initialDraft.mode,
+          initialConfigurationRef.current.phase
+            ?? modeProjectDetails[initialConfigurationRef.current.mode ?? initialDraft.mode].phase,
         );
-        const library = createWorkspaceLibrary(project);
-        replaceProjects(library.projects);
-        libraryRevisionRef.current = library.revision;
-        setActiveProjectId(project.id);
-        loadProjectIntoEditor(project, initialMode, initialPhase);
-        const saved = saveWorkspaceLibrary(window.localStorage, library);
-        if (!saved.ok) setStatus(`${saved.error.message} Current edits remain open.`);
-      } else {
-        const project = createWorkspaceProject(
-          createInitialProjectContent(initialMode ?? initialDraft.mode),
-        );
-        replaceProjects([project]);
-        setActiveProjectId(project.id);
-        loadProjectIntoEditor(project, initialMode, initialPhase);
-        setPersistenceSuspended(true);
-        setStatus(`${loaded.error.message} Autosave is paused to preserve the original data.`);
+        setProjectRepository(upsertRepositoryProject(createEmptyProjectRepository(), project));
+        setActiveProject(project);
       }
       setHydrated(true);
     });
@@ -1094,91 +1281,131 @@ export function CreativeWorkspace({
       window.removeEventListener("online", online);
       window.removeEventListener("offline", offline);
     };
-  }, [initialMode, initialPhase, loadProjectIntoEditor, replaceProjects, startFromSeed]);
+  }, []);
 
   useEffect(() => {
-    if (!hydrated || !activeProjectId) return;
-    const saveTimer = window.setTimeout(() => {
-      const now = new Date().toISOString();
-      const nextProjects = projectsRef.current.map((project) =>
-        project.id === activeProjectId
-          ? {
-              ...project,
-              mode,
-              title,
-              textByMode,
-              code: { ...code },
-              committedCode: { ...committedCode },
-              versions: versions.slice(0, WORKSPACE_VERSION_LIMIT),
-              updatedAt: now,
-            }
-          : project,
-      );
-      replaceProjects(nextProjects);
-      if (persistProjects(nextProjects, activeProjectId)) {
-        setStatus(intelligenceIssueRef.current
-          ? `Editable source saved. Intelligence warning: ${intelligenceIssueRef.current}`
-          : "Saved on this device");
+    if (!hydrated || seedHandledRef.current) return;
+    seedHandledRef.current = true;
+    const frame = window.requestAnimationFrame(() => {
+      const seed = readProjectSeed();
+      if (!seed) return;
+      try {
+        const seededProject = applySeedToProject(activeProject, seed);
+        persistProject(seededProject);
+        setTitle(seededProject.title);
+        if (seed.action === "start-project") {
+          setMode("idea");
+          setTextByMode((current) => ({ ...current, idea: seed.payload.brief }));
+        }
+        clearProjectSeed(seed.id);
+        setStatus(
+          seed.action === "add-evidence"
+            ? `Evidence added from ${seed.source.label}`
+            : `Project started from ${seed.source.label}`,
+        );
+      } catch {
+        setStatus("The incoming project seed could not be applied. It was kept for recovery.");
       }
-    }, 180);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeProject, hydrated, persistProject]);
+
+  useEffect(() => {
+    if (!hydrated || !activeProject) return;
+    const saveTimer = window.setTimeout(() => {
+      const payload: StoredWorkspace = {
+        mode,
+        title,
+        textByMode,
+        code,
+        committedCode,
+        versions,
+        reviewHistory,
+        reviewLens,
+        includeKnowledge,
+      };
+      let recoverySaved = false;
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        recoverySaved = true;
+      } catch {
+        // The canonical Atlas write below can still succeed when the legacy
+        // compatibility copy cannot be retained.
+      }
+
+      try {
+        const titled = activeProject.title === (title.trim() || activeProject.title)
+          && (mode !== "idea" || activeProject.summary === currentText.slice(0, 1200))
+          ? activeProject
+          : parseKingxfordProject({
+              ...activeProject,
+              title: (title.trim() || activeProject.title).slice(0, 160),
+              summary: mode === "idea"
+                ? currentText.slice(0, 1200)
+                : activeProject.summary,
+              updatedAt: new Date().toISOString(),
+            });
+        const project = appendDraftToProject(titled, draft, "human");
+        if (project !== activeProject) {
+          const repository = upsertRepositoryProject(projectRepository, project);
+          saveProjectRepository(repository);
+          activeProjectRef.current = project;
+          setActiveProject(project);
+          setProjectRepository(repository);
+          setStatus("Saved to Project Atlas · recovery copy retained on this device");
+        }
+      } catch (error) {
+        setStatus(
+          recoverySaved
+            ? `Atlas save blocked · recovery copy retained · ${error instanceof Error ? error.message : "export the project now"}`
+            : "Local project storage is unavailable. Export the project package now.",
+        );
+      }
+    }, DRAFT_AUTOSAVE_DELAY_MS);
     return () => window.clearTimeout(saveTimer);
   }, [
-    activeProjectId,
+    activeProject,
     code,
     committedCode,
+    currentText,
+    draft,
     hydrated,
+    includeKnowledge,
     mode,
-    persistProjects,
-    replaceProjects,
+    reviewHistory,
+    reviewLens,
+    projectRepository,
     textByMode,
     title,
     versions,
   ]);
 
   useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== WORKSPACE_STORAGE_KEY || !event.newValue) return;
+    if (!hydrated || !activeProject) return;
+    const intentKey = `${initialMode ?? ""}|${initialPhase ?? ""}`;
+    if (appliedRouteIntentRef.current === intentKey) return;
+    appliedRouteIntentRef.current = intentKey;
+    if (!initialMode && !initialPhase) return;
+    const frame = window.requestAnimationFrame(() => {
       try {
-        const incomingRevision = (JSON.parse(event.newValue) as { revision?: unknown }).revision;
-        if (
-          typeof incomingRevision === "number" &&
-          incomingRevision > libraryRevisionRef.current
-        ) {
-          setPersistenceSuspended(true);
-          setStatus("Another tab updated this Canvas library. Autosave paused to prevent an overwrite.");
+        const project = applyWorkspaceIntent(activeProject, initialMode, initialPhase);
+        if (project !== activeProject) {
+          const repository = upsertRepositoryProject(projectRepository, project);
+          saveProjectRepository(repository);
+          activeProjectRef.current = project;
+          setActiveProject(project);
+          setProjectRepository(repository);
         }
-      } catch {
-        setPersistenceSuspended(true);
-        setStatus("Another tab changed local Canvas data. Autosave paused for safety.");
+        if (initialMode) setMode(initialMode);
+        setStatus("Opened the requested Canvas tool and lifecycle phase");
+      } catch (error) {
+        setStatus(error instanceof Error
+          ? `Workspace route could not be applied · ${error.message}`
+          : "Workspace route could not be applied safely.");
       }
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
-
-  useEffect(() => {
-    if (!activeProjectId) return;
-    const reloadIntelligence = (event: Event) => {
-      if (event instanceof StorageEvent && event.key !== PLATFORM_STORAGE_KEY) return;
-      const loaded = loadPlatformSidecar(window.localStorage);
-      if (loaded.status === "error") {
-        setIntelligenceStorageError(loaded.error.message);
-        return;
-      }
-      platformSidecarRef.current = loaded.sidecar;
-      setIntelligenceStorageError("");
-      const current = loaded.sidecar.projects[activeProjectId] ??
-        createPlatformProjectIntelligence(activeProjectId, { phase });
-      setActiveIntelligence(current);
-      setMapView(current.mapView);
-    };
-    window.addEventListener("storage", reloadIntelligence);
-    window.addEventListener(PLATFORM_CHANGE_EVENT, reloadIntelligence);
-    return () => {
-      window.removeEventListener("storage", reloadIntelligence);
-      window.removeEventListener(PLATFORM_CHANGE_EVENT, reloadIntelligence);
-    };
-  }, [activeProjectId, phase]);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeProject, hydrated, initialMode, initialPhase, projectRepository]);
 
   useEffect(() => {
     if (!autoRun || mode !== "code") return;
@@ -1191,30 +1418,215 @@ export function CreativeWorkspace({
     return () => window.clearTimeout(timer);
   }, [autoRun, code, mode]);
 
-  const saveDraftVersion = useCallback(
-    (
-      sourceDraft: WorkspaceDraft,
-      source: WorkspaceVersion["source"] = "manual",
-      name?: string,
-    ) => {
+  const commitDraftToProject = useCallback((
+    nextDraft: WorkspaceDraft,
+    source: "human" | "local-transform" | "agent-proposal" | "agent-accepted" | "restored" = "human",
+  ) => {
+    try {
+      const base = activeProject ?? createKingxfordProject({
+        title: nextDraft.title || "Untitled project",
+        summary: nextDraft.mode === "idea" ? nextDraft.text.slice(0, 1200) : "",
+        activePhase: modeProjectDetails[nextDraft.mode].phase,
+      });
+      const titled = parseKingxfordProject({
+        ...base,
+        title: (nextDraft.title.trim() || base.title).slice(0, 160),
+        summary: nextDraft.mode === "idea"
+          ? nextDraft.text.slice(0, 1200)
+          : base.summary,
+        updatedAt: new Date().toISOString(),
+      });
+      const next = appendDraftToProject(titled, nextDraft, source);
+      persistProject(next);
+      return next;
+    } catch (error) {
+      setStatus(error instanceof Error
+        ? `Project revision blocked · ${error.message}`
+        : "Project revision could not be saved.");
+      return null;
+    }
+  }, [activeProject, persistProject]);
+
+  const openProjectInCanvas = useCallback((project: KingxfordProject) => {
+    const canvas = canvasValuesForProject(project);
+    setActiveProject(project);
+    setMode(canvas.mode);
+    setTitle(canvas.title);
+    setTextByMode(canvas.textByMode);
+    setCode(canvas.code);
+    setCommittedCode(canvas.code);
+    setReviewResponse(null);
+    setReviewBinding(null);
+    reviewBindingRef.current = null;
+    setIntelligenceResponse(null);
+    setIntelligenceBinding(null);
+    setIntelligenceError("");
+    intelligenceBindingRef.current = null;
+    setRightTab("preview");
+    setMobilePane("input");
+  }, []);
+
+  const preserveCurrentProject = useCallback(() => {
+    if (!activeProject) return projectRepository;
+    const titled = parseKingxfordProject({
+      ...activeProject,
+      title: (title.trim() || activeProject.title).slice(0, 160),
+      summary: mode === "idea" ? currentText.slice(0, 1200) : activeProject.summary,
+      updatedAt: new Date().toISOString(),
+    });
+    const project = appendDraftToProject(titled, draft, "human");
+    const repository = upsertRepositoryProject(projectRepository, project);
+    saveProjectRepository(repository);
+    setProjectRepository(repository);
+    setActiveProject(project);
+    return repository;
+  }, [activeProject, currentText, draft, mode, projectRepository, title]);
+
+  const switchProject = (projectId: string) => {
+    if (projectMutationLocked || projectId === activeProject?.id) return;
+    try {
+      const preserved = preserveCurrentProject();
+      const repository = selectRepositoryProject(preserved, projectId);
+      const project = activeRepositoryProject(repository);
+      if (!project) throw new Error("The selected project is unavailable.");
+      saveProjectRepository(repository);
+      setProjectRepository(repository);
+      openProjectInCanvas(project);
+      setStatus(`Opened ${project.title}`);
+    } catch (error) {
+      setStatus(error instanceof Error
+        ? `Project switch blocked · ${error.message}`
+        : "Project switch blocked to protect the current draft.");
+    }
+  };
+
+  const createLocalProject = () => {
+    if (projectMutationLocked) return;
+    try {
+      let repository = preserveCurrentProject();
+      const project = createProjectFromDrafts(
+        "New Kingxford project",
+        {
+          idea: starterText.idea,
+          mindmap: starterText.mindmap,
+          prompt: starterText.prompt,
+          brief: starterText.brief,
+        },
+        initialDraft.code,
+        "idea",
+      );
+      repository = upsertRepositoryProject(repository, project);
+      saveProjectRepository(repository);
+      setProjectRepository(repository);
+      openProjectInCanvas(project);
+      setStatus("New local project created");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "A new project could not be created.");
+    }
+  };
+
+  const exportProjectPackage = (projectId = activeProject?.id) => {
+    if (!projectId) return;
+    try {
+      const storedProject = projectRepository.projects.find(({ id }) => id === projectId);
+      if (!storedProject) throw new Error("The selected project is unavailable.");
+      const project = projectId === activeProject?.id
+        ? appendDraftToProject(activeProject, draft, "human")
+        : storedProject;
+      if (projectId === activeProject?.id) persistProject(project);
+      const blob = new Blob([exportProjectJson(project)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${safeFileName(project.title)}.kxproject.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setStatus("Complete project package exported");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The project package could not be exported.");
+    }
+  };
+
+  const importProjectPackage = async (file: File | undefined) => {
+    if (!file || projectMutationLocked) return;
+    try {
+      const preserved = preserveCurrentProject();
+      const result = importProjectJson(preserved, await file.text());
+      saveProjectRepository(result.state);
+      setProjectRepository(result.state);
+      openProjectInCanvas(result.project);
+      setStatus(result.cloned
+        ? "Imported as a protected copy; the existing project was preserved"
+        : "Project package imported and verified");
+    } catch (error) {
+      setStatus(error instanceof Error
+        ? `Import rejected · ${error.message}`
+        : "Import rejected by the project integrity checks.");
+    } finally {
+      if (importRef.current) importRef.current.value = "";
+    }
+  };
+
+  const deleteCurrentProject = () => {
+    if (!activeProject || projectMutationLocked || projectRepository.projects.length < 2) return;
+    if (!window.confirm(`Delete the local project “${activeProject.title}”? Export it first if you may need it later.`)) return;
+    try {
+      const repository = removeRepositoryProject(projectRepository, activeProject.id);
+      const next = activeRepositoryProject(repository);
+      if (!next) throw new Error("At least one project must remain in Canvas.");
+      saveProjectRepository(repository);
+      setProjectRepository(repository);
+      openProjectInCanvas(next);
+      setStatus("Local project deleted");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The project could not be deleted.");
+    }
+  };
+
+  const duplicateLocalProject = (projectId: string) => {
+    if (projectMutationLocked) return;
+    try {
+      const preserved = preserveCurrentProject();
+      const result = duplicateRepositoryProject(preserved, projectId);
+      saveProjectRepository(result.state);
+      setProjectRepository(result.state);
+      openProjectInCanvas(result.project);
+      setStatus(`Duplicated ${result.project.title} with complete Atlas lineage`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The project could not be duplicated.");
+    }
+  };
+
+  const deleteLibraryProject = (projectId: string) => {
+    if (projectMutationLocked || projectRepository.projects.length < 2) return;
+    try {
+      const repository = removeRepositoryProject(projectRepository, projectId);
+      const next = activeRepositoryProject(repository);
+      if (!next) throw new Error("At least one project must remain in Canvas.");
+      saveProjectRepository(repository);
+      setProjectRepository(repository);
+      if (projectId === activeProject?.id) openProjectInCanvas(next);
+      setStatus("Local Atlas project deleted");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The project could not be deleted.");
+    }
+  };
+
+  const saveVersion = useCallback(
+    (source: WorkspaceVersion["source"] = "manual", name?: string) => {
       const version: WorkspaceVersion = {
         id: makeId(),
-        name: name || sourceDraft.title || "Untitled version",
+        name: name || title || "Untitled version",
         createdAt: new Date().toISOString(),
         source,
-        draft: cloneDraft(sourceDraft),
+        draft: cloneDraft(draft),
       };
-      setVersions((current) => [version, ...current].slice(0, WORKSPACE_VERSION_LIMIT));
+      setVersions((current) => [version, ...current].slice(0, VERSION_LIMIT));
+      commitDraftToProject(draft, source === "restored" ? "restored" : "human");
       setStatus(`Checkpoint saved · ${version.name}`);
       return version;
     },
-    [],
-  );
-
-  const saveVersion = useCallback(
-    (source: WorkspaceVersion["source"] = "manual", name?: string) =>
-      saveDraftVersion(draft, source, name),
-    [draft, saveDraftVersion],
+    [commitDraftToProject, draft, title],
   );
 
   const runPreview = useCallback(() => {
@@ -1226,11 +1638,6 @@ export function CreativeWorkspace({
     setMobilePane("preview");
     setStatus("Preview current · Local");
   }, [code, mode, saveVersion, title]);
-
-  const selectMobilePane = useCallback((nextPane: MobilePane) => {
-    setMobilePane(nextPane);
-    if (nextPane !== "input") setRightTab(nextPane);
-  }, []);
 
   useEffect(() => {
     const handleShortcut = (event: globalThis.KeyboardEvent) => {
@@ -1250,14 +1657,12 @@ export function CreativeWorkspace({
       }
       if (!isTyping && event.key === "F6") {
         event.preventDefault();
-        const panes: readonly MobilePane[] = ["input", "preview", "intelligence", "agent", "versions"];
-        const currentIndex = panes.indexOf(mobilePane);
-        selectMobilePane(panes[(currentIndex + 1) % panes.length]);
+        setMobilePane((current) => current === "input" ? "preview" : current === "preview" ? "agent" : "input");
       }
     };
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
-  }, [mobilePane, runPreview, saveVersion, selectMobilePane]);
+  }, [runPreview, saveVersion]);
 
   const updateCurrentText = (value: string) => {
     if (mode === "code") return;
@@ -1277,300 +1682,35 @@ export function CreativeWorkspace({
     setStatus(`${modeDetails[nextMode].label} workspace active`);
   };
 
-  const snapshotActiveProject = useCallback(
-    (projectList: readonly WorkspaceProject[]) => {
-      const now = new Date().toISOString();
-      return projectList.map((project) =>
-        project.id === activeProjectId
-          ? {
-              ...project,
-              mode,
-              title,
-              textByMode,
-              code: { ...code },
-              committedCode: { ...committedCode },
-              versions: versions.slice(0, WORKSPACE_VERSION_LIMIT),
-              updatedAt: now,
-            }
-          : project,
-      );
-    },
-    [activeProjectId, code, committedCode, mode, textByMode, title, versions],
-  );
-
-  const openProject = (projectId: string) => {
-    if (projectId === activeProjectId) {
-      setProjectLibraryOpen(false);
-      return;
-    }
-    const nextProjects = snapshotActiveProject(projectsRef.current);
-    const target = nextProjects.find((project) => project.id === projectId);
-    if (!target) return;
-    if (!persistProjects(nextProjects, target.id)) return;
-    replaceProjects(nextProjects);
-    setActiveProjectId(target.id);
-    loadProjectIntoEditor(target);
-    setProjectLibraryOpen(false);
-    setStatus(`Opened ${target.title || "Untitled Canvas project"}`);
-  };
-
-  const createProject = () => {
-    if (projectsRef.current.length >= WORKSPACE_PROJECT_LIMIT) return;
-    const savedProjects = snapshotActiveProject(projectsRef.current);
-    const nextProject = createWorkspaceProject({
-      ...createInitialProjectContent("idea"),
-      title: "Untitled Canvas project",
-    });
-    const nextProjects = [nextProject, ...savedProjects];
-    if (!persistProjects(nextProjects, nextProject.id)) return;
-    let intelligenceSaved = false;
-    try {
-      const nextSidecar = upsertPlatformProject(
-        platformSidecarRef.current,
-        createPlatformProjectIntelligence(nextProject.id, { phase: "discover" }),
-      );
-      intelligenceSaved = persistSidecar(nextSidecar, nextProject.id);
-    } catch {
-      intelligenceSaved = false;
-    }
-    replaceProjects(nextProjects);
-    setActiveProjectId(nextProject.id);
-    loadProjectIntoEditor(nextProject);
-    setProjectLibraryOpen(false);
-    setStatus(intelligenceSaved
-      ? "New private intelligence project created"
-      : "Project created; its intelligence ledger is temporarily unavailable");
-  };
-
-  const duplicateProject = (projectId: string) => {
-    if (projectsRef.current.length >= WORKSPACE_PROJECT_LIMIT) return;
-    const savedProjects = snapshotActiveProject(projectsRef.current);
-    const source = savedProjects.find((project) => project.id === projectId);
-    if (!source) return;
-    const duplicate = createWorkspaceProject({
-      mode: source.mode,
-      title: `${source.title || "Untitled Canvas project"} copy`,
-      textByMode: source.textByMode,
-      code: source.code,
-      committedCode: source.committedCode,
-      versions: source.versions,
-    });
-    const nextProjects = [duplicate, ...savedProjects];
-    if (!persistProjects(nextProjects, duplicate.id)) return;
-    let intelligenceSaved = false;
-    const sourceIntelligence = platformSidecarRef.current.projects[source.id] ??
-      createPlatformProjectIntelligence(source.id, { phase: getPrimaryPhaseForMode(source.mode).id });
-    try {
-      const duplicateIntelligence: PlatformProjectIntelligence = {
-        ...sourceIntelligence,
-        projectId: duplicate.id,
-        evidence: sourceIntelligence.evidence.map((item) => ({ ...item })),
-        decisions: sourceIntelligence.decisions.map((item) => ({
-          ...item,
-          relatedArtifactIds: [...item.relatedArtifactIds],
-        })),
-        artifactRelationships: sourceIntelligence.artifactRelationships.map((item) => ({ ...item })),
-        agentRuns: sourceIntelligence.agentRuns.map((item) => ({
-          ...item,
-          artifactIds: [...item.artifactIds],
-        })),
-        mapView: sourceIntelligence.mapView ? {
-          zoom: sourceIntelligence.mapView.zoom,
-          pan: { ...sourceIntelligence.mapView.pan },
-          nodeOffsets: Object.fromEntries(
-            Object.entries(sourceIntelligence.mapView.nodeOffsets).map(([id, point]) => [id, { ...point }]),
-          ),
-        } : null,
-        updatedAt: new Date().toISOString(),
-      };
-      intelligenceSaved = persistSidecar(
-        upsertPlatformProject(platformSidecarRef.current, duplicateIntelligence),
-        duplicate.id,
-      );
-    } catch {
-      intelligenceSaved = false;
-    }
-    replaceProjects(nextProjects);
-    setActiveProjectId(duplicate.id);
-    loadProjectIntoEditor(duplicate);
-    setProjectLibraryOpen(false);
-    setStatus(intelligenceSaved
-      ? `Duplicated ${source.title || "project"} with its complete intelligence ledger`
-      : `Duplicated ${source.title || "project"}; its intelligence ledger could not be copied`);
-  };
-
-  const deleteProject = (projectId: string) => {
-    if (projectsRef.current.length <= 1) return;
-    const savedProjects = snapshotActiveProject(projectsRef.current);
-    const nextProjects = savedProjects.filter((project) => project.id !== projectId);
-    const nextActiveId = projectId === activeProjectId
-      ? nextProjects[0].id
-      : activeProjectId;
-    if (!persistProjects(nextProjects, nextActiveId)) return;
-    let intelligenceRemoved = false;
-    try {
-      intelligenceRemoved = persistSidecar(
-        removePlatformProject(platformSidecarRef.current, projectId),
-        projectId,
-        "removed",
-      );
-    } catch {
-      intelligenceRemoved = false;
-    }
-    replaceProjects(nextProjects);
-    setActiveProjectId(nextActiveId);
-    if (projectId === activeProjectId) loadProjectIntoEditor(nextProjects[0]);
-    setStatus(intelligenceRemoved
-      ? "Local project and intelligence ledger deleted"
-      : "Editable project deleted; intelligence cleanup is pending");
-  };
-
-  const exportProjectBundle = (projectId: string) => {
-    const savedProjects = snapshotActiveProject(projectsRef.current);
-    const project = savedProjects.find((value) => value.id === projectId);
-    if (!project) return;
-    replaceProjects(savedProjects);
-    const intelligence = platformSidecarRef.current.projects[project.id] ??
-      createPlatformProjectIntelligence(project.id, { phase: getPrimaryPhaseForMode(project.mode).id });
-    const serialized = serializePlatformProjectBundle(project, intelligence);
-    downloadTextFile(
-      serialized,
-      "application/json;charset=utf-8",
-      `${safeFileName(project.title)}.kxproject.json`,
-    );
-    setStatus("Complete project source and intelligence bundle exported");
-  };
-
-  const importProjectBundle = async (file: File) => {
-    if (file.size > PLATFORM_PROJECT_BUNDLE_CHARACTER_LIMIT) {
-      setStatus("That project bundle exceeds the supported local import size.");
-      return;
-    }
-    try {
-      const raw = await file.text();
-      const savedProjects = snapshotActiveProject(projectsRef.current);
-      if (savedProjects.length >= WORKSPACE_PROJECT_LIMIT) {
-        throw new Error(`Your ${WORKSPACE_PROJECT_LIMIT} project limit is full.`);
-      }
-      const importedBundle = importPlatformProjectBundle(
-        raw,
-        savedProjects.map((project) => project.id),
-      );
-      const imported = importedBundle.project;
-      const nextProjects = [imported, ...savedProjects];
-      if (!persistProjects(nextProjects, imported.id)) return;
-      let intelligenceSaved = false;
-      try {
-        intelligenceSaved = persistSidecar(
-          upsertPlatformProject(platformSidecarRef.current, importedBundle.intelligence),
-          imported.id,
-        );
-      } catch {
-        intelligenceSaved = false;
-      }
-      replaceProjects(nextProjects);
-      setActiveProjectId(imported.id);
-      loadProjectIntoEditor(imported);
-      setProjectLibraryOpen(false);
-      setStatus(intelligenceSaved
-        ? `Imported ${imported.title || "project"} with complete intelligence`
-        : `Imported ${imported.title || "project"}; intelligence restoration is pending`);
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : "That project bundle could not be imported safely.");
-    }
-  };
-
-  const importCreativeInput = async (file: File) => {
-    if (file.size > CREATIVE_INPUT_FILE_LIMIT) {
-      setStatus("Creative input files must be smaller than 1 MB.");
-      return;
-    }
-    try {
-      const source = await file.text();
-      if (!source.trim() || source.includes("\u0000")) {
-        throw new Error("Choose a non-empty text-based creative input file.");
-      }
-      if (sourceLength > 2) {
-        saveVersion("manual", `${title || "Untitled"} · before import`);
-      }
-
-      const normalizedName = file.name.toLocaleLowerCase();
-      const baseName = file.name.replace(/\.[^.]+$/, "").trim();
-      if (normalizedName.endsWith(".html") || normalizedName.endsWith(".htm")) {
-        const parsed = new DOMParser().parseFromString(source, "text/html");
-        const body = parsed.body.cloneNode(true) as HTMLElement;
-        body.querySelectorAll("script,style").forEach((node) => node.remove());
-        const inlineCss = Array.from(parsed.querySelectorAll("style"))
-          .map((node) => node.textContent ?? "")
-          .join("\n\n");
-        const inlineJavaScript = Array.from(parsed.querySelectorAll("script:not([src])"))
-          .map((node) => node.textContent ?? "")
-          .join("\n\n");
-        const nextCode = {
-          html: body.innerHTML.trim() || source,
-          css: inlineCss.trim() || code.css,
-          javascript: inlineJavaScript.trim() || code.javascript,
-        };
-        setCode(nextCode);
-        setCommittedCode(nextCode);
-        setMode("code");
-        setCodeFile("html");
-        setRunId((value) => value + 1);
-      } else if (normalizedName.endsWith(".css")) {
-        const nextCode = { ...code, css: source };
-        setCode(nextCode);
-        setCommittedCode(nextCode);
-        setMode("code");
-        setCodeFile("css");
-        setRunId((value) => value + 1);
-      } else if (normalizedName.endsWith(".js") || normalizedName.endsWith(".mjs")) {
-        const nextCode = { ...code, javascript: source };
-        setCode(nextCode);
-        setCommittedCode(nextCode);
-        setMode("code");
-        setCodeFile("javascript");
-        setRunId((value) => value + 1);
-      } else {
-        const targetMode: Exclude<WorkspaceMode, "code"> =
-          /\.(mmd|mindmap|map\.md)$/.test(normalizedName)
-            ? "mindmap"
-            : normalizedName.includes("prompt")
-              ? "prompt"
-              : normalizedName.includes("brief")
-                ? "brief"
-                : mode === "code"
-                  ? "idea"
-                  : mode;
-        setTextByMode((current) => ({ ...current, [targetMode]: source }));
-        setMode(targetMode);
-      }
-      if (!title.trim() || title === initialDraft.title) setTitle(baseName || "Imported concept");
-      setRightTab("preview");
-      setMobilePane("input");
-      setStatus(`${file.name} imported locally · previous source checkpointed`);
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : "That creative input could not be imported.");
-    }
-  };
-
   const transformTo = (target: WorkspaceMode) => {
     if (target === mode) return;
     const transformed = transformDraft(draft, target);
-    const targetDraft: WorkspaceDraft = {
-      mode: target,
-      title,
-      text: target === "code" ? "" : textByMode[target],
-      code,
-    };
-    const targetHasSource = target === "code"
-      ? Boolean(code.html.trim() || code.css.trim() || code.javascript.trim())
-      : Boolean(targetDraft.text.trim());
-    if (targetHasSource) {
-      saveDraftVersion(
-        targetDraft,
-        "manual",
-        `${title || "Untitled"} · ${transformLabels[target]} before transform`,
+    try {
+      const base = appendDraftToProject(
+        activeProject ?? createKingxfordProject({ title: title || "Untitled project" }),
+        draft,
+        "human",
       );
+      let next = appendDraftToProject(base, transformed, "local-transform");
+      const sourceRevision = revisionForProjectMode(next, mode);
+      const targetRevision = revisionForProjectMode(next, target);
+      const sourceNode = sourceRevision
+        ? next.nodes.find((node) => node.kind === "revision" && node.refId === sourceRevision.id)
+        : undefined;
+      const targetNode = targetRevision
+        ? next.nodes.find((node) => node.kind === "revision" && node.refId === targetRevision.id)
+        : undefined;
+      if (sourceNode && targetNode && sourceNode.id !== targetNode.id) {
+        next = connectProjectNodes(next, {
+          type: "derives-from",
+          fromNodeId: targetNode.id,
+          toNodeId: sourceNode.id,
+        });
+      }
+      persistProject(next);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The linked transformation could not be recorded.");
+      return;
     }
     if (target === "code") {
       setCode(transformed.code);
@@ -1586,6 +1726,7 @@ export function CreativeWorkspace({
 
   const restoreVersion = (version: WorkspaceVersion) => {
     saveVersion("restored", `${title || "Untitled"} · before restore`);
+    commitDraftToProject(version.draft, "restored");
     setMode(version.draft.mode);
     setTitle(version.draft.title);
     if (version.draft.mode === "code") {
@@ -1605,131 +1746,154 @@ export function CreativeWorkspace({
   const exportCurrent = () => {
     const content = mode === "code" ? buildCodeExport(code) : currentText;
     const type = mode === "code" ? "text/html;charset=utf-8" : "text/markdown;charset=utf-8";
-    downloadTextFile(
-      content,
-      type,
-      `${safeFileName(title)}-${mode}.${fileExtension(mode)}`,
-    );
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${safeFileName(title)}-${mode}.${fileExtension(mode)}`;
+    anchor.click();
+    URL.revokeObjectURL(url);
     setStatus(`Exported ${transformLabels[mode].toLocaleLowerCase()}`);
   };
 
   const requestReview = async (quickInstruction?: string) => {
-    if (!canReview || reviewRunning) return;
-    const submittedDraft = cloneDraft(draft);
-    const submittedFingerprint = `${activeProjectId}:${phase}:${agentRole}:${draftFingerprint(submittedDraft)}`;
+    if (!canReview || projectMutationLocked) return;
     const controller = new AbortController();
     controllerRef.current = controller;
     setReviewRunning(true);
     setReviewError("");
     setReviewResponse(null);
-    setReviewDraftFingerprint(null);
+    setReviewBinding(null);
     setRightTab("agent");
     setMobilePane("agent");
-    const objective = (quickInstruction || reviewInstruction || "Review this version rigorously and propose the next useful improvement.").slice(0, 600);
-    const projectIntelligence = activeIntelligence ??
-      createPlatformProjectIntelligence(activeProjectId, { phase });
+    const objective = quickInstruction || reviewInstruction || "Review this version rigorously and propose the next useful improvement.";
 
     try {
-      const requestCandidate: IntelligenceRunRequest = {
-        mode: submittedDraft.mode,
-        title: submittedDraft.title.slice(0, 120),
-        text: submittedDraft.text.slice(0, 22_000),
-        code: submittedDraft.mode === "code" ? {
-          html: submittedDraft.code.html.slice(0, 16_000),
-          css: submittedDraft.code.css.slice(0, 16_000),
-          javascript: submittedDraft.code.javascript.slice(0, 16_000),
-        } : EMPTY_CODE,
-        objective,
-        depth: reviewDepth,
-        projectContext: {
-          projectId: activeProjectId,
-          objective: projectIntelligence.objective.slice(0, 600),
-          phase,
-          evidence: projectIntelligence.evidence.slice(-24).map((item) => ({
-            ...item,
-            title: item.title.slice(0, 180),
-            source: item.source.slice(0, 2_000),
-            claim: item.claim.slice(0, 2_000),
-          })),
-          decisions: projectIntelligence.decisions.slice(-24).map((item) => ({
-            ...item,
-            title: item.title.slice(0, 180),
-            decision: item.decision.slice(0, 2_000),
-            rationale: item.rationale.slice(0, 2_000),
-            relatedArtifactIds: item.relatedArtifactIds.slice(0, 16),
-          })),
-          acceptedRuns: projectIntelligence.agentRuns.slice(-24).map((item) => ({
-            ...item,
-            summary: item.summary.slice(0, 1_600),
-            artifactIds: item.artifactIds.slice(0, 16),
-          })),
-          artifacts: [
-            {
-              id: `source:${activeProjectId}`,
-              title: (submittedDraft.title || "Current workspace source").slice(0, 180),
-              kind: "workspace-source" as const,
-              summary: (submittedDraft.mode === "code"
-                ? "Current HTML, CSS, and JavaScript working source."
-                : submittedDraft.text).slice(0, 1_600),
-              createdAt: new Date().toISOString(),
-            },
-            ...versions.slice(0, 6).map((version) => ({
-              id: version.id,
-              title: version.name.slice(0, 180),
-              kind: "version" as const,
-              summary: versionContextSource(version).slice(0, 1_600),
-              createdAt: version.createdAt,
-            })),
-          ],
-          artifactRelationships: projectIntelligence.artifactRelationships.slice(-48).map((item) => ({
-            ...item,
-            label: item.label.slice(0, 300),
-          })),
-        },
-        context: {
-          codeLogs: includeLogs ? codeLogs.slice(-12).map((log) => log.slice(0, 1_000)) : [],
-          versions: includeVersions
-            ? versions.slice(0, 3).map((version) => ({
-                id: version.id,
-                name: version.name.slice(0, 120),
-                mode: version.draft.mode,
-                text: versionContextSource(version),
-              }))
-            : [],
-        },
-        orchestration: {
-          maxSpecialistPasses: reviewDepth === "deep" ? 2 : 1,
-          requestedRoles: agentRole === "conductor" ? [] : [agentRole],
-        },
-        capabilityNegotiation: { requested: [...intelligenceCapabilities] },
-      };
-      const parsedRequest = intelligenceRunRequestSchema.safeParse(requestCandidate);
-      if (!parsedRequest.success) {
-        throw new Error(parsedRequest.error.issues[0]?.message ?? "The selected project context exceeds the Agent run contract.");
+      const project = commitDraftToProject(draft, "human");
+      if (!project) throw new Error("The current draft could not be bound to a project revision.");
+      const artifact = artifactForProjectMode(project, mode);
+      const revision = artifact
+        ? project.revisions.find((candidate) => candidate.id === artifact.activeRevisionId)
+        : undefined;
+      if (!artifact || !revision) {
+        throw new Error("The active artifact revision could not be prepared for review.");
       }
-      const response = await fetch("/api/intelligence/runs", {
+      const snapshot = buildProjectSnapshot(project, { activeArtifactId: artifact.id });
+      const binding: ReviewBinding = {
+        token: makeId(),
+        projectId: project.id,
+        snapshotId: snapshot.id,
+        snapshotHash: snapshot.hash,
+        artifactId: artifact.id,
+        artifactRevisionId: revision.id,
+        draftHash: revision.contentHash,
+        editorHash,
+      };
+      reviewBindingRef.current = binding;
+      setReviewBinding(null);
+
+      const response = await fetch("/api/workspace/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
-        body: JSON.stringify(parsedRequest.data),
+        body: JSON.stringify({
+          mode,
+          title,
+          text: currentText,
+          code,
+          objective,
+          depth: reviewDepth,
+          lens: reviewLens,
+          includeKnowledge,
+          ...(includeProjectGraph
+            ? {
+                projectGraphSnapshot: snapshot,
+                artifactRevisionId: revision.id,
+              }
+            : {}),
+          context: {
+            codeLogs: includeLogs ? codeLogs : [],
+            versions: includeVersions
+              ? versions.slice(0, 3).map((version) => ({
+                  name: version.name,
+                  mode: version.draft.mode,
+                  text: version.draft.text.slice(0, 1800),
+                }))
+              : [],
+          },
+        }),
       });
-      const rawPayload = await response.json() as unknown;
-      if (!response.ok) {
-        const message = rawPayload && typeof rawPayload === "object" &&
-          "error" in rawPayload && typeof rawPayload.error === "string"
-          ? rawPayload.error.slice(0, 500)
-          : "The review did not complete.";
-        throw new Error(message);
+      const payload = (await response.json()) as AgentReviewResponse & { error?: string };
+      if (!response.ok || !payload.review) {
+        throw new Error(payload.error || "The review did not complete.");
       }
-      const parsedPayload = intelligenceRunResponseSchema.safeParse(rawPayload);
-      if (!parsedPayload.success) {
-        throw new Error("The Agent returned an invalid review contract. Your source was not changed.");
+      const liveBinding = reviewBindingRef.current;
+      if (
+        !liveBinding
+        || liveBinding.token !== binding.token
+        || activeProjectRef.current?.id !== binding.projectId
+        || editorHashRef.current !== binding.editorHash
+      ) {
+        throw new Error("The project changed while the review was running, so the response was not attached or applied.");
       }
-      const payload: IntelligenceRunResponse = parsedPayload.data;
+      if (includeProjectGraph) {
+        const echoed = payload.projectContext;
+        if (
+          !echoed
+          || echoed.projectId !== binding.projectId
+          || echoed.snapshotId !== binding.snapshotId
+          || echoed.snapshotHash !== binding.snapshotHash
+          || echoed.artifactId !== binding.artifactId
+          || echoed.artifactRevisionId !== binding.artifactRevisionId
+          || echoed.draftHash !== binding.draftHash
+        ) {
+          throw new Error("The review did not return the exact project and revision binding.");
+        }
+      }
+
+      let reviewedProject = activeProjectRef.current;
+      let completedBinding = binding;
+      if (includeProjectGraph && reviewedProject) {
+        reviewedProject = addProjectReviewLink(reviewedProject, {
+          phase: modeProjectDetails[mode].phase,
+          artifactId: binding.artifactId,
+          revisionId: binding.artifactRevisionId,
+          revisionHash: binding.draftHash,
+          requestId: payload.request.id,
+          snapshotId: binding.snapshotId,
+          snapshotHash: binding.snapshotHash,
+          contextHash: stableHash({
+            objective,
+            lens: reviewLens,
+            depth: reviewDepth,
+            includeKnowledge,
+            includeLogs,
+            includeVersions,
+          }),
+          createdAt: new Date().toISOString(),
+        });
+        persistProject(reviewedProject);
+        const reviewLink = reviewedProject.reviewLinks.find(
+          (candidate) => candidate.requestId === payload.request.id,
+        );
+        completedBinding = { ...binding, reviewLinkId: reviewLink?.id };
+      }
+      reviewBindingRef.current = completedBinding;
+      setReviewBinding(completedBinding);
       setReviewResponse(payload);
-      setReviewDraftFingerprint(submittedFingerprint);
+      const record: AgentReviewRecord = {
+        id: payload.request.id,
+        createdAt: new Date().toISOString(),
+        projectTitle: title,
+        mode,
+        instruction: objective,
+        response: payload,
+      };
+      setReviewHistory((current) => [record, ...current].slice(0, REVIEW_HISTORY_LIMIT));
       setStatus(`Review complete · ${payload.source === "openai" ? "Uses AI" : "Local fallback"}`);
     } catch (error) {
+      reviewBindingRef.current = null;
+      setReviewBinding(null);
       if (error instanceof DOMException && error.name === "AbortError") {
         setReviewError("Review stopped. Your input is unchanged.");
       } else {
@@ -1741,109 +1905,308 @@ export function CreativeWorkspace({
     }
   };
 
+  const runConductor = async (depth: "standard" | "deep") => {
+    if (!canReview || intelligenceRunning || reviewRunning || !isOnline) return;
+    const controller = new AbortController();
+    intelligenceControllerRef.current = controller;
+    setIntelligenceDepth(depth);
+    setIntelligenceRunning(true);
+    setIntelligenceError("");
+    setIntelligenceResponse(null);
+    setIntelligenceBinding(null);
+    intelligenceBindingRef.current = null;
+    setRightTab("intelligence");
+    setMobilePane("intelligence");
+
+    try {
+      const project = commitDraftToProject(draft, "human");
+      if (!project) throw new Error("The current draft could not be committed before orchestration.");
+      const artifact = artifactForProjectMode(project, mode);
+      const revision = artifact
+        ? project.revisions.find(({ id }) => id === artifact.activeRevisionId)
+        : undefined;
+      if (!artifact || !revision) {
+        throw new Error("The active artifact revision could not be bound to the Conductor run.");
+      }
+      const snapshot = buildProjectSnapshot(project, { activeArtifactId: artifact.id });
+      const binding: IntelligenceBinding = {
+        token: makeId(),
+        projectId: project.id,
+        snapshotId: snapshot.id,
+        snapshotHash: snapshot.hash,
+        artifactId: artifact.id,
+        artifactRevisionId: revision.id,
+        draftHash: revision.contentHash,
+        editorHash,
+      };
+      intelligenceBindingRef.current = binding;
+      const objective = (
+        project.summary.trim()
+        || title.trim()
+        || (mode === "code" ? "Advance this working prototype responsibly." : currentText.trim())
+      ).slice(0, 600);
+      const request = intelligenceRunRequestSchema.parse({
+        mode,
+        title,
+        text: currentText,
+        code,
+        objective,
+        depth,
+        projectContext: intelligenceProjectContext(project),
+        context: {
+          codeLogs: codeLogs.slice(-12),
+          versions: versions.slice(0, 3).map((version) => ({
+            id: version.id,
+            name: version.name,
+            mode: version.draft.mode,
+            text: version.draft.text.slice(0, 600),
+          })),
+        },
+        orchestration: {
+          maxSpecialistPasses: 2,
+          requestedRoles: [],
+        },
+        capabilityNegotiation: {
+          requested: [...intelligenceCapabilities],
+        },
+        projectGraphSnapshot: snapshot,
+        artifactRevisionId: revision.id,
+      });
+
+      const response = await fetch("/api/intelligence/runs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify(request),
+      });
+      const raw = await response.json().catch(() => null) as null | { error?: unknown };
+      if (!response.ok) {
+        throw new Error(
+          typeof raw?.error === "string"
+            ? raw.error
+            : "The governed Conductor run did not complete.",
+        );
+      }
+      const payload = intelligenceRunResponseSchema.parse(raw);
+      const liveBinding = intelligenceBindingRef.current;
+      const liveProject = activeProjectRef.current;
+      if (
+        !liveBinding
+        || liveBinding.token !== binding.token
+        || liveProject?.id !== binding.projectId
+        || editorHashRef.current !== binding.editorHash
+      ) {
+        throw new Error("The project changed during orchestration, so the result was not attached.");
+      }
+      const echoed = payload.projectContext;
+      if (
+        echoed.projectId !== binding.projectId
+        || echoed.snapshotId !== binding.snapshotId
+        || echoed.snapshotHash !== binding.snapshotHash
+        || echoed.artifactId !== binding.artifactId
+        || echoed.artifactRevisionId !== binding.artifactRevisionId
+        || echoed.draftHash !== binding.draftHash
+      ) {
+        throw new Error("The Conductor did not return the exact Atlas snapshot and revision binding.");
+      }
+
+      const reviewedProject = addProjectReviewLink(liveProject, {
+        phase: artifact.phase,
+        artifactId: artifact.id,
+        revisionId: revision.id,
+        revisionHash: revision.contentHash,
+        requestId: payload.runId,
+        snapshotId: snapshot.id,
+        snapshotHash: snapshot.hash,
+        contextHash: stableHash({
+          objective,
+          depth,
+          requestedCapabilities: intelligenceCapabilities,
+          protocolVersion: payload.protocolVersion,
+        }),
+        createdAt: payload.completedAt,
+      });
+      persistProject(reviewedProject);
+      const reviewLink = reviewedProject.reviewLinks.find(
+        ({ requestId }) => requestId === payload.runId,
+      );
+      const completedBinding: IntelligenceBinding = {
+        ...binding,
+        runId: payload.runId,
+        reviewLinkId: reviewLink?.id,
+        projectUpdatedAt: reviewedProject.updatedAt,
+      };
+      intelligenceBindingRef.current = completedBinding;
+      setIntelligenceBinding(completedBinding);
+      setIntelligenceResponse(payload);
+      setStatus(
+        `Conductor complete · ${payload.orchestration.passes.length} specialist passes · ${payload.source === "openai" ? "Uses AI" : "Local fallback"}`,
+      );
+    } catch (error) {
+      intelligenceBindingRef.current = null;
+      setIntelligenceBinding(null);
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setIntelligenceError("Conductor stopped. The project graph and current input are unchanged.");
+      } else {
+        setIntelligenceError(
+          error instanceof Error
+            ? error.message
+            : "The Conductor run did not complete. The project remains unchanged.",
+        );
+      }
+    } finally {
+      setIntelligenceRunning(false);
+      intelligenceControllerRef.current = null;
+    }
+  };
+
+  const addManualEvidence = async (submission: ManualEvidenceSubmission) => {
+    if (!activeProject || projectMutationLocked) {
+      throw new Error("The project is currently locked by an active review.");
+    }
+    try {
+      const recordedAt = new Date().toISOString();
+      const body = [
+        submission.statement,
+        submission.sourceRef ? `Source: ${submission.sourceRef}` : "Source: not recorded",
+      ].join("\n\n");
+      let next = appendArtifactRevision(activeProject, {
+        kind: "evidence",
+        title: submission.title,
+        phase: submission.phase,
+        body: textRevisionBody(body),
+        source: "human",
+        createdAt: recordedAt,
+      });
+      const evidenceArtifact = next.artifacts.find(
+        (artifact) => artifact.kind === "evidence" && artifact.createdAt === recordedAt,
+      );
+      next = upsertProjectNode(next, {
+        key: `manual-evidence:${evidenceArtifact?.id ?? recordedAt}`,
+        kind: "evidence",
+        phase: submission.phase,
+        label: submission.title,
+        statement: submission.statement,
+        status: submission.status,
+        sourceRef: submission.sourceRef,
+        recordedAt,
+      });
+      persistProject(next);
+      setIntelligenceBinding(null);
+      intelligenceBindingRef.current = null;
+      setStatus(`Evidence added to ${submission.phase} · human-authored`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Evidence could not be recorded.");
+      throw error;
+    }
+  };
+
+  const acceptConductorRevision = (response: IntelligenceRunResponse) => {
+    if (
+      intelligenceAccepting
+      || !activeProject
+      || !intelligenceBinding
+      || !intelligenceBindingIsCurrent
+      || response.runId !== intelligenceBinding.runId
+    ) {
+      setIntelligenceError("This synthesis is no longer bound to the current Atlas revision. Run Conductor again.");
+      return;
+    }
+    setIntelligenceAccepting(true);
+    try {
+      saveVersion("agent", `${title || "Untitled"} · before Conductor change`);
+      const proposedDraft: WorkspaceDraft = mode === "code"
+        ? {
+            ...draft,
+            code: response.review.improvedCode ?? { ...code, html: response.review.improvedInput },
+          }
+        : { ...draft, text: response.review.improvedInput };
+      // Acceptance is a governance event, not only a content mutation. Record
+      // an immutable accepted revision even when a bounded local synthesis
+      // deliberately preserves the exact reviewed bytes.
+      const acceptedProject = appendDeliberatelyAcceptedDraft(
+        activeProject,
+        proposedDraft,
+      );
+      persistProject(acceptedProject);
+      if (mode === "code") {
+        const proposedCode = response.review.improvedCode
+          ?? { ...code, html: response.review.improvedInput };
+        setCode(proposedCode);
+        setCommittedCode(proposedCode);
+        setRunId((value) => value + 1);
+      } else {
+        setTextByMode((current) => ({
+          ...current,
+          [mode]: response.review.improvedInput,
+        }));
+      }
+      setIntelligenceBinding(null);
+      intelligenceBindingRef.current = null;
+      setRightTab("preview");
+      setMobilePane("preview");
+      setStatus("Conductor synthesis accepted as an immutable project revision");
+    } catch (error) {
+      setIntelligenceError(
+        error instanceof Error ? error.message : "The Conductor revision could not be accepted.",
+      );
+    } finally {
+      setIntelligenceAccepting(false);
+    }
+  };
+
   const applyAgentVersion = () => {
     const review = reviewResponse?.review;
+    const binding = reviewBinding;
+    const project = activeProject;
+    if (!review || !binding || !project) return;
+    const artifact = project.artifacts.find(({ id }) => id === binding.artifactId);
     if (
-      !review ||
-      !reviewIsCurrent ||
-      (mode === "code" && !review.improvedCode)
-    ) return;
+      project.id !== binding.projectId
+      || editorHash !== binding.editorHash
+      || !artifact
+      || artifact.activeRevisionId !== binding.artifactRevisionId
+    ) {
+      setReviewError("This proposal belongs to an earlier project revision. Run a new review before applying it.");
+      return;
+    }
     saveVersion("agent", `${title || "Untitled"} · before Agent change`);
-    if (mode === "code" && review.improvedCode) {
-      const nextCode = { ...review.improvedCode };
-      const nextDraft = { ...draft, code: nextCode };
-      setCode(nextCode);
-      setCommittedCode(nextCode);
-      setReviewDraftFingerprint(
-        `${activeProjectId}:${phase}:${agentRole}:${draftFingerprint(nextDraft)}`,
-      );
-      saveDraftVersion(nextDraft, "agent", `${title || "Untitled"} · Agent proposal`);
+    const proposedDraft: WorkspaceDraft = mode === "code"
+      ? {
+          ...draft,
+          code: review.proposedCode ?? { ...code, html: review.improvedInput },
+        }
+      : { ...draft, text: review.improvedInput };
+    const acceptedProject = appendDraftToProject(project, proposedDraft, "agent-accepted");
+    persistProject(acceptedProject);
+    if (mode === "code") {
+      const proposedCode = review.proposedCode ?? { ...code, html: review.improvedInput };
+      setCode(proposedCode);
+      setCommittedCode(proposedCode);
       setRunId((value) => value + 1);
     } else {
-      const nextDraft = { ...draft, text: review.improvedInput };
       setTextByMode((current) => ({ ...current, [mode]: review.improvedInput }));
-      setReviewDraftFingerprint(
-        `${activeProjectId}:${phase}:${agentRole}:${draftFingerprint(nextDraft)}`,
-      );
-      saveDraftVersion(nextDraft, "agent", `${title || "Untitled"} · Agent proposal`);
     }
-    let provenanceSaved = true;
-    if (reviewResponse && activeProjectId) {
-      provenanceSaved = saveProjectIntelligence(activeProjectId, (current) => ({
-        ...current,
-        agentRuns: [
-          ...current.agentRuns,
-          {
-            id: makeId(),
-            role: reviewResponse.agentRole,
-            phase,
-            source: reviewResponse.source,
-            model: reviewResponse.model,
-            protocolVersion: reviewResponse.protocolVersion,
-            inputDigest: reviewResponse.inputDigest,
-            summary: review.summary.slice(0, 2_000),
-            artifactIds: [reviewResponse.provenance.finalArtifactId],
-            acceptedAt: new Date().toISOString(),
-          },
-        ].slice(-128),
-        updatedAt: new Date().toISOString(),
-      }));
-    }
-    setReviewDraftFingerprint(null);
     setRightTab("preview");
     setMobilePane("preview");
-    setStatus(provenanceSaved
-      ? "Agent proposal applied as a new version · Provenance accepted into project intelligence"
-      : `Agent proposal applied locally. Intelligence warning: ${intelligenceIssueRef.current || "provenance could not be stored"}`);
+    setReviewBinding(null);
+    reviewBindingRef.current = null;
+    setStatus("Agent proposal applied as a new version");
   };
 
-  const openHandoff = () => {
-    setHandoffError("");
-    handoffRef.current?.showModal();
-  };
+  const openHandoff = () => handoffRef.current?.showModal();
 
   const continueToContact = () => {
+    const selectedReview = intelligenceResponse?.review ?? reviewResponse?.review ?? null;
     const packageValue = {
       generatedAt: new Date().toISOString(),
       current: draft,
-      projectIntelligence: activeIntelligence ? {
-        projectId: activeIntelligence.projectId,
-        objective: activeIntelligence.objective,
-        phase: activeIntelligence.phase,
-        evidence: activeIntelligence.evidence.slice(-24),
-        decisions: activeIntelligence.decisions.slice(-24),
-        acceptedAgentRuns: activeIntelligence.agentRuns.slice(-12),
-        artifactRelationships: activeIntelligence.artifactRelationships.slice(-24),
-      } : null,
-      agentReview:
-        handoffAgent && reviewIsCurrent ? reviewResponse?.review ?? null : null,
+      agentReview: handoffAgent ? selectedReview : null,
       versions: handoffVersions ? versions.slice(0, 6) : [],
     };
-
-    try {
-      const serialized = JSON.stringify(packageValue);
-      if (serialized.length > HANDOFF_CHARACTER_LIMIT) {
-        const optionalContext = [
-          handoffAgent && reviewIsCurrent ? "Agent review" : "",
-          handoffVersions && versions.length ? "version history" : "",
-        ].filter(Boolean);
-        const recovery = optionalContext.length
-          ? ` Turn off ${optionalContext.join(" and ")} and try again, or export the complete project bundle.`
-          : " Export the complete project bundle instead.";
-        throw new Error(`This build handoff is too large for safe browser transfer.${recovery}`);
-      }
-
-      window.sessionStorage.setItem(HANDOFF_KEY, serialized);
-      setHandoffError("");
-      handoffRef.current?.close();
-      router.push("/contact?brief=workspace");
-    } catch (error) {
-      const message = error instanceof Error && error.message.startsWith("This build handoff")
-        ? error.message
-        : "This browser could not prepare the private handoff. Your project is unchanged; export it or adjust browser storage settings before trying again.";
-      setHandoffError(message);
-      setStatus("Build handoff paused · Your Canvas project is unchanged");
-    }
+    window.sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(packageValue));
+    handoffRef.current?.close();
+    router.push("/contact?brief=workspace");
   };
 
   const updatePaneWidth = (next: number) => setPaneWidth(Math.min(68, Math.max(32, next)));
@@ -1873,10 +2236,101 @@ export function CreativeWorkspace({
     updatePaneWidth(((event.clientX - rect.left) / rect.width) * 100);
   };
 
-  const stopSeparatorDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
-    draggingRef.current = false;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
+  const atlasPhaseState = useMemo(() => {
+    if (!activeProject) return {};
+    return Object.fromEntries(
+      (["discovery", "evidence", "systems", "prototype", "validation", "delivery"] as const)
+        .map((phase) => {
+          const gate = activeProject.gates.find((candidate) => candidate.phase === phase);
+          const phaseArtifacts = activeProject.artifacts.filter((artifact) => artifact.phase === phase);
+          const phaseEvidence = phaseArtifacts.filter((artifact) => artifact.kind === "evidence");
+          const known = activeProject.nodes.filter(
+            (node) => node.phase === phase && ["known", "validated"].includes(node.status),
+          ).length;
+          const unresolved = activeProject.nodes.filter(
+            (node) => node.phase === phase && ["unresolved", "testing", "blocked"].includes(node.status),
+          ).length;
+          const status = gate?.status === "approved"
+            ? "complete"
+            : phaseArtifacts.length > 0 && phaseEvidence.length > 0
+              ? "review"
+              : activeProject.activePhase === phase
+                ? "active"
+                : "not-started";
+          return [phase, { status, known, unresolved }] as const;
+        }),
+    );
+  }, [activeProject]);
+
+  const atlasLineage = useMemo(() => {
+    if (!activeProject) return [];
+    return [...activeProject.revisions]
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+      .slice(0, 6)
+      .map((revision) => ({
+        id: revision.id,
+        label: activeProject.artifacts.find(({ id }) => id === revision.artifactId)?.title
+          ?? "Project artifact",
+        source: revision.source,
+        revision: revision.id.slice(-8),
+      }));
+  }, [activeProject]);
+
+  const selectAtlasPhase = (phase: PlatformPhaseId) => {
+    if (!activeProject || projectMutationLocked) return;
+    try {
+      const next = parseKingxfordProject({
+        ...activeProject,
+        activePhase: phase,
+        updatedAt: new Date().toISOString(),
+      });
+      persistProject(next);
+      const matchingMode = workspaceModes.find(
+        (candidate) => modeProjectDetails[candidate].phase === phase,
+      );
+      if (matchingMode) switchMode(matchingMode);
+      setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} phase selected`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The phase could not be selected.");
+    }
+  };
+
+  const askPhaseSpecialist = (phase: PlatformPhaseId) => {
+    setReviewLens(phase);
+    setReviewInstruction(`Act as the ${phase} specialist. Examine this exact project revision, identify the strongest unresolved issue, and propose the smallest evidence-conscious next step.`);
+    setRightTab("agent");
+    setMobilePane("agent");
+    setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} specialist ready`);
+  };
+
+  const approveAtlasGate = (phase: PlatformPhaseId) => {
+    if (!activeProject || projectMutationLocked) return;
+    const evidenceArtifactIds = activeProject.artifacts
+      .filter((artifact) => artifact.phase === phase && artifact.kind === "evidence")
+      .map(({ id }) => id);
+    if (evidenceArtifactIds.length === 0) {
+      setStatus(`Human approval blocked · add evidence in ${phase} first`);
+      return;
+    }
+    const rationale = window.prompt(
+      `Record why the ${phase} gate should be approved. This is a human decision and cannot be inferred by AI.`,
+    )?.trim();
+    if (!rationale) {
+      setStatus("Human approval was not recorded; a rationale is required.");
+      return;
+    }
+    try {
+      const next = recordHumanGateDecision(activeProject, {
+        phase,
+        outcome: "approved",
+        rationale,
+        evidenceArtifactIds,
+        actorId: "local-project-owner",
+      });
+      persistProject(next);
+      setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} gate approved by a person`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The human gate decision was not recorded.");
     }
   };
 
@@ -1892,12 +2346,8 @@ export function CreativeWorkspace({
     >
       <section className={styles.intro} aria-labelledby="canvas-title">
         <div>
-          <p>Kingxford Intelligence Workspace · One continuous project system</p>
-          {embedded ? (
-            <h2 id="canvas-title">Move from first thought to working proof.</h2>
-          ) : (
-            <h1 id="canvas-title">Move from first thought to working proof.</h1>
-          )}
+          <p>Kingxford Canvas · Creative intelligence workspace</p>
+          <h1 id="canvas-title">Move from first thought to working proof.</h1>
         </div>
         <p>
           Develop an idea, run front-end code, map a system, test a prompt, or
@@ -1905,41 +2355,86 @@ export function CreativeWorkspace({
         </p>
       </section>
 
-      <section className={styles.intelligenceRail} aria-label="Connected project lifecycle">
-        <header>
-          <div>
-            <span>Kingxford Intelligence Conductor</span>
-            <strong>{activePhase.outcome}</strong>
-          </div>
-          <p>{activePhase.action} · the same project context continues forward.</p>
-        </header>
-        <nav aria-label="Project phases">
-          {PLATFORM_LIFECYCLE.map((item) => (
-            <button
-              type="button"
-              aria-current={item.id === phase ? "step" : undefined}
-              data-active={item.id === phase ? "true" : "false"}
-              onClick={() => selectPhase(item.id)}
-              key={item.id}
-            >
-              <small>{item.index}</small>
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
+      <section className={styles.projectManager} aria-label="Local project portfolio">
+        <div>
+          <span>Project portfolio</span>
+          <strong>{projectRepository.projects.length} / {PROJECT_REPOSITORY_MAX_PROJECTS} local projects</strong>
+          <small>Private on this device · runtime-validated packages</small>
+        </div>
         <label>
-          <span>Specialist pass</span>
+          <span>Active project</span>
           <select
-            value={agentRole}
-            disabled={reviewRunning}
-            onChange={(event) => setAgentRole(event.target.value as PlatformAgentRole)}
+            value={activeProject?.id ?? ""}
+            disabled={projectMutationLocked}
+            onChange={(event) => switchProject(event.target.value)}
           >
-            {activeAgents.map((agent) => (
-              <option value={agent.id} key={agent.id}>{agent.label}</option>
+            {projectRepository.projects.map((project) => (
+              <option value={project.id} key={project.id}>{project.title}</option>
             ))}
           </select>
         </label>
+        <div className={styles.projectManagerActions}>
+          <button
+            type="button"
+            disabled={projectMutationLocked || projectRepository.projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS}
+            onClick={createLocalProject}
+          >
+            <Plus aria-hidden="true" /> New
+          </button>
+          <button type="button" disabled={!activeProject || projectMutationLocked} onClick={() => exportProjectPackage()}>
+            <Download aria-hidden="true" /> Package
+          </button>
+          <button
+            type="button"
+            disabled={projectMutationLocked || projectRepository.projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS}
+            onClick={() => importRef.current?.click()}
+          >
+            <Upload aria-hidden="true" /> Import
+          </button>
+          <button
+            type="button"
+            disabled={projectMutationLocked || projectRepository.projects.length < 2}
+            onClick={deleteCurrentProject}
+          >
+            <Trash2 aria-hidden="true" /> Delete
+          </button>
+          <button
+            type="button"
+            disabled={projectMutationLocked}
+            onClick={() => setProjectLibraryOpen(true)}
+          >
+            <FolderKanban aria-hidden="true" /> Library
+          </button>
+          <input
+            ref={importRef}
+            className="sr-only"
+            type="file"
+            accept="application/json,.json"
+            aria-label="Import a Kingxford project package"
+            onChange={(event) => void importProjectPackage(event.target.files?.[0])}
+          />
+        </div>
       </section>
+
+      <div className={styles.atlasShell}>
+        <ProjectContinuum
+          activePhase={activeProject?.activePhase}
+          phaseState={atlasPhaseState}
+          knownCount={activeProject?.nodes.filter(
+            (node) => ["known", "validated"].includes(node.status),
+          ).length}
+          unresolvedCount={activeProject?.nodes.filter(
+            (node) => ["unresolved", "testing", "blocked"].includes(node.status),
+          ).length}
+          lineage={atlasLineage}
+          artifactLabel={activeArtifact
+            ? `${activeArtifact.title} · ${activeArtifact.activeRevisionId.slice(-8)}`
+            : "No artifact revision selected"}
+          onPhaseChange={selectAtlasPhase}
+          onAskSpecialist={askPhaseSpecialist}
+          onAdvanceGate={approveAtlasGate}
+        />
+      </div>
 
       <div className={styles.workspaceTopbar}>
         <div className={styles.projectIdentity}>
@@ -1953,36 +2448,12 @@ export function CreativeWorkspace({
               onChange={(event) => setTitle(event.target.value)}
             />
           </div>
-          <button
-            className={styles.projectLibraryButton}
-            type="button"
-            onClick={() => setProjectLibraryOpen(true)}
-          >
-            <FolderKanban aria-hidden="true" />
-            Projects <span>{projects.length}</span>
-          </button>
         </div>
-        <div className={styles.topbarStatus}>
+        <div className={styles.topbarStatus} aria-live="polite">
           <span>{isOnline ? status : "Offline · Local previews still work"}</span>
           <small>Private until you ask the Agent</small>
         </div>
         <div className={styles.topbarActions}>
-          <button type="button" onClick={() => creativeInputRef.current?.click()}>
-            <FileUp aria-hidden="true" />
-            Import input
-          </button>
-          <input
-            ref={creativeInputRef}
-            className={styles.hiddenFileInput}
-            type="file"
-            aria-label="Import a creative input file"
-            accept=".txt,.md,.markdown,.html,.htm,.css,.js,.mjs,.mmd,.mindmap,text/plain,text/markdown,text/html,text/css,text/javascript"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) void importCreativeInput(file);
-              event.currentTarget.value = "";
-            }}
-          />
           <button type="button" onClick={() => saveVersion()}>
             <Save aria-hidden="true" />
             Save version
@@ -1998,30 +2469,23 @@ export function CreativeWorkspace({
         </div>
       </div>
 
-      <p
-        className={styles.workspaceStatus}
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        {isOnline ? status : "Offline · Local previews still work"}
-      </p>
-
       <nav className={styles.mobilePaneTabs} aria-label="Mobile workspace panes">
         {(
           [
             ["input", PanelLeft, "Input"],
             ["preview", PanelRight, "Preview"],
-            ["intelligence", Layers3, "Intelligence"],
+            ["intelligence", BrainCircuit, "Conductor"],
             ["agent", Bot, "Agent"],
-            ["versions", History, `Versions ${versions.length}`],
           ] as const
         ).map(([value, Icon, label]) => (
           <button
             type="button"
             aria-pressed={mobilePane === value}
             onClick={() => {
-              selectMobilePane(value);
+              setMobilePane(value);
+              if (value === "preview") setRightTab("preview");
+              if (value === "intelligence") setRightTab("intelligence");
+              if (value === "agent") setRightTab("agent");
             }}
             key={value}
           >
@@ -2050,15 +2514,7 @@ export function CreativeWorkspace({
                   tabIndex={mode === value ? 0 : -1}
                   title={`${modeDetails[value].label} · Alt+${index + 1}`}
                   onClick={() => switchMode(value)}
-                  onKeyDown={(event) =>
-                    handleTabArrow(
-                      event,
-                      workspaceModes,
-                      mode,
-                      switchMode,
-                      (nextMode) => `workspace-mode-${nextMode}`,
-                    )
-                  }
+                  onKeyDown={handleRovingTabKey}
                   key={value}
                 >
                   <Icon aria-hidden="true" />
@@ -2068,12 +2524,7 @@ export function CreativeWorkspace({
             })}
           </nav>
 
-          <div
-            id="workspace-editor"
-            className={styles.editorPane}
-            role="tabpanel"
-            aria-labelledby={`workspace-mode-${mode}`}
-          >
+          <div id="workspace-editor" className={styles.editorPane} role="tabpanel" aria-labelledby={`workspace-mode-${mode}`}>
             <header className={styles.editorHeading}>
               <div>
                 <span>{modeDetails[mode].label} workbench</span>
@@ -2104,22 +2555,14 @@ export function CreativeWorkspace({
                     ] as const
                   ).map(([value, Icon, label]) => (
                     <button
-                      id={`workspace-code-tab-${value}`}
                       type="button"
                       role="tab"
+                      id={`workspace-code-tab-${value}`}
                       aria-selected={codeFile === value}
-                      aria-controls="workspace-code-panel"
+                      aria-controls="workspace-code-editor"
                       tabIndex={codeFile === value ? 0 : -1}
                       onClick={() => setCodeFile(value)}
-                      onKeyDown={(event) =>
-                        handleTabArrow(
-                          event,
-                          ["html", "css", "javascript"] as const,
-                          codeFile,
-                          setCodeFile,
-                          (nextFile) => `workspace-code-tab-${nextFile}`,
-                        )
-                      }
+                      onKeyDown={handleRovingTabKey}
                       key={value}
                     >
                       <Icon aria-hidden="true" />
@@ -2127,22 +2570,17 @@ export function CreativeWorkspace({
                     </button>
                   ))}
                 </nav>
-                <div
-                  id="workspace-code-panel"
-                  className={styles.codePanel}
+                <label htmlFor="workspace-code-editor" className="sr-only">
+                  {codeFile} source
+                </label>
+                <textarea
+                  id="workspace-code-editor"
                   role="tabpanel"
                   aria-labelledby={`workspace-code-tab-${codeFile}`}
-                >
-                  <label htmlFor="workspace-code-editor" className="sr-only">
-                    {codeFile} source
-                  </label>
-                  <textarea
-                    id="workspace-code-editor"
-                    value={code[codeFile]}
-                    spellCheck={false}
-                    onChange={(event) => updateCode(event.target.value)}
-                  />
-                </div>
+                  value={code[codeFile]}
+                  spellCheck={false}
+                  onChange={(event) => updateCode(event.target.value)}
+                />
               </div>
             ) : (
               <div className={styles.textEditor}>
@@ -2193,15 +2631,13 @@ export function CreativeWorkspace({
           tabIndex={0}
           onKeyDown={handleSeparatorKey}
           onPointerDown={(event) => {
-            if (!event.isPrimary || event.button !== 0) return;
             draggingRef.current = true;
             event.currentTarget.setPointerCapture(event.pointerId);
           }}
           onPointerMove={handleSeparatorMove}
-          onPointerUp={stopSeparatorDrag}
-          onPointerCancel={stopSeparatorDrag}
-          onLostPointerCapture={() => {
+          onPointerUp={(event) => {
             draggingRef.current = false;
+            event.currentTarget.releasePointerCapture(event.pointerId);
           }}
           onDoubleClick={() => updatePaneWidth(51)}
         >
@@ -2214,36 +2650,31 @@ export function CreativeWorkspace({
             {(
               [
                 ["preview", PanelRight, "Live preview"],
-                ["intelligence", Layers3, "Project intelligence"],
+                ["intelligence", BrainCircuit, "Conductor"],
                 ["agent", Bot, "Agent review"],
                 ["versions", History, `Versions ${versions.length}`],
               ] as const
             ).map(([value, Icon, label]) => (
               <button
-                id={`workspace-result-tab-${value}`}
                 type="button"
                 role="tab"
+                id={`workspace-result-tab-${value}`}
                 aria-selected={rightTab === value}
                 aria-controls={`workspace-${value}-panel`}
                 tabIndex={rightTab === value ? 0 : -1}
                 onClick={() => setRightTab(value)}
-                onKeyDown={(event) =>
-                  handleTabArrow(
-                    event,
-                    ["preview", "intelligence", "agent", "versions"] as const,
-                    rightTab,
-                    setRightTab,
-                    (nextTab) => `workspace-result-tab-${nextTab}`,
-                  )
-                }
+                onKeyDown={handleRovingTabKey}
                 key={value}
               >
                 <Icon aria-hidden="true" />
                 {label}
               </button>
             ))}
-            <span className={styles.localBadge} title="Rendered in this browser. Nothing was sent to AI.">
-              <span /> Local
+            <span
+              className={styles.localBadge}
+              title="The editable source and project repository remain on this device. Checked context is sent only when you deliberately start a review or Conductor run."
+            >
+              <span /> Local source
             </span>
           </nav>
 
@@ -2255,13 +2686,10 @@ export function CreativeWorkspace({
             hidden={rightTab !== "preview"}
           >
             <WorkspacePreview
-              key={activeProjectId || "unhydrated-project"}
               draft={draft}
               committedCode={committedCode}
               runId={runId}
               onCodeLogs={setCodeLogs}
-              initialMapView={mapView}
-              onMapViewCommit={commitMapView}
             />
           </div>
           <div
@@ -2271,16 +2699,22 @@ export function CreativeWorkspace({
             aria-labelledby="workspace-result-tab-intelligence"
             hidden={rightTab !== "intelligence"}
           >
-            {activeProjectId && activeIntelligence ? (
+            {activeProject ? (
               <ProjectIntelligencePanel
-                key={activeProjectId}
-                projectTitle={title}
-                intelligence={activeIntelligence}
-                storageError={intelligenceStorageError}
-                onChange={(next) => saveProjectIntelligence(
-                  activeProjectId,
-                  () => next,
-                )}
+                project={activeProject}
+                response={intelligenceResponse}
+                depth={intelligenceDepth}
+                running={intelligenceRunning}
+                bindingIsCurrent={intelligenceBindingIsCurrent}
+                accepting={intelligenceAccepting}
+                runDisabled={!canReview || !isOnline || reviewRunning}
+                statusMessage="Ready to plan, coordinate specialists, and synthesize against this exact Atlas revision."
+                errorMessage={intelligenceError}
+                onDepthChange={setIntelligenceDepth}
+                onRun={runConductor}
+                onStop={() => intelligenceControllerRef.current?.abort()}
+                onAddEvidence={addManualEvidence}
+                onAcceptAsRevision={acceptConductorRevision}
               />
             ) : null}
           </div>
@@ -2293,24 +2727,39 @@ export function CreativeWorkspace({
           >
             <AgentReviewPanel
               response={reviewResponse}
-              roleLabel={agentRole === "conductor"
-                ? "Conductor"
-                : `Conductor + ${PLATFORM_AGENTS.find((item) => item.id === agentRole)?.shortLabel ?? "specialist"}`}
               isRunning={reviewRunning}
               error={reviewError}
               instruction={reviewInstruction}
               depth={reviewDepth}
+              lens={reviewLens}
               canReview={canReview && isOnline}
-              reviewIsCurrent={reviewIsCurrent}
               includeLogs={includeLogs}
               includeVersions={includeVersions}
+              includeKnowledge={includeKnowledge}
+              includeProjectGraph={includeProjectGraph}
+              reviewHistory={reviewHistory}
               onInstruction={setReviewInstruction}
               onDepth={setReviewDepth}
+              onLens={setReviewLens}
               onIncludeLogs={setIncludeLogs}
               onIncludeVersions={setIncludeVersions}
+              onIncludeKnowledge={setIncludeKnowledge}
+              onIncludeProjectGraph={setIncludeProjectGraph}
               onReview={requestReview}
               onStop={() => controllerRef.current?.abort()}
               onApply={applyAgentVersion}
+              canApply={Boolean(reviewBinding)}
+              onOpenHistory={(record) => {
+                setReviewResponse(record.response);
+                setReviewInstruction(record.instruction);
+                setReviewLens(record.response.agent.id);
+                setReviewError("");
+                setStatus(`Opened local review · ${formatTime(record.createdAt)}`);
+              }}
+              onClearHistory={() => {
+                setReviewHistory([]);
+                setStatus("Private review memory cleared");
+              }}
             />
           </div>
           <div
@@ -2322,7 +2771,6 @@ export function CreativeWorkspace({
           >
             <VersionPanel
               versions={versions}
-              currentDraft={draft}
               onSave={() => saveVersion()}
               onRestore={restoreVersion}
               onClear={() => {
@@ -2341,7 +2789,18 @@ export function CreativeWorkspace({
         </button>
         <button
           type="button"
-          disabled={!canReview || reviewRunning || !isOnline}
+          disabled={!canReview || projectMutationLocked || !isOnline}
+          onClick={() => {
+            setRightTab("intelligence");
+            setMobilePane("intelligence");
+          }}
+        >
+          <BrainCircuit aria-hidden="true" />
+          Conductor
+        </button>
+        <button
+          type="button"
+          disabled={!canReview || projectMutationLocked || !isOnline}
           onClick={() => requestReview()}
         >
           <Sparkles aria-hidden="true" />
@@ -2363,6 +2822,25 @@ export function CreativeWorkspace({
           <ArrowRight aria-hidden="true" />
         </button>
       </section>
+
+      <ProjectLibraryDialog
+        open={projectLibraryOpen}
+        projects={projectRepository.projects}
+        activeProjectId={activeProject?.id ?? null}
+        onClose={() => setProjectLibraryOpen(false)}
+        onCreate={() => {
+          createLocalProject();
+          setProjectLibraryOpen(false);
+        }}
+        onSelect={(projectId) => {
+          switchProject(projectId);
+          setProjectLibraryOpen(false);
+        }}
+        onDuplicate={duplicateLocalProject}
+        onImport={(file) => void importProjectPackage(file)}
+        onExport={exportProjectPackage}
+        onDelete={deleteLibraryProject}
+      />
 
       <dialog
         ref={handoffRef}
@@ -2391,11 +2869,11 @@ export function CreativeWorkspace({
             <label>
               <input
                 type="checkbox"
-                checked={handoffAgent && reviewIsCurrent}
-                disabled={!reviewIsCurrent}
+                checked={handoffAgent && Boolean(intelligenceResponse || reviewResponse)}
+                disabled={!intelligenceResponse && !reviewResponse}
                 onChange={(event) => setHandoffAgent(event.target.checked)}
               />
-              Agent review {reviewResponse && !reviewIsCurrent ? "(out of date)" : ""}
+              Agent or Conductor review
             </label>
             <label>
               <input
@@ -2412,11 +2890,6 @@ export function CreativeWorkspace({
             <strong>{title || "Untitled concept"}</strong>
             <small>{sourceLength.toLocaleString()} source characters · {versions.length} saved versions</small>
           </div>
-          {handoffError ? (
-            <p className={styles.handoffError} role="alert">
-              {handoffError}
-            </p>
-          ) : null}
           <button className={styles.handoffPrimary} type="button" onClick={continueToContact}>
             Request a scoped build plan
             <ArrowRight aria-hidden="true" />
@@ -2434,20 +2907,6 @@ export function CreativeWorkspace({
           )}
         </div>
       </dialog>
-
-      <ProjectLibraryDialog
-        open={projectLibraryOpen}
-        projects={projects}
-        activeProjectId={activeProjectId}
-        projectLimit={WORKSPACE_PROJECT_LIMIT}
-        onClose={() => setProjectLibraryOpen(false)}
-        onCreate={createProject}
-        onOpen={openProject}
-        onDuplicate={duplicateProject}
-        onExport={exportProjectBundle}
-        onDelete={deleteProject}
-        onImport={(file) => void importProjectBundle(file)}
-      />
     </WorkspaceRoot>
   );
 }

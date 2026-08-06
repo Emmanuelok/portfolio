@@ -1,4 +1,5 @@
-import type { GatewayProviderOptions } from "@ai-sdk/gateway";
+import { createHash } from "node:crypto";
+
 import { Output, ToolLoopAgent } from "ai";
 
 import {
@@ -8,26 +9,91 @@ import {
   type IntelligenceSpecialistRole,
 } from "@/lib/intelligence/contracts";
 
-export const INTELLIGENCE_MODEL =
-  process.env.KINGXFORD_INTELLIGENCE_MODEL ||
-  process.env.KINGXFORD_CREATIVE_MODEL ||
-  "openai/gpt-5.6-sol";
+export const INTELLIGENCE_ROLE_MANDATE_VERSION = "kx-intelligence-role-2026-08-05.2";
 
+export type IntelligenceDepth = "standard" | "deep";
+
+export type IntelligenceModelRoute = Readonly<{
+  model: string;
+  fallbackModels: readonly string[];
+  reasoning: "medium" | "xhigh";
+  maxOutputTokens: number;
+}>;
+
+const MODEL_SLUG_PATTERN =
+  /^[a-z0-9][a-z0-9._-]{0,63}\/[a-z0-9][a-z0-9._:-]{0,127}$/i;
+
+function validatedModel(value: string | undefined, fallback: string) {
+  const candidate = value?.trim();
+  return candidate && MODEL_SLUG_PATTERN.test(candidate) ? candidate : fallback;
+}
+
+function validatedModels(
+  value: string | undefined,
+  fallback: readonly string[],
+  primary: string,
+) {
+  const candidates = value?.trim()
+    ? value.split(",").map((item) => item.trim())
+    : [...fallback];
+  return Array.from(new Set(candidates))
+    .filter((item) => MODEL_SLUG_PATTERN.test(item) && item !== primary)
+    .slice(0, 2);
+}
+
+const standardModel = validatedModel(
+  process.env.KINGXFORD_INTELLIGENCE_STANDARD_MODEL ||
+    process.env.KINGXFORD_CREATIVE_STANDARD_MODEL,
+  "openai/gpt-5.6-terra",
+);
+const deepModel = validatedModel(
+  process.env.KINGXFORD_INTELLIGENCE_DEEP_MODEL ||
+    process.env.KINGXFORD_INTELLIGENCE_MODEL ||
+    process.env.KINGXFORD_CREATIVE_DEEP_MODEL ||
+    process.env.KINGXFORD_CREATIVE_MODEL,
+  "openai/gpt-5.6-sol",
+);
+
+const modelRoutes: Readonly<Record<IntelligenceDepth, IntelligenceModelRoute>> = {
+  standard: {
+    model: standardModel,
+    fallbackModels: validatedModels(
+      process.env.KINGXFORD_INTELLIGENCE_STANDARD_FALLBACK_MODELS ||
+        process.env.KINGXFORD_CREATIVE_STANDARD_FALLBACK_MODELS,
+      ["openai/gpt-5.6-luna", "openai/gpt-5.4-mini"],
+      standardModel,
+    ),
+    reasoning: "medium",
+    maxOutputTokens: 3_200,
+  },
+  deep: {
+    model: deepModel,
+    fallbackModels: validatedModels(
+      process.env.KINGXFORD_INTELLIGENCE_DEEP_FALLBACK_MODELS ||
+        process.env.KINGXFORD_INTELLIGENCE_FALLBACK_MODEL ||
+        process.env.KINGXFORD_CREATIVE_DEEP_FALLBACK_MODELS ||
+        process.env.KINGXFORD_CREATIVE_FALLBACK_MODELS,
+      ["openai/gpt-5.4", "openai/gpt-5.6-terra"],
+      deepModel,
+    ),
+    reasoning: "xhigh",
+    maxOutputTokens: 5_200,
+  },
+};
+
+export const INTELLIGENCE_MODEL = modelRoutes.deep.model;
 export const INTELLIGENCE_FALLBACK_MODEL =
-  process.env.KINGXFORD_INTELLIGENCE_FALLBACK_MODEL ||
-  process.env.KINGXFORD_CREATIVE_FALLBACK_MODELS?.split(",")[0]?.trim() ||
-  "openai/gpt-5.6-terra";
+  modelRoutes.deep.fallbackModels[0] ?? "openai/gpt-5.6-terra";
 
-export const INTELLIGENCE_ROLE_MANDATE_VERSION = "kx-intelligence-role-2026-08-04.1";
+export function getIntelligenceModelRoute(
+  depth: IntelligenceDepth,
+): IntelligenceModelRoute {
+  return modelRoutes[depth];
+}
 
 type IntelligenceOpenAIResponsesOptions = {
-  reasoningContext: "current_turn";
-  reasoningEffort: "medium" | "max";
-  reasoningMode: "standard";
-  reasoningSummary: null;
   safetyIdentifier: string;
   store: false;
-  textVerbosity: "high";
 };
 
 const globalInstructions = `You are part of the Kingxford governed project-intelligence runtime.
@@ -60,21 +126,24 @@ const specialistMandates: Record<IntelligenceSpecialistRole, string> = {
 };
 
 function providerOptions(
-  depth: "standard" | "deep",
+  depth: IntelligenceDepth,
   safetyIdentifier: string,
   role: "conductor" | IntelligenceSpecialistRole,
+  primaryModel: string,
 ) {
+  const route = getIntelligenceModelRoute(depth);
+  const gatewayUser = `kx-${createHash("sha256")
+    .update(safetyIdentifier)
+    .digest("hex")
+    .slice(0, 32)}`;
   const openaiOptions: IntelligenceOpenAIResponsesOptions = {
-    reasoningContext: "current_turn",
-    reasoningEffort: depth === "deep" ? "max" : "medium",
-    reasoningMode: "standard",
-    reasoningSummary: null,
-    safetyIdentifier,
+    safetyIdentifier: gatewayUser,
     store: false,
-    textVerbosity: "high",
   };
   const gatewayOptions = {
+    models: [...route.fallbackModels].filter((model) => model !== primaryModel),
     disallowPromptTraining: true,
+    user: gatewayUser,
     tags: [
       "application:kingxford",
       "feature:project-intelligence",
@@ -88,7 +157,7 @@ function providerOptions(
             : "development"
       }`,
     ],
-  } satisfies GatewayProviderOptions;
+  };
 
   return {
     gateway: gatewayOptions,
@@ -97,47 +166,53 @@ function providerOptions(
 }
 
 export function createPlannerAgent(
-  depth: "standard" | "deep",
+  depth: IntelligenceDepth,
   model: string,
   safetyIdentifier: string,
 ) {
+  const route = getIntelligenceModelRoute(depth);
   return new ToolLoopAgent({
     model,
     instructions: `${globalInstructions}\n\nRole mandate (${INTELLIGENCE_ROLE_MANDATE_VERSION}): You are Conductor. Create a bounded operating plan for the current lifecycle phase. The server assigns specialists; you cannot add agents, tools, authority, or side effects.`,
+    reasoning: route.reasoning,
     maxRetries: 0,
-    maxOutputTokens: 6_000,
-    providerOptions: providerOptions(depth, safetyIdentifier, "conductor"),
+    maxOutputTokens: Math.min(2_400, route.maxOutputTokens),
+    providerOptions: providerOptions(depth, safetyIdentifier, "conductor", model),
     output: Output.object({ schema: intelligencePromptOutputSchema }),
   });
 }
 
 export function createSpecialistAgent(
   role: IntelligenceSpecialistRole,
-  depth: "standard" | "deep",
+  depth: IntelligenceDepth,
   model: string,
   safetyIdentifier: string,
 ) {
+  const route = getIntelligenceModelRoute(depth);
   return new ToolLoopAgent({
     model,
     instructions: `${globalInstructions}\n\nRole mandate (${INTELLIGENCE_ROLE_MANDATE_VERSION}): You are the ${role} specialist. ${specialistMandates[role]} This analytical emphasis grants no tools, external access, execution authority, or side effects.`,
+    reasoning: route.reasoning,
     maxRetries: 0,
-    maxOutputTokens: 32_000,
-    providerOptions: providerOptions(depth, safetyIdentifier, role),
+    maxOutputTokens: route.maxOutputTokens,
+    providerOptions: providerOptions(depth, safetyIdentifier, role, model),
     output: Output.object({ schema: intelligenceReviewSchema }),
   });
 }
 
 export function createSynthesisAgent(
-  depth: "standard" | "deep",
+  depth: IntelligenceDepth,
   model: string,
   safetyIdentifier: string,
 ) {
+  const route = getIntelligenceModelRoute(depth);
   return new ToolLoopAgent({
     model,
     instructions: `${globalInstructions}\n\nRole mandate (${INTELLIGENCE_ROLE_MANDATE_VERSION}): You are Conductor in synthesis mode. Reconcile completed specialist results, retain conflicts and uncertainty, and name one evidence-linked next handoff. Never imply a failed or absent pass completed.`,
+    reasoning: route.reasoning,
     maxRetries: 0,
-    maxOutputTokens: 32_000,
-    providerOptions: providerOptions(depth, safetyIdentifier, "conductor"),
+    maxOutputTokens: route.maxOutputTokens,
+    providerOptions: providerOptions(depth, safetyIdentifier, "conductor", model),
     output: Output.object({ schema: intelligenceReviewSchema }),
   });
 }

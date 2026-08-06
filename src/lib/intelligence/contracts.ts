@@ -7,9 +7,10 @@ import {
   platformEvidenceKinds,
   platformPhases,
 } from "@/lib/platform/types";
+import { projectSnapshotSchema } from "@/lib/workspace/project-snapshot-schema";
 import { workspaceModes } from "@/lib/workspace/types";
 
-export const INTELLIGENCE_PROTOCOL_VERSION = "kx-intelligence-2026-08-04.1";
+export const INTELLIGENCE_PROTOCOL_VERSION = "kx-intelligence-2026-08-05.2";
 
 export const intelligenceSpecialistRoles = [
   "discovery",
@@ -45,9 +46,34 @@ const identifierSchema = z
   .max(180)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/);
 const digestSchema = z.string().regex(/^[a-f0-9]{64}$/);
+const projectHashSchema = z.string().regex(/^kxhash_[a-f0-9]{32}$/);
 const timestampSchema = z.string().datetime({ offset: true });
 const shortTextSchema = z.string().min(1).max(4_000);
 const boundedTextSchema = z.string().max(48_000);
+
+export const intelligenceProjectBindingSchema = z
+  .object({
+    projectId: identifierSchema,
+    snapshotId: identifierSchema,
+    snapshotHash: projectHashSchema,
+    snapshotSchemaVersion: z.number().int().positive(),
+    snapshotCharacterCount: z.number().int().min(0).max(64_000),
+    artifactRevisionId: identifierSchema,
+    artifactId: identifierSchema,
+    draftHash: projectHashSchema,
+    counts: z
+      .object({
+        nodes: z.number().int().min(0),
+        edges: z.number().int().min(0),
+        artifacts: z.number().int().min(0),
+        revisions: z.number().int().min(0),
+        reviews: z.number().int().min(0),
+        decisions: z.number().int().min(0),
+        gates: z.number().int().min(0),
+      })
+      .strict(),
+  })
+  .strict();
 
 export const intelligenceCodeSchema = z
   .object({
@@ -203,6 +229,8 @@ export const intelligenceRunRequestSchema = z
           .max(intelligenceCapabilities.length),
       })
       .strict(),
+    projectGraphSnapshot: projectSnapshotSchema,
+    artifactRevisionId: identifierSchema,
   })
   .strict()
   .superRefine((value, context) => {
@@ -236,11 +264,30 @@ export const intelligenceRunRequestSchema = z
       });
     }
 
-    if (value.projectContext.phase === "discover" && value.orchestration.requestedRoles.includes("delivery")) {
+    if (value.projectContext.phase === "discovery" && value.orchestration.requestedRoles.includes("delivery")) {
       context.addIssue({
         code: "custom",
         path: ["orchestration", "requestedRoles"],
         message: "Delivery cannot replace discovery work during the Discover phase.",
+      });
+    }
+
+    if (
+      value.projectGraphSnapshot.project.id !== value.projectContext.projectId
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["projectGraphSnapshot", "project", "id"],
+        message: "The project graph snapshot must match the active project context.",
+      });
+    }
+    if (
+      value.projectGraphSnapshot.project.activePhase !== value.projectContext.phase
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["projectGraphSnapshot", "project", "activePhase"],
+        message: "The project graph snapshot must match the active lifecycle phase.",
       });
     }
   });
@@ -322,6 +369,13 @@ export const intelligenceProviderCallSchema = z
     latencyMs: z.number().int().min(0).max(120_000),
     inputDigest: digestSchema,
     outputDigest: digestSchema.nullable(),
+    usage: z
+      .object({
+        inputTokens: z.number().int().min(0),
+        outputTokens: z.number().int().min(0),
+        totalTokens: z.number().int().min(0),
+      })
+      .strict(),
     failureCode: z
       .enum([
         "attempt-timeout",
@@ -362,10 +416,18 @@ export const intelligenceRunResponseSchema = z
         providerCalls: z.array(intelligenceProviderCallSchema).max(4),
         parentArtifactIds: z.array(identifierSchema).max(32),
         finalArtifactId: identifierSchema,
+        usage: z
+          .object({
+            inputTokens: z.number().int().min(0),
+            outputTokens: z.number().int().min(0),
+            totalTokens: z.number().int().min(0),
+          })
+          .strict(),
       })
       .strict(),
     startedAt: timestampSchema,
     completedAt: timestampSchema,
+    projectContext: intelligenceProjectBindingSchema,
     notice: z.string().max(1_600).optional(),
   })
   .strict();

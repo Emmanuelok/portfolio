@@ -1,7 +1,12 @@
+import type { AgentLens } from "./lenses";
+
 export const workspaceModes = ["idea", "code", "mindmap", "prompt", "brief"] as const;
 
 export type WorkspaceMode = (typeof workspaceModes)[number];
 
+// Compatibility contract for the original unified intelligence branch. The
+// Project Atlas uses AgentLens for new review records, while the orchestrated
+// runtime retains these stable role identifiers for imported local bundles.
 export const workspaceAgentRoles = [
   "conductor",
   "discovery",
@@ -20,10 +25,6 @@ export type CodeFiles = Readonly<{
   javascript: string;
 }>;
 
-export type TextWorkspaceMode = Exclude<WorkspaceMode, "code">;
-
-export type TextByMode = Readonly<Record<TextWorkspaceMode, string>>;
-
 export type WorkspaceDraft = Readonly<{
   mode: WorkspaceMode;
   title: string;
@@ -39,9 +40,14 @@ export type WorkspaceVersion = Readonly<{
   draft: WorkspaceDraft;
 }>;
 
+export type TextWorkspaceMode = Exclude<WorkspaceMode, "code">;
+
+export type TextByMode = Readonly<Record<TextWorkspaceMode, string>>;
+
 /**
- * The complete editable content of one Canvas project. `WorkspaceDraft` remains
- * the intentionally smaller active-mode view consumed by previews and agents.
+ * Legacy Canvas-v2 bundle types remain readable so projects created by the
+ * unified-create-system branch can be migrated into Project Atlas without
+ * losing local content or revision history.
  */
 export type WorkspaceProjectContent = Readonly<{
   mode: WorkspaceMode;
@@ -82,7 +88,7 @@ export type AgentReview = Readonly<{
   nextTest: string;
   proposedChanges: readonly string[];
   improvedInput: string;
-  improvedCode: CodeFiles | null;
+  proposedCode?: CodeFiles;
   buildBrief: Readonly<{
     title: string;
     oneLine: string;
@@ -93,14 +99,67 @@ export type AgentReview = Readonly<{
   }>;
 }>;
 
+export type AgentProjectContext = Readonly<{
+  projectId: string;
+  snapshotId: string;
+  snapshotHash: string;
+  snapshotSchemaVersion: number;
+  snapshotCharacterCount: number;
+  artifactRevisionId?: string;
+  artifactId?: string;
+  draftHash?: string;
+  counts: Readonly<{
+    nodes: number;
+    edges: number;
+    artifacts: number;
+    revisions: number;
+    reviews: number;
+    decisions: number;
+    gates: number;
+  }>;
+}>;
+
 export type AgentReviewResponse = Readonly<{
   review: AgentReview;
   source: "openai" | "local";
   model: string;
-  agentRole: WorkspaceAgentRole;
   protocolVersion: string;
-  inputDigest: string;
+  agent: Readonly<{
+    id: AgentLens;
+    label: string;
+  }>;
+  grounding: readonly Readonly<{
+    id: string;
+    title: string;
+  }>[];
+  request: Readonly<{
+    id: string;
+    durationMs: number;
+    depth: "standard" | "deep";
+  }>;
+  projectContext?: AgentProjectContext;
+  usage?: Readonly<{
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+  }>;
+  limits?: Readonly<{
+    minuteRemaining: number;
+    minuteResetsAt: string;
+    dailyCreditsRemaining: number;
+    dailyResetsAt: string;
+    creditCost: number;
+  }>;
   notice?: string;
+}>;
+
+export type AgentReviewRecord = Readonly<{
+  id: string;
+  createdAt: string;
+  projectTitle: string;
+  mode: WorkspaceMode;
+  instruction: string;
+  response: AgentReviewResponse;
 }>;
 
 export type ParsedConcept = Readonly<{

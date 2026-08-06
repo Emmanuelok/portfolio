@@ -4,8 +4,7 @@ import {
   createPlannerAgent,
   createSpecialistAgent,
   createSynthesisAgent,
-  INTELLIGENCE_FALLBACK_MODEL,
-  INTELLIGENCE_MODEL,
+  getIntelligenceModelRoute,
 } from "@/lib/intelligence/agents";
 import {
   INTELLIGENCE_PROTOCOL_VERSION,
@@ -29,6 +28,8 @@ import {
   type CanonicalIntelligenceInput,
 } from "@/lib/intelligence/prompt";
 import { buildLocalReview } from "@/lib/workspace/local-analysis";
+import { hashRevisionBody } from "@/lib/workspace/project-graph";
+import { parseProjectSnapshot } from "@/lib/workspace/project-snapshot-schema";
 
 export const MAX_PROVIDER_CALLS = 4;
 export const INTELLIGENCE_ATTEMPT_TIMEOUT_MS = 52_000;
@@ -47,6 +48,8 @@ type ProviderFailureCode =
 
 type ProviderStage = "plan" | "specialist" | "synthesis";
 type ProviderRole = "conductor" | IntelligenceSpecialistRole;
+type CallTrace = IntelligenceRunResponse["provenance"]["providerCalls"][number];
+type ProjectBinding = IntelligenceRunResponse["projectContext"];
 
 type PlanOutput = Readonly<{
   summary: string;
@@ -58,7 +61,17 @@ type PlanOutput = Readonly<{
   handoff: string;
 }>;
 
-type ProviderResult<T> = Readonly<{ output: T; model: string }>;
+export type IntelligenceTokenUsage = Readonly<{
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}>;
+
+type ProviderResult<T> = Readonly<{
+  output: T;
+  model: string;
+  usage?: Partial<IntelligenceTokenUsage>;
+}>;
 
 export type IntelligenceProvider = Readonly<{
   plan: (
@@ -85,6 +98,59 @@ export type IntelligenceProvider = Readonly<{
   ) => Promise<ProviderResult<IntelligenceReview>>;
 }>;
 
+class InvalidProviderOutputError extends Error {
+  constructor() {
+    super("The provider returned no structured output.");
+    this.name = "InvalidProviderOutputError";
+  }
+}
+
+export class IntelligenceProjectBindingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "IntelligenceProjectBindingError";
+  }
+}
+
+export class IntelligenceRunCancelledError extends Error {
+  constructor() {
+    super("The intelligence run was cancelled before it completed.");
+    this.name = "IntelligenceRunCancelledError";
+  }
+}
+
+function normalizedTokenCount(value: number | undefined) {
+  return Number.isFinite(value) && (value ?? -1) >= 0
+    ? Math.floor(value as number)
+    : 0;
+}
+
+function normalizeUsage(
+  usage: Partial<IntelligenceTokenUsage> | undefined,
+): IntelligenceTokenUsage {
+  const inputTokens = normalizedTokenCount(usage?.inputTokens);
+  const outputTokens = normalizedTokenCount(usage?.outputTokens);
+  return {
+    inputTokens,
+    outputTokens,
+    totalTokens:
+      usage?.totalTokens === undefined
+        ? inputTokens + outputTokens
+        : normalizedTokenCount(usage.totalTokens),
+  };
+}
+
+function aggregateUsage(calls: readonly CallTrace[]): IntelligenceTokenUsage {
+  return calls.reduce<IntelligenceTokenUsage>(
+    (total, call) => ({
+      inputTokens: total.inputTokens + call.usage.inputTokens,
+      outputTokens: total.outputTokens + call.usage.outputTokens,
+      totalTokens: total.totalTokens + call.usage.totalTokens,
+    }),
+    { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+  );
+}
+
 const defaultProvider: IntelligenceProvider = {
   async plan(prompt, depth, model, safetyIdentifier, signal) {
     const result = await createPlannerAgent(depth, model, safetyIdentifier).generate({
@@ -92,7 +158,11 @@ const defaultProvider: IntelligenceProvider = {
       abortSignal: signal,
     });
     if (!result.output) throw new InvalidProviderOutputError();
-    return { output: result.output, model: result.response.modelId };
+    return {
+      output: result.output,
+      model: result.response.modelId || model,
+      usage: result.usage,
+    };
   },
   async specialize(role, prompt, depth, model, safetyIdentifier, signal) {
     const result = await createSpecialistAgent(
@@ -107,7 +177,8 @@ const defaultProvider: IntelligenceProvider = {
     if (!result.output) throw new InvalidProviderOutputError();
     return {
       output: intelligenceReviewSchema.parse(result.output),
-      model: result.response.modelId,
+      model: result.response.modelId || model,
+      usage: result.usage,
     };
   },
   async synthesize(prompt, depth, model, safetyIdentifier, signal) {
@@ -118,12 +189,11 @@ const defaultProvider: IntelligenceProvider = {
     if (!result.output) throw new InvalidProviderOutputError();
     return {
       output: intelligenceReviewSchema.parse(result.output),
-      model: result.response.modelId,
+      model: result.response.modelId || model,
+      usage: result.usage,
     };
   },
 };
-
-class InvalidProviderOutputError extends Error {}
 
 function digest(value: unknown) {
   return createHash("sha256")
@@ -169,13 +239,73 @@ function classifyProviderFailure(
   return "unknown-failure";
 }
 
-function shouldAttemptModelFallback(code: ProviderFailureCode) {
-  return ![
-    "client-aborted",
-    "auth-rejected",
-    "budget-exhausted",
-    "request-rejected",
-  ].includes(code);
+function workspaceRevisionBody(request: IntelligenceRunRequest) {
+  return request.mode === "code"
+    ? ({ type: "code", ...request.code } as const)
+    : ({ type: "text", text: request.text } as const);
+}
+
+const workspaceArtifactKind = {
+  idea: "idea",
+  code: "code",
+  mindmap: "system-map",
+  prompt: "prompt",
+  brief: "brief",
+} as const satisfies Record<IntelligenceRunRequest["mode"], string>;
+
+export function validateIntelligenceProjectBinding(
+  request: IntelligenceRunRequest,
+): ProjectBinding {
+  const snapshot = parseProjectSnapshot(request.projectGraphSnapshot);
+  if (
+    snapshot.project.id !== request.projectContext.projectId ||
+    snapshot.project.activePhase !== request.projectContext.phase
+  ) {
+    throw new IntelligenceProjectBindingError(
+      "The project graph snapshot does not match the active project context.",
+    );
+  }
+
+  const artifact = snapshot.artifacts.find(
+    (candidate) => candidate.activeRevision.id === request.artifactRevisionId,
+  );
+  if (!artifact) {
+    throw new IntelligenceProjectBindingError(
+      "The selected artifact revision is not active in this project snapshot.",
+    );
+  }
+  if (artifact.kind !== workspaceArtifactKind[request.mode]) {
+    throw new IntelligenceProjectBindingError(
+      "The selected artifact does not match the active workspace mode.",
+    );
+  }
+
+  const draftHash = hashRevisionBody(workspaceRevisionBody(request));
+  if (draftHash !== artifact.activeRevision.contentHash) {
+    throw new IntelligenceProjectBindingError(
+      "The workspace draft no longer matches the selected artifact revision.",
+    );
+  }
+
+  return {
+    projectId: snapshot.project.id,
+    snapshotId: snapshot.id,
+    snapshotHash: snapshot.hash,
+    snapshotSchemaVersion: snapshot.schemaVersion,
+    snapshotCharacterCount: snapshot.characterCount,
+    artifactRevisionId: request.artifactRevisionId,
+    artifactId: artifact.id,
+    draftHash,
+    counts: {
+      nodes: snapshot.nodes.length,
+      edges: snapshot.edges.length,
+      artifacts: snapshot.artifacts.length,
+      revisions: snapshot.artifacts.length,
+      reviews: snapshot.reviewLinks.length,
+      decisions: snapshot.decisions.length,
+      gates: snapshot.gates.length,
+    },
+  };
 }
 
 function localReview(request: IntelligenceRunRequest) {
@@ -224,10 +354,9 @@ function localReview(request: IntelligenceRunRequest) {
   });
 }
 
-type CallTrace = IntelligenceRunResponse["provenance"]["providerCalls"][number];
-
 class ProviderCallLedger {
-  readonly calls: CallTrace[] = [];
+  private readonly traces: Array<Readonly<{ ordinal: number; trace: CallTrace }>> = [];
+  private reservedCalls = 0;
 
   constructor(
     private readonly requestSignal: AbortSignal,
@@ -235,8 +364,14 @@ class ProviderCallLedger {
     private readonly now: () => Date,
   ) {}
 
+  get calls(): CallTrace[] {
+    return [...this.traces]
+      .sort((left, right) => left.ordinal - right.ordinal)
+      .map(({ trace }) => trace);
+  }
+
   get remaining() {
-    return MAX_PROVIDER_CALLS - this.calls.length;
+    return MAX_PROVIDER_CALLS - this.reservedCalls;
   }
 
   async execute<T>(options: Readonly<{
@@ -247,6 +382,11 @@ class ProviderCallLedger {
     action: (signal: AbortSignal) => Promise<ProviderResult<T>>;
   }>): Promise<ProviderResult<T> | null> {
     if (this.remaining <= 0) return null;
+
+    // Reserve synchronously before awaiting so parallel specialists can never
+    // race past the hard four-call ceiling.
+    const ordinal = this.reservedCalls;
+    this.reservedCalls += 1;
     const id = `call-${randomUUID()}`;
     const started = this.now();
     const timeoutSignal = AbortSignal.timeout(INTELLIGENCE_ATTEMPT_TIMEOUT_MS);
@@ -258,43 +398,57 @@ class ProviderCallLedger {
     try {
       const result = await options.action(signal);
       const completed = this.now();
-      this.calls.push({
-        id,
-        stage: options.stage,
-        role: options.role,
-        model: normalizeModel(result.model || options.model),
-        status: "completed",
-        startedAt: started.toISOString(),
-        completedAt: completed.toISOString(),
-        latencyMs: Math.min(120_000, Math.max(0, completed.getTime() - started.getTime())),
-        inputDigest: options.inputDigest,
-        outputDigest: digest(result.output),
+      this.traces.push({
+        ordinal,
+        trace: {
+          id,
+          stage: options.stage,
+          role: options.role,
+          model: normalizeModel(result.model || options.model),
+          status: "completed",
+          startedAt: started.toISOString(),
+          completedAt: completed.toISOString(),
+          latencyMs: Math.min(
+            120_000,
+            Math.max(0, completed.getTime() - started.getTime()),
+          ),
+          inputDigest: options.inputDigest,
+          outputDigest: digest(result.output),
+          usage: normalizeUsage(result.usage),
+        },
       });
       return result;
     } catch (error) {
       const completed = this.now();
       const failureCode = classifyProviderFailure(
         error,
-        this.requestSignal.aborted || this.runSignal.aborted,
-        timeoutSignal.aborted,
+        this.requestSignal.aborted,
+        this.runSignal.aborted || timeoutSignal.aborted,
       );
-      this.calls.push({
-        id,
-        stage: options.stage,
-        role: options.role,
-        model: normalizeModel(options.model),
-        status:
-          failureCode === "client-aborted"
-            ? "cancelled"
-            : failureCode === "attempt-timeout"
-              ? "timed-out"
-              : "failed",
-        startedAt: started.toISOString(),
-        completedAt: completed.toISOString(),
-        latencyMs: Math.min(120_000, Math.max(0, completed.getTime() - started.getTime())),
-        inputDigest: options.inputDigest,
-        outputDigest: null,
-        failureCode,
+      this.traces.push({
+        ordinal,
+        trace: {
+          id,
+          stage: options.stage,
+          role: options.role,
+          model: normalizeModel(options.model),
+          status:
+            failureCode === "client-aborted"
+              ? "cancelled"
+              : failureCode === "attempt-timeout"
+                ? "timed-out"
+                : "failed",
+          startedAt: started.toISOString(),
+          completedAt: completed.toISOString(),
+          latencyMs: Math.min(
+            120_000,
+            Math.max(0, completed.getTime() - started.getTime()),
+          ),
+          inputDigest: options.inputDigest,
+          outputDigest: null,
+          usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+          failureCode,
+        },
       });
       console.error("[intelligence-runtime] provider_call_failed", {
         stage: options.stage,
@@ -327,7 +481,12 @@ function artifact(
   } as const;
 }
 
-function baseRunContext(request: IntelligenceRunRequest, now: () => Date) {
+function baseRunContext(
+  request: IntelligenceRunRequest,
+  now: () => Date,
+  options: Readonly<{ runId?: string; startedAt?: string }> = {},
+) {
+  const projectContext = validateIntelligenceProjectBinding(request);
   const capabilityNegotiation = negotiateCapabilities(
     request.capabilityNegotiation.requested,
   );
@@ -341,9 +500,15 @@ function baseRunContext(request: IntelligenceRunRequest, now: () => Date) {
     capabilityNegotiation,
     canonical,
     roles,
-    runId: `run-${randomUUID()}`,
-    startedAt: nowIso(now),
-    parentArtifactIds: request.projectContext.artifacts.map((item) => item.id),
+    projectContext,
+    runId: options.runId || `run-${randomUUID()}`,
+    startedAt: options.startedAt || nowIso(now),
+    parentArtifactIds: Array.from(
+      new Set([
+        projectContext.artifactId,
+        ...request.projectContext.artifacts.map((item) => item.id),
+      ]),
+    ).slice(0, 32),
   };
 }
 
@@ -353,10 +518,13 @@ export function executeLocalIntelligenceRun(
     now?: () => Date;
     notice?: string;
     providerCalls?: readonly CallTrace[];
+    runId?: string;
+    startedAt?: string;
   }> = {},
 ): IntelligenceRunResponse {
   const now = options.now || (() => new Date());
-  const context = baseRunContext(request, now);
+  const context = baseRunContext(request, now, options);
+  const providerCalls = [...(options.providerCalls || [])].slice(0, MAX_PROVIDER_CALLS);
   const plan = buildGovernedPhasePlan(request.projectContext.phase, context.roles);
   const createdAt = nowIso(now);
   const planArtifact = artifact(
@@ -434,15 +602,17 @@ export function executeLocalIntelligenceRun(
       synthesisArtifact,
     ],
     provenance: {
-      providerCalls: options.providerCalls || [],
+      providerCalls,
       parentArtifactIds: context.parentArtifactIds,
       finalArtifactId: synthesisArtifact.id,
+      usage: aggregateUsage(providerCalls),
     },
     startedAt: context.startedAt,
     completedAt: nowIso(now),
+    projectContext: context.projectContext,
     notice:
       options.notice ||
-      "AI analysis is not configured in this environment. This result uses deterministic local structural rules and does not represent external research, execution, or validation.",
+      "AI analysis is not configured in this environment. This result uses deterministic local structural rules and does not represent external research, execution, validation, artifact mutation, or gate approval.",
   });
 }
 
@@ -473,44 +643,32 @@ export async function executeIntelligenceRun(
     safetyIdentifier: string;
     provider?: IntelligenceProvider;
     now?: () => Date;
+    runId?: string;
   }>,
 ): Promise<IntelligenceRunResponse> {
   const now = options.now || (() => new Date());
   const provider = options.provider || defaultProvider;
-  const context = baseRunContext(request, now);
+  const context = baseRunContext(request, now, { runId: options.runId });
+  const modelRoute = getIntelligenceModelRoute(request.depth);
   const runTimeoutSignal = AbortSignal.timeout(INTELLIGENCE_RUN_TIMEOUT_MS);
   const ledger = new ProviderCallLedger(options.requestSignal, runTimeoutSignal, now);
 
-  let plannerResult = await callPlan(
+  const plannerResult = await callPlan(
     provider,
     ledger,
     context.canonical,
     request,
     context.roles,
     options.safetyIdentifier,
-    INTELLIGENCE_MODEL,
+    modelRoute.model,
   );
-  const firstFailure = ledger.calls.at(-1)?.failureCode;
-  if (
-    !plannerResult &&
-    firstFailure &&
-    shouldAttemptModelFallback(firstFailure) &&
-    ledger.remaining > 0
-  ) {
-    plannerResult = await callPlan(
-      provider,
-      ledger,
-      context.canonical,
-      request,
-      context.roles,
-      options.safetyIdentifier,
-      INTELLIGENCE_FALLBACK_MODEL,
-    );
-  }
 
+  if (options.requestSignal.aborted) throw new IntelligenceRunCancelledError();
   if (!plannerResult) {
     return executeLocalIntelligenceRun(request, {
       now,
+      runId: context.runId,
+      startedAt: context.startedAt,
       providerCalls: ledger.calls,
       notice:
         "The governed provider plan was unavailable. No project input was changed; this run uses deterministic local structural rules.",
@@ -533,7 +691,7 @@ export async function executeIntelligenceRun(
     createdAt,
   );
 
-  // One provider call is always reserved for final Conductor synthesis.
+  // The planner uses one call and one call is always reserved for synthesis.
   const specialistRoles = context.roles.slice(0, Math.max(0, ledger.remaining - 1));
   const passResults = await Promise.all(
     specialistRoles.map(async (role) => {
@@ -542,14 +700,14 @@ export async function executeIntelligenceRun(
       const result = await ledger.execute({
         stage: "specialist",
         role,
-        model: INTELLIGENCE_MODEL,
+        model: modelRoute.model,
         inputDigest: passInputDigest,
         action: (signal) =>
           provider.specialize(
             role,
             prompt,
             request.depth,
-            INTELLIGENCE_MODEL,
+            modelRoute.model,
             options.safetyIdentifier,
             signal,
           ),
@@ -561,7 +719,7 @@ export async function executeIntelligenceRun(
             role,
             status: "failed" as const,
             source: "openai" as const,
-            model: normalizeModel(INTELLIGENCE_MODEL),
+            model: normalizeModel(modelRoute.model),
             review: null,
             inputDigest: passInputDigest,
             outputDigest: null,
@@ -598,6 +756,8 @@ export async function executeIntelligenceRun(
     }),
   );
 
+  if (options.requestSignal.aborted) throw new IntelligenceRunCancelledError();
+
   const completedPasses = passResults.flatMap((item) =>
     item.pass.review
       ? [{ role: item.pass.role, review: item.pass.review }]
@@ -608,42 +768,22 @@ export async function executeIntelligenceRun(
     plan,
     completedPasses,
   );
-  let synthesisResult = await ledger.execute({
+  const synthesisResult = await ledger.execute({
     stage: "synthesis",
     role: "conductor",
-    model: INTELLIGENCE_MODEL,
+    model: modelRoute.model,
     inputDigest: digest(synthesisPrompt),
     action: (signal) =>
       provider.synthesize(
         synthesisPrompt,
         request.depth,
-        INTELLIGENCE_MODEL,
+        modelRoute.model,
         options.safetyIdentifier,
         signal,
       ),
   });
-  const synthesisFailure = ledger.calls.at(-1)?.failureCode;
-  if (
-    !synthesisResult &&
-    synthesisFailure &&
-    shouldAttemptModelFallback(synthesisFailure) &&
-    ledger.remaining > 0
-  ) {
-    synthesisResult = await ledger.execute({
-      stage: "synthesis",
-      role: "conductor",
-      model: INTELLIGENCE_FALLBACK_MODEL,
-      inputDigest: digest(synthesisPrompt),
-      action: (signal) =>
-        provider.synthesize(
-          synthesisPrompt,
-          request.depth,
-          INTELLIGENCE_FALLBACK_MODEL,
-          options.safetyIdentifier,
-          signal,
-        ),
-    });
-  }
+
+  if (options.requestSignal.aborted) throw new IntelligenceRunCancelledError();
 
   const review = synthesisResult
     ? intelligenceReviewSchema.parse(synthesisResult.output)
@@ -666,6 +806,11 @@ export async function executeIntelligenceRun(
     (item) => item.pass.status === "completed",
   );
   const status = synthesisResult && allSpecialistsCompleted ? "completed" : "partial";
+  const providerCalls = ledger.calls;
+  const primaryModel = normalizeModel(modelRoute.model);
+  const usedGatewayFallback = providerCalls.some(
+    (call) => call.status === "completed" && call.model !== primaryModel,
+  );
 
   return intelligenceRunResponseSchema.parse({
     runId: context.runId,
@@ -686,17 +831,24 @@ export async function executeIntelligenceRun(
     capabilityNegotiation: context.capabilityNegotiation,
     artifacts: [planArtifact, ...successfulArtifacts, synthesisArtifact],
     provenance: {
-      providerCalls: ledger.calls,
+      providerCalls,
       parentArtifactIds: context.parentArtifactIds,
       finalArtifactId: synthesisArtifact.id,
+      usage: aggregateUsage(providerCalls),
     },
     startedAt: context.startedAt,
     completedAt: nowIso(now),
+    projectContext: context.projectContext,
     ...(status === "partial"
       ? {
           notice:
-            "One or more governed passes used a bounded fallback or did not complete. Review provenance before accepting this result.",
+            "One or more governed passes used a bounded fallback or did not complete. No proposal was applied and no human gate was approved; review provenance before accepting this result.",
         }
+      : usedGatewayFallback
+        ? {
+            notice:
+              "AI Gateway completed one or more governed stages with an approved fallback model. Review the per-stage provenance before accepting this result.",
+          }
       : {}),
   });
 }

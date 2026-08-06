@@ -1,13 +1,48 @@
 export const platformPhases = [
-  "discover",
-  "investigate",
-  "model",
-  "build",
-  "validate",
-  "launch",
+  "discovery",
+  "evidence",
+  "systems",
+  "prototype",
+  "validation",
+  "delivery",
 ] as const;
 
 export type PlatformPhase = (typeof platformPhases)[number];
+
+/**
+ * Phase identifiers shipped by the first unified-platform preview. They are
+ * accepted only at legacy persistence and URL boundaries, then immediately
+ * rewritten to the canonical Atlas identifiers above.
+ */
+export const legacyPlatformPhaseAliases = {
+  discover: "discovery",
+  investigate: "evidence",
+  model: "systems",
+  build: "prototype",
+  validate: "validation",
+  launch: "delivery",
+} as const satisfies Readonly<Record<string, PlatformPhase>>;
+
+export type LegacyPlatformPhase = keyof typeof legacyPlatformPhaseAliases;
+
+export function isLegacyPlatformPhase(
+  value: unknown,
+): value is LegacyPlatformPhase {
+  return (
+    typeof value === "string" &&
+    Object.prototype.hasOwnProperty.call(legacyPlatformPhaseAliases, value)
+  );
+}
+
+export function normalizePlatformPhase(value: unknown): PlatformPhase | null {
+  if (typeof value !== "string") return null;
+  if ((platformPhases as readonly string[]).includes(value)) {
+    return value as PlatformPhase;
+  }
+  return isLegacyPlatformPhase(value)
+    ? legacyPlatformPhaseAliases[value]
+    : null;
+}
 
 export const platformAgentRoles = [
   "conductor",

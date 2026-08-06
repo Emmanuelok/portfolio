@@ -1,0 +1,132 @@
+.wrap {
+  width: min(100%, 44rem);
+}
+
+.action {
+  display: grid;
+  width: 100%;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-standard),
+    background-color 180ms var(--ease-standard),
+    transform 180ms var(--ease-out);
+}
+
+.action:hover:not(:disabled) {
+  border-color: var(--blue-bright);
+  transform: translateY(-2px);
+}
+
+.action:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.primary {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.primary:hover:not(:disabled) {
+  border-color: var(--blue-bright);
+  background: var(--blue-bright);
+}
+
+.quiet {
+  background: color-mix(in srgb, var(--surface-raised) 82%, transparent);
+}
+
+.evidence {
+  border-color: color-mix(in srgb, var(--gold) 60%, var(--border));
+  background: color-mix(in srgb, var(--gold) 8%, var(--surface));
+}
+
+.action .icon {
+  display: grid;
+  width: 2.5rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+.icon svg,
+.arrow {
+  width: 1rem;
+}
+
+.action:disabled .icon svg {
+  animation: spin 0.9s linear infinite;
+}
+
+.action .copy {
+  display: grid;
+  gap: 0.18rem;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.action .copy strong {
+  font-size: 0.82rem;
+  font-weight: 720;
+  letter-spacing: -0.01em;
+}
+
+.action .copy > span {
+  color: currentColor;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  opacity: 0.7;
+}
+
+.status {
+  min-height: 1.25rem;
+  margin: 0.5rem 0 0;
+  color: var(--danger);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action {
+    transition: none;
+  }
+
+  .action:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .action:disabled .icon svg {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .action,
+  .primary,
+  .evidence {
+    border-color: ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+}

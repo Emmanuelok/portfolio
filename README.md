@@ -6,10 +6,12 @@ inquiry, responsible AI, systems intelligence, and product development to solve
 complex problems and turn ambitious ideas and projects into durable capability.
 
 The platform now centres on one continuous **Kingxford Intelligence** project
-system. Work moves through Discover, Investigate, Model, Build, Validate, and
-Launch without discarding its source or decisions. A Conductor coordinates
-governed specialist passes inside the same project rather than presenting a
-collection of disconnected AI tools.
+system. Work moves through six canonical phases—Discovery, Evidence, Systems,
+Prototype, Validation, and Delivery—without discarding its source, evidence,
+or decisions. Public-facing verbs such as Discover, Investigate, Model, Build,
+Validate, and Deliver are views onto that same lifecycle. A Conductor
+coordinates governed specialist passes inside the same Atlas-backed project
+rather than presenting a collection of disconnected AI tools.
 
 The `& Co` represents investors of every kind: people and institutions who
 contribute capital, time, knowledge, research, technology, infrastructure,
@@ -50,8 +52,42 @@ review. The implementation plan and architectural decision are documented in
 [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) and
 [`docs/adr/0001-unified-intelligence-platform.md`](docs/adr/0001-unified-intelligence-platform.md).
 
-The current build is expected to generate 23 public and framework routes,
-including eight case studies, the Media index, and two Media articles.
+The current build generates 26 public, framework, and API routes, including
+eight case studies, the Media index, two Media articles, the focused Canvas,
+and the governed review and Conductor endpoints.
+
+## Kingxford Creative Intelligence
+
+The Canvas at `/create/workspace` is the shared operating surface for one
+project lifecycle: Discovery → Evidence → Systems → Prototype → Validation →
+Delivery. The Project Atlas links artifacts, immutable revisions, evidence,
+open questions, reviews, and human gates in a versioned local-first graph.
+Projects can be created, switched, imported, and exported without claiming
+cloud persistence; public Work, Lab, Media, and Create surfaces can deliberately
+seed a new project or add evidence to an existing one.
+
+The Canvas also includes two complementary, server-mediated intelligence paths.
+Focused review combines seven selectable lenses, a fixed Kingxford playbook,
+graph-aware structured output, standard/deep Gateway routing, deterministic
+local fallback, and private review history stored in the current browser. The
+Conductor can plan a bounded run, coordinate up to two phase specialists, and
+synthesize their work against the exact Atlas snapshot and artifact revision.
+Both paths are proposal-only: nothing changes the project and no lifecycle gate
+is approved until a person deliberately accepts a revision or records a gate
+decision.
+
+The public reviewer is intentionally bounded: workspace content is treated as
+untrusted, the agent has no external-action tools, credentials are rejected
+before model generation, and responses expose the selected lens, grounding,
+request ID, elapsed time, token usage, model, and remaining process-local
+allowance. Vercel AI Gateway receives a pseudonymous user identifier and
+operational tags; workspace prompts are not used to train Kingxford models.
+
+See [`docs/intelligence-layer.md`](docs/intelligence-layer.md) for architecture,
+environment variables, deployment instructions, limitations, and the owner
+checklist. Governance policy and fixed cases live in
+[`docs/creative-agent-evaluation-policy.md`](docs/creative-agent-evaluation-policy.md)
+and [`evals/creative-agent/corpus.json`](evals/creative-agent/corpus.json).
 
 ## Run locally
 
@@ -64,8 +100,17 @@ npm run dev
 
 ```bash
 npm run typecheck
-npm run lint
+npm run lint -- --max-warnings=0
+npm run test:intelligence
+npm run test:platform
+npm run verify:creative-agent
 npm run build
+npm run verify:platform-journey
 ```
 
-The project uses Next.js App Router and is designed for Vercel deployment. No environment variables are required for the public portfolio.
+The project requires Node.js 22 or newer and uses Next.js App Router. No
+environment variables are required for the public portfolio or deterministic
+local Canvas review. Configure Vercel AI Gateway/OIDC to enable model-generated
+reviews. Production also requires a private `KINGXFORD_USAGE_HASH_SALT`; set
+`NEXT_PUBLIC_CONTACT_EMAIL` to an owner-controlled public project inbox. Start
+from `.env.example` and never commit real credentials.

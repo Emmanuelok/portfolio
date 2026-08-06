@@ -23,18 +23,11 @@ import {
 import { CommandPalette } from "@/components/CommandPalette";
 import { KingxfordLogo } from "@/components/KingxfordLogo";
 import { ThemeControls } from "@/components/ThemeControls";
+import { PLATFORM_DESTINATIONS } from "@/lib/platform";
 
-const navigationBeforeCreate = [
-  { href: "/#mission", label: "Mission" },
-  { href: "/lab", label: "Evidence" },
-] as const;
-
-const navigationAfterCreate = [
-  { href: "/work", label: "Proofs" },
-  { href: "/media", label: "Insights" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-] as const;
+const navigationBeforeCreate = PLATFORM_DESTINATIONS.filter(
+  ({ href }) => href !== "/create/workspace",
+);
 
 const createModes = [
   {
@@ -139,9 +132,9 @@ function CreateDesktopMenu({
     >
       <Link
         className="site-header__nav-link site-header__create-link"
-        href="/create"
+        href="/create/workspace"
         aria-current={
-          pathname === "/create"
+          pathname === "/create/workspace"
             ? "page"
             : isCreateCurrent
               ? "location"
@@ -150,13 +143,13 @@ function CreateDesktopMenu({
         data-current={isCreateCurrent ? "true" : "false"}
         onClick={onClose}
       >
-        <span>Create</span>
+        <span>Canvas</span>
       </Link>
       <button
         className="site-header__create-disclosure"
         type="button"
         ref={triggerRef}
-        aria-label={`${isOpen ? "Close" : "Open"} Create menu`}
+        aria-label={`${isOpen ? "Close" : "Open"} Canvas menu`}
         aria-expanded={isOpen}
         aria-controls="site-header-create-panel"
         onClick={onToggle}
@@ -282,7 +275,7 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
     >
       <summary>
         <span>
-          <strong>Create</strong>
+          <strong>Canvas</strong>
           <small>One project · Six phases · Live proof</small>
         </span>
         <ChevronDown aria-hidden="true" />
@@ -423,7 +416,6 @@ export function SiteHeader() {
               menuRef={createMenuRef}
               triggerRef={createTriggerRef}
             />
-            <NavigationLinks items={navigationAfterCreate} pathname={pathname} />
           </nav>
 
           <div className="site-header__actions">
@@ -456,11 +448,6 @@ export function SiteHeader() {
                   onNavigate={closeMobileMenu}
                 />
                 <CreateMobileMenu pathname={pathname} onNavigate={closeMobileMenu} />
-                <NavigationLinks
-                  items={navigationAfterCreate}
-                  pathname={pathname}
-                  onNavigate={closeMobileMenu}
-                />
               </nav>
               <p className="site-header__mobile-note">
                 Intelligence, research and development, and responsible AI for

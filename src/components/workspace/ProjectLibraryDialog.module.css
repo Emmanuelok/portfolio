@@ -33,8 +33,8 @@
 }
 
 .heading span,
-.projectList section > div span,
-.projectList section > div small {
+.projectMeta span,
+.projectMeta small {
   color: #a6abff;
   font-family: var(--font-mono);
   font-size: 0.58rem;
@@ -90,14 +90,18 @@
   gap: 0.65rem;
 }
 
-.libraryToolbar > div:first-child {
+.limitStatus {
   color: var(--text-faint);
   font-size: 0.68rem;
 }
 
-.libraryToolbar > div:first-child strong {
+.limitStatus strong {
   color: var(--text);
   font-family: var(--font-mono);
+}
+
+.limitStatus[data-limit="true"] span {
+  color: #ffaaa3;
 }
 
 .libraryToolbar button,
@@ -193,12 +197,14 @@
   min-width: 0;
 }
 
-.projectList section > div {
+.projectMeta,
+.projectSignals {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.65rem;
 }
 
-.projectList section > div small {
+.projectMeta small {
   color: var(--text-faint);
 }
 
@@ -214,6 +220,67 @@
   margin: 0;
   color: var(--text-faint);
   font-size: 0.62rem;
+}
+
+.projectList .projectSummary {
+  display: -webkit-box;
+  max-width: 55rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.45;
+}
+
+.projectSignals {
+  margin-top: 0.55rem;
+  color: var(--text-faint);
+  font: 0.53rem var(--font-mono);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.projectSignals > *:not(:last-child)::after {
+  margin-left: 0.65rem;
+  color: color-mix(in srgb, var(--text) 28%, transparent);
+  content: "·";
+}
+
+.projectList > .emptyState {
+  min-height: 15rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.emptyState > svg {
+  width: 2rem;
+  color: #a6abff;
+}
+
+.emptyState h3 {
+  margin-top: 0;
+}
+
+.emptyState p {
+  max-width: 40rem;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.emptyState button {
+  display: inline-flex;
+  min-height: 2.55rem;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #7b83ff;
+  background: color-mix(in srgb, #7b83ff 13%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.emptyState button svg {
+  width: 0.85rem;
 }
 
 .projectActions {
@@ -284,6 +351,15 @@
 
   .projectList > li {
     grid-template-columns: 3.6rem minmax(0, 1fr);
+  }
+
+  .projectList > .emptyState {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .emptyState button {
+    grid-column: 1 / -1;
+    justify-content: center;
   }
 
   .projectActions {

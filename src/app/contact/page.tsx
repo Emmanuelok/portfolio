@@ -14,6 +14,20 @@ export const metadata: Metadata = {
   },
 };
 
+function validatedContactEmail(value: string | undefined) {
+  if (!value || value.length > 254 || value !== value.trim()) return null;
+  if (!/^[\x21-\x7e]+$/.test(value)) return null;
+  const [local, domain, ...extra] = value.split("@");
+  if (!local || !domain || extra.length || local.length > 64) return null;
+  if (!/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+$/.test(local)) return null;
+  if (local.startsWith(".") || local.endsWith(".") || local.includes("..")) return null;
+  const labels = domain.split(".");
+  if (labels.length < 2 || labels.some((label) => (
+    !label || label.length > 63 || !/^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/.test(label)
+  ))) return null;
+  return value;
+}
+
 const usefulDetails = [
   "The problem, opportunity, or future you are trying to shape",
   "The people and institutions affected by the current system",
@@ -21,13 +35,8 @@ const usefulDetails = [
   "The forms of investment available: capital, knowledge, time, infrastructure, networks, or trust",
 ] as const;
 
-function configuredContactEmail() {
-  const value = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() ?? "";
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : null;
-}
-
 export default function ContactPage() {
-  const contactEmail = configuredContactEmail();
+  const contactEmail = validatedContactEmail(process.env.NEXT_PUBLIC_CONTACT_EMAIL);
   return (
     <main className="page page--contact">
       <section

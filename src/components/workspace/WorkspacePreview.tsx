@@ -31,7 +31,6 @@ import {
   parseMindMap,
   promptSignals,
 } from "@/lib/workspace/local-analysis";
-import type { PlatformMapViewState } from "@/lib/platform/types";
 import type {
   CodeFiles,
   MindMapNode,
@@ -42,13 +41,33 @@ import styles from "./CreativeWorkspace.module.css";
 
 type PreviewDevice = "desktop" | "tablet" | "mobile";
 
+const PREVIEW_CONSOLE_PROTOCOL = "kingxford.preview.console.v1";
+const PREVIEW_LOG_LEVELS = new Set(["log", "warn", "error"]);
+const PREVIEW_MAX_VALUES = 8;
+const PREVIEW_MAX_VALUE_CHARS = 640;
+const PREVIEW_MAX_VALUE_BYTES = 1_024;
+const PREVIEW_MAX_LINE_CHARS = 1_800;
+const PREVIEW_MAX_LINE_BYTES = 2_048;
+const PREVIEW_MAX_LINES = 12;
+const PREVIEW_MAX_ACCEPTED_LINES = 40;
+const PREVIEW_MAX_ACCEPTED_BYTES = 16 * 1_024;
+const PREVIEW_BURST_MESSAGES = 24;
+
+function utf8Length(value: string) {
+  return new TextEncoder().encode(value).byteLength;
+}
+
+function truncateUtf8(value: string, maxChars: number, maxBytes: number) {
+  let next = value.slice(0, maxChars);
+  while (next && utf8Length(next) > maxBytes) next = next.slice(0, -16);
+  return next;
+}
+
 type WorkspacePreviewProps = Readonly<{
   draft: WorkspaceDraft;
   committedCode: CodeFiles;
   runId: number;
   onCodeLogs: (logs: readonly string[]) => void;
-  initialMapView?: PlatformMapViewState | null;
-  onMapViewCommit?: (view: PlatformMapViewState) => void;
 }>;
 
 function ConceptPreview({ draft }: Readonly<{ draft: WorkspaceDraft }>) {
@@ -98,21 +117,55 @@ function buildCodeDocument(code: CodeFiles, channel: string) {
   const safeJavascript = code.javascript.replaceAll("</script", "<\\/script");
   const bridge = `
     (() => {
+      'use strict';
+      const protocol = ${JSON.stringify(PREVIEW_CONSOLE_PROTOCOL)};
       const channel = ${JSON.stringify(channel)};
-      const allowedTypes = new Set(['log', 'warn', 'error']);
-      let emitted = 0;
+      const encoder = new TextEncoder();
+      const seen = new WeakSet();
+      let sent = 0;
+      let windowStartedAt = performance.now();
+      let windowCount = 0;
+      const clean = (value) => String(value).replace(/[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f]/g, ' ').replace(/\\r?\\n/g, ' ↵ ');
+      const bounded = (value, chars = 640, bytes = 1024) => {
+        let next = clean(value).slice(0, chars);
+        while (next.length && encoder.encode(next).byteLength > bytes) next = next.slice(0, -16);
+        return next;
+      };
+      const serialize = (value, depth = 0) => {
+        try {
+          if (value === null) return 'null';
+          if (typeof value === 'string') return bounded(value);
+          if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'undefined' || typeof value === 'bigint') return bounded(String(value));
+          if (typeof value === 'symbol') return bounded(value.description ? 'Symbol(' + value.description + ')' : 'Symbol');
+          if (typeof value === 'function') return '[Function' + (value.name ? ': ' + bounded(value.name, 80, 160) : '') + ']';
+          if (value instanceof Error) return bounded(value.name + ': ' + value.message);
+          if (depth >= 3) return '[Max depth]';
+          if (typeof value !== 'object') return bounded(String(value));
+          if (seen.has(value)) return '[Circular]';
+          seen.add(value);
+          if (Array.isArray(value)) {
+            return bounded('[' + value.slice(0, 12).map((item) => serialize(item, depth + 1)).join(', ') + (value.length > 12 ? ', …' : '') + ']');
+          }
+          let keys = [];
+          try { keys = Object.keys(value).slice(0, 12); } catch { return '[Uninspectable object]'; }
+          const pairs = keys.map((key) => {
+            try { return bounded(key, 80, 160) + ': ' + serialize(value[key], depth + 1); }
+            catch { return bounded(key, 80, 160) + ': [Getter threw]'; }
+          });
+          return bounded('{' + pairs.join(', ') + (Object.keys(value).length > 12 ? ', …' : '') + '}');
+        } catch { return '[Unserializable value]'; }
+      };
       const emit = (type, values) => {
-        if (!allowedTypes.has(type) || emitted >= 100) return;
-        emitted += 1;
+        const now = performance.now();
+        if (now - windowStartedAt >= 1000) { windowStartedAt = now; windowCount = 0; }
+        if (sent >= 40 || windowCount >= 24) return;
+        sent += 1;
+        windowCount += 1;
         parent.postMessage({
+          protocol,
           channel,
           type,
-          values: values.slice(0, 8).map((value) => {
-            let serialized = '';
-            try { serialized = typeof value === 'string' ? value : JSON.stringify(value); }
-            catch { serialized = String(value); }
-            return String(serialized ?? '').slice(0, 2000);
-          }),
+          values: values.slice(0, 8).map((value) => serialize(value)),
         }, '*');
       };
       ['log', 'warn', 'error'].forEach((method) => {
@@ -149,6 +202,13 @@ function CodePreview({
   onCodeLogs: (logs: readonly string[]) => void;
 }>) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const messageBudgetRef = useRef({
+    acceptedLines: 0,
+    acceptedBytes: 0,
+    burstStartedAt: 0,
+    burstMessages: 0,
+    blocked: false,
+  });
   const previewId = useId();
   const channel = `kingxford-preview-${previewId}-${runId}`;
   const [device, setDevice] = useState<PreviewDevice>("desktop");
@@ -156,25 +216,66 @@ function CodePreview({
   const srcDoc = useMemo(() => buildCodeDocument(code, channel), [channel, code]);
 
   useEffect(() => {
-    let acceptedMessages = 0;
+    messageBudgetRef.current = {
+      acceptedLines: 0,
+      acceptedBytes: 0,
+      burstStartedAt: performance.now(),
+      burstMessages: 0,
+      blocked: false,
+    };
+    onCodeLogs([]);
+
     const receive = (event: MessageEvent) => {
       if (event.source !== iframeRef.current?.contentWindow) return;
       const data = event.data as
-        | { channel?: string; type?: string; values?: readonly string[] }
+        | { protocol?: string; channel?: string; type?: string; values?: readonly unknown[] }
         | undefined;
       if (
-        !data ||
-        data.channel !== channel ||
-        !["log", "warn", "error"].includes(data.type ?? "") ||
-        !Array.isArray(data.values) ||
-        data.values.length > 8 ||
-        acceptedMessages >= 100 ||
-        data.values.some((value) => typeof value !== "string" || value.length > 2_000)
+        !data
+        || data.protocol !== PREVIEW_CONSOLE_PROTOCOL
+        || data.channel !== channel
+        || typeof data.type !== "string"
+        || !PREVIEW_LOG_LEVELS.has(data.type)
+        || !Array.isArray(data.values)
+        || data.values.length > PREVIEW_MAX_VALUES
+        || !data.values.every((value) => typeof value === "string")
       ) return;
-      acceptedMessages += 1;
-      const line = `[${data.type}] ${data.values.join(" ")}`.slice(0, 8_000);
+
+      const budget = messageBudgetRef.current;
+      if (budget.blocked) return;
+      const now = performance.now();
+      if (now - budget.burstStartedAt >= 1_000) {
+        budget.burstStartedAt = now;
+        budget.burstMessages = 0;
+      }
+      budget.burstMessages += 1;
+      if (budget.burstMessages > PREVIEW_BURST_MESSAGES) {
+        budget.blocked = true;
+        const warning = "[warn] Preview console paused after excessive messages. Reset the preview to run again.";
+        setLogs((current) => [...current, warning].slice(-PREVIEW_MAX_LINES));
+        return;
+      }
+
+      const values = (data.values as readonly string[]).map((value) => (
+        truncateUtf8(value, PREVIEW_MAX_VALUE_CHARS, PREVIEW_MAX_VALUE_BYTES)
+      ));
+      const line = truncateUtf8(
+        `[${data.type}] ${values.join(" ")}`,
+        PREVIEW_MAX_LINE_CHARS,
+        PREVIEW_MAX_LINE_BYTES,
+      );
+      const lineBytes = utf8Length(line);
+      if (
+        budget.acceptedLines >= PREVIEW_MAX_ACCEPTED_LINES
+        || budget.acceptedBytes + lineBytes > PREVIEW_MAX_ACCEPTED_BYTES
+      ) {
+        budget.blocked = true;
+        return;
+      }
+      budget.acceptedLines += 1;
+      budget.acceptedBytes += lineBytes;
       setLogs((current) => {
-        const next = [...current, line].slice(-30);
+        const next = [...current, line].slice(-PREVIEW_MAX_LINES);
         onCodeLogs(next);
         return next;
       });
@@ -205,14 +306,13 @@ function CodePreview({
             </button>
           ))}
         </div>
-        <span>Script sandbox · never paste secrets · preview navigation can leave this page</span>
+        <span>Isolated browser · network disabled</span>
       </div>
       <div className={styles.iframeWell} data-device={device}>
         <iframe
           ref={iframeRef}
           title="Live code preview"
           sandbox="allow-scripts"
-          referrerPolicy="no-referrer"
           srcDoc={srcDoc}
         />
       </div>
@@ -238,18 +338,6 @@ type MapConnection = Readonly<{ id: string; path: string }>;
 
 const MAP_MIN_ZOOM = 0.4;
 const MAP_MAX_ZOOM = 1.5;
-
-function collectMapNodeIds(nodes: readonly MindMapNode[]) {
-  const identifiers = new Set<string>();
-  const visit = (entries: readonly MindMapNode[]) => {
-    for (const node of entries) {
-      identifiers.add(node.id);
-      visit(node.children);
-    }
-  };
-  visit(nodes);
-  return identifiers;
-}
 
 function MapBranch({
   node,
@@ -330,23 +418,14 @@ function MapBranch({
   );
 }
 
-function MindMapPreview({
-  text,
-  initialView,
-  onViewCommit,
-}: Readonly<{
-  text: string;
-  initialView?: PlatformMapViewState | null;
-  onViewCommit?: (view: PlatformMapViewState) => void;
-}>) {
+function MindMapPreview({ text }: Readonly<{ text: string }>) {
   const nodes = useMemo(() => parseMindMap(text), [text]);
-  const [zoom, setZoom] = useState(initialView?.zoom ?? 1);
-  const [pan, setPan] = useState<MapPoint>(initialView?.pan ?? { x: 0, y: 0 });
-  const [offsets, setOffsets] = useState<MapOffsets>(initialView?.nodeOffsets ?? {});
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState<MapPoint>({ x: 0, y: 0 });
+  const [offsets, setOffsets] = useState<MapOffsets>({});
   const [connections, setConnections] = useState<readonly MapConnection[]>([]);
   const [structureVersion, setStructureVersion] = useState(0);
   const [dragging, setDragging] = useState<"canvas" | string | null>(null);
-  const [touchPanEnabled, setTouchPanEnabled] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<
@@ -365,39 +444,6 @@ function MindMapPreview({
       }
     | null
   >(null);
-  const viewRef = useRef<PlatformMapViewState>({
-    zoom: initialView?.zoom ?? 1,
-    pan: initialView?.pan ?? { x: 0, y: 0 },
-    nodeOffsets: initialView?.nodeOffsets ?? {},
-  });
-
-  const activeNodeIds = useMemo(() => collectMapNodeIds(nodes), [nodes]);
-  const visibleOffsets = useMemo(
-    () => Object.fromEntries(
-      Object.entries(offsets).filter(([nodeId]) => activeNodeIds.has(nodeId)),
-    ),
-    [activeNodeIds, offsets],
-  );
-
-  useEffect(() => {
-    viewRef.current = { zoom, pan, nodeOffsets: visibleOffsets };
-  }, [pan, visibleOffsets, zoom]);
-
-  useEffect(() => {
-    if (Object.keys(visibleOffsets).length === Object.keys(offsets).length) return;
-    const pruned = { zoom, pan, nodeOffsets: visibleOffsets };
-    viewRef.current = pruned;
-    onViewCommit?.(pruned);
-  }, [offsets, onViewCommit, pan, visibleOffsets, zoom]);
-
-  const commitView = useCallback(
-    (next?: PlatformMapViewState) => {
-      const committed = next ?? viewRef.current;
-      viewRef.current = committed;
-      onViewCommit?.(committed);
-    },
-    [onViewCommit],
-  );
 
   const refreshConnections = useCallback(() => {
     const canvas = canvasRef.current;
@@ -479,31 +525,17 @@ function MindMapPreview({
     };
   }, [refreshConnections, nodes]);
 
-  const rollbackDrag = useCallback(() => {
-    const drag = dragRef.current;
-    if (!drag) return;
-    dragRef.current = null;
-    setDragging(null);
-    if (drag.kind === "canvas") {
-      setPan(drag.origin);
-      viewRef.current = { zoom, pan: drag.origin, nodeOffsets: visibleOffsets };
-      return;
-    }
-    setOffsets((current) => {
-      const next = { ...current, [drag.nodeId]: drag.origin };
-      viewRef.current = { zoom, pan, nodeOffsets: next };
-      return next;
-    });
-  }, [pan, visibleOffsets, zoom]);
-
   useEffect(() => {
-    window.addEventListener("blur", rollbackDrag);
-    return () => window.removeEventListener("blur", rollbackDrag);
-  }, [rollbackDrag]);
+    const cancelDrag = () => {
+      dragRef.current = null;
+      setDragging(null);
+    };
+    window.addEventListener("blur", cancelDrag);
+    return () => window.removeEventListener("blur", cancelDrag);
+  }, []);
 
   const beginCanvasDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || event.button !== 0 || dragRef.current) return;
-    if (event.pointerType === "touch" && !touchPanEnabled) return;
     const target = event.target as HTMLElement;
     if (target.closest("[data-map-node-id], button")) return;
     event.preventDefault();
@@ -545,22 +577,16 @@ function MindMapPreview({
       y: event.clientY - drag.start.y,
     };
     if (drag.kind === "canvas") {
-      const nextPan = { x: drag.origin.x + delta.x, y: drag.origin.y + delta.y };
-      viewRef.current = { zoom, pan: nextPan, nodeOffsets: visibleOffsets };
-      setPan(nextPan);
+      setPan({ x: drag.origin.x + delta.x, y: drag.origin.y + delta.y });
       return;
     }
-    setOffsets((current) => {
-      const next = {
-        ...current,
-        [drag.nodeId]: {
+    setOffsets((current) => ({
+      ...current,
+      [drag.nodeId]: {
         x: drag.origin.x + delta.x / zoom,
         y: drag.origin.y + delta.y / zoom,
-        },
-      };
-      viewRef.current = { zoom, pan, nodeOffsets: next };
-      return next;
-    });
+      },
+    }));
   };
 
   const endDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -570,14 +596,14 @@ function MindMapPreview({
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-    commitView();
   };
 
   const handleLostPointerCapture = (
     event: ReactPointerEvent<HTMLDivElement>,
   ) => {
     if (dragRef.current?.pointerId !== event.pointerId) return;
-    rollbackDrag();
+    dragRef.current = null;
+    setDragging(null);
   };
 
   const moveNodeWithKeyboard = (
@@ -596,12 +622,10 @@ function MindMapPreview({
     event.stopPropagation();
     setOffsets((current) => {
       const origin = current[nodeId] ?? { x: 0, y: 0 };
-      const next = {
+      return {
         ...current,
         [nodeId]: { x: origin.x + delta.x, y: origin.y + delta.y },
       };
-      commitView({ zoom, pan, nodeOffsets: next });
-      return next;
     });
   };
 
@@ -615,14 +639,10 @@ function MindMapPreview({
     }[event.key];
     if (!delta) return;
     event.preventDefault();
-    setPan((current) => {
-      const next = {
-        x: current.x + delta.x,
-        y: current.y + delta.y,
-      };
-      commitView({ zoom, pan: next, nodeOffsets: visibleOffsets });
-      return next;
-    });
+    setPan((current) => ({
+      x: current.x + delta.x,
+      y: current.y + delta.y,
+    }));
   };
 
   const fitMap = () => {
@@ -669,27 +689,17 @@ function MindMapPreview({
     const centeredX = margin + (availableWidth - contentWidth * nextZoom) / 2;
     const centeredY = margin + (availableHeight - contentHeight * nextZoom) / 2;
 
-    const nextPan = {
+    setZoom(nextZoom);
+    setPan({
       x: centeredX - paddingLeft - minX * nextZoom,
       y: centeredY - paddingTop - minY * nextZoom,
-    };
-    setZoom(nextZoom);
-    setPan(nextPan);
-    commitView({ zoom: nextZoom, pan: nextPan, nodeOffsets: visibleOffsets });
+    });
   };
 
   const resetMap = () => {
-    const nextPan = { x: 0, y: 0 };
-    setPan(nextPan);
+    setPan({ x: 0, y: 0 });
     setZoom(1);
     setOffsets({});
-    commitView({ zoom: 1, pan: nextPan, nodeOffsets: {} });
-  };
-
-  const changeZoom = (next: number) => {
-    const bounded = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, next));
-    setZoom(bounded);
-    commitView({ zoom: bounded, pan, nodeOffsets: visibleOffsets });
   };
 
   return (
@@ -699,23 +709,14 @@ function MindMapPreview({
           <span>Relationship view</span>
           <strong>{nodes.length} root {nodes.length === 1 ? "system" : "systems"}</strong>
           <small id="mindmap-drag-instructions" className={styles.mapHint}>
-            <Move aria-hidden="true" /> Drag to move · Touch: enable pan first · Arrow keys to nudge
+            <Move aria-hidden="true" /> Drag to move · Arrow keys to nudge · Shift for larger steps
           </small>
         </div>
         <div role="group" aria-label="Map zoom controls">
           <button
             type="button"
-            aria-label="Toggle touch background panning"
-            aria-pressed={touchPanEnabled}
-            title="Enable this before dragging the map background on a touch screen"
-            onClick={() => setTouchPanEnabled((value) => !value)}
-          >
-            <Move aria-hidden="true" />
-          </button>
-          <button
-            type="button"
             aria-label="Zoom out"
-            onClick={() => changeZoom(zoom - 0.1)}
+            onClick={() => setZoom((value) => Math.max(MAP_MIN_ZOOM, value - 0.1))}
           >
             <Minus aria-hidden="true" />
           </button>
@@ -723,7 +724,7 @@ function MindMapPreview({
           <button
             type="button"
             aria-label="Zoom in"
-            onClick={() => changeZoom(zoom + 0.1)}
+            onClick={() => setZoom((value) => Math.min(MAP_MAX_ZOOM, value + 0.1))}
           >
             <Plus aria-hidden="true" />
           </button>
@@ -739,13 +740,12 @@ function MindMapPreview({
         ref={viewportRef}
         className={styles.mapViewport}
         data-dragging={dragging === "canvas"}
-        data-touch-pan={touchPanEnabled}
         data-map-viewport
         tabIndex={0}
         aria-label="Interactive mind map canvas. Drag the background to pan and drag nodes to move them."
         onKeyDown={panWithKeyboard}
         onLostPointerCapture={handleLostPointerCapture}
-        onPointerCancel={rollbackDrag}
+        onPointerCancel={endDrag}
         onPointerDown={beginCanvasDrag}
         onPointerMove={moveDrag}
         onPointerUp={endDrag}
@@ -776,7 +776,7 @@ function MindMapPreview({
               {nodes.map((node) => (
                 <MapBranch
                   node={node}
-                  offsets={visibleOffsets}
+                  offsets={offsets}
                   draggingNodeId={dragging === "canvas" ? null : dragging}
                   onNodePointerDown={beginNodeDrag}
                   onNodeKeyDown={moveNodeWithKeyboard}
@@ -882,8 +882,6 @@ export function WorkspacePreview({
   committedCode,
   runId,
   onCodeLogs,
-  initialMapView,
-  onMapViewCommit,
 }: WorkspacePreviewProps) {
   if (draft.mode === "code") {
     return (
@@ -895,15 +893,7 @@ export function WorkspacePreview({
       />
     );
   }
-  if (draft.mode === "mindmap") {
-    return (
-      <MindMapPreview
-        text={draft.text}
-        initialView={initialMapView}
-        onViewCommit={onMapViewCommit}
-      />
-    );
-  }
+  if (draft.mode === "mindmap") return <MindMapPreview text={draft.text} />;
   if (draft.mode === "prompt") return <PromptPreview text={draft.text} />;
   if (draft.mode === "brief") return <BriefPreview draft={draft} />;
   return <ConceptPreview draft={draft} />;

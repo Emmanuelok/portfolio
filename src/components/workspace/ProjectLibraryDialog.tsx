@@ -11,19 +11,19 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { transformLabels } from "@/lib/workspace/presets";
-import type { WorkspaceProject } from "@/lib/workspace/types";
+import { PLATFORM_PHASES } from "@/lib/platform";
+import type { KingxfordProject } from "@/lib/workspace/project-graph";
+import { PROJECT_REPOSITORY_MAX_PROJECTS } from "@/lib/workspace/project-repository";
 
 import styles from "./ProjectLibraryDialog.module.css";
 
-type ProjectLibraryDialogProps = Readonly<{
+export type ProjectLibraryDialogProps = Readonly<{
   open: boolean;
-  projects: readonly WorkspaceProject[];
-  activeProjectId: string;
-  projectLimit: number;
+  projects: readonly KingxfordProject[];
+  activeProjectId: string | null;
   onClose: () => void;
   onCreate: () => void;
-  onOpen: (projectId: string) => void;
+  onSelect: (projectId: string) => void;
   onDuplicate: (projectId: string) => void;
   onExport: (projectId: string) => void;
   onDelete: (projectId: string) => void;
@@ -39,14 +39,23 @@ function formatUpdated(value: string) {
   }).format(new Date(value));
 }
 
+const phaseLabels = Object.fromEntries(
+  PLATFORM_PHASES.map((phase) => [phase.id, phase.title]),
+) as Record<KingxfordProject["activePhase"], string>;
+
+function originLabel(project: KingxfordProject) {
+  if (project.origin.kind === "canvas-v1-migration") return "Migrated from Canvas v1";
+  if (project.origin.kind === "import-clone") return "Source lineage retained";
+  return "Created in Atlas";
+}
+
 export function ProjectLibraryDialog({
   open,
   projects,
   activeProjectId,
-  projectLimit,
   onClose,
   onCreate,
-  onOpen,
+  onSelect,
   onDuplicate,
   onExport,
   onDelete,
@@ -63,8 +72,8 @@ export function ProjectLibraryDialog({
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
-  const atLimit = projects.length >= projectLimit;
-  const closeLibrary = () => {
+  const atLimit = projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS;
+  const requestClose = () => {
     setConfirmDeleteId(null);
     onClose();
   };
@@ -74,34 +83,41 @@ export function ProjectLibraryDialog({
       ref={dialogRef}
       className={styles.dialog}
       aria-labelledby="project-library-title"
+      aria-describedby="project-library-description"
       onCancel={(event) => {
         event.preventDefault();
-        closeLibrary();
+        requestClose();
       }}
-      onClose={closeLibrary}
+      onClose={() => setConfirmDeleteId(null)}
       onClick={(event) => {
-        if (event.target === event.currentTarget) closeLibrary();
+        if (event.target === event.currentTarget) requestClose();
       }}
     >
       <div className={styles.card}>
         <header className={styles.heading}>
           <div>
-            <span>Local project library</span>
-            <h2 id="project-library-title">Your intelligence projects</h2>
-            <p>
-              Keep separate ideas, prototypes and briefs without one project
-              overwriting another.
+            <span>Atlas project library</span>
+            <h2 id="project-library-title">Your connected intelligence</h2>
+            <p id="project-library-description">
+              Re-enter any project with its artifacts, evidence, decisions,
+              graph relationships, and review provenance intact.
             </p>
           </div>
-          <button type="button" aria-label="Close project library" onClick={closeLibrary}>
+          <button type="button" aria-label="Close project library" onClick={requestClose}>
             <X aria-hidden="true" />
           </button>
         </header>
 
         <div className={styles.libraryToolbar}>
-          <div>
-            <strong>{projects.length} / {projectLimit}</strong>
-            <span>projects stored on this device</span>
+          <div className={styles.limitStatus} data-limit={atLimit} aria-live="polite">
+            <strong>
+              {projects.length} / {PROJECT_REPOSITORY_MAX_PROJECTS}
+            </strong>
+            <span>
+              {atLimit
+                ? "20-project limit reached · export or delete one to make room"
+                : "complete Atlas projects stored on this device"}
+            </span>
           </div>
           <div>
             <button type="button" disabled={atLimit} onClick={onCreate}>
@@ -128,9 +144,31 @@ export function ProjectLibraryDialog({
         </div>
 
         <ol className={styles.projectList}>
+          {projects.length === 0 ? (
+            <li className={styles.emptyState}>
+              <FolderKanban aria-hidden="true" />
+              <div>
+                <h3>Start your first Atlas project</h3>
+                <p>
+                  Every phase, artifact, decision, and revision will stay
+                  connected here as the work develops.
+                </p>
+              </div>
+              <button type="button" onClick={onCreate}>
+                <Plus aria-hidden="true" />
+                New project
+              </button>
+            </li>
+          ) : null}
           {projects.map((project) => {
             const active = project.id === activeProjectId;
             const confirming = confirmDeleteId === project.id;
+            const evidenceCount = project.artifacts.filter(
+              ({ kind }) => kind === "evidence",
+            ).length;
+            const decidedGateCount = project.gates.filter(
+              ({ status }) => status !== "open",
+            ).length;
             return (
               <li key={project.id} data-active={active}>
                 <div className={styles.projectMark}>
@@ -138,35 +176,56 @@ export function ProjectLibraryDialog({
                   {active ? <span>Open</span> : null}
                 </div>
                 <section>
-                  <div>
-                    <span>{transformLabels[project.mode]}</span>
-                    <small>{project.versions.length} versions</small>
+                  <div className={styles.projectMeta}>
+                    <span>{phaseLabels[project.activePhase]} phase</span>
+                    <small>
+                      {project.artifacts.length} artifacts · {project.revisions.length} revisions
+                    </small>
                   </div>
-                  <h3>{project.title || "Untitled Canvas project"}</h3>
-                  <p>Updated {formatUpdated(project.updatedAt)}</p>
+                  <h3>{project.title}</h3>
+                  <p className={styles.projectSummary}>
+                    {project.summary || "A connected Atlas project ready for its next move."}
+                  </p>
+                  <div className={styles.projectSignals}>
+                    <span>{evidenceCount} evidence</span>
+                    <span>{decidedGateCount} / {project.gates.length} gates decided</span>
+                    <span>{originLabel(project)}</span>
+                    <time dateTime={project.updatedAt}>
+                      Updated {formatUpdated(project.updatedAt)}
+                    </time>
+                  </div>
                 </section>
                 <div className={styles.projectActions}>
                   <button
                     type="button"
                     disabled={active}
-                    onClick={() => onOpen(project.id)}
+                    onClick={() => {
+                      setConfirmDeleteId(null);
+                      onSelect(project.id);
+                    }}
                   >
-                    {active ? "Current" : "Open"}
+                    {active ? "Current" : "Select"}
                   </button>
                   <button
                     type="button"
                     title="Duplicate project"
-                    aria-label={`Duplicate ${project.title || "untitled project"}`}
+                    aria-label={`Duplicate ${project.title}`}
                     disabled={atLimit}
-                    onClick={() => onDuplicate(project.id)}
+                    onClick={() => {
+                      setConfirmDeleteId(null);
+                      onDuplicate(project.id);
+                    }}
                   >
                     <Copy aria-hidden="true" />
                   </button>
                   <button
                     type="button"
                     title="Export project bundle"
-                    aria-label={`Export ${project.title || "untitled project"}`}
-                    onClick={() => onExport(project.id)}
+                    aria-label={`Export ${project.title}`}
+                    onClick={() => {
+                      setConfirmDeleteId(null);
+                      onExport(project.id);
+                    }}
                   >
                     <Download aria-hidden="true" />
                   </button>
@@ -176,8 +235,8 @@ export function ProjectLibraryDialog({
                     disabled={projects.length === 1}
                     aria-label={
                       confirming
-                        ? `Confirm deletion of ${project.title || "untitled project"}`
-                        : `Delete ${project.title || "untitled project"}`
+                        ? `Confirm deletion of ${project.title}`
+                        : `Delete ${project.title}`
                     }
                     title={confirming ? "Click again to confirm deletion" : "Delete project"}
                     onClick={() => {
@@ -200,12 +259,11 @@ export function ProjectLibraryDialog({
 
         <footer>
           <p>
-            Complete bundles use <code>.kxproject.json</code> to preserve the
-            editable source, versions, evidence, decisions, map layout, and
-            accepted Agent provenance. Legacy <code>.kxcanvas.json</code> files
-            remain importable.
+            Complete <code>.kxproject.json</code> bundles preserve editable
+            artifacts, immutable revisions, evidence, decisions, graph layout,
+            and accepted Agent provenance.
           </p>
-          <span>Nothing is uploaded by this library.</span>
+          <span>Private on this device until you choose to export.</span>
         </footer>
       </div>
     </dialog>

@@ -17,40 +17,46 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState, useSyncExternalStore } from "react";
 
 import {
-  PLATFORM_LIFECYCLE,
-  getPlatformPhase,
-} from "@/lib/platform/registry";
+  PLATFORM_PHASES,
+  type PlatformPhaseId,
+} from "@/lib/platform";
 import {
-  PLATFORM_CHANGE_EVENT,
-  PLATFORM_STORAGE_KEY,
-  loadPlatformSidecar,
-} from "@/lib/platform/storage";
-import {
-  LEGACY_WORKSPACE_STORAGE_KEY,
-  WORKSPACE_STORAGE_KEY,
-  loadWorkspaceLibrary,
-} from "@/lib/workspace/storage";
+  PROJECT_REPOSITORY_CHANGE_EVENT,
+  PROJECT_REPOSITORY_STORAGE_KEY,
+  activeRepositoryProject,
+  loadProjectRepository,
+} from "@/lib/workspace/project-repository";
 
 import styles from "./PlatformContinuityDock.module.css";
 
 const EMPTY_SNAPSHOT = "server";
 
+const phaseModes: Readonly<Record<PlatformPhaseId, string>> = {
+  discovery: "idea",
+  evidence: "brief",
+  systems: "mindmap",
+  prototype: "code",
+  validation: "brief",
+  delivery: "brief",
+};
+
 function subscribe(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(PLATFORM_CHANGE_EVENT, onStoreChange);
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === null || event.key === PROJECT_REPOSITORY_STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(PROJECT_REPOSITORY_CHANGE_EVENT, onStoreChange);
   return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(PLATFORM_CHANGE_EVENT, onStoreChange);
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(PROJECT_REPOSITORY_CHANGE_EVENT, onStoreChange);
   };
 }
 
 function getSnapshot() {
   try {
-    return [
-      window.localStorage.getItem(WORKSPACE_STORAGE_KEY) ?? "",
-      window.localStorage.getItem(LEGACY_WORKSPACE_STORAGE_KEY) ?? "",
-      window.localStorage.getItem(PLATFORM_STORAGE_KEY) ?? "",
-    ].join("\u0000");
+    return window.localStorage.getItem(PROJECT_REPOSITORY_STORAGE_KEY) ?? "";
   } catch {
     return "unavailable";
   }
@@ -69,39 +75,47 @@ export function PlatformContinuityDock() {
     getServerSnapshot,
   );
   const data = useMemo(() => {
-    if (snapshot === EMPTY_SNAPSHOT || snapshot === "unavailable") return null;
-    const workspace = loadWorkspaceLibrary(window.localStorage);
-    if (workspace.status !== "ready") return null;
-    const project = workspace.library.projects.find(
-      (item) => item.id === workspace.library.activeProjectId,
-    );
-    if (!project) return null;
-    const platform = loadPlatformSidecar(window.localStorage);
-    const intelligence =
-      platform.status === "error"
-        ? null
-        : platform.sidecar.projects[project.id] ?? null;
-    return {
-      project,
-      intelligence,
-      projects: workspace.library.projects.slice(0, 3),
-    };
+    if (snapshot === EMPTY_SNAPSHOT) return { status: "pending" as const };
+    if (snapshot === "unavailable") return { status: "error" as const };
+    try {
+      const repository = loadProjectRepository(window.localStorage);
+      const project = activeRepositoryProject(repository);
+      if (!project) return { status: "empty" as const };
+      return {
+        status: "ready" as const,
+        project,
+        projects: [...repository.projects]
+          .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+          .slice(0, 3),
+        evidenceCount: project.artifacts.filter(({ kind }) => kind === "evidence").length,
+      };
+    } catch {
+      return { status: "error" as const };
+    }
   }, [snapshot]);
 
   if (pathname.startsWith("/create")) return null;
+  if (data.status === "pending") return null;
 
   const expanded = expandedPath === pathname;
-  const phase = getPlatformPhase(data?.intelligence?.phase ?? "discover") ??
-    PLATFORM_LIFECYCLE[0];
+  const phase = data.status === "ready"
+    ? PLATFORM_PHASES.find(({ id }) => id === data.project.activePhase)
+      ?? PLATFORM_PHASES[0]
+    : PLATFORM_PHASES[0];
 
-  if (!data) {
+  if (data.status !== "ready") {
+    const unavailable = data.status === "error";
     return (
       <aside className={styles.empty} aria-label="Start a Kingxford project">
-        <Link href="/create/workspace?phase=discover&mode=idea">
+        <Link href="/create/workspace?phase=discovery&mode=idea">
           <span className={styles.emptyIcon}><Plus aria-hidden="true" /></span>
           <span>
             <small>Project intelligence</small>
-            <strong>Start one continuing project</strong>
+            <strong>
+              {unavailable
+                ? "Open Canvas to recover Project Atlas"
+                : "Start one continuing project"}
+            </strong>
           </span>
           <ArrowUpRight aria-hidden="true" />
         </Link>
@@ -124,11 +138,11 @@ export function PlatformContinuityDock() {
       >
         <span className={styles.signal} aria-hidden="true"><i /></span>
         <span className={styles.triggerCopy}>
-          <small>Active project · {phase.label}</small>
+          <small>Active project · {phase.title}</small>
           <strong>{data.project.title || "Untitled project"}</strong>
         </span>
         <span className={styles.triggerMetrics}>
-          <i>{data.intelligence?.evidence.length ?? 0} evidence</i>
+          <i>{data.evidenceCount} evidence</i>
           <ChevronDown aria-hidden="true" />
         </span>
       </button>
@@ -140,7 +154,7 @@ export function PlatformContinuityDock() {
               <span><BrainCircuit aria-hidden="true" /> Project intelligence</span>
               <h2>{data.project.title || "Untitled project"}</h2>
               <p>
-                {data.intelligence?.objective ||
+                {data.project.summary ||
                   "Open the workspace to define the objective this project must preserve."}
               </p>
             </div>
@@ -151,25 +165,25 @@ export function PlatformContinuityDock() {
           </header>
 
           <div className={styles.metrics}>
-            <span><FileSearch aria-hidden="true" /><strong>{data.intelligence?.evidence.length ?? 0}</strong><small>Evidence</small></span>
-            <span><CheckCircle2 aria-hidden="true" /><strong>{data.intelligence?.decisions.length ?? 0}</strong><small>Decisions</small></span>
-            <span><Sparkles aria-hidden="true" /><strong>{data.intelligence?.agentRuns.length ?? 0}</strong><small>Accepted runs</small></span>
-            <span><GitCommitHorizontal aria-hidden="true" /><strong>{data.project.versions.length}</strong><small>Versions</small></span>
+            <span><FileSearch aria-hidden="true" /><strong>{data.evidenceCount}</strong><small>Evidence</small></span>
+            <span><CheckCircle2 aria-hidden="true" /><strong>{data.project.decisions.length}</strong><small>Decisions</small></span>
+            <span><Sparkles aria-hidden="true" /><strong>{data.project.reviewLinks.length}</strong><small>Reviews</small></span>
+            <span><GitCommitHorizontal aria-hidden="true" /><strong>{data.project.revisions.length}</strong><small>Revisions</small></span>
           </div>
 
           <div className={styles.phaseHeading}>
             <span><Database aria-hidden="true" /> Project lifecycle</span>
-            <small>{phase.outcome}</small>
+            <small>{phase.signal}</small>
           </div>
           <nav className={styles.phases} aria-label="Continue active project by phase">
-            {PLATFORM_LIFECYCLE.map((item) => (
+            {PLATFORM_PHASES.map((item) => (
               <Link
                 data-active={item.id === phase.id ? "true" : "false"}
-                href={item.route}
+                href={`/create/workspace?phase=${item.id}&mode=${phaseModes[item.id]}`}
                 key={item.id}
               >
-                <small>{item.index}</small>
-                <strong>{item.label}</strong>
+                <small>{item.number}</small>
+                <strong>{item.title}</strong>
               </Link>
             ))}
           </nav>

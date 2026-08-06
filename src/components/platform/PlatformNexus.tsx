@@ -34,12 +34,12 @@ import styles from "./PlatformNexus.module.css";
 const HOME_SEED_INPUT_LIMIT = 1_200;
 
 const phaseIcons: Record<PlatformPhase, LucideIcon> = {
-  discover: Compass,
-  investigate: SearchCheck,
-  model: Network,
-  build: Code2,
-  validate: ShieldCheck,
-  launch: Rocket,
+  discovery: Compass,
+  evidence: SearchCheck,
+  systems: Network,
+  prototype: Code2,
+  validation: ShieldCheck,
+  delivery: Rocket,
 };
 
 const startingPoints = [
@@ -52,7 +52,7 @@ export function PlatformNexus() {
   const router = useRouter();
   const [input, setInput] = useState("");
   const [selectedPhase, setSelectedPhase] =
-    useState<PlatformPhase>("discover");
+    useState<PlatformPhase>("discovery");
   const [status, setStatus] = useState("");
   const currentPhase =
     PLATFORM_LIFECYCLE.find((phase) => phase.id === selectedPhase) ??
@@ -76,7 +76,7 @@ export function PlatformNexus() {
 
     try {
       const seed = createPlatformSeed(normalizedInput, {
-        phase: "discover",
+        phase: "discovery",
         mode: "idea",
         source: "home-nexus",
       });
@@ -90,7 +90,7 @@ export function PlatformNexus() {
 
       setStatus("Private project start prepared. Opening the workspace…");
       router.push(
-        "/create/workspace?start=seed&phase=discover&mode=idea",
+        "/create/workspace?start=seed&phase=discovery&mode=idea",
       );
     } catch {
       setStatus(

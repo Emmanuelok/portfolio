@@ -114,7 +114,7 @@ export function importPlatformProjectBundle(
     return {
       project,
       intelligence: createPlatformProjectIntelligence(project.id, {
-        phase: "discover",
+        phase: "discovery",
       }),
       sourceFormat: "legacy-canvas",
     };

@@ -122,7 +122,8 @@
   padding-top: 0.5rem;
 }
 
-.actions button {
+.actions button,
+.emailAction {
   display: inline-flex;
   min-height: 3rem;
   align-items: center;
@@ -136,22 +137,26 @@
   font: inherit;
   font-size: 0.85rem;
   font-weight: 720;
+  text-decoration: none;
 }
 
-.actions button:nth-of-type(2),
-.actions .emailAction {
+.actions button:last-of-type {
   background: transparent;
   color: var(--text);
 }
 
-.actions .emailAction {
-  border-color: color-mix(in srgb, var(--blue-bright) 58%, var(--border));
-}
-
-.actions button:hover {
+.actions button:hover,
+.emailAction:hover {
   border-color: var(--blue-bright);
   background: var(--blue-bright);
   color: #fff;
+}
+
+.actions button:disabled {
+  border-color: var(--border-strong);
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: not-allowed;
 }
 
 .status {

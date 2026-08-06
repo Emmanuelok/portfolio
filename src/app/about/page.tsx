@@ -187,7 +187,7 @@ export default function AboutPage() {
         <p className="eyebrow">Advance the mission</p>
         <h2>Bring the complex problem, ambitious idea, or consequential project.</h2>
         <div className="page-cta__actions">
-          <Link className="button button--primary" href="/create/workspace?phase=discover&mode=idea">
+          <Link className="button button--primary" href="/create/workspace?phase=discovery&mode=idea">
             <span>Start in the workspace</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>

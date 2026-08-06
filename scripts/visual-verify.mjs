@@ -8,15 +8,8 @@ import chromiumBinary from "@sparticuz/chromium";
 import { chromium } from "playwright-core";
 
 const baseUrl = process.env.VERIFY_BASE_URL ?? "http://127.0.0.1:3000";
-const vercelShareToken = process.env.VERIFY_VERCEL_SHARE_TOKEN ?? "";
 const outputDir = path.resolve("verification");
 await fs.mkdir(outputDir, { recursive: true });
-
-function verificationUrl(route) {
-  const url = new URL(route, baseUrl);
-  if (vercelShareToken) url.searchParams.set("_vercel_share", vercelShareToken);
-  return url.toString();
-}
 
 // Some container filesystems reject the ownership metadata inside Sparticuz's
 // font archive. Pre-inflating only the browser binary avoids that unrelated
@@ -62,106 +55,13 @@ const browser = await chromium.launch({
 const results = [];
 const failures = [];
 
-function mockIntelligenceResponse(request, review, digestCharacter = "a") {
-  const digest = digestCharacter.repeat(64);
-  const timestamp = "2026-08-04T12:00:00.000Z";
-  const phase = request?.projectContext?.phase ?? "build";
-  const runId = `run-browser-${digestCharacter}`;
-  const planArtifactId = `artifact-plan-browser-${digestCharacter}`;
-  const artifactId = `artifact-browser-${digestCharacter}`;
-  const requestedCapabilities =
-    request?.capabilityNegotiation?.requested ?? ["structured-review"];
-
-  return {
-    runId,
-    status: "completed",
-    review,
-    source: "openai",
-    model: "openai/gpt-5.6-sol",
-    phase,
-    agentRole: "conductor",
-    protocolVersion: "kx-intelligence-2026-08-04.1",
-    inputDigest: digest,
-    orchestration: {
-      plan: {
-        phase,
-        summary: "Run a bounded source-revision verification.",
-        phaseObjective: "Keep the proposal bound to the tested project revision.",
-        specialists: [],
-        sequence: ["Review the current source and preserve its provenance."],
-        acceptanceCriteria: ["The proposal remains bound to its source revision."],
-        conflicts: [],
-        boundaries: ["No publishing, contact, or deployment occurs automatically."],
-        handoff: "Return the validated proposal to the user for an explicit decision.",
-      },
-      passes: [],
-    },
-    capabilityNegotiation: {
-      requested: requestedCapabilities,
-      granted: requestedCapabilities.filter((capability) =>
-        [
-          "structured-review",
-          "phase-planning",
-          "parallel-specialists",
-          "project-context",
-          "artifact-provenance",
-        ].includes(capability),
-      ),
-      declined: requestedCapabilities
-        .filter((capability) =>
-          ["external-research", "code-execution", "autonomous-deployment"].includes(
-            capability,
-          ),
-        )
-        .map((capability) => ({
-          capability,
-          reason: "This browser verification run has no external side-effect tools.",
-        })),
-    },
-    artifacts: [
-      {
-        id: planArtifactId,
-        kind: "conductor-plan",
-        title: "Browser verification plan",
-        phase,
-        role: "conductor",
-        digest,
-        parentArtifactIds: request?.projectContext?.artifacts?.map((item) => item.id) ?? [],
-        createdAt: timestamp,
-      },
-      {
-        id: artifactId,
-        kind: "synthesis",
-        title: "Browser verification synthesis",
-        phase,
-        role: "conductor",
-        digest,
-        parentArtifactIds: [planArtifactId],
-        createdAt: timestamp,
-      },
-    ],
-    provenance: {
-      providerCalls: [
-        {
-          id: `call-browser-${digestCharacter}`,
-          stage: "synthesis",
-          role: "conductor",
-          model: "openai/gpt-5.6-sol",
-          status: "completed",
-          startedAt: timestamp,
-          completedAt: timestamp,
-          latencyMs: 120,
-          inputDigest: digest,
-          outputDigest: digest,
-        },
-      ],
-      parentArtifactIds: request?.projectContext?.artifacts?.map((item) => item.id) ?? [],
-      finalArtifactId: artifactId,
-    },
-    startedAt: timestamp,
-    completedAt: timestamp,
-  };
-}
+const expectedPrimaryDestinations = [
+  { label: "Mission", href: "/" },
+  { label: "Work", href: "/work" },
+  { label: "Lab", href: "/lab" },
+  { label: "Field notes", href: "/media" },
+  { label: "Canvas", href: "/create/workspace" },
+];
 
 async function inspectPage(name, route, viewport, options = {}) {
   const context = await browser.newContext({
@@ -172,9 +72,6 @@ async function inspectPage(name, route, viewport, options = {}) {
     hasTouch: options.hasTouch ?? false,
     isMobile: options.isMobile ?? false,
   });
-  if (options.initScript) {
-    await context.addInitScript(options.initScript);
-  }
   const page = await context.newPage();
   const consoleErrors = [];
   const pageErrors = [];
@@ -194,7 +91,7 @@ async function inspectPage(name, route, viewport, options = {}) {
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
-  const response = await page.goto(verificationUrl(route), {
+  const response = await page.goto(`${baseUrl}${route}`, {
     waitUntil: "domcontentloaded",
   });
   await page.waitForSelector("main");
@@ -294,23 +191,113 @@ const desktop = await inspectPage(
   { width: 1440, height: 1000 },
 );
 
-const homeNexusState = await desktop.page.evaluate(() => {
-  const startButton = document.querySelector("form button[type='submit']");
-  const buttonRect = startButton?.getBoundingClientRect();
+const homeNexusState = await desktop.page.evaluate((expectedDestinations) => {
+  const nexusTitle = document.querySelector("#platform-nexus-title");
+  const nexus = nexusTitle?.closest("section");
+  const projectInput = document.querySelector("#platform-project-start");
+  const privacy = nexus
+    ? [...nexus.querySelectorAll("p")].find((element) =>
+        /Starting stores this sentence only in this browser tab/.test(
+          element.textContent ?? "",
+        ),
+      )
+    : null;
+  const firstScreen = (element) => {
+    if (!(element instanceof HTMLElement)) return false;
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return (
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.top >= 0 &&
+      rect.bottom <= window.innerHeight + 1 &&
+      style.visibility !== "hidden" &&
+      style.display !== "none"
+    );
+  };
+  const elementGeometry = (element) => {
+    if (!(element instanceof HTMLElement)) return null;
+    const rect = element.getBoundingClientRect();
+    return {
+      top: Math.round(rect.top * 10) / 10,
+      bottom: Math.round(rect.bottom * 10) / 10,
+      height: Math.round(rect.height * 10) / 10,
+      viewportHeight: window.innerHeight,
+    };
+  };
+  const destinationLinks = [
+    ...document.querySelectorAll(
+      ".site-header__desktop-nav .site-header__nav-link",
+    ),
+  ].map((link) => ({
+    label: link.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    href: link.getAttribute("href"),
+  }));
+  const expectedLabels = expectedDestinations.map(({ label }) => label);
+  const expectedHrefs = expectedDestinations.map(({ href }) => href);
+
   return {
     h1Count: document.querySelectorAll("h1").length,
-    phaseCount: document.querySelectorAll("[aria-label='Connected project lifecycle'] button").length,
-    startVisibleInViewport: Boolean(
-      buttonRect && buttonRect.top >= 0 && buttonRect.bottom <= window.innerHeight,
-    ),
+    heading:
+      nexusTitle?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    inputLabel:
+      document.querySelector("label[for='platform-project-start']")
+        ?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    privacyText: privacy?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    headingFirstScreen: firstScreen(nexusTitle),
+    inputFirstScreen: firstScreen(projectInput),
+    privacyFirstScreen: firstScreen(privacy),
+    headingGeometry: elementGeometry(nexusTitle),
+    inputGeometry: elementGeometry(projectInput),
+    privacyGeometry: elementGeometry(privacy),
+    phaseLabels: [
+      ...nexus?.querySelectorAll(
+        "[aria-label='Connected project lifecycle'] button strong",
+      ) ?? [],
+    ].map((element) => element.textContent?.trim() ?? ""),
+    destinationLabels: destinationLinks.map(({ label }) => label),
+    destinationHrefs: destinationLinks.map(({ href }) => href),
+    expectedLabels,
+    expectedHrefs,
   };
-});
+}, expectedPrimaryDestinations);
 const homeNexusPassed =
   homeNexusState.h1Count === 1 &&
-  homeNexusState.phaseCount === 6 &&
-  homeNexusState.startVisibleInViewport;
-results.push({ interaction: "home-intelligence-nexus", passed: homeNexusPassed, ...homeNexusState });
-if (!homeNexusPassed) failures.push({ interaction: "home-intelligence-nexus", ...homeNexusState });
+  /^Every form of thought\.\s*One intelligence system\.$/.test(
+    homeNexusState.heading,
+  ) &&
+  homeNexusState.inputLabel === "What are you trying to make possible?" &&
+  /only in this browser tab/i.test(homeNexusState.privacyText) &&
+  /does not contact Kingxford or send it to an Agent/i.test(
+    homeNexusState.privacyText,
+  ) &&
+  homeNexusState.headingFirstScreen &&
+  homeNexusState.inputFirstScreen &&
+  homeNexusState.privacyFirstScreen &&
+  JSON.stringify(homeNexusState.phaseLabels) ===
+    JSON.stringify([
+      "Discover",
+      "Investigate",
+      "Model",
+      "Build",
+      "Validate",
+      "Deliver",
+    ]) &&
+  JSON.stringify(homeNexusState.destinationLabels) ===
+    JSON.stringify(homeNexusState.expectedLabels) &&
+  JSON.stringify(homeNexusState.destinationHrefs) ===
+    JSON.stringify(homeNexusState.expectedHrefs);
+results.push({
+  interaction: "home-platform-nexus-first-screen",
+  passed: homeNexusPassed,
+  ...homeNexusState,
+});
+if (!homeNexusPassed) {
+  failures.push({
+    interaction: "home-platform-nexus-first-screen",
+    ...homeNexusState,
+  });
+}
 
 const selectedDesktopTheme = desktop.page.locator(
   ".site-header__theme [role='radio'][aria-checked='true']",
@@ -399,56 +386,122 @@ await desktop.page
   .locator("dialog.command-palette[open]")
   .waitFor({ state: "hidden" });
 
-const routedIdea = "A research platform for scientific evidence and academic data";
 await desktop.page.locator("#intelligence-system").scrollIntoViewIfNeeded();
-const operatingSystemState = await desktop.page.locator("#intelligence-system").evaluate((system) => ({
-  entryPointCount: system.querySelectorAll("[aria-label='Platform entry lenses'] a").length,
-  memoryFieldCount: (system.querySelector("[aria-label='Project memory'] strong")?.textContent ?? "")
-    .split("·")
-    .filter((field) => field.trim().length > 0).length,
-  specialistCount: system.querySelectorAll("[aria-label='Specialist agents'] article").length,
-  lifecycleCount: system.querySelectorAll("[aria-label='Six connected project phases'] button").length,
-  hasConductor: /Conductor/.test(system.querySelector("#conductor-title")?.textContent ?? ""),
-  legacyCinematicCount: document.querySelectorAll(".kx-cinematic, .worlds__portal, .idea-router").length,
-}));
+const operatingSystemState = await desktop.page
+  .locator("#intelligence-system")
+  .evaluate((system) => ({
+    heading:
+      system
+        .querySelector("#intelligence-system-title")
+        ?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    entryPointCount: system.querySelectorAll(
+      "[aria-label='Platform entry lenses'] a",
+    ).length,
+    memoryFields: (
+      system.querySelector("[aria-label='Project memory'] strong")
+        ?.textContent ?? ""
+    )
+      .split("·")
+      .map((field) => field.trim())
+      .filter(Boolean),
+    specialistCount: system.querySelectorAll(
+      "[aria-label='Specialist agents'] article",
+    ).length,
+    lifecycleLabels: [
+      ...system.querySelectorAll(
+        "[aria-label='Six connected project phases'] button strong",
+      ),
+    ].map((element) => element.textContent?.trim() ?? ""),
+    conductor: system.querySelector("#conductor-title")?.textContent?.trim(),
+    legacyDisconnectedSurfaceCount: document.querySelectorAll(
+      ".kx-cinematic, .worlds__portal, .idea-router",
+    ).length,
+  }));
+
+const lifecycleValidation = desktop.page
+  .locator("[aria-label='Six connected project phases']")
+  .getByRole("button", { name: /Validate/ });
+await lifecycleValidation.click();
+const lifecycleInteractionState = {
+  validationSelected:
+    (await lifecycleValidation.getAttribute("aria-pressed")) === "true",
+  description:
+    (await desktop.page.locator("#lifecycle-phase-description").textContent())
+      ?.replace(/\s+/g, " ")
+      .trim() ?? "",
+  assignedSpecialistCount: await desktop.page.locator(
+    "[aria-label='Specialist agents'] article[data-active='true']",
+  ).count(),
+};
+const expectedLifecycleLabels = [
+  "Discover",
+  "Investigate",
+  "Model",
+  "Build",
+  "Validate",
+  "Deliver",
+];
 const operatingSystemPassed =
+  /^Four ways into the work\.\s*One memory carrying it forward\.$/.test(
+    operatingSystemState.heading,
+  ) &&
   operatingSystemState.entryPointCount === 4 &&
-  operatingSystemState.memoryFieldCount === 4 &&
+  JSON.stringify(operatingSystemState.memoryFields) ===
+    JSON.stringify(["Objective", "source", "evidence", "decisions"]) &&
   operatingSystemState.specialistCount === 6 &&
-  operatingSystemState.lifecycleCount === 6 &&
-  operatingSystemState.hasConductor &&
-  operatingSystemState.legacyCinematicCount === 0;
+  JSON.stringify(operatingSystemState.lifecycleLabels) ===
+    JSON.stringify(expectedLifecycleLabels) &&
+  operatingSystemState.conductor === "Conductor" &&
+  operatingSystemState.legacyDisconnectedSurfaceCount === 0 &&
+  lifecycleInteractionState.validationSelected &&
+  /decision-ready validation record/i.test(
+    lifecycleInteractionState.description,
+  ) &&
+  lifecycleInteractionState.assignedSpecialistCount === 2;
 results.push({
   interaction: "unified-intelligence-operating-system",
   passed: operatingSystemPassed,
   ...operatingSystemState,
+  lifecycleInteraction: lifecycleInteractionState,
 });
 if (!operatingSystemPassed) {
   failures.push({
     interaction: "unified-intelligence-operating-system",
     ...operatingSystemState,
+    lifecycleInteraction: lifecycleInteractionState,
   });
 }
 await desktop.page.screenshot({
-  path: path.join(outputDir, "kingxford-intelligence-operating-system.png"),
+  path: path.join(
+    outputDir,
+    "kingxford-intelligence-operating-system.png",
+  ),
   fullPage: false,
 });
 
+const routedIdea =
+  "A research platform for scientific evidence and academic data";
 await desktop.page.locator("#platform-project-start").scrollIntoViewIfNeeded();
 await desktop.page.locator("#platform-project-start").fill(routedIdea);
 await Promise.all([
-  desktop.page.waitForURL("**/create/workspace?start=seed&phase=discover&mode=idea"),
+  desktop.page.waitForURL(
+    "**/create/workspace?start=seed&phase=discovery&mode=idea",
+  ),
   desktop.page.getByRole("button", { name: /Start project/ }).click(),
 ]);
-await desktop.page.locator("#workspace-text-editor").waitFor({ state: "visible" });
+await desktop.page.locator("#workspace-text-editor").waitFor({
+  state: "visible",
+});
 await desktop.page.waitForFunction((expectedInput) => {
   const editor = document.querySelector("#workspace-text-editor");
   let projectCount = 0;
   try {
-    const library = JSON.parse(
-      window.localStorage.getItem("kingxford:canvas:v2") ?? "null",
+    const repository = JSON.parse(
+      window.localStorage.getItem("kingxford:projects:v2") ?? "null",
     );
-    projectCount = Array.isArray(library?.projects) ? library.projects.length : 0;
+    projectCount = Array.isArray(repository?.projects)
+      ? repository.projects.length
+      : 0;
   } catch {
     projectCount = 0;
   }
@@ -456,16 +509,23 @@ await desktop.page.waitForFunction((expectedInput) => {
     editor instanceof HTMLTextAreaElement &&
     editor.value === expectedInput &&
     projectCount >= 1 &&
-    window.sessionStorage.getItem("kingxford:platform-seed:v1") === null
+    window.sessionStorage.getItem("kingxford:project-seed:v1") === null
   );
 }, routedIdea);
 const ideaTransferState = await desktop.page.evaluate(() => ({
-  input: document.querySelector("#workspace-text-editor")?.value ?? "",
-  seedConsumed: window.sessionStorage.getItem("kingxford:platform-seed:v1") === null,
+  input:
+    document.querySelector("#workspace-text-editor") instanceof
+    HTMLTextAreaElement
+      ? document.querySelector("#workspace-text-editor").value
+      : "",
+  seedConsumed:
+    window.sessionStorage.getItem("kingxford:project-seed:v1") === null,
   userContentInUrl: window.location.href.includes("scientific evidence"),
   projectCount: (() => {
     try {
-      const value = JSON.parse(window.localStorage.getItem("kingxford:canvas:v2") ?? "null");
+      const value = JSON.parse(
+        window.localStorage.getItem("kingxford:projects:v2") ?? "null",
+      );
       return Array.isArray(value?.projects) ? value.projects.length : 0;
     } catch {
       return 0;
@@ -477,8 +537,17 @@ const ideaTransferPassed =
   ideaTransferState.seedConsumed &&
   !ideaTransferState.userContentInUrl &&
   ideaTransferState.projectCount >= 1;
-results.push({ interaction: "idea-to-project-context-transfer", passed: ideaTransferPassed, ...ideaTransferState });
-if (!ideaTransferPassed) failures.push({ interaction: "idea-to-project-context-transfer", ...ideaTransferState });
+results.push({
+  interaction: "idea-to-project-context-transfer",
+  passed: ideaTransferPassed,
+  ...ideaTransferState,
+});
+if (!ideaTransferPassed) {
+  failures.push({
+    interaction: "idea-to-project-context-transfer",
+    ...ideaTransferState,
+  });
+}
 
 await desktop.context.close();
 
@@ -534,9 +603,10 @@ const create = await inspectPage(
 const createIndexState = await create.page.evaluate((expectedShowcases) => {
   const gallery = document.querySelector("[data-prototype-gallery]");
   const tabs = [...gallery?.querySelectorAll("[role='tab']") ?? []];
-  const createLink = document.querySelector(
+  const canvasNav = document.querySelector(
     ".site-header__desktop-nav .site-header__create-link",
   );
+  const embeddedCanvas = document.querySelector("[data-embedded='true']");
   const schemaNode = document.querySelector("#create-collection-schema");
   let schema = null;
   try {
@@ -557,10 +627,25 @@ const createIndexState = await create.page.evaluate((expectedShowcases) => {
     catalogueCount: document.querySelectorAll(
       "section[aria-labelledby='catalogue-heading'] article[id]",
     ).length,
-    currentNav: createLink?.getAttribute("aria-current") === "page",
-    standaloneCanvasNavCount: document.querySelectorAll(
-      ".site-header__desktop-nav > .site-header__nav-link[href='/create/workspace']",
-    ).length,
+    currentNav: canvasNav?.getAttribute("aria-current") === "location",
+    embeddedCanvas: Boolean(embeddedCanvas),
+    embeddedCanvasHeading:
+      embeddedCanvas
+        ?.querySelector("#canvas-title")
+        ?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    embeddedModeCount:
+      embeddedCanvas?.querySelectorAll(
+        "[role='tab'][id^='workspace-mode-']",
+      ).length ?? 0,
+    embeddedResultTabCount:
+      embeddedCanvas?.querySelectorAll(
+        "[aria-label='Result views'] [role='tab']",
+      ).length ?? 0,
+    embeddedConductorTab: Boolean(
+      embeddedCanvas?.querySelector("#workspace-result-tab-intelligence"),
+    ),
+    embeddedProjectLibrary: [...embeddedCanvas?.querySelectorAll("button") ?? []]
+      .some((button) => button.textContent?.trim() === "Library"),
     schemaType: schema?.["@type"] ?? null,
     schemaPartCount: Array.isArray(schema?.hasPart) ? schema.hasPart.length : 0,
   };
@@ -594,7 +679,13 @@ const createIndexPassed =
   prototypeStates.every((state) => state.liveControls >= 3 && state.panelText.length > 120) &&
   createIndexState.catalogueCount === 7 &&
   createIndexState.currentNav &&
-  createIndexState.standaloneCanvasNavCount === 0 &&
+  createIndexState.embeddedCanvas &&
+  createIndexState.embeddedCanvasHeading ===
+    "Move from first thought to working proof." &&
+  createIndexState.embeddedModeCount === 5 &&
+  createIndexState.embeddedResultTabCount === 4 &&
+  createIndexState.embeddedConductorTab &&
+  createIndexState.embeddedProjectLibrary &&
   createIndexState.schemaType === "CollectionPage" &&
   createIndexState.schemaPartCount === 4;
 results.push({
@@ -608,7 +699,7 @@ if (!createIndexPassed) {
 }
 
 const sitemapResponse = await create.context.request.get(
-  verificationUrl("/sitemap.xml"),
+  `${baseUrl}/sitemap.xml`,
 );
 const sitemapText = await sitemapResponse.text();
 const expectedCreateSitemapPaths = [
@@ -634,54 +725,6 @@ if (!createSitemapPassed) {
     missingPaths: missingCreateSitemapPaths,
   });
 }
-
-const desktopCreateTrigger = create.page.locator(
-  ".site-header__create-disclosure",
-);
-await desktopCreateTrigger.click();
-const desktopCreateMenuState = {
-  expanded: (await desktopCreateTrigger.getAttribute("aria-expanded")) === "true",
-  panelVisible: await create.page.locator("#site-header-create-panel").isVisible(),
-  modeCount: await create.page.locator(".site-header__create-modes > a").count(),
-  proofCount: await create.page.locator(".site-header__create-proofs > a").count(),
-  canvasHref: await create.page
-    .locator(".site-header__create-canvas")
-    .getAttribute("href"),
-  buildHref: await create.page
-    .locator(".site-header__create-build")
-    .getAttribute("href"),
-};
-await create.page.screenshot({
-  path: path.join(outputDir, "create-unified-menu-desktop-1440.png"),
-  fullPage: false,
-});
-await create.page.keyboard.press("Escape");
-desktopCreateMenuState.escapeClosed =
-  (await create.page.locator("#site-header-create-panel").count()) === 0 &&
-  (await desktopCreateTrigger.getAttribute("aria-expanded")) === "false";
-desktopCreateMenuState.focusRestored = await desktopCreateTrigger.evaluate(
-  (trigger) => document.activeElement === trigger,
-);
-const desktopCreateMenuPassed =
-  desktopCreateMenuState.expanded &&
-  desktopCreateMenuState.panelVisible &&
-  desktopCreateMenuState.modeCount === 5 &&
-  desktopCreateMenuState.proofCount === 3 &&
-  desktopCreateMenuState.canvasHref === "/create/workspace" &&
-  desktopCreateMenuState.buildHref === "/contact?brief=create" &&
-  desktopCreateMenuState.escapeClosed &&
-  desktopCreateMenuState.focusRestored;
-results.push({
-  interaction: "create-unified-desktop-menu",
-  passed: desktopCreateMenuPassed,
-  ...desktopCreateMenuState,
-});
-if (!desktopCreateMenuPassed) {
-  failures.push({
-    interaction: "create-unified-desktop-menu",
-    ...desktopCreateMenuState,
-  });
-}
 await create.context.close();
 
 const canvas = await inspectPage(
@@ -692,10 +735,7 @@ const canvas = await inspectPage(
 const canvasAgentRequests = [];
 const canvasPostRequests = [];
 canvas.page.on("request", (request) => {
-  if (
-    request.method() === "POST" &&
-    request.url().includes("/api/intelligence/runs")
-  ) {
+  if (request.url().includes("/api/workspace/agent")) {
     canvasAgentRequests.push({
       method: request.method(),
       url: request.url(),
@@ -873,13 +913,12 @@ const canvasRouteState = await canvas.page.evaluate(() => {
     hasResultPane: Boolean(
       document.querySelector("[aria-label='Live result and agent review']"),
     ),
-    createSectionCurrent:
-      document
-        .querySelector(".site-header__desktop-nav .site-header__create-link")
-        ?.getAttribute("aria-current") === "location",
-    standaloneCanvasNavCount: document.querySelectorAll(
-      ".site-header__desktop-nav > .site-header__nav-link[href='/create/workspace']",
-    ).length,
+    resultTabLabels: [
+      ...document.querySelectorAll("[aria-label='Result views'] [role='tab']"),
+    ].map((tab) => tab.textContent?.replace(/\s+/g, " ").trim() ?? ""),
+    hasProjectLibraryButton: [...document.querySelectorAll("button")].some(
+      (button) => button.textContent?.trim() === "Library",
+    ),
     schemaType: schema?.["@type"] ?? null,
   };
 });
@@ -890,8 +929,14 @@ const canvasRoutePassed =
   canvasRouteState.selectedMode === "workspace-mode-idea" &&
   canvasRouteState.hasWorkbench &&
   canvasRouteState.hasResultPane &&
-  canvasRouteState.createSectionCurrent &&
-  canvasRouteState.standaloneCanvasNavCount === 0 &&
+  JSON.stringify(canvasRouteState.resultTabLabels) ===
+    JSON.stringify([
+      "Live preview",
+      "Conductor",
+      "Agent review",
+      "Versions 0",
+    ]) &&
+  canvasRouteState.hasProjectLibraryButton &&
   canvasRouteState.schemaType === "WebApplication";
 results.push({
   interaction: "canvas-route-desktop",
@@ -906,10 +951,88 @@ if (!canvasRoutePassed) {
   });
 }
 
+const desktopLibraryButton = canvas.page.getByRole("button", {
+  name: "Library",
+  exact: true,
+});
+await desktopLibraryButton.click();
+const desktopProjectLibrary = canvas.page.getByRole("dialog", {
+  name: "Your connected intelligence",
+});
+await desktopProjectLibrary.waitFor({ state: "visible" });
+const desktopProjectLibraryState = {
+  buttonVisible: await desktopLibraryButton.isVisible(),
+  dialogVisible: await desktopProjectLibrary.isVisible(),
+  description:
+    (await desktopProjectLibrary
+      .locator("#project-library-description")
+      .textContent())
+      ?.replace(/\s+/g, " ")
+      .trim() ?? "",
+  projectCount: await desktopProjectLibrary.locator("ol > li").count(),
+};
+const desktopProjectLibraryPassed =
+  desktopProjectLibraryState.buttonVisible &&
+  desktopProjectLibraryState.dialogVisible &&
+  /artifacts, evidence, decisions, graph relationships, and review provenance intact/i.test(
+    desktopProjectLibraryState.description,
+  ) &&
+  desktopProjectLibraryState.projectCount >= 1;
+results.push({
+  interaction: "canvas-project-library-desktop",
+  passed: desktopProjectLibraryPassed,
+  ...desktopProjectLibraryState,
+});
+if (!desktopProjectLibraryPassed) {
+  failures.push({
+    interaction: "canvas-project-library-desktop",
+    ...desktopProjectLibraryState,
+  });
+}
+await desktopProjectLibrary
+  .getByRole("button", { name: "Close project library" })
+  .click();
+await desktopProjectLibrary.waitFor({ state: "hidden" });
+
+const desktopConductorTab = canvas.page
+  .locator("[aria-label='Result views']")
+  .getByRole("tab", {
+    name: "Conductor",
+    exact: true,
+  });
+await desktopConductorTab.click();
+const desktopConductorPanel = canvas.page.locator(
+  "#workspace-intelligence-panel",
+);
+await desktopConductorPanel.waitFor({ state: "visible" });
+const desktopConductorText =
+  (await desktopConductorPanel.textContent())?.replace(/\s+/g, " ").trim() ??
+  "";
+const desktopConductorPassed =
+  (await desktopConductorTab.getAttribute("aria-selected")) === "true" &&
+  /Project intelligence · Conductor/i.test(desktopConductorText) &&
+  /Direct one evidence-bound Conductor run/i.test(desktopConductorText) &&
+  /acceptance remain one reviewable operation/i.test(desktopConductorText);
+results.push({
+  interaction: "canvas-conductor-tab-desktop",
+  passed: desktopConductorPassed,
+  panelText: desktopConductorText.slice(0, 520),
+});
+if (!desktopConductorPassed) {
+  failures.push({
+    interaction: "canvas-conductor-tab-desktop",
+    panelText: desktopConductorText.slice(0, 520),
+  });
+}
+await canvas.page
+  .locator("[aria-label='Result views']")
+  .getByRole("tab", { name: "Live preview", exact: true })
+  .click();
+
 const canvasModeChecks = [];
 for (const expected of [
   { mode: "idea", previewSelector: "[aria-label='Local concept preview']", text: "Concept specimen" },
-  { mode: "code", previewSelector: "iframe[title='Live code preview']", text: "Script sandbox" },
+  { mode: "code", previewSelector: "iframe[title='Live code preview']", text: "Isolated browser" },
   { mode: "mindmap", previewSelector: "[aria-label='Mind map preview']", text: "Relationship view" },
   { mode: "prompt", previewSelector: "#workspace-preview-panel article", text: "Prompt instrument" },
   { mode: "brief", previewSelector: "#workspace-preview-panel article", text: "Working production brief" },
@@ -1278,7 +1401,7 @@ const canvasAgentPanelText = await canvasAgentPanel.textContent();
 const canvasAgentContextPassed =
   (await canvasAgentPanel.isVisible()) &&
   /Choose what the Agent can see/.test(canvasAgentPanelText ?? "") &&
-  /Only the checked workspace context is sent/.test(canvasAgentPanelText ?? "") &&
+  /Only the checked workspace context and the visible bounded project snapshot are sent/.test(canvasAgentPanelText ?? "") &&
   (await canvasAgentPanel.getByLabel("Current input", { exact: true }).isChecked()) &&
   !(await canvasAgentPanel.getByLabel("Preview console", { exact: true }).isChecked()) &&
   !(await canvasAgentPanel.getByLabel("Previous versions", { exact: true }).isChecked()) &&
@@ -1400,483 +1523,6 @@ await canvas.page.screenshot({
 });
 await canvas.context.close();
 
-const canvasAdvanced = await inspectPage(
-  "canvas-project-library-desktop-1440",
-  "/create/workspace",
-  { width: 1440, height: 1000 },
-);
-const advancedPage = canvasAdvanced.page;
-const projectButton = advancedPage.getByRole("button", { name: /^Projects/ });
-await projectButton.click();
-const projectDialog = advancedPage.getByRole("dialog", {
-  name: "Your intelligence projects",
-});
-await projectDialog.waitFor({ state: "visible" });
-const initialProjectCount = await projectDialog.locator("ol > li").count();
-await advancedPage.screenshot({
-  path: path.join(outputDir, "canvas-project-library-open-desktop-1440.png"),
-  fullPage: false,
-});
-await projectDialog.getByRole("button", { name: "New project" }).click();
-const advancedProjectTitle = "Project library browser check";
-const advancedProjectSource = `Create: Evidence Garden
-For: Community teams
-Problem: Useful project evidence is scattered.
-Change: Keep decisions, tests and learning together.
-Evidence: A retrievable decision record.`;
-await advancedPage.locator("#workspace-title").fill(advancedProjectTitle);
-await advancedPage.locator("#workspace-text-editor").fill(advancedProjectSource);
-await advancedPage.waitForFunction(
-  ({ expectedTitle, expectedSource }) => {
-    const raw = localStorage.getItem("kingxford:canvas:v2");
-    if (!raw) return false;
-    const library = JSON.parse(raw);
-    const active = library.projects.find(
-      (project) => project.id === library.activeProjectId,
-    );
-    return active?.title === expectedTitle && active?.textByMode?.idea === expectedSource;
-  },
-  { expectedTitle: advancedProjectTitle, expectedSource: advancedProjectSource },
-);
-await advancedPage.reload({ waitUntil: "domcontentloaded" });
-await advancedPage.locator("#workspace-title").waitFor({ state: "visible" });
-await advancedPage.waitForFunction(
-  (expected) => document.querySelector("#workspace-title")?.value === expected,
-  advancedProjectTitle,
-);
-const persistedProjectState = {
-  title: await advancedPage.locator("#workspace-title").inputValue(),
-  source: await advancedPage.locator("#workspace-text-editor").inputValue(),
-  projectCount: await advancedPage.evaluate(() =>
-    JSON.parse(localStorage.getItem("kingxford:canvas:v2") ?? "{}").projects?.length ?? 0,
-  ),
-};
-const projectPersistencePassed =
-  initialProjectCount === 1 &&
-  persistedProjectState.title === advancedProjectTitle &&
-  persistedProjectState.source === advancedProjectSource &&
-  persistedProjectState.projectCount === 2;
-results.push({
-  interaction: "canvas-multi-project-persistence",
-  passed: projectPersistencePassed,
-  initialProjectCount,
-  ...persistedProjectState,
-});
-if (!projectPersistencePassed) {
-  failures.push({
-    interaction: "canvas-multi-project-persistence",
-    initialProjectCount,
-    ...persistedProjectState,
-  });
-}
-
-await advancedPage.getByRole("button", { name: /^Projects/ }).click();
-await projectDialog.waitFor({ state: "visible" });
-const activeProjectRow = projectDialog.locator("li[data-active='true']");
-const activeProjectText = await activeProjectRow.textContent();
-const [projectDownload] = await Promise.all([
-  advancedPage.waitForEvent("download"),
-  activeProjectRow.getByRole("button", { name: /^Export / }).click(),
-]);
-const projectDownloadPath = await projectDownload.path();
-const projectBundle = projectDownloadPath
-  ? await fs.readFile(projectDownloadPath)
-  : Buffer.from("");
-await projectDialog.locator("input[type='file']").setInputFiles({
-  name: projectDownload.suggestedFilename(),
-  mimeType: "application/json",
-  buffer: projectBundle,
-});
-await projectDialog.waitFor({ state: "hidden" });
-await advancedPage.waitForFunction(() => {
-  const library = JSON.parse(localStorage.getItem("kingxford:canvas:v2") ?? "{}");
-  return library.projects?.length === 3;
-});
-const bundleRoundTripState = await advancedPage.evaluate(() => {
-  const library = JSON.parse(localStorage.getItem("kingxford:canvas:v2") ?? "{}");
-  const active = library.projects?.find(
-    (project) => project.id === library.activeProjectId,
-  );
-  return {
-    projectCount: library.projects?.length ?? 0,
-    title: active?.title ?? "",
-    formatPreserved: Boolean(active?.textByMode && active?.code && active?.committedCode),
-  };
-});
-const bundleRoundTripPassed =
-  /Project library browser check/.test(activeProjectText ?? "") &&
-  projectBundle.length > 100 &&
-  bundleRoundTripState.projectCount === 3 &&
-  bundleRoundTripState.title === advancedProjectTitle &&
-  bundleRoundTripState.formatPreserved;
-results.push({
-  interaction: "canvas-project-bundle-round-trip",
-  passed: bundleRoundTripPassed,
-  downloadedBytes: projectBundle.length,
-  ...bundleRoundTripState,
-});
-if (!bundleRoundTripPassed) {
-  failures.push({
-    interaction: "canvas-project-bundle-round-trip",
-    downloadedBytes: projectBundle.length,
-    activeProjectText,
-    ...bundleRoundTripState,
-  });
-}
-
-const creativeHtml = `<main id="imported-creative-input"><h1>Imported proof</h1></main>
-<style>#imported-creative-input { color: rgb(12, 34, 56); }</style>
-<script>document.body.dataset.importVerified = "true";</script>`;
-await advancedPage.locator("input[type='file'][accept*='.html']").setInputFiles({
-  name: "imported-proof.html",
-  mimeType: "text/html",
-  buffer: Buffer.from(creativeHtml),
-});
-await advancedPage.locator("#workspace-mode-code[aria-selected='true']").waitFor();
-const importedHtml = await advancedPage.locator("#workspace-code-editor").inputValue();
-await advancedPage.getByRole("tab", { name: "CSS", exact: true }).click();
-const importedCss = await advancedPage.locator("#workspace-code-editor").inputValue();
-await advancedPage.getByRole("tab", { name: "JavaScript", exact: true }).click();
-const importedJavaScript = await advancedPage.locator("#workspace-code-editor").inputValue();
-const creativeImportPassed =
-  importedHtml.includes("imported-creative-input") &&
-  importedCss.includes("rgb(12, 34, 56)") &&
-  importedJavaScript.includes("importVerified");
-results.push({
-  interaction: "canvas-safe-creative-html-import",
-  passed: creativeImportPassed,
-  htmlPreserved: importedHtml.includes("imported-creative-input"),
-  cssPreserved: importedCss.includes("rgb(12, 34, 56)"),
-  javascriptPreserved: importedJavaScript.includes("importVerified"),
-});
-if (!creativeImportPassed) {
-  failures.push({
-    interaction: "canvas-safe-creative-html-import",
-    importedHtml,
-    importedCss,
-    importedJavaScript,
-  });
-}
-
-await advancedPage
-  .getByLabel("Transform current work into another form")
-  .selectOption("brief");
-const transformedCodeBrief = await advancedPage
-  .locator("#workspace-text-editor")
-  .inputValue();
-const codeAwareTransformPassed =
-  /Imported proof/.test(transformedCodeBrief) &&
-  !/Define the purpose this concept must serve/.test(transformedCodeBrief);
-results.push({
-  interaction: "canvas-code-aware-transformation",
-  passed: codeAwareTransformPassed,
-  transformedBrief: transformedCodeBrief.slice(0, 520),
-});
-if (!codeAwareTransformPassed) {
-  failures.push({
-    interaction: "canvas-code-aware-transformation",
-    transformedCodeBrief,
-  });
-}
-await advancedPage.locator("#workspace-mode-code").click();
-
-await advancedPage.getByRole("tab", { name: "HTML", exact: true }).click();
-await advancedPage.getByRole("tab", { name: "Agent review", exact: true }).click();
-let releaseStaleReview;
-const staleReviewGate = new Promise((resolve) => {
-  releaseStaleReview = resolve;
-});
-let staleReviewRequest = null;
-await advancedPage.route("**/api/intelligence/runs", async (route) => {
-  staleReviewRequest = route.request().postDataJSON();
-  await staleReviewGate;
-  await route.fulfill({
-    status: 200,
-    contentType: "application/json",
-    body: JSON.stringify(
-      mockIntelligenceResponse(staleReviewRequest, {
-        summary: "A bounded code review for browser verification.",
-        status: "Developing",
-        strengths: ["The three-file source is explicit."],
-        uncertainties: ["The next user decision needs evidence."],
-        failurePoints: ["The interface could imply unsupported certainty."],
-        assumptions: ["The imported interaction matches user needs."],
-        nextTest: "Run a keyboard and responsive interaction test.",
-        proposedChanges: ["Keep all three source files synchronized."],
-        improvedInput: "<main>stale proposal</main>",
-        improvedCode: {
-          html: "<main>stale proposal</main>",
-          css: "body { color: orange; }",
-          javascript: "document.body.dataset.stale = 'true';",
-        },
-        buildBrief: {
-          title: "Browser verification",
-          oneLine: "Verify bound source proposals.",
-          audience: "Canvas creators",
-          coreExperience: "Safe source review",
-          deliverables: ["Bound review", "Three-file proposal"],
-          complexity: "Focused",
-        },
-      }, "a"),
-    ),
-  });
-});
-await advancedPage.getByRole("button", { name: "Review this version" }).click();
-await advancedPage.getByText("Examining this version…").waitFor();
-await advancedPage
-  .locator("#workspace-code-editor")
-  .fill("<main id='newer-source'>Newer source must remain protected</main>");
-releaseStaleReview();
-await advancedPage.getByText("This review belongs to an earlier source.").waitFor();
-const staleApplyButton = advancedPage.getByRole("button", {
-  name: "Review is out of date",
-});
-const staleReviewState = {
-  applyDisabled: await staleApplyButton.isDisabled(),
-  requestMode: staleReviewRequest?.mode ?? null,
-  sentHtml: staleReviewRequest?.code?.html ?? null,
-  currentHtml: await advancedPage.locator("#workspace-code-editor").inputValue(),
-};
-const staleReviewPassed =
-  staleReviewState.applyDisabled &&
-  staleReviewState.requestMode === "code" &&
-  staleReviewState.sentHtml?.includes("imported-creative-input") &&
-  staleReviewState.currentHtml.includes("newer-source");
-results.push({
-  interaction: "canvas-stale-agent-review-protection",
-  passed: staleReviewPassed,
-  ...staleReviewState,
-});
-if (!staleReviewPassed) {
-  failures.push({
-    interaction: "canvas-stale-agent-review-protection",
-    ...staleReviewState,
-  });
-}
-await advancedPage.unroute("**/api/intelligence/runs");
-
-const proposedCode = {
-  html: "<main id='agent-three-file'>Three-file proposal applied</main>",
-  css: "#agent-three-file { color: rgb(80, 90, 220); }",
-  javascript: "document.body.dataset.agentFiles = 'applied';",
-};
-await advancedPage.route("**/api/intelligence/runs", async (route) => {
-  const request = route.request().postDataJSON();
-  await route.fulfill({
-    status: 200,
-    contentType: "application/json",
-    body: JSON.stringify(
-      mockIntelligenceResponse(request, {
-        summary: "All source files are ready for one atomic proposal.",
-        status: "Strong",
-        strengths: ["The proposal keeps source boundaries explicit."],
-        uncertainties: ["Production data remains outside this prototype."],
-        failurePoints: ["A browser prototype is not production validation."],
-        assumptions: ["The current interaction remains in scope."],
-        nextTest: "Verify all files and the isolated preview together.",
-        proposedChanges: ["Apply HTML, CSS and JavaScript atomically."],
-        improvedInput: proposedCode.html,
-        improvedCode: proposedCode,
-        buildBrief: {
-          title: "Atomic code proposal",
-          oneLine: "Keep front-end files synchronized.",
-          audience: "Canvas creators",
-          coreExperience: "Safe multi-file application",
-          deliverables: ["HTML source", "CSS source", "JavaScript source"],
-          complexity: "Layered",
-        },
-      }, "b"),
-    ),
-  });
-});
-await advancedPage.getByRole("button", { name: "Review this version" }).click();
-const applyProposal = advancedPage.getByRole("button", {
-  name: "Apply as a new version",
-});
-await applyProposal.waitFor({ state: "visible" });
-await applyProposal.click();
-await advancedPage.getByRole("tab", { name: "HTML", exact: true }).click();
-const appliedHtml = await advancedPage.locator("#workspace-code-editor").inputValue();
-await advancedPage.getByRole("tab", { name: "CSS", exact: true }).click();
-const appliedCss = await advancedPage.locator("#workspace-code-editor").inputValue();
-await advancedPage.getByRole("tab", { name: "JavaScript", exact: true }).click();
-const appliedJavaScript = await advancedPage.locator("#workspace-code-editor").inputValue();
-const atomicCodePassed =
-  appliedHtml === proposedCode.html &&
-  appliedCss === proposedCode.css &&
-  appliedJavaScript === proposedCode.javascript;
-results.push({
-  interaction: "canvas-agent-atomic-three-file-apply",
-  passed: atomicCodePassed,
-  htmlApplied: appliedHtml === proposedCode.html,
-  cssApplied: appliedCss === proposedCode.css,
-  javascriptApplied: appliedJavaScript === proposedCode.javascript,
-});
-if (!atomicCodePassed) {
-  failures.push({
-    interaction: "canvas-agent-atomic-three-file-apply",
-    appliedHtml,
-    appliedCss,
-    appliedJavaScript,
-  });
-}
-await advancedPage.unroute("**/api/intelligence/runs");
-
-await advancedPage.getByRole("tab", { name: /^Versions/ }).click();
-const compareButton = advancedPage.getByRole("button", { name: "Compare" }).nth(1);
-await compareButton.click();
-const comparisonText = await advancedPage.locator("#workspace-versions-panel").textContent();
-const versionComparePassed =
-  /Checkpoint → current source/.test(comparisonText ?? "") &&
-  /(HTML|CSS|JavaScript|No source changes)/.test(comparisonText ?? "");
-results.push({
-  interaction: "canvas-version-compare",
-  passed: versionComparePassed,
-  comparison: comparisonText?.replace(/\s+/g, " ").trim().slice(0, 420) ?? "",
-});
-if (!versionComparePassed) {
-  failures.push({
-    interaction: "canvas-version-compare",
-    comparisonText,
-  });
-}
-await advancedPage.screenshot({
-  path: path.join(outputDir, "canvas-version-compare-desktop-1440.png"),
-  fullPage: false,
-});
-await canvasAdvanced.context.close();
-
-const legacyTimestamp = "2026-08-03T12:00:00.000Z";
-const canvasMigration = await inspectPage(
-  "canvas-legacy-migration-desktop-1440",
-  "/create/workspace",
-  { width: 1440, height: 1000 },
-  {
-    initScript: () => {
-      const legacy = {
-        mode: "prompt",
-        title: "Legacy migration proof",
-        textByMode: {
-          idea: "Create: Legacy migration proof",
-          mindmap: "Legacy migration proof\n  Preserve source",
-          prompt: "TASK\nPreserve this prompt during migration.",
-          brief: "OUTCOME\nPreserve this project.",
-        },
-        code: { html: "<main>Legacy</main>", css: "", javascript: "" },
-        committedCode: { html: "<main>Legacy</main>", css: "", javascript: "" },
-        versions: [],
-      };
-      localStorage.setItem("kingxford:canvas:v1", JSON.stringify(legacy));
-    },
-  },
-);
-await canvasMigration.page.waitForFunction(() =>
-  Boolean(localStorage.getItem("kingxford:canvas:v2")),
-);
-const migrationState = await canvasMigration.page.evaluate(() => {
-  const legacy = localStorage.getItem("kingxford:canvas:v1");
-  const library = JSON.parse(localStorage.getItem("kingxford:canvas:v2") ?? "{}");
-  const active = library.projects?.find(
-    (project) => project.id === library.activeProjectId,
-  );
-  return {
-    legacyPreserved: Boolean(legacy),
-    schemaVersion: library.schemaVersion ?? null,
-    projectCount: library.projects?.length ?? 0,
-    activeTitle: active?.title ?? "",
-    activePrompt: active?.textByMode?.prompt ?? "",
-  };
-});
-const migrationPassed =
-  migrationState.legacyPreserved &&
-  migrationState.schemaVersion === 2 &&
-  migrationState.projectCount === 1 &&
-  migrationState.activeTitle === "Legacy migration proof" &&
-  /Preserve this prompt/.test(migrationState.activePrompt);
-results.push({
-  interaction: "canvas-v1-to-v2-safe-migration",
-  passed: migrationPassed,
-  seededAt: legacyTimestamp,
-  ...migrationState,
-});
-if (!migrationPassed) {
-  failures.push({
-    interaction: "canvas-v1-to-v2-safe-migration",
-    ...migrationState,
-  });
-}
-await canvasMigration.context.close();
-
-const malformedLibrary = JSON.stringify({
-  schemaVersion: 2,
-  revision: 4,
-  activeProjectId: "missing-project",
-  projects: [],
-});
-const canvasRecovery = await inspectPage(
-  "canvas-malformed-storage-recovery-desktop-1440",
-  "/create/workspace",
-  { width: 1440, height: 1000 },
-);
-await canvasRecovery.page.evaluate((raw) => {
-  localStorage.clear();
-  localStorage.setItem("kingxford:canvas:v2", raw);
-}, malformedLibrary);
-await canvasRecovery.page.reload({ waitUntil: "domcontentloaded" });
-await canvasRecovery.page.waitForTimeout(700);
-const recoveryState = await canvasRecovery.page.evaluate((expected) => ({
-  malformedPreserved: localStorage.getItem("kingxford:canvas:v2") === expected,
-  status: document.querySelector("[aria-live='polite']")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
-  editorAvailable: Boolean(document.querySelector("#workspace-text-editor")),
-}), malformedLibrary);
-const recoveryPassed =
-  recoveryState.malformedPreserved &&
-  /Autosave is paused/.test(recoveryState.status) &&
-  recoveryState.editorAvailable;
-results.push({
-  interaction: "canvas-malformed-storage-nondestructive-recovery",
-  passed: recoveryPassed,
-  ...recoveryState,
-});
-if (!recoveryPassed) {
-  failures.push({
-    interaction: "canvas-malformed-storage-nondestructive-recovery",
-    ...recoveryState,
-  });
-}
-await canvasRecovery.context.close();
-
-const canvasModeLaunch = await inspectPage(
-  "canvas-mode-launch-code-1440",
-  "/create/workspace?mode=code",
-  { width: 1440, height: 1000 },
-);
-const canvasModeLaunchState = {
-  selectedMode: await canvasModeLaunch.page
-    .locator("[role='tab'][id^='workspace-mode-'][aria-selected='true']")
-    .getAttribute("id"),
-  codeEditorVisible: await canvasModeLaunch.page
-    .locator("#workspace-code-editor")
-    .isVisible(),
-  url: canvasModeLaunch.page.url(),
-};
-const canvasModeLaunchPassed =
-  canvasModeLaunchState.selectedMode === "workspace-mode-code" &&
-  canvasModeLaunchState.codeEditorVisible &&
-  new URL(canvasModeLaunchState.url).searchParams.get("mode") === "code";
-results.push({
-  interaction: "canvas-create-mode-deep-link",
-  passed: canvasModeLaunchPassed,
-  ...canvasModeLaunchState,
-});
-if (!canvasModeLaunchPassed) {
-  failures.push({
-    interaction: "canvas-create-mode-deep-link",
-    ...canvasModeLaunchState,
-  });
-}
-await canvasModeLaunch.context.close();
-
 const createGallery = await inspectPage(
   "create-gallery-desktop-1440",
   "/create",
@@ -1895,7 +1541,7 @@ for (const expected of expectedCreateShowcases) {
     const disclosure = document.querySelector(
       "aside[aria-label='Concept disclosure']",
     );
-    const createLink = document.querySelector(
+    const canvasNav = document.querySelector(
       ".site-header__desktop-nav .site-header__create-link",
     );
     const schemaNode = document.querySelector(`#showcase-schema-${slug}`);
@@ -1922,7 +1568,7 @@ for (const expected of expectedCreateShowcases) {
           .querySelector("[data-showcase-sector]")
           ?.getAttribute("data-showcase-sector") ?? null,
       heading: document.querySelector("main h1")?.textContent?.trim() ?? "",
-      currentNav: createLink?.getAttribute("aria-current") === "location",
+      currentNav: canvasNav?.getAttribute("aria-current") === "location",
       disclosurePresent: Boolean(disclosure),
       disclosureText: disclosure?.textContent?.replace(/\s+/g, " ").trim() ?? "",
       schemaType: schema?.["@type"] ?? null,
@@ -2032,7 +1678,7 @@ const createHeader = await inspectPage(
   "/create",
   { width: 1201, height: 900 },
 );
-const createHeaderState = await createHeader.page.evaluate(() => {
+const createHeaderState = await createHeader.page.evaluate((expectedDestinations) => {
   const brand = document.querySelector(".site-header__brand");
   const nav = document.querySelector(".site-header__desktop-nav");
   const actions = document.querySelector(".site-header__actions");
@@ -2053,42 +1699,30 @@ const createHeaderState = await createHeader.page.evaluate(() => {
     elementsPresent: true,
     navDisplay: getComputedStyle(nav).display,
     navLinkCount: nav.querySelectorAll(".site-header__nav-link").length,
+    navDestinations: [...nav.querySelectorAll(".site-header__nav-link")].map(
+      (link) => ({
+        label: link.textContent?.replace(/\s+/g, " ").trim() ?? "",
+        href: link.getAttribute("href"),
+      }),
+    ),
+    expectedDestinations,
     currentNav:
       nav
-        .querySelector(".site-header__nav-link[href='/create']")
-        ?.getAttribute("aria-current") === "page",
+        .querySelector(".site-header__nav-link[href='/create/workspace']")
+        ?.getAttribute("aria-current") === "location",
     brandNavOverlap: Math.max(0, brandRect.right - navRect.left),
     navActionsOverlap: Math.max(0, navRect.right - actionsRect.left),
   };
-});
-await createHeader.page.locator(".site-header__create-disclosure").click();
-createHeaderState.createPanelBounds = await createHeader.page
-  .locator("#site-header-create-panel")
-  .evaluate((panel) => {
-    const rect = panel.getBoundingClientRect();
-    return {
-      left: rect.left,
-      right: rect.right,
-      top: rect.top,
-      bottom: rect.bottom,
-      viewportWidth: window.innerWidth,
-      viewportHeight: window.innerHeight,
-    };
-  });
-await createHeader.page.keyboard.press("Escape");
+}, expectedPrimaryDestinations);
 const createHeaderPassed =
   createHeaderState.elementsPresent &&
   createHeaderState.navDisplay !== "none" &&
-  createHeaderState.navLinkCount >= 7 &&
+  createHeaderState.navLinkCount === 5 &&
+  JSON.stringify(createHeaderState.navDestinations) ===
+    JSON.stringify(createHeaderState.expectedDestinations) &&
   createHeaderState.currentNav &&
   createHeaderState.brandNavOverlap <= 0.5 &&
-  createHeaderState.navActionsOverlap <= 0.5 &&
-  createHeaderState.createPanelBounds.left >= 0 &&
-  createHeaderState.createPanelBounds.right <=
-    createHeaderState.createPanelBounds.viewportWidth + 0.5 &&
-  createHeaderState.createPanelBounds.top >= 0 &&
-  createHeaderState.createPanelBounds.bottom <=
-    createHeaderState.createPanelBounds.viewportHeight + 0.5;
+  createHeaderState.navActionsOverlap <= 0.5;
 results.push({
   interaction: "create-header-overlap-1201",
   passed: createHeaderPassed,
@@ -2314,48 +1948,71 @@ results.push({
 if (!mobileThemeKeyboard) {
   failures.push({ interaction: "mobile-theme-access" });
 }
+await mobile.page
+  .locator(".site-header__mobile-create > summary")
+  .click();
+const mobileDestinationState = await mobile.page.evaluate(
+  (expectedDestinations) => {
+    const primaryLinks = [
+      ...document.querySelectorAll(
+        ".site-header__mobile-panel nav > .site-header__nav-link",
+      ),
+    ].map((link) => ({
+      label: link.textContent?.replace(/\s+/g, " ").trim() ?? "",
+      href: link.getAttribute("href"),
+    }));
+    const canvasSummary = document.querySelector(
+      ".site-header__mobile-create > summary strong",
+    );
+    const canvasLink = document.querySelector(
+      ".site-header__mobile-create .site-header__mobile-canvas",
+    );
+    return {
+      destinations: [
+        ...primaryLinks,
+        {
+          label: canvasSummary?.textContent?.trim() ?? "",
+          href: canvasLink?.getAttribute("href") ?? null,
+        },
+      ],
+      expectedDestinations,
+      canvasExpanded: Boolean(
+        document.querySelector(".site-header__mobile-create[open]"),
+      ),
+    };
+  },
+  expectedPrimaryDestinations,
+);
+const mobileDestinationsPassed =
+  mobileDestinationState.canvasExpanded &&
+  JSON.stringify(mobileDestinationState.destinations) ===
+    JSON.stringify(mobileDestinationState.expectedDestinations);
+results.push({
+  interaction: "mobile-five-destination-navigation",
+  passed: mobileDestinationsPassed,
+  ...mobileDestinationState,
+});
+if (!mobileDestinationsPassed) {
+  failures.push({
+    interaction: "mobile-five-destination-navigation",
+    ...mobileDestinationState,
+  });
+}
 await mobile.page.screenshot({
   path: path.join(outputDir, "home-mobile-menu.png"),
   fullPage: false,
 });
 await menuSummary.click();
-const mobileNexusState = await mobile.page.evaluate(() => {
-  const projectInput = document.querySelector("#platform-project-start");
-  const startButton = document.querySelector("form button[type='submit']");
-  const inputRect = projectInput?.getBoundingClientRect();
-  return {
-    h1Count: document.querySelectorAll("h1").length,
-    projectInputVisible: Boolean(
-      inputRect && inputRect.top < window.innerHeight && inputRect.bottom > 0,
-    ),
-    startButtonPresent: Boolean(startButton),
-    phaseCount: document.querySelectorAll("[aria-label='Connected project lifecycle'] button").length,
-  };
-});
-const mobileNexusPassed =
-  mobileNexusState.h1Count === 1 &&
-  mobileNexusState.projectInputVisible &&
-  mobileNexusState.startButtonPresent &&
-  mobileNexusState.phaseCount === 6;
-results.push({
-  interaction: "home-mobile-intelligence-nexus",
-  passed: mobileNexusPassed,
-  ...mobileNexusState,
-});
-if (!mobileNexusPassed) {
-  failures.push({
-    interaction: "home-mobile-intelligence-nexus",
-    ...mobileNexusState,
-  });
-}
+await mobile.page.locator("#platform-project-start").scrollIntoViewIfNeeded();
+await mobile.page.waitForTimeout(120);
 await mobile.page.screenshot({
   path: path.join(outputDir, "kingxford-mobile-nexus.png"),
   fullPage: false,
 });
 await mobile.page.locator("#intelligence-system").scrollIntoViewIfNeeded();
-await mobile.page.waitForTimeout(180);
+await mobile.page.waitForTimeout(120);
 await mobile.page.screenshot({
-  path: path.join(outputDir, "kingxford-mobile-operating-system.png"),
+  path: path.join(outputDir, "kingxford-mobile-intelligence-system.png"),
   fullPage: false,
 });
 await mobile.context.close();
@@ -2377,25 +2034,23 @@ const mobileCreateState = {
   menuOpen: await mobileCreate.page
     .locator(".site-header__mobile-menu[open]")
     .isVisible(),
-  createSectionOpen: await mobileCreate.page
-    .locator(".site-header__mobile-create[open][data-current='true']")
+  canvasSectionCurrent:
+    (await mobileCreate.page
+      .locator(".site-header__mobile-create")
+      .getAttribute("data-current")) === "true",
+  canvasSectionVisible: await mobileCreate.page
+    .locator(".site-header__mobile-create > summary")
     .isVisible(),
-  currentNavVisible: await mobileCreate.page
-    .locator(
-      ".site-header__mobile-create-links a[href='/create'][aria-current='page']",
-    )
-    .isVisible(),
-  canvasLaunchVisible: await mobileCreate.page
+  canvasWorkspaceLinkVisible: await mobileCreate.page
     .locator(".site-header__mobile-canvas[href='/create/workspace']")
     .isVisible(),
-  modeCount: await mobileCreate.page
-    .locator(".site-header__mobile-create-modes > a")
+  embeddedCanvas: await mobileCreate.page
+    .locator("[data-embedded='true']")
     .count(),
-  standaloneCanvasNavCount: await mobileCreate.page
-    .locator(
-      ".site-header__mobile-panel > nav > .site-header__nav-link[href='/create/workspace']",
-    )
-    .count(),
+  embeddedConductorTab: await mobileCreate.page
+    .locator("[data-embedded='true'] [aria-label='Mobile workspace panes']")
+    .getByRole("button", { name: "Conductor", exact: true })
+    .isVisible(),
   featuredCount: await mobileCreate.page
     .locator("[data-prototype-gallery] [role='tab']")
     .count(),
@@ -2405,11 +2060,11 @@ const mobileCreateState = {
 };
 const mobileCreatePassed =
   mobileCreateState.menuOpen &&
-  mobileCreateState.createSectionOpen &&
-  mobileCreateState.currentNavVisible &&
-  mobileCreateState.canvasLaunchVisible &&
-  mobileCreateState.modeCount === 5 &&
-  mobileCreateState.standaloneCanvasNavCount === 0 &&
+  mobileCreateState.canvasSectionCurrent &&
+  mobileCreateState.canvasSectionVisible &&
+  mobileCreateState.canvasWorkspaceLinkVisible &&
+  mobileCreateState.embeddedCanvas === 1 &&
+  mobileCreateState.embeddedConductorTab &&
   mobileCreateState.featuredCount === 3 &&
   mobileCreateState.heading?.trim() === "What should exist next?";
 results.push({
@@ -2432,30 +2087,6 @@ const mobileCanvas = await inspectPage(
   { width: 390, height: 844 },
   { hasTouch: true, isMobile: true },
 );
-await mobileCanvas.page.locator(".site-header__mobile-summary").click();
-const mobileCanvasCreateNavState = {
-  sectionOpen: await mobileCanvas.page
-    .locator(".site-header__mobile-create[open][data-current='true']")
-    .isVisible(),
-  workspaceCurrent: await mobileCanvas.page
-    .locator(".site-header__mobile-canvas[aria-current='page']")
-    .isVisible(),
-};
-const mobileCanvasCreateNavPassed =
-  mobileCanvasCreateNavState.sectionOpen &&
-  mobileCanvasCreateNavState.workspaceCurrent;
-results.push({
-  interaction: "canvas-mobile-unified-create-navigation",
-  passed: mobileCanvasCreateNavPassed,
-  ...mobileCanvasCreateNavState,
-});
-if (!mobileCanvasCreateNavPassed) {
-  failures.push({
-    interaction: "canvas-mobile-unified-create-navigation",
-    ...mobileCanvasCreateNavState,
-  });
-}
-await mobileCanvas.page.locator(".site-header__mobile-summary").click();
 const mobileCanvasTabs = mobileCanvas.page.locator(
   "[aria-label='Mobile workspace panes']",
 );
@@ -2467,12 +2098,13 @@ const mobileCanvasPreviewTab = mobileCanvasTabs.getByRole("button", {
   name: "Preview",
   exact: true,
 });
+const mobileCanvasConductorTab = mobileCanvasTabs.getByRole("button", {
+  name: "Conductor",
+  exact: true,
+});
 const mobileCanvasAgentTab = mobileCanvasTabs.getByRole("button", {
   name: "Agent",
   exact: true,
-});
-const mobileCanvasVersionsTab = mobileCanvasTabs.getByRole("button", {
-  name: /^Versions/,
 });
 const mobileWorkbench = mobileCanvas.page.locator(
   "[aria-label='Creative input workbench']",
@@ -2483,8 +2115,49 @@ const mobileResultPane = mobileCanvas.page.locator(
 const mobilePreviewPanel = mobileCanvas.page.locator(
   "#workspace-preview-panel",
 );
+const mobileConductorPanel = mobileCanvas.page.locator(
+  "#workspace-intelligence-panel",
+);
 const mobileAgentPanel = mobileCanvas.page.locator("#workspace-agent-panel");
-const mobileVersionsPanel = mobileCanvas.page.locator("#workspace-versions-panel");
+
+const mobileLibraryButton = mobileCanvas.page.getByRole("button", {
+  name: "Library",
+  exact: true,
+});
+const mobileLibraryButtonVisible = await mobileLibraryButton.isVisible();
+await mobileLibraryButton.click();
+const mobileProjectLibrary = mobileCanvas.page.getByRole("dialog", {
+  name: "Your connected intelligence",
+});
+await mobileProjectLibrary.waitFor({ state: "visible" });
+const mobileProjectLibraryState = {
+  buttonVisible: mobileLibraryButtonVisible,
+  dialogVisible: await mobileProjectLibrary.isVisible(),
+  closeVisible: await mobileProjectLibrary
+    .getByRole("button", { name: "Close project library" })
+    .isVisible(),
+  projectCount: await mobileProjectLibrary.locator("ol > li").count(),
+};
+const mobileProjectLibraryPassed =
+  mobileProjectLibraryState.buttonVisible &&
+  mobileProjectLibraryState.dialogVisible &&
+  mobileProjectLibraryState.closeVisible &&
+  mobileProjectLibraryState.projectCount >= 1;
+results.push({
+  interaction: "canvas-project-library-mobile",
+  passed: mobileProjectLibraryPassed,
+  ...mobileProjectLibraryState,
+});
+if (!mobileProjectLibraryPassed) {
+  failures.push({
+    interaction: "canvas-project-library-mobile",
+    ...mobileProjectLibraryState,
+  });
+}
+await mobileProjectLibrary
+  .getByRole("button", { name: "Close project library" })
+  .click();
+await mobileProjectLibrary.waitFor({ state: "hidden" });
 
 const mobileCanvasInputState = {
   pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
@@ -2501,6 +2174,7 @@ const mobileCanvasPreviewState = {
   workbenchHidden: !(await mobileWorkbench.isVisible()),
   resultVisible: await mobileResultPane.isVisible(),
   previewVisible: await mobilePreviewPanel.isVisible(),
+  conductorHidden: !(await mobileConductorPanel.isVisible()),
   agentHidden: !(await mobileAgentPanel.isVisible()),
   conceptVisible: await mobilePreviewPanel
     .locator("[aria-label='Local concept preview']")
@@ -2508,6 +2182,31 @@ const mobileCanvasPreviewState = {
 };
 await mobileCanvas.page.screenshot({
   path: path.join(outputDir, "canvas-mobile-preview-390.png"),
+  fullPage: false,
+});
+
+await mobileCanvasConductorTab.click();
+await mobileConductorPanel.waitFor({ state: "visible" });
+const mobileConductorText = await mobileConductorPanel.textContent();
+const mobileCanvasConductorState = {
+  pane: await mobileCanvas.page
+    .locator("main[data-mobile-pane]")
+    .getAttribute("data-mobile-pane"),
+  selected:
+    (await mobileCanvasConductorTab.getAttribute("aria-pressed")) === "true",
+  workbenchHidden: !(await mobileWorkbench.isVisible()),
+  resultVisible: await mobileResultPane.isVisible(),
+  previewHidden: !(await mobilePreviewPanel.isVisible()),
+  conductorVisible: await mobileConductorPanel.isVisible(),
+  agentHidden: !(await mobileAgentPanel.isVisible()),
+  governedControlVisible:
+    /Project intelligence · Conductor/.test(mobileConductorText ?? "") &&
+    /Direct one evidence-bound Conductor run/.test(
+      mobileConductorText ?? "",
+    ),
+};
+await mobileCanvas.page.screenshot({
+  path: path.join(outputDir, "canvas-mobile-conductor-390.png"),
   fullPage: false,
 });
 
@@ -2520,30 +2219,14 @@ const mobileCanvasAgentState = {
   workbenchHidden: !(await mobileWorkbench.isVisible()),
   resultVisible: await mobileResultPane.isVisible(),
   previewHidden: !(await mobilePreviewPanel.isVisible()),
+  conductorHidden: !(await mobileConductorPanel.isVisible()),
   agentVisible: await mobileAgentPanel.isVisible(),
   contextDisclosureVisible:
     /Choose what the Agent can see/.test(mobileAgentText ?? "") &&
-    /Only the checked workspace context is sent/.test(mobileAgentText ?? ""),
+    /Only the checked workspace context and the visible bounded project snapshot are sent/.test(mobileAgentText ?? ""),
 };
 await mobileCanvas.page.screenshot({
   path: path.join(outputDir, "canvas-mobile-agent-390.png"),
-  fullPage: false,
-});
-
-await mobileCanvasVersionsTab.click();
-await mobileVersionsPanel.waitFor({ state: "visible" });
-const mobileCanvasVersionsState = {
-  pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
-  selected: (await mobileCanvasVersionsTab.getAttribute("aria-pressed")) === "true",
-  workbenchHidden: !(await mobileWorkbench.isVisible()),
-  resultVisible: await mobileResultPane.isVisible(),
-  versionsVisible: await mobileVersionsPanel.isVisible(),
-  headingVisible: await mobileVersionsPanel
-    .getByRole("heading", { name: "Versions", exact: true })
-    .isVisible(),
-};
-await mobileCanvas.page.screenshot({
-  path: path.join(outputDir, "canvas-mobile-versions-390.png"),
   fullPage: false,
 });
 
@@ -2566,21 +2249,25 @@ const mobileCanvasPassed =
   mobileCanvasPreviewState.workbenchHidden &&
   mobileCanvasPreviewState.resultVisible &&
   mobileCanvasPreviewState.previewVisible &&
+  mobileCanvasPreviewState.conductorHidden &&
   mobileCanvasPreviewState.agentHidden &&
   mobileCanvasPreviewState.conceptVisible &&
+  mobileCanvasConductorState.pane === "intelligence" &&
+  mobileCanvasConductorState.selected &&
+  mobileCanvasConductorState.workbenchHidden &&
+  mobileCanvasConductorState.resultVisible &&
+  mobileCanvasConductorState.previewHidden &&
+  mobileCanvasConductorState.conductorVisible &&
+  mobileCanvasConductorState.agentHidden &&
+  mobileCanvasConductorState.governedControlVisible &&
   mobileCanvasAgentState.pane === "agent" &&
   mobileCanvasAgentState.selected &&
   mobileCanvasAgentState.workbenchHidden &&
   mobileCanvasAgentState.resultVisible &&
   mobileCanvasAgentState.previewHidden &&
+  mobileCanvasAgentState.conductorHidden &&
   mobileCanvasAgentState.agentVisible &&
   mobileCanvasAgentState.contextDisclosureVisible &&
-  mobileCanvasVersionsState.pane === "versions" &&
-  mobileCanvasVersionsState.selected &&
-  mobileCanvasVersionsState.workbenchHidden &&
-  mobileCanvasVersionsState.resultVisible &&
-  mobileCanvasVersionsState.versionsVisible &&
-  mobileCanvasVersionsState.headingVisible &&
   mobileCanvasReturnState.pane === "input" &&
   mobileCanvasReturnState.selected &&
   mobileCanvasReturnState.workbenchVisible &&
@@ -2590,8 +2277,8 @@ results.push({
   passed: mobileCanvasPassed,
   input: mobileCanvasInputState,
   preview: mobileCanvasPreviewState,
+  conductor: mobileCanvasConductorState,
   agent: mobileCanvasAgentState,
-  versions: mobileCanvasVersionsState,
   returnedInput: mobileCanvasReturnState,
 });
 if (!mobileCanvasPassed) {
@@ -2599,8 +2286,8 @@ if (!mobileCanvasPassed) {
     interaction: "canvas-mobile-pane-navigation",
     input: mobileCanvasInputState,
     preview: mobileCanvasPreviewState,
+    conductor: mobileCanvasConductorState,
     agent: mobileCanvasAgentState,
-    versions: mobileCanvasVersionsState,
     returnedInput: mobileCanvasReturnState,
   });
 }
@@ -2615,16 +2302,6 @@ const mobileMapSurface = mobileMapPreview.locator("[data-map-canvas]");
 const mobileMapNodes = mobileMapPreview.locator("[data-map-node-id]");
 await mobileMapViewport.waitFor({ state: "visible" });
 await mobileMapViewport.scrollIntoViewIfNeeded();
-const mobileTouchPanToggle = mobileMapPreview.getByRole("button", {
-  name: "Toggle touch background panning",
-});
-await mobileTouchPanToggle.click();
-await mobileCanvas.page.waitForFunction(
-  () =>
-    document
-      .querySelector("[aria-label='Toggle touch background panning']")
-      ?.getAttribute("aria-pressed") === "true",
-);
 const mobileTouchCapability = await mobileCanvas.page.evaluate(() => ({
   maxTouchPoints: navigator.maxTouchPoints,
   coarsePointer: matchMedia("(pointer: coarse)").matches,
@@ -2868,28 +2545,53 @@ if (!reducedMotionMatches) {
   failures.push({ interaction: "reduced-motion-emulation" });
 }
 await reduced.page.waitForTimeout(500);
-const reducedStory = await reduced.page.evaluate(() => ({
-  h1Count: document.querySelectorAll("h1").length,
-  hasNexus: Boolean(document.querySelector("#platform-nexus-title")),
-  hasOperatingSystem: Boolean(document.querySelector("#intelligence-system")),
-  hasProjectStart: Boolean(document.querySelector("#platform-project-start")),
-  legacyStoryCount: document.querySelectorAll(".kx-static, .kx-cinematic").length,
-}));
-const reducedStoryPassed =
-  reducedStory.h1Count === 1 &&
-  reducedStory.hasNexus &&
-  reducedStory.hasOperatingSystem &&
-  reducedStory.hasProjectStart &&
-  reducedStory.legacyStoryCount === 0;
+const reducedPlatform = await reduced.page.evaluate(() => {
+  const nexusTitle = document.querySelector("#platform-nexus-title");
+  const nexus = nexusTitle?.closest("section");
+  const animatedNexusElements = nexus
+    ? [...nexus.querySelectorAll("*")].filter((element) => {
+        const style = getComputedStyle(element);
+        return (
+          style.animationName !== "none" &&
+          !style.animationDuration.split(",").every((value) =>
+            ["0s", "0ms"].includes(value.trim()),
+          )
+        );
+      }).length
+    : -1;
+  return {
+    headingVisible:
+      nexusTitle instanceof HTMLElement &&
+      nexusTitle.getBoundingClientRect().width > 0 &&
+      nexusTitle.getBoundingClientRect().height > 0,
+    inputVisible:
+      document.querySelector("#platform-project-start") instanceof
+      HTMLTextAreaElement,
+    operatingSystemPresent: Boolean(
+      document.querySelector("#intelligence-system"),
+    ),
+    phaseCount:
+      document.querySelectorAll(
+        "[aria-label='Six connected project phases'] button",
+      ).length,
+    animatedNexusElements,
+  };
+});
+const reducedPlatformPassed =
+  reducedPlatform.headingVisible &&
+  reducedPlatform.inputVisible &&
+  reducedPlatform.operatingSystemPresent &&
+  reducedPlatform.phaseCount === 6 &&
+  reducedPlatform.animatedNexusElements === 0;
 results.push({
   interaction: "kingxford-reduced-motion-platform",
-  passed: reducedStoryPassed,
-  ...reducedStory,
+  passed: reducedPlatformPassed,
+  ...reducedPlatform,
 });
-if (!reducedStoryPassed) {
+if (!reducedPlatformPassed) {
   failures.push({
     interaction: "kingxford-reduced-motion-platform",
-    ...reducedStory,
+    ...reducedPlatform,
   });
 }
 await reduced.context.close();

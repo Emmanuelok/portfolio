@@ -5,20 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import {
-  PLATFORM_EVIDENCE_LIMIT,
-  createPlatformProjectIntelligence,
-  dispatchPlatformChange,
-  loadPlatformSidecar,
-  savePlatformSidecar,
-  upsertPlatformProject,
-} from "@/lib/platform/storage";
+  activeRepositoryProject,
+  loadProjectRepository,
+} from "@/lib/workspace/project-repository";
 import {
-  PLATFORM_SEED_INPUT_LIMIT,
-  createPlatformSeed,
-  writePlatformSeed,
-  type PlatformSeedSource,
-} from "@/lib/platform/seed";
-import { loadWorkspaceLibrary } from "@/lib/workspace/storage";
+  type ProjectSeedSourceKind,
+  writeProjectSeed,
+} from "@/lib/workspace/project-seed";
 
 import styles from "./ProjectCaptureAction.module.css";
 
@@ -28,25 +21,29 @@ type ProjectCaptureActionProps = Readonly<{
   title: string;
   claim: string;
   referenceHref: string;
-  source: Extract<PlatformSeedSource, "lab" | "media" | "work" | "showcase">;
+  source: "lab" | "media" | "work" | "showcase";
   compact?: boolean;
 }>;
 
-const TITLE_LIMIT = 240;
-const SOURCE_LIMIT = 2_000;
-const CLAIM_LIMIT = 4_000;
+const TITLE_LIMIT = 180;
+const SOURCE_LIMIT = 600;
+const CLAIM_LIMIT = 2_400;
 
 function bounded(value: string, maximum: number) {
   return value.trim().replace(/\s+/g, " ").slice(0, maximum);
 }
 
-function evidenceId() {
-  const id =
-    typeof globalThis.crypto !== "undefined" &&
-    "randomUUID" in globalThis.crypto
-      ? globalThis.crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return `evidence:${id}`;
+function canonicalSource(source: ProjectCaptureActionProps["source"]): ProjectSeedSourceKind {
+  return source === "showcase" ? "create" : source;
+}
+
+function safeInternalHref(value: string) {
+  const candidate = value.trim().slice(0, SOURCE_LIMIT);
+  return candidate.startsWith("/")
+    && !candidate.startsWith("//")
+    && !/[\u0000-\u001f]/.test(candidate)
+    ? candidate
+    : null;
 }
 
 export function ProjectCaptureAction({
@@ -68,125 +65,59 @@ export function ProjectCaptureAction({
     try {
       const safeTitle = bounded(title, TITLE_LIMIT);
       const safeClaim = bounded(claim, CLAIM_LIMIT);
-      const safeSource = bounded(referenceHref, SOURCE_LIMIT);
-      const workspace = loadWorkspaceLibrary(window.localStorage);
-
-      if (workspace.status === "error") {
+      const safeSource = safeInternalHref(referenceHref);
+      if (!safeTitle || !safeClaim || !safeSource) {
         setState("error");
-        setMessage(
-          "Your local project library could not be read safely. Nothing was changed.",
-        );
+        setMessage("This reference is incomplete or cannot be carried into Canvas safely.");
         return;
       }
 
-      if (workspace.status === "empty") {
-        const input = [
-          "Develop this Kingxford reference as a project input.",
-          `Title: ${safeTitle}`,
-          `Reference: ${safeSource}`,
-          `Why it matters: ${safeClaim}`,
-        ].join("\n\n").slice(0, PLATFORM_SEED_INPUT_LIMIT);
-        const seed = createPlatformSeed(input, {
+      const repository = loadProjectRepository(window.localStorage);
+      const activeProject = activeRepositoryProject(repository);
+      const action = activeProject ? "add-evidence" as const : "start-project" as const;
+      const storedSeed = writeProjectSeed({
+        action,
+        source: {
+          kind: canonicalSource(source),
+          href: safeSource,
+          label: safeTitle,
+        },
+        payload: {
           title: safeTitle,
-          phase: "investigate",
-          mode: "brief",
-          source,
-        });
-        const result = writePlatformSeed(window.sessionStorage, seed);
-        if (!result.ok) {
-          setState("error");
-          setMessage(
-            "This browser could not prepare a private project. Nothing was sent.",
-          );
-          return;
-        }
-        setState("opening");
-        setMessage("Opening a private project with this reference attached…");
-        router.push(
-          "/create/workspace?start=seed&phase=investigate&mode=brief",
-        );
-        return;
-      }
-
-      const activeProject = workspace.library.projects.find(
-        (project) => project.id === workspace.library.activeProjectId,
-      );
-      if (!activeProject) {
-        setState("error");
-        setMessage("The active local project could not be resolved. Nothing was changed.");
-        return;
-      }
-
-      const loaded = loadPlatformSidecar(window.localStorage);
-      if (loaded.status === "error") {
-        setState("error");
-        setMessage(
-          "Project intelligence could not be read safely. Nothing was overwritten.",
-        );
-        return;
-      }
-
-      const existing = loaded.sidecar.projects[activeProject.id];
-      const intelligence =
-        existing ??
-        createPlatformProjectIntelligence(activeProject.id, {
-          objective: activeProject.title,
-          phase: "investigate",
-        });
-      const duplicate = intelligence.evidence.some(
-        (item) =>
-          item.kind === "platform" &&
-          item.source === safeSource &&
-          item.title === safeTitle,
-      );
-
-      if (duplicate) {
-        setState("saved");
-        setMessage(`Already in ${activeProject.title}.`);
-        return;
-      }
-
-      if (intelligence.evidence.length >= PLATFORM_EVIDENCE_LIMIT) {
-        setState("error");
-        setMessage(
-          `This project has reached its ${PLATFORM_EVIDENCE_LIMIT}-reference local limit.`,
-        );
-        return;
-      }
-
-      const now = new Date().toISOString();
-      const nextProject = {
-        ...intelligence,
-        evidence: [
-          ...intelligence.evidence,
-          {
-            id: evidenceId(),
-            kind: "platform" as const,
+          brief: action === "add-evidence"
+            ? `Add this public Kingxford reference to the active Project Atlas as evidence: ${safeTitle}.`
+            : [
+                `Develop this Kingxford reference as a new Project Atlas.`,
+                `Starting point: ${safeTitle}`,
+                `Why it matters: ${safeClaim}`,
+              ].join("\n\n"),
+          evidence: [{
             title: safeTitle,
-            source: safeSource,
-            claim: safeClaim,
-            addedAt: now,
-          },
-        ],
-        updatedAt: now,
-      };
-      const nextSidecar = upsertPlatformProject(loaded.sidecar, nextProject);
-      const result = savePlatformSidecar(window.localStorage, nextSidecar);
-      if (!result.ok) {
+            content: safeClaim,
+            sourceUrl: safeSource,
+          }],
+          tags: [canonicalSource(source), "public-reference"],
+        },
+      });
+
+      if (!storedSeed) {
         setState("error");
-        setMessage(result.error.message);
+        setMessage("This browser could not prepare the private Canvas handoff. Nothing was changed.");
         return;
       }
-      dispatchPlatformChange({
-        revision: nextSidecar.revision,
-        projectId: activeProject.id,
-        reason: "saved",
-      });
-      setState("saved");
-      setMessage(`Saved to ${activeProject.title}.`);
+
+      // Canvas removes the expiring seed only after the graph update succeeds.
+      // This component deliberately never clears a seed during navigation.
+      setState("opening");
+      setMessage(
+        activeProject
+          ? `Opening ${activeProject.title} with this evidence ready to attach…`
+          : "Opening a new Project Atlas with this reference attached…",
+      );
+      router.push("/create/workspace?handoff=public");
     } catch {
       setState("error");
-      setMessage("This reference could not be captured safely. Nothing was sent.");
+      setMessage("Project Atlas could not be read safely. Nothing was overwritten or sent.");
     }
   };
 

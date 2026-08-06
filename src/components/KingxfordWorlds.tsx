@@ -287,7 +287,7 @@ export function IdeaRouter() {
     if (input.length < 3) return;
     try {
       const seed = createPlatformSeed(input, {
-        phase: "discover",
+        phase: "discovery",
         mode: "idea",
         source: "idea-router",
       });
@@ -297,7 +297,7 @@ export function IdeaRouter() {
         return;
       }
       setStatus("Project prepared. Opening the same idea in the workspace…");
-      router.push("/create/workspace?start=seed&phase=discover&mode=idea");
+      router.push("/create/workspace?start=seed&phase=discovery&mode=idea");
     } catch {
       setStatus("This project could not be prepared safely. Your words were not sent anywhere.");
     }

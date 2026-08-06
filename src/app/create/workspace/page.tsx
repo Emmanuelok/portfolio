@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 
 import { CreativeWorkspace } from "@/components/workspace/CreativeWorkspace";
-import { platformPhases, type PlatformPhase } from "@/lib/platform/types";
+import {
+  normalizePlatformPhase,
+  type PlatformPhase,
+} from "@/lib/platform/types";
 import { workspaceModes, type WorkspaceMode } from "@/lib/workspace/types";
 
 export const metadata: Metadata = {
@@ -35,7 +38,7 @@ function resolveWorkspaceMode(value: string | string[] | undefined): WorkspaceMo
 
 function resolvePlatformPhase(value: string | string[] | undefined): PlatformPhase | null {
   const candidate = Array.isArray(value) ? value[0] : value;
-  return platformPhases.find((phase) => phase === candidate) ?? null;
+  return normalizePlatformPhase(candidate);
 }
 
 export default async function CreativeWorkspacePage({
@@ -81,7 +84,6 @@ export default async function CreativeWorkspacePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
       />
       <CreativeWorkspace
-        key={initialMode ?? "saved-workspace"}
         entrepreneurshipUrl={entrepreneurshipUrl}
         initialMode={initialMode}
         initialPhase={initialPhase}

@@ -24,14 +24,14 @@ import {
 import styles from "./CreatePage.module.css";
 
 export const metadata: Metadata = {
-  title: "Kingxford Intelligence Workspace",
+  title: "Create websites, tools, and systems",
   description:
-    "Use one Kingxford Intelligence Workspace to test ideas, code, mind maps, prompts, and briefs, preserve project evidence and decisions, and move the same work toward delivery.",
+    "Explore website demonstrations, digital product categories, and Kingxford Canvas—a project workspace for developing ideas, prototypes, evidence, decisions, and delivery briefs.",
   alternates: { canonical: "/create" },
   openGraph: {
     title: "What we create — kingXford & Co",
     description:
-      "A live creative workspace, three complete website concepts, and a wider catalogue of digital tools and systems for institutions, schools, industries, and everyday life.",
+      "An interactive project workspace, three website demonstrations, and a catalogue of digital tools and systems for institutions, schools, industries, and everyday life.",
     type: "website",
     url: "/create",
   },
@@ -66,9 +66,9 @@ export default function CreatePage() {
       {
         "@type": "WebApplication",
         position: 1,
-        name: "Kingxford Intelligence Workspace",
+        name: "Kingxford Canvas",
         description:
-          "A dual-pane creative intelligence workspace for testing ideas, front-end code, mind maps, prompts, and briefs.",
+          "A dual-pane project workspace for developing ideas, front-end prototypes, mind maps, prompts, and implementation briefs.",
         url: "/create/workspace",
         applicationCategory: "DesignApplication",
       },
@@ -92,19 +92,19 @@ export default function CreatePage() {
       />
 
       <section className={styles.hero} aria-labelledby="create-heading">
-        <div className={styles.heroIndex}>Create · Seven directions / Three live proofs / One connected Atlas</div>
+        <div className={styles.heroIndex}>Create · Seven categories / Three interactive demonstrations / One project record</div>
         <div className={styles.heroCopy}>
           <Reveal>
-            <p className="eyebrow">kingXford &amp; Co · Designed around real work</p>
+            <p className="eyebrow">kingXford &amp; Co · Digital products and systems</p>
           </Reveal>
           <Reveal distance={48}>
-            <h1 id="create-heading">What should exist next?</h1>
+            <h1 id="create-heading">What do you need to create?</h1>
           </Reveal>
           <Reveal delay={0.08}>
             <p>
-              Discover it. Investigate it. Model it. Build it. Validate it.
-              Then move the same project toward launch—with its source,
-              evidence, decisions, and working proof still connected.
+              Define the need, investigate the context, map the system, build a
+              prototype, test it, and prepare it for delivery. Canvas keeps the
+              drafts, evidence, decisions, and revisions connected to the same project.
             </p>
           </Reveal>
         </div>
@@ -114,15 +114,15 @@ export default function CreatePage() {
             predetermined technology.
           </p>
           <a className="text-link" href="#websites">
-            <span>Enter the concept gallery</span>
+            <span>Explore the interactive demonstrations</span>
             <ArrowDownRight aria-hidden="true" />
           </a>
           <a className="text-link" href="#capabilities">
-            <span>Explore all seven directions</span>
+            <span>Explore all seven categories</span>
             <ArrowDownRight aria-hidden="true" />
           </a>
           <a className="text-link" href="#studio">
-            <span>Open Canvas and Atlas</span>
+            <span>Open Canvas and Project Atlas</span>
             <ArrowDownRight aria-hidden="true" />
           </a>
         </aside>
@@ -136,24 +136,25 @@ export default function CreatePage() {
         </nav>
       </section>
 
-      <nav className={styles.pageRouter} aria-label="Kingxford Intelligence sections">
-        <a href="#websites"><span>01</span> Live proofs</a>
-        <a href="#capabilities"><span>02</span> Seven directions</a>
-        <a href="#studio"><span>03</span> Canvas + Atlas</a>
-        <a href="#catalogue"><span>04</span> Full catalogue</a>
-        <Link href="/create/workspace"><span>↗</span> Focus mode</Link>
+      <nav className={styles.pageRouter} aria-label="Create sections">
+        <a href="#websites"><span>01</span> Interactive demonstrations</a>
+        <a href="#capabilities"><span>02</span> Creation categories</a>
+        <a href="#studio"><span>03</span> Canvas + Project Atlas</a>
+        <a href="#catalogue"><span>04</span> Complete catalogue</a>
+        <Link href="/create/workspace"><span>↗</span> Open full workspace</Link>
       </nav>
 
       <section className={styles.showcases} id="websites" aria-labelledby="websites-heading">
         <div className={styles.sectionHeading}>
           <div>
-            <p className="eyebrow">Websites / Three sectors / Three systems</p>
-            <h2 id="websites-heading">Interactive concept prototypes, built to be explored.</h2>
+            <p className="eyebrow">Websites / Three sectors / Three demonstrations</p>
+            <h2 id="websites-heading">Explore three interactive website demonstrations.</h2>
           </div>
           <p>
-            Each fictional prototype pairs working interface states with licensed
-            contextual photography and explicit limits. They demonstrate design
-            direction—not an operating institution, client engagement, or outcome.
+            Each fictional demonstration combines working interface states with
+            licensed contextual photography and clear limitations. It shows a
+            possible design direction, not an operating institution, client project,
+            or measured outcome.
           </p>
         </div>
 
@@ -170,13 +171,13 @@ export default function CreatePage() {
       >
         <div className={styles.sectionHeading}>
           <div>
-            <p className="eyebrow">Create menu / Seven directions / No disconnected services</p>
-            <h2 id="capability-menu-heading">Seven ways to enter. One system carrying the work forward.</h2>
+            <p className="eyebrow">Creation categories / Seven project types</p>
+            <h2 id="capability-menu-heading">Choose the category closest to your project.</h2>
           </div>
           <p>
-            Choose the closest starting direction. Research, responsible AI,
-            design, development, evidence, and delivery can then assemble around
-            the same Project Atlas instead of splitting into separate services.
+            Start with the closest category. The same project can combine research,
+            responsible AI, design, development, evidence, and delivery without
+            fragmenting the work across separate services.
           </p>
         </div>
 
@@ -212,16 +213,16 @@ export default function CreatePage() {
       >
         <header className={styles.studioHeading}>
           <div>
-            <p className="eyebrow">Canvas + Project Atlas / Embedded workspace</p>
-            <h2 id="studio-heading">Move a chosen direction into working proof without losing its history.</h2>
+            <p className="eyebrow">Kingxford Canvas + Project Atlas / Embedded project workspace</p>
+            <h2 id="studio-heading">Develop a selected direction into a testable prototype with its project record intact.</h2>
           </div>
           <div>
             <p>
-              Source, evidence, decisions, specialist intelligence, revisions,
-              and human gates remain attached to one local-first project.
+              Drafts, evidence, decisions, review proposals, revisions, and human
+              approvals remain attached to one project stored on this device.
             </p>
             <Link className="text-link" href="/create/workspace">
-              <span>Open Canvas in focus mode</span>
+              <span>Open the full Canvas workspace</span>
               <ArrowUpRight aria-hidden="true" />
             </Link>
           </div>
@@ -238,13 +239,13 @@ export default function CreatePage() {
       <section className={styles.catalogue} id="catalogue" aria-labelledby="catalogue-heading">
         <div className={styles.sectionHeading}>
           <div>
-            <p className="eyebrow">Beyond websites</p>
-            <h2 id="catalogue-heading">Useful systems for consequential and everyday work.</h2>
+            <p className="eyebrow">Complete catalogue</p>
+            <h2 id="catalogue-heading">Digital products and systems for institutional and everyday work.</h2>
           </div>
           <p>
-            The catalogue is organized by the need being solved. Every build can
-            combine research, design, development, AI, and operational thinking
-            where those capabilities are genuinely useful.
+            The catalogue is organized by the problem being addressed. Each
+            project can combine research, design, development, AI, and operational
+            planning where those capabilities are appropriate.
           </p>
         </div>
 
@@ -306,11 +307,11 @@ export default function CreatePage() {
       </section>
 
       <Reveal className={styles.close}>
-        <p className="eyebrow">A need that does not fit a category?</p>
-        <h2>Good. Begin with the problem—not the menu.</h2>
+        <p className="eyebrow">Have a project that does not fit these categories?</p>
+        <h2>Start with the problem you need to solve.</h2>
         <div className={styles.closeActions}>
           <Link className="button button--primary" href="/contact?brief=create">
-            <span>Bring us the need</span>
+            <span>Discuss your project</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
           <Link className="button button--quiet" href="/work">

@@ -8,7 +8,7 @@ import { Reveal } from "@/components/Reveal";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Frame a complex problem for intelligence, research and development, responsible AI, and long-horizon project delivery with kingXford & Co.",
+    "Prepare a clear project brief for research, digital product development, responsible AI, or institutional systems work with kingXford & Co.",
   alternates: {
     canonical: "/contact",
   },
@@ -32,7 +32,7 @@ const usefulDetails = [
   "The problem, opportunity, or future you are trying to shape",
   "The people and institutions affected by the current system",
   "The evidence already available—and the important unknowns",
-  "The forms of investment available: capital, knowledge, time, infrastructure, networks, or trust",
+  "The resources available: budget, knowledge, time, infrastructure, networks, or trust",
 ] as const;
 
 export default function ContactPage() {
@@ -44,20 +44,20 @@ export default function ContactPage() {
         aria-labelledby="contact-heading"
       >
         <div className="page-hero__index" aria-hidden="true">
-          04 / Contact
+          Contact
         </div>
 
         <div className="page-hero__content">
           <Reveal>
             <p className="eyebrow">
-              kingXford &amp; Co · Complex problems · Ambitious futures
+              kingXford &amp; Co · Project enquiries
             </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="contact-heading">
-              <span className="page-hero__line">Bring the complex problem.</span>
+              <span className="page-hero__line">Bring the problem.</span>
               <span className="page-hero__line page-hero__line--accent">
-                Build the future it demands.
+                Leave with a clearer brief.
               </span>
             </h1>
           </Reveal>
@@ -65,9 +65,9 @@ export default function ContactPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            We work with people and institutions developing difficult ideas,
-            intelligent systems, research programmes, responsible AI, and
-            projects that can expand sustainable human capability.
+            Use the private worksheet below to frame a research, digital
+            product, responsible AI, or institutional systems project before
+            contacting kingXford &amp; Co.
           </p>
         </Reveal>
       </section>
@@ -76,9 +76,9 @@ export default function ContactPage() {
 
       <section className="brief-guide" aria-labelledby="brief-guide-heading">
         <div className="section-heading section-heading--split">
-          <p className="eyebrow">Before a programme begins</p>
+          <p className="eyebrow">Before a project begins</p>
           <h2 id="brief-guide-heading">
-            Four questions that protect ambitious work from a shallow start.
+            Four details that make a first conversation useful.
           </h2>
         </div>
         <ol className="brief-guide__list">
@@ -95,9 +95,9 @@ export default function ContactPage() {
 
       <Reveal className="contact-close">
         <p className="eyebrow">Continue exploring</p>
-        <h2>See how intelligence, research, and development become usable systems.</h2>
+        <h2>Read how research and design inform working products.</h2>
         <Link className="button button--quiet" href="/media">
-          <span>Read the latest thinking</span>
+          <span>Read the field notes</span>
           <ArrowUpRight aria-hidden="true" />
         </Link>
       </Reveal>

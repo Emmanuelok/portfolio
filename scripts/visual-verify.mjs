@@ -60,7 +60,7 @@ const expectedPrimaryDestinations = [
   { label: "Work", href: "/work" },
   { label: "Lab", href: "/lab" },
   { label: "Field notes", href: "/media" },
-  { label: "Canvas", href: "/create/workspace" },
+  { label: "Create", href: "/create" },
 ];
 
 async function inspectPage(name, route, viewport, options = {}) {
@@ -197,7 +197,7 @@ const homeNexusState = await desktop.page.evaluate((expectedDestinations) => {
   const projectInput = document.querySelector("#platform-project-start");
   const privacy = nexus
     ? [...nexus.querySelectorAll("p")].find((element) =>
-        /Starting stores this sentence only in this browser tab/.test(
+        /This text is stored only in this browser tab when Canvas opens/.test(
           element.textContent ?? "",
         ),
       )
@@ -263,12 +263,12 @@ const homeNexusState = await desktop.page.evaluate((expectedDestinations) => {
 }, expectedPrimaryDestinations);
 const homeNexusPassed =
   homeNexusState.h1Count === 1 &&
-  /^Every form of thought\.\s*One intelligence system\.$/.test(
+  /^Develop complex work\.\s*Keep the record intact\.$/.test(
     homeNexusState.heading,
   ) &&
-  homeNexusState.inputLabel === "What are you trying to make possible?" &&
-  /only in this browser tab/i.test(homeNexusState.privacyText) &&
-  /does not contact Kingxford or send it to an Agent/i.test(
+  homeNexusState.inputLabel === "Describe the project or problem." &&
+  /stored only in this browser tab/i.test(homeNexusState.privacyText) &&
+  /not submitted to Kingxford or sent for AI review/i.test(
     homeNexusState.privacyText,
   ) &&
   homeNexusState.headingFirstScreen &&
@@ -361,9 +361,9 @@ const scienceLabCommandPassed =
   scienceLabCommandResults.some(
     (result) =>
       result.id === "command-create" &&
-      /kingxford intelligence/i.test(result.text) &&
-      /continuous project/i.test(result.text) &&
-      /working proof/i.test(result.text),
+      /seven build categories/i.test(result.text) &&
+      /three concept demos/i.test(result.text) &&
+      /open Canvas/i.test(result.text),
   ) &&
   scienceLabCommandResults.some(
     (result) =>
@@ -398,14 +398,14 @@ const operatingSystemState = await desktop.page
       "[aria-label='Platform entry lenses'] a",
     ).length,
     memoryFields: (
-      system.querySelector("[aria-label='Project memory'] strong")
+      system.querySelector("[aria-label='Project record'] strong")
         ?.textContent ?? ""
     )
       .split("·")
       .map((field) => field.trim())
       .filter(Boolean),
     specialistCount: system.querySelectorAll(
-      "[aria-label='Specialist agents'] article",
+      "[aria-label='Review disciplines'] article",
     ).length,
     lifecycleLabels: [
       ...system.querySelectorAll(
@@ -430,7 +430,7 @@ const lifecycleInteractionState = {
       ?.replace(/\s+/g, " ")
       .trim() ?? "",
   assignedSpecialistCount: await desktop.page.locator(
-    "[aria-label='Specialist agents'] article[data-active='true']",
+    "[aria-label='Review disciplines'] article[data-active='true']",
   ).count(),
 };
 const expectedLifecycleLabels = [
@@ -442,7 +442,7 @@ const expectedLifecycleLabels = [
   "Deliver",
 ];
 const operatingSystemPassed =
-  /^Four ways into the work\.\s*One memory carrying it forward\.$/.test(
+  /^Four starting points\.\s*One project record\.$/.test(
     operatingSystemState.heading,
   ) &&
   operatingSystemState.entryPointCount === 4 &&
@@ -451,7 +451,7 @@ const operatingSystemPassed =
   operatingSystemState.specialistCount === 6 &&
   JSON.stringify(operatingSystemState.lifecycleLabels) ===
     JSON.stringify(expectedLifecycleLabels) &&
-  operatingSystemState.conductor === "Conductor" &&
+  operatingSystemState.conductor === "Project review" &&
   operatingSystemState.legacyDisconnectedSurfaceCount === 0 &&
   lifecycleInteractionState.validationSelected &&
   /decision-ready validation record/i.test(
@@ -585,7 +585,7 @@ const expectedCreateShowcases = [
     slug: "meridian-financial-office",
     name: "Meridian Financial Office",
     sector: "finance",
-    heading: "A decision should survive the meeting.",
+    heading: "Keep assumptions, evidence, and review history with each decision.",
   },
   {
     slug: "commonfield-institute",
@@ -627,7 +627,7 @@ const createIndexState = await create.page.evaluate((expectedShowcases) => {
     catalogueCount: document.querySelectorAll(
       "section[aria-labelledby='catalogue-heading'] article[id]",
     ).length,
-    currentNav: canvasNav?.getAttribute("aria-current") === "location",
+    currentNav: canvasNav?.getAttribute("aria-current") === "page",
     embeddedCanvas: Boolean(embeddedCanvas),
     embeddedCanvasHeading:
       embeddedCanvas
@@ -667,7 +667,7 @@ for (const expected of expectedCreateShowcases) {
 }
 
 const createIndexPassed =
-  createIndexState.heading === "What should exist next?" &&
+  createIndexState.heading === "What do you need to create?" &&
   createIndexState.featuredCount === 3 &&
   createIndexState.activeSector === "science" &&
   createIndexState.selectedTabCount === 1 &&
@@ -681,7 +681,7 @@ const createIndexPassed =
   createIndexState.currentNav &&
   createIndexState.embeddedCanvas &&
   createIndexState.embeddedCanvasHeading ===
-    "Move from first thought to working proof." &&
+    "Develop an idea into a testable prototype." &&
   createIndexState.embeddedModeCount === 5 &&
   createIndexState.embeddedResultTabCount === 4 &&
   createIndexState.embeddedConductorTab &&
@@ -908,10 +908,10 @@ const canvasRouteState = await canvas.page.evaluate(() => {
         .querySelector("[role='tab'][id^='workspace-mode-'][aria-selected='true']")
         ?.getAttribute("id") ?? null,
     hasWorkbench: Boolean(
-      document.querySelector("[aria-label='Creative input workbench']"),
+      document.querySelector("[aria-label='Project input editor']"),
     ),
     hasResultPane: Boolean(
-      document.querySelector("[aria-label='Live result and agent review']"),
+      document.querySelector("[aria-label='Preview, project review, and version history']"),
     ),
     resultTabLabels: [
       ...document.querySelectorAll("[aria-label='Result views'] [role='tab']"),
@@ -924,7 +924,7 @@ const canvasRouteState = await canvas.page.evaluate(() => {
 });
 const canvasRoutePassed =
   canvas.record.status === 200 &&
-  canvasRouteState.heading === "Move from first thought to working proof." &&
+  canvasRouteState.heading === "Develop an idea into a testable prototype." &&
   canvasRouteState.modeCount === 5 &&
   canvasRouteState.selectedMode === "workspace-mode-idea" &&
   canvasRouteState.hasWorkbench &&
@@ -957,7 +957,7 @@ const desktopLibraryButton = canvas.page.getByRole("button", {
 });
 await desktopLibraryButton.click();
 const desktopProjectLibrary = canvas.page.getByRole("dialog", {
-  name: "Your connected intelligence",
+  name: "Your projects",
 });
 await desktopProjectLibrary.waitFor({ state: "visible" });
 const desktopProjectLibraryState = {
@@ -974,7 +974,7 @@ const desktopProjectLibraryState = {
 const desktopProjectLibraryPassed =
   desktopProjectLibraryState.buttonVisible &&
   desktopProjectLibraryState.dialogVisible &&
-  /artifacts, evidence, decisions, graph relationships, and review provenance intact/i.test(
+  /drafts, evidence, decisions, revisions, and review history intact/i.test(
     desktopProjectLibraryState.description,
   ) &&
   desktopProjectLibraryState.projectCount >= 1;
@@ -1010,9 +1010,10 @@ const desktopConductorText =
   "";
 const desktopConductorPassed =
   (await desktopConductorTab.getAttribute("aria-selected")) === "true" &&
-  /Project intelligence · Conductor/i.test(desktopConductorText) &&
-  /Direct one evidence-bound Conductor run/i.test(desktopConductorText) &&
-  /acceptance remain one reviewable operation/i.test(desktopConductorText);
+  /Project review/i.test(desktopConductorText) &&
+  /Review the current project revision/i.test(desktopConductorText) &&
+  /up to two specialist reviews/i.test(desktopConductorText) &&
+  /You decide whether to accept it/i.test(desktopConductorText);
 results.push({
   interaction: "canvas-conductor-tab-desktop",
   passed: desktopConductorPassed,
@@ -1031,11 +1032,11 @@ await canvas.page
 
 const canvasModeChecks = [];
 for (const expected of [
-  { mode: "idea", previewSelector: "[aria-label='Local concept preview']", text: "Concept specimen" },
+  { mode: "idea", previewSelector: "[aria-label='Local concept preview']", text: "Concept preview" },
   { mode: "code", previewSelector: "iframe[title='Live code preview']", text: "Isolated browser" },
-  { mode: "mindmap", previewSelector: "[aria-label='Mind map preview']", text: "Relationship view" },
-  { mode: "prompt", previewSelector: "#workspace-preview-panel article", text: "Prompt instrument" },
-  { mode: "brief", previewSelector: "#workspace-preview-panel article", text: "Working production brief" },
+  { mode: "mindmap", previewSelector: "[aria-label='Mind map preview']", text: "Mind map" },
+  { mode: "prompt", previewSelector: "#workspace-preview-panel article", text: "Prompt review" },
+  { mode: "brief", previewSelector: "#workspace-preview-panel article", text: "Working brief" },
 ]) {
   const tab = canvas.page.locator(`#workspace-mode-${expected.mode}`);
   await tab.click();
@@ -1364,7 +1365,7 @@ await canvas.page
 const canvasFrame = canvas.page.frameLocator("iframe[title='Live code preview']");
 const markerBeforeRun = await canvasFrame.locator(`#${canvasCodeMarker}`).isVisible();
 await canvas.page
-  .locator("[aria-label='Creative input workbench']")
+  .locator("[aria-label='Project input editor']")
   .getByRole("button", { name: /^Run/ })
   .click();
 await canvasFrame.locator(`#${canvasCodeMarker}`).waitFor({ state: "visible" });
@@ -1400,8 +1401,8 @@ const canvasAgentPanel = canvas.page.locator("#workspace-agent-panel");
 const canvasAgentPanelText = await canvasAgentPanel.textContent();
 const canvasAgentContextPassed =
   (await canvasAgentPanel.isVisible()) &&
-  /Choose what the Agent can see/.test(canvasAgentPanelText ?? "") &&
-  /Only the checked workspace context and the visible bounded project snapshot are sent/.test(canvasAgentPanelText ?? "") &&
+  /Select the context to include/.test(canvasAgentPanelText ?? "") &&
+  /Only the selected context and project snapshot are sent when you choose\s+Review/.test(canvasAgentPanelText ?? "") &&
   (await canvasAgentPanel.getByLabel("Current input", { exact: true }).isChecked()) &&
   !(await canvasAgentPanel.getByLabel("Preview console", { exact: true }).isChecked()) &&
   !(await canvasAgentPanel.getByLabel("Previous versions", { exact: true }).isChecked()) &&
@@ -1432,11 +1433,11 @@ await canvas.page
   .getByRole("button", { name: "Build with Kingxford", exact: true })
   .click();
 const canvasHandoff = canvas.page.getByRole("dialog", {
-  name: "Take this from tested idea to production.",
+  name: "Request an implementation plan for this project.",
 });
 await canvasHandoff.waitFor({ state: "visible" });
 const entrepreneurshipControl = canvasHandoff.getByRole("button", {
-  name: /Continue in AI-driven Entrepreneurship Platform/,
+  name: /Open the Entrepreneurship workspace/,
 });
 const handoffSessionAfter = await canvas.page.evaluate(() =>
   window.sessionStorage.getItem("kingxford:canvas-handoff:v1"),
@@ -1708,8 +1709,8 @@ const createHeaderState = await createHeader.page.evaluate((expectedDestinations
     expectedDestinations,
     currentNav:
       nav
-        .querySelector(".site-header__nav-link[href='/create/workspace']")
-        ?.getAttribute("aria-current") === "location",
+        .querySelector(".site-header__nav-link[href='/create']")
+        ?.getAttribute("aria-current") === "page",
     brandNavOverlap: Math.max(0, brandRect.right - navRect.left),
     navActionsOverlap: Math.max(0, navRect.right - actionsRect.left),
   };
@@ -1964,15 +1965,15 @@ const mobileDestinationState = await mobile.page.evaluate(
     const canvasSummary = document.querySelector(
       ".site-header__mobile-create > summary strong",
     );
-    const canvasLink = document.querySelector(
-      ".site-header__mobile-create .site-header__mobile-canvas",
+    const createLink = document.querySelector(
+      ".site-header__mobile-create-links a[href='/create']",
     );
     return {
       destinations: [
         ...primaryLinks,
         {
           label: canvasSummary?.textContent?.trim() ?? "",
-          href: canvasLink?.getAttribute("href") ?? null,
+          href: createLink?.getAttribute("href") ?? null,
         },
       ],
       expectedDestinations,
@@ -2066,7 +2067,7 @@ const mobileCreatePassed =
   mobileCreateState.embeddedCanvas === 1 &&
   mobileCreateState.embeddedConductorTab &&
   mobileCreateState.featuredCount === 3 &&
-  mobileCreateState.heading?.trim() === "What should exist next?";
+  mobileCreateState.heading?.trim() === "What do you need to create?";
 results.push({
   interaction: "create-mobile-index",
   passed: mobileCreatePassed,
@@ -2107,10 +2108,10 @@ const mobileCanvasAgentTab = mobileCanvasTabs.getByRole("button", {
   exact: true,
 });
 const mobileWorkbench = mobileCanvas.page.locator(
-  "[aria-label='Creative input workbench']",
+  "[aria-label='Project input editor']",
 );
 const mobileResultPane = mobileCanvas.page.locator(
-  "[aria-label='Live result and agent review']",
+  "[aria-label='Preview, project review, and version history']",
 );
 const mobilePreviewPanel = mobileCanvas.page.locator(
   "#workspace-preview-panel",
@@ -2127,7 +2128,7 @@ const mobileLibraryButton = mobileCanvas.page.getByRole("button", {
 const mobileLibraryButtonVisible = await mobileLibraryButton.isVisible();
 await mobileLibraryButton.click();
 const mobileProjectLibrary = mobileCanvas.page.getByRole("dialog", {
-  name: "Your connected intelligence",
+  name: "Your projects",
 });
 await mobileProjectLibrary.waitFor({ state: "visible" });
 const mobileProjectLibraryState = {
@@ -2200,10 +2201,12 @@ const mobileCanvasConductorState = {
   conductorVisible: await mobileConductorPanel.isVisible(),
   agentHidden: !(await mobileAgentPanel.isVisible()),
   governedControlVisible:
-    /Project intelligence · Conductor/.test(mobileConductorText ?? "") &&
-    /Direct one evidence-bound Conductor run/.test(
+    /Project review/.test(mobileConductorText ?? "") &&
+    /Review the current project revision/.test(
       mobileConductorText ?? "",
-    ),
+    ) &&
+    /up to two specialist reviews/.test(mobileConductorText ?? "") &&
+    /You decide whether to accept it/.test(mobileConductorText ?? ""),
 };
 await mobileCanvas.page.screenshot({
   path: path.join(outputDir, "canvas-mobile-conductor-390.png"),
@@ -2222,8 +2225,8 @@ const mobileCanvasAgentState = {
   conductorHidden: !(await mobileConductorPanel.isVisible()),
   agentVisible: await mobileAgentPanel.isVisible(),
   contextDisclosureVisible:
-    /Choose what the Agent can see/.test(mobileAgentText ?? "") &&
-    /Only the checked workspace context and the visible bounded project snapshot are sent/.test(mobileAgentText ?? ""),
+    /Select the context to include/.test(mobileAgentText ?? "") &&
+    /Only the selected context and project snapshot are sent when you choose\s+Review/.test(mobileAgentText ?? ""),
 };
 await mobileCanvas.page.screenshot({
   path: path.join(outputDir, "canvas-mobile-agent-390.png"),

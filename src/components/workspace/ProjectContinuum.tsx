@@ -135,13 +135,13 @@ export function ProjectContinuum({
       <header className={styles.header}>
         <div>
           <span className={styles.eyebrow}>Project Atlas</span>
-          <h2 id="project-atlas-title">One project. One traceable intelligence thread.</h2>
+          <h2 id="project-atlas-title">One project with traceable sources, decisions, and revisions.</h2>
         </div>
         <div className={styles.conductor}>
           <Network aria-hidden="true" />
           <div>
             <strong>{PLATFORM_CONDUCTOR.name}</strong>
-            <span>Coordinates proposals across every phase</span>
+            <span>Coordinates review proposals across project phases</span>
           </div>
         </div>
       </header>
@@ -150,22 +150,22 @@ export function ProjectContinuum({
         <div>
           <span>Known</span>
           <strong>{totalKnown}</strong>
-          <small>grounded project signals</small>
+          <small>recorded or validated items</small>
         </div>
         <div>
           <span>Unresolved</span>
           <strong>{totalUnresolved}</strong>
-          <small>questions kept visible</small>
+          <small>open questions and checks</small>
         </div>
         <div>
-          <span>Lineage</span>
+          <span>Source history</span>
           <strong>{lineage.length}</strong>
           <small>linked sources or revisions</small>
         </div>
         <div>
-          <span>Active artifact</span>
+          <span>Current artifact</span>
           <strong className={styles.artifact}>{artifactLabel}</strong>
-          <small>reviews bind to an exact revision</small>
+          <small>reviews use this exact revision</small>
         </div>
       </div>
 
@@ -221,22 +221,22 @@ export function ProjectContinuum({
         </div>
         <dl className={styles.phaseSignals}>
           <div>
-            <dt>Exit signal</dt>
+            <dt>Completion criterion</dt>
             <dd>{selected.signal}</dd>
           </div>
           <div>
-            <dt>Conductor routing</dt>
+            <dt>Recommended review</dt>
             <dd>{selected.conductor}</dd>
           </div>
         </dl>
         <div className={styles.gate}>
           <LockKeyhole aria-hidden="true" />
           <div>
-            <span>Human gate</span>
+            <span>Human approval</span>
             <p>{selected.gate}</p>
           </div>
           <span className={styles.gateState}>
-            {selectedState.status === "complete" ? "Recorded" : "No automatic approval"}
+            {selectedState.status === "complete" ? "Recorded" : "Awaiting human decision"}
           </span>
         </div>
         <div className={styles.actions}>
@@ -246,7 +246,7 @@ export function ProjectContinuum({
             disabled={!onAskSpecialist}
           >
             <MessagesSquare aria-hidden="true" />
-            Ask {selected.title} specialist
+            Request {selected.title} review
           </button>
           <button
             type="button"
@@ -255,11 +255,11 @@ export function ProjectContinuum({
             aria-describedby={`atlas-gate-note-${selected.id}`}
           >
             <UserCheck aria-hidden="true" />
-            Record human approval
+            Record approval
           </button>
           <p id={`atlas-gate-note-${selected.id}`}>
             {selectedState.status === "review"
-              ? "Approval records a person’s decision for this phase; it is never inferred from an AI response."
+              ? "Recording approval saves a person’s decision for this phase; it is never inferred from an AI response."
               : "The gate becomes available only after this phase enters human review."}
           </p>
         </div>
@@ -269,7 +269,7 @@ export function ProjectContinuum({
         <div className={styles.lineageHeading}>
           <div>
             <GitCommitHorizontal aria-hidden="true" />
-            <span>Lineage &amp; provenance</span>
+            <span>Source and revision history</span>
           </div>
           <small>Source → project decision → artifact revision</small>
         </div>
@@ -285,8 +285,8 @@ export function ProjectContinuum({
           </ol>
         ) : (
           <p className={styles.emptyLineage}>
-            Provenance appears here when evidence or an artifact revision is added.
-            The absence of lineage is shown honestly, not inferred.
+            Sources and revisions appear here when evidence or an artifact revision
+            is added. Missing history is never inferred.
           </p>
         )}
       </div>

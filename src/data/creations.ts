@@ -314,7 +314,7 @@ export const websiteShowcases: readonly WebsiteShowcase[] = [
     ],
     interfaceModules: [
       {
-        name: "Research atlas",
+        name: "Research directory",
         purpose: "Connect themes, projects, methods, outputs, and responsible investigators.",
         sampleContent:
           "Synthetic project records created solely to demonstrate navigation; they are not scientific findings.",
@@ -347,7 +347,7 @@ export const websiteShowcases: readonly WebsiteShowcase[] = [
         "Documentary laboratory photography, instrument detail, restrained data notation, and no speculative science imagery.",
     },
     previewHref: "/create/lumen-vale-laboratory",
-    cta: { label: "Enter the lab concept", href: "/create/lumen-vale-laboratory" },
+    cta: { label: "Open the science demonstration", href: "/create/lumen-vale-laboratory" },
     disclosure:
       "Lumen Vale Laboratory is a fictional design demonstration. Its people, projects, equipment records, data, and findings are synthetic and do not represent a client or operating laboratory.",
   },
@@ -371,7 +371,7 @@ export const websiteShowcases: readonly WebsiteShowcase[] = [
     ],
     interfaceModules: [
       {
-        name: "Scenario desk",
+        name: "Scenario comparison",
         purpose: "Compare assumptions and show how a model responds when inputs change.",
         sampleContent:
           "Synthetic scenarios for interface demonstration only; not forecasts, advice, or indications of return.",
@@ -383,7 +383,7 @@ export const websiteShowcases: readonly WebsiteShowcase[] = [
           "Fictional publications and illustrative market data with no relationship to actual securities or clients.",
       },
       {
-        name: "Governance ledger",
+        name: "Governance record",
         purpose: "Surface review responsibilities, methodology versions, conflicts, and disclosures.",
         sampleContent:
           "Sample governance records provided only to demonstrate information architecture.",
@@ -404,7 +404,7 @@ export const websiteShowcases: readonly WebsiteShowcase[] = [
         "Architectural workplace photography, paper and material detail, disciplined charts, and quiet institutional confidence.",
     },
     previewHref: "/create/meridian-financial-office",
-    cta: { label: "Open the finance concept", href: "/create/meridian-financial-office" },
+    cta: { label: "Open the finance demonstration", href: "/create/meridian-financial-office" },
     disclosure:
       "Meridian Financial Office is a fictional design demonstration. It is not a registered financial institution or adviser; all organizations, services, portfolios, figures, and scenarios shown are synthetic and provide no financial advice or return claim.",
   },
@@ -434,13 +434,13 @@ export const websiteShowcases: readonly WebsiteShowcase[] = [
           "Fictional programmes and entry information for navigation demonstration only; no accreditation is implied.",
       },
       {
-        name: "Learning studio",
+        name: "Project workspace",
         purpose: "Show how projects, resources, critique, and reflective progress could connect.",
         sampleContent:
           "Sample learner work and progress records are synthetic and do not represent real people or outcomes.",
       },
       {
-        name: "Public knowledge shelf",
+        name: "Public resource library",
         purpose: "Bring lectures, explainers, reading lists, and research summaries into one browsable space.",
         sampleContent:
           "Demonstration titles and metadata only; no publication, authorship, or institutional claims.",
@@ -461,7 +461,7 @@ export const websiteShowcases: readonly WebsiteShowcase[] = [
         "Documentary classrooms and workshops, tactile learning materials, generous daylight, and learner work presented with context.",
     },
     previewHref: "/create/commonfield-institute",
-    cta: { label: "Visit the education concept", href: "/create/commonfield-institute" },
+    cta: { label: "Open the education demonstration", href: "/create/commonfield-institute" },
     disclosure:
       "Commonfield Institute is a fictional design demonstration. It is not an operating or accredited educational institution; all programmes, people, projects, dates, and outcomes shown are synthetic.",
   },

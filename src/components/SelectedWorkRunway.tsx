@@ -21,18 +21,17 @@ export function SelectedWorkRunway({
     >
       <header className="work-runway__header">
         <Reveal className="work-runway__index">
-          <span>02 / Mission in practice</span>
-          <span>Evidence and precedents for the same project system</span>
+          <span>02 / Selected work</span>
+          <span>Published case studies and current outcomes</span>
         </Reveal>
         <Reveal className="work-runway__heading" delay={0.05}>
           <h2 id="work-runway-title">
-            Complex ideas,
-            <em>made operational.</em>
+            Complex briefs,
+            <em>built into working products.</em>
           </h2>
           <p>
-            Research, intelligent products, and decision systems that help
-            people and institutions understand complexity, expand capability,
-            and move consequential projects forward.
+            Case studies in digital products, AI-assisted experiences,
+            research tools, and decision systems.
           </p>
         </Reveal>
       </header>
@@ -95,7 +94,7 @@ export function SelectedWorkRunway({
 
       <Reveal className="work-runway__archive">
         <Link href="/work">
-          <span>Explore the complete body of work</span>
+          <span>Browse all case studies</span>
           <ArrowUpRight aria-hidden="true" />
         </Link>
       </Reveal>

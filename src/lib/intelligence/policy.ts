@@ -147,9 +147,9 @@ export function negotiateCapabilities(
         capability,
         reason:
           capability === "external-research"
-            ? "This governed workspace run has no browsing or external-research tool. Add verified evidence to the project ledger instead."
+            ? "This review cannot browse or conduct external research. Add verified evidence to the project record instead."
             : capability === "code-execution"
-              ? "The intelligence runtime reviews source but does not execute untrusted code."
+              ? "This review can inspect source code but cannot execute it."
               : "Deployment remains a separate, explicit, human-reviewed action and cannot be granted to this run.",
       })),
   };
@@ -187,12 +187,12 @@ export function buildGovernedPhasePlan(
     phase,
     summary:
       modelPlan?.summary ||
-      `Conductor will coordinate ${specialists.length || "no"} specialist pass${specialists.length === 1 ? "" : "es"} for the ${phase} phase.`,
+      `This ${phase} review includes ${specialists.length} specialist ${specialists.length === 1 ? "step" : "steps"}.`,
     phaseObjective: modelPlan?.phaseObjective || policy.objective,
     specialists: specialists.map((role) => ({
       role,
       mandate: policy.mandates[role],
-      expectedContribution: `A bounded ${role} review tied to the supplied workspace and project ledger.`,
+      expectedContribution: `A ${role} review of the supplied workspace and project record.`,
     })),
     sequence: [...(modelPlan?.sequence?.length ? modelPlan.sequence : policy.sequence)],
     acceptanceCriteria: [

@@ -37,31 +37,31 @@ const commands: readonly CommandItem[] = [
   {
     id: "mission",
     label: "Mission",
-    description: "Intelligence and responsible innovation for sustainable abundance",
+    description: "Why Kingxford exists and how the platform works",
     href: "/#mission",
-    keywords: "kingxford co mission intelligence sustainable abundance abundant future complex problems ideas projects",
+    keywords: "kingxford co mission research design responsible ai human capability complex problems ideas projects",
     icon: House,
   },
   {
     id: "lab",
-    label: "Evidence — R&D / Lab",
-    description: "Bring research and evidence into the same project system",
+    label: "Lab",
+    description: "Research themes, experiments, and open questions",
     href: "/lab",
     keywords: "kingxford research development science academic experiments evidence responsible ai",
     icon: FlaskConical,
   },
   {
     id: "create",
-    label: "Create — Kingxford Intelligence",
-    description: "Seven directions, three live proofs, and one continuous project from discovery to working proof",
+    label: "Create",
+    description: "Browse seven build categories, try three concept demos, or open Canvas",
     href: "/create",
     keywords: "create canvas studio websites digital tools platforms science laboratory finance education schools institutions businesses professionals individuals communities everyday needs",
     icon: PanelsTopLeft,
   },
   {
     id: "create-workspace",
-    label: "Open the intelligence workspace",
-    description: "Test ideas, code, systems, prompts, and briefs beside a live result",
+    label: "Open Canvas",
+    description: "Develop an idea, prototype, mind map, prompt, or brief",
     href: "/create/workspace?mode=idea",
     keywords: "canvas workspace creative tool idea concept code html css javascript mind map prompt brief live preview agent prototype build",
     icon: Sparkles,
@@ -77,7 +77,7 @@ const commands: readonly CommandItem[] = [
   {
     id: "create-science",
     label: "Lumen Vale Laboratory",
-    description: "Explore the interactive scientific research website concept",
+    description: "Try the interactive science concept demo",
     href: "/create/lumen-vale-laboratory",
     keywords: "science laboratory research microscopy specimens observations interactive concept prototype",
     icon: FlaskConical,
@@ -85,7 +85,7 @@ const commands: readonly CommandItem[] = [
   {
     id: "create-finance",
     label: "Meridian Financial Office",
-    description: "Explore the interactive institutional finance website concept",
+    description: "Try the interactive institutional finance concept demo",
     href: "/create/meridian-financial-office",
     keywords: "finance stewardship governance scenarios mandate committee interactive concept prototype",
     icon: BriefcaseBusiness,
@@ -93,23 +93,23 @@ const commands: readonly CommandItem[] = [
   {
     id: "create-education",
     label: "Commonfield Institute",
-    description: "Explore the interactive education website concept",
+    description: "Try the interactive education concept demo",
     href: "/create/commonfield-institute",
     keywords: "education learning curriculum weekly syllabus school institute interactive concept prototype",
     icon: PanelsTopLeft,
   },
   {
     id: "work",
-    label: "Proofs — selected work",
-    description: "See evidence and complex ideas translated into working systems",
+    label: "Work",
+    description: "Read published case studies and inspect current outcomes",
     href: "/work",
     keywords: "portfolio published projects case studies evidence intelligence research deployed systems",
     icon: BriefcaseBusiness,
   },
   {
     id: "media",
-    label: "Insights — evidence-led media",
-    description: "Ideas and evidence that can inform a Kingxford project",
+    label: "Field notes",
+    description: "Read research briefings and practical essays",
     href: "/media",
     keywords: "blog podcast media artificial intelligence sustainable abundance business finance design research",
     icon: Newspaper,
@@ -117,15 +117,15 @@ const commands: readonly CommandItem[] = [
   {
     id: "about",
     label: "About kingXford & Co",
-    description: "Mission, operating model, perspective, and capabilities",
+    description: "Mission, working model, and capabilities",
     href: "/about",
     keywords: "company co mission investors contributors practice perspective capabilities",
     icon: UserRound,
   },
   {
     id: "contact",
-    label: "Bring a complex challenge",
-    description: "Start with a problem, opportunity, idea, or ambitious project",
+    label: "Start a project",
+    description: "Prepare a project brief or contact kingXford & Co",
     href: "/contact",
     keywords: "contact collaborate institution research development email project problem",
     icon: Mail,
@@ -270,7 +270,7 @@ export function CommandPalette({
           <div className="command-palette__heading">
             <div>
               <span className="command-palette__eyebrow">Quick navigation</span>
-              <h2 id="command-palette-title">Where would you like to go?</h2>
+              <h2 id="command-palette-title">Choose a destination</h2>
             </div>
             <button
               className="command-palette__close"
@@ -291,7 +291,7 @@ export function CommandPalette({
               ref={searchRef}
               id="command-palette-search"
               type="search"
-              placeholder="Type a destination or idea…"
+              placeholder="Search pages, projects, or topics…"
               autoComplete="off"
               value={query}
               onChange={(event) => {
@@ -348,8 +348,8 @@ export function CommandPalette({
 
             {filteredCommands.length === 0 && (
               <p className="command-palette__empty">
-                No destination found. Try “mission”, “create”, “R&amp;D”,
-                “media”, or “contact”.
+                No destination found. Try “mission”, “create”, “lab”,
+                “field notes”, or “contact”.
               </p>
             )}
           </div>

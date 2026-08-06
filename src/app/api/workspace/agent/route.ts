@@ -387,7 +387,7 @@ Current text:
 ${value.text}${code}${logs}${versions}
 </WORKSPACE_DATA>${project}${playbook}
 
-Produce an evidence-conscious review, a bounded next test, explicit proposed changes, an improved source version, and a practical build brief.`;
+Return an evidence-aware review, one practical next test, specific proposed changes, an improved source version, and a build brief.`;
 }
 
 function groundingMetadata(matches: readonly KingxfordKnowledgeMatch[]) {
@@ -591,7 +591,7 @@ export async function POST(request: NextRequest) {
   if (!admission.allowed) {
     const message =
       admission.reason === "concurrency"
-        ? "Two reviews are already running for this visitor. Let one finish before starting another."
+        ? "Two reviews are already running. Wait for one to finish before starting another."
         : "Review limit reached. Keep working locally and try again shortly.";
 
     return errorResponse(message, 429, requestId, {
@@ -654,7 +654,7 @@ export async function POST(request: NextRequest) {
       return localResponse(
         input,
         projectContext,
-        "AI analysis is not configured in this environment. This is a local structural review, not model-generated feedback.",
+        "AI generation is not configured. This review uses local rule-based checks, not a language model.",
         requestId,
         startedAt,
         {
@@ -667,7 +667,7 @@ export async function POST(request: NextRequest) {
     const credits = consumeWorkspaceCredits(key, input.depth);
     if (!credits.allowed) {
       return errorResponse(
-        "The anonymous AI review allowance has been used for today. Local Canvas work remains available.",
+        "Today’s anonymous AI review allowance has been used. You can continue working locally in Canvas.",
         429,
         requestId,
         {
@@ -729,7 +729,7 @@ export async function POST(request: NextRequest) {
         ...(!isPrimaryModel(completedModel, modelRoute.model)
           ? {
               notice:
-                "The primary model was unavailable for this request, so the review was completed by an approved Gateway fallback model.",
+                "The primary model was unavailable, so an approved fallback model completed the review.",
             }
           : {}),
       };
@@ -754,7 +754,7 @@ export async function POST(request: NextRequest) {
       return localResponse(
         input,
         projectContext,
-        "The AI review was temporarily unavailable. Your input was not changed; this fallback uses local structural rules.",
+        "The AI service was unavailable. Your input is unchanged; this review uses local rule-based checks.",
         requestId,
         startedAt,
         credits.usage,

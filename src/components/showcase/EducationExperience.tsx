@@ -367,7 +367,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
 
             <div className={styles.livePathway} id="curriculum-output">
               <div className={styles.pathwayHeader}>
-                <span>Living pathway / {rhythm.note}</span>
+                <span>Current learning pathway / {rhythm.note}</span>
                 <strong>{phase.verb}</strong>
               </div>
 
@@ -459,7 +459,7 @@ export function EducationExperience({ showcase }: EducationExperienceProps) {
         <section className={styles.projectLab} aria-labelledby="project-lab-heading">
           <div className={styles.projectBrief}>
             <div className={styles.briefHeading}>
-              <span>CF / Generated studio brief</span>
+              <span>CF / Configured studio brief</span>
               <FileText aria-hidden="true" />
             </div>
             <p className={styles.briefLabel}>Public question</p>

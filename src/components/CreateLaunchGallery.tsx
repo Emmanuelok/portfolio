@@ -26,7 +26,7 @@ const sectorMeta = {
     shortLabel: "Science",
     icon: FlaskConical,
     slug: "lumen-vale-laboratory",
-    mechanism: "Evidence lens",
+    mechanism: "Evidence record",
     purpose: "Make methods, records, review, and instrument access inspectable.",
   },
   finance: {
@@ -34,7 +34,7 @@ const sectorMeta = {
     shortLabel: "Finance",
     icon: Landmark,
     slug: "meridian-financial-office",
-    mechanism: "Living decision file",
+    mechanism: "Decision record",
     purpose: "Keep assumptions, challenge, and decision rights attached to the work.",
   },
   education: {
@@ -42,7 +42,7 @@ const sectorMeta = {
     shortLabel: "Education",
     icon: BookOpen,
     slug: "commonfield-institute",
-    mechanism: "Living curriculum",
+    mechanism: "Curriculum pathway",
     purpose: "Build a learning pathway around a consequential public question.",
   },
 } as const;
@@ -72,9 +72,9 @@ function ScienceMiniExperience() {
   return (
     <div className={styles.scienceDemo}>
       <div className={styles.demoStatement}>
-        <span>Research observatory / Synthetic records</span>
-        <h3>Every claim carries its method.</h3>
-        <p>Select a record. Its evidence state, review condition, and source trace move together.</p>
+        <span>Research records / Synthetic demonstration</span>
+        <h3>Each claim is linked to its method.</h3>
+        <p>Select a record to see its completeness, review status, and source trace together.</p>
       </div>
       <div className={styles.scienceConsole}>
         <div className={styles.recordSelector} aria-label="Choose a synthetic research record" role="group">
@@ -136,8 +136,8 @@ function FinanceMiniExperience() {
   return (
     <div className={styles.financeDemo}>
       <div className={styles.financeFolio}>
-        <span>Case MFO–24–07 / Demonstration only</span>
-        <h3>Every decision leaves an inspectable trail.</h3>
+        <span>Decision file MFO–24–07 / Demonstration only</span>
+        <h3>Review assumptions, status, and decision roles together.</h3>
         <p>How resilient is an illustrative operating plan under delayed receipts and higher financing costs?</p>
         <div className={styles.guardrailList}>
           <span>Mandate aligned <b>Recorded</b></span>
@@ -147,7 +147,7 @@ function FinanceMiniExperience() {
       </div>
       <div className={styles.scenarioDesk}>
         <div className={styles.scenarioHeader}>
-          <span>Scenario desk</span>
+          <span>Scenario comparison</span>
           <small>Synthetic fixed presets · not a forecast</small>
         </div>
         <div className={styles.scenarioButtons} aria-label="Choose an illustrative scenario" role="group">
@@ -185,8 +185,8 @@ function EducationMiniExperience() {
   return (
     <div className={styles.educationDemo}>
       <div className={styles.curriculumIntro}>
-        <span>Living curriculum / Concept model</span>
-        <h3>Choose a question. Build the curriculum.</h3>
+        <span>Curriculum pathway / Demonstration</span>
+        <h3>Choose a question to configure the curriculum.</h3>
         <div className={styles.questionButtons} aria-label="Choose a public question" role="group">
           {educationQuestions.map((item) => (
             <button
@@ -202,7 +202,7 @@ function EducationMiniExperience() {
       </div>
       <div className={styles.curriculumScore} aria-live="polite">
         <div className={styles.scoreHeader}>
-          <span>Illustrative pathway</span>
+          <span>Current pathway</span>
           <strong>{question.id}</strong>
         </div>
         <ol>
@@ -214,7 +214,7 @@ function EducationMiniExperience() {
             </li>
           ))}
         </ol>
-        <p>Studio intensive · 8 hours / week · synthetic pathway</p>
+        <p>Illustrative schedule · 8 hours per week</p>
       </div>
     </div>
   );
@@ -255,11 +255,11 @@ export function CreateLaunchGallery() {
     <div className={styles.gallery} data-prototype-gallery="true" data-sector={activeSector}>
       <div className={styles.galleryHeader}>
         <div>
-          <span>Prototype stage / 03 live demonstrations</span>
+          <span>Interactive demonstrations / 03 sectors</span>
           <strong>{meta.label}</strong>
         </div>
         <div
-          aria-label="Website concept sectors"
+          aria-label="Website demonstration sectors"
           className={styles.sectorTabs}
           onKeyDown={moveSectorTab}
           role="tablist"
@@ -307,12 +307,12 @@ export function CreateLaunchGallery() {
       <div className={styles.specificationStrip}>
         <dl>
           <div><dt>Concept</dt><dd>{showcase.name}</dd></div>
-          <div><dt>Signature system</dt><dd>{meta.mechanism}</dd></div>
-          <div><dt>Designed to</dt><dd>{meta.purpose}</dd></div>
+          <div><dt>Key interface</dt><dd>{meta.mechanism}</dd></div>
+          <div><dt>Purpose</dt><dd>{meta.purpose}</dd></div>
           <div><dt>Status</dt><dd>Fictional, interactive demonstration</dd></div>
         </dl>
         <Link href={showcase.previewHref}>
-          Open the complete prototype <ArrowUpRight aria-hidden="true" />
+          Open the full demonstration <ArrowUpRight aria-hidden="true" />
         </Link>
       </div>
     </div>

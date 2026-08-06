@@ -43,6 +43,9 @@ jobs:
       - name: Test platform lifecycle and project bundles
         run: npm run test:platform
 
+      - name: Verify professional editorial voice
+        run: npm run verify:editorial-voice
+
       - name: Verify AI governance
         run: npm run verify:creative-agent
 

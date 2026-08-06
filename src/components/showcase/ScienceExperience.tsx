@@ -436,7 +436,7 @@ function EvidenceLineage() {
       <div className={styles.sectionIntro}>
         <div>
           <p className={styles.kicker}>Evidence lineage / Select a stage</p>
-          <h2 id="lineage-heading">Every claim should retain its route back.</h2>
+          <h2 id="lineage-heading">Link each claim to its source, method, and review history.</h2>
         </div>
         <p>
           This interactive lineage is a design model: it shows how a research
@@ -716,7 +716,7 @@ export default function ScienceExperience({ showcase }: ScienceExperienceProps) 
         <section className={styles.systemSection} aria-labelledby="system-heading">
           <div className={styles.sectionIntro}>
             <div>
-              <p className={styles.kicker}>Research infrastructure / Not decoration</p>
+              <p className={styles.kicker}>Research platform capabilities</p>
               <h2 id="system-heading">A public website can also be a trustworthy working surface.</h2>
             </div>
             <p>{showcase.thesis}</p>

@@ -56,7 +56,7 @@ const queryPresets: Readonly<Record<string, Partial<BriefState>>> = {
   },
   "institutional-system": {
     problem: "I need to improve an institutional process or decision system that is currently fragmented.",
-    future: "A coherent, accountable operating system with measurable outcomes.",
+    future: "A coherent, accountable workflow with measurable outcomes.",
   },
   "research-ai": {
     problem: "I need a responsible research or AI instrument for a complex evidence problem.",
@@ -330,7 +330,7 @@ function buildBrief(value: BriefState) {
     `3. Existing evidence and unknowns\n${value.evidence || "Not yet defined"}`,
     `4. Desired future and measurable change\n${value.future || "Not yet defined"}`,
     `5. Constraints, risks and dependencies\n${value.constraints || "Not yet defined"}`,
-    `6. Available investment\n${value.investment || "Not yet defined"}`,
+    `6. Available resources\n${value.investment || "Not yet defined"}`,
     `7. Time horizon\n${value.horizon || "Not yet defined"}`,
     "",
     "Next step: validate the problem definition with affected people, identify the evidence threshold, and design the smallest responsible test.",
@@ -400,8 +400,8 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
   return (
     <section className={styles.builder} aria-labelledby="problem-brief-title">
       <header className={styles.heading}>
-        <p className="eyebrow">A useful first investment</p>
-        <h2 id="problem-brief-title">Make the problem legible.</h2>
+        <p className="eyebrow">Start with the brief</p>
+        <h2 id="problem-brief-title">Define the problem before choosing the solution.</h2>
         <p>
           Use this private, browser-only worksheet to turn an ambitious idea or
           institutional challenge into a clearer starting point for research,
@@ -467,8 +467,8 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
         </label>
 
         <label className={styles.field}>
-          <span>Available investment</span>
-          <small>Capital, expertise, research, time, infrastructure, networks, or trust.</small>
+          <span>Available resources</span>
+          <small>Budget, expertise, research, time, infrastructure, networks, or trust.</small>
           <textarea
             value={brief.investment}
             onChange={(event) => update("investment", event.target.value)}

@@ -651,8 +651,8 @@ function AgentReviewPanel({
         <div className={styles.agentIdentity}>
           <span className={styles.agentMark}><Sparkles aria-hidden="true" /></span>
           <div>
-            <span>Kingxford Agent</span>
-            <h2 id="agent-panel-heading">Creative intelligence review</h2>
+            <span>Kingxford Review</span>
+            <h2 id="agent-panel-heading">Focused project review</h2>
           </div>
         </div>
         <div className={styles.agentProtocol}>
@@ -670,9 +670,9 @@ function AgentReviewPanel({
       <div className={styles.agentTruth}>
         <Bot aria-hidden="true" />
         <p>
-          Governance invariants are checked on every release and daily. AI output
-          can still be wrong; the Agent cannot auto-apply, rewrite itself, or learn
-          from your private work.
+          AI output may be incorrect. Reviews cannot change your project
+          automatically, run tools, or approve a gate. Release checks verify these
+          controls.
         </p>
       </div>
 
@@ -700,11 +700,11 @@ function AgentReviewPanel({
 
       {!review && !isRunning && (
         <div className={styles.agentEmpty}>
-          <span>Uses AI</span>
-          <h3>Ask for a rigorous second view.</h3>
+          <span>Project review</span>
+          <h3>Review the current version.</h3>
           <p>
-            The Agent can challenge assumptions, expose failure points, refine
-            the source and turn this version into a buildable brief.
+            Use a focused review to identify assumptions, risks, unclear areas, and
+            a practical next test. Suggested edits remain proposals until you apply them.
           </p>
           <div className={styles.quickActions}>
             {reviewActions.map((action) => (
@@ -726,7 +726,7 @@ function AgentReviewPanel({
         <div className={styles.agentRunning} role="status">
           <LoaderCircle aria-hidden="true" />
           <div>
-            <strong>Examining this version…</strong>
+            <strong>Reviewing this version…</strong>
             <span>Clarity · assumptions · feasibility · next test</span>
           </div>
           <button type="button" onClick={onStop}>
@@ -743,7 +743,7 @@ function AgentReviewPanel({
           <div className={styles.reviewSummary}>
             <div>
               <span data-status={review.status}>{review.status}</span>
-              <small>{response.source === "openai" ? "OpenAI review" : "Local structural review"}</small>
+              <small>{response.source === "openai" ? "AI-assisted review" : "Local rule-based review"}</small>
             </div>
             <p>{review.summary}</p>
           </div>
@@ -764,7 +764,7 @@ function AgentReviewPanel({
               <strong>{formatTokens(response.usage?.totalTokens)}</strong>
             </div>
             <div>
-              <span>Daily credits</span>
+              <span>Daily AI allowance</span>
               <strong>
                 {response.limits
                   ? `${response.limits.dailyCreditsRemaining} remaining`
@@ -784,7 +784,7 @@ function AgentReviewPanel({
           {response.grounding.length > 0 && (
             <details className={styles.reviewGrounding}>
               <summary>
-                Kingxford playbook grounding
+                Kingxford playbook notes
                 <span>{response.grounding.length} notes</span>
               </summary>
               <ul>
@@ -823,7 +823,7 @@ function AgentReviewPanel({
           </div>
 
           <section className={styles.nextTest}>
-            <span>The next best test</span>
+            <span>Recommended next test</span>
             <p>{review.nextTest}</p>
           </section>
 
@@ -849,7 +849,7 @@ function AgentReviewPanel({
             </details>
             <button type="button" disabled={!canApply} onClick={onApply}>
               <WandSparkles aria-hidden="true" />
-              {canApply ? "Apply as a new version" : "Run a current bound review to apply"}
+              {canApply ? "Apply as a new version" : "Review the current revision before applying"}
             </button>
           </section>
 
@@ -867,17 +867,17 @@ function AgentReviewPanel({
       )}
 
       <div className={styles.agentComposer}>
-        <label htmlFor="agent-instruction">Ask the Agent to examine this version</label>
+        <label htmlFor="agent-instruction">What should the review focus on?</label>
         <textarea
           id="agent-instruction"
           value={instruction}
           rows={3}
-          placeholder="Challenge the assumptions and make the next test more rigorous…"
+          placeholder="Identify the main assumption, risk, or next test…"
           onChange={(event) => onInstruction(event.target.value)}
         />
         <div className={styles.agentContext}>
           <div>
-            <span>Choose what the Agent can see</span>
+            <span>Select the context to include</span>
             <label><input type="checkbox" checked readOnly /> Current input</label>
             <label title="Retrieve relevant notes from Kingxford's fixed, versioned playbook.">
               <input
@@ -939,16 +939,16 @@ function AgentReviewPanel({
           </button>
         </div>
         <p>
-          Only the checked workspace context and the visible bounded project
-          snapshot are sent when you press Review. The snapshot is treated as
-          untrusted reference material. Remove secrets or confidential material first.
+          Only the selected context and project snapshot are sent when you choose
+          Review. The snapshot is reference material, not instructions. Remove
+          secrets and confidential information before continuing.
         </p>
       </div>
 
       {reviewHistory.length > 0 && (
         <details className={styles.reviewHistory}>
           <summary>
-            <span>Private review memory</span>
+            <span>Review history</span>
             <strong>{reviewHistory.length} / {REVIEW_HISTORY_LIMIT}</strong>
           </summary>
           <div className={styles.reviewHistoryHeading}>
@@ -1025,7 +1025,7 @@ function VersionPanel({
         <div className={styles.versionEmpty}>
           <History aria-hidden="true" />
           <h3>No versions yet.</h3>
-          <p>A checkpoint appears after your first run or approved Agent change.</p>
+          <p>Saved checkpoints and applied proposals appear here.</p>
         </div>
       )}
       {versions.length > 0 && (
@@ -1304,7 +1304,7 @@ export function CreativeWorkspace({
             : `Project started from ${seed.source.label}`,
         );
       } catch {
-        setStatus("The incoming project seed could not be applied. It was kept for recovery.");
+        setStatus("The incoming project could not be opened. A recovery copy was retained.");
       }
     });
     return () => window.cancelAnimationFrame(frame);
@@ -1397,7 +1397,7 @@ export function CreativeWorkspace({
           setProjectRepository(repository);
         }
         if (initialMode) setMode(initialMode);
-        setStatus("Opened the requested Canvas tool and lifecycle phase");
+        setStatus("Opened the selected Canvas mode and project phase");
       } catch (error) {
         setStatus(error instanceof Error
           ? `Workspace route could not be applied · ${error.message}`
@@ -1541,9 +1541,9 @@ export function CreativeWorkspace({
       anchor.download = `${safeFileName(project.title)}.kxproject.json`;
       anchor.click();
       URL.revokeObjectURL(url);
-      setStatus("Complete project package exported");
+      setStatus("Project file exported");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "The project package could not be exported.");
+      setStatus(error instanceof Error ? error.message : "The project file could not be exported.");
     }
   };
 
@@ -1557,11 +1557,11 @@ export function CreativeWorkspace({
       openProjectInCanvas(result.project);
       setStatus(result.cloned
         ? "Imported as a protected copy; the existing project was preserved"
-        : "Project package imported and verified");
+        : "Project file imported and validated");
     } catch (error) {
       setStatus(error instanceof Error
         ? `Import rejected · ${error.message}`
-        : "Import rejected by the project integrity checks.");
+        : "The project file did not pass validation.");
     } finally {
       if (importRef.current) importRef.current.value = "";
     }
@@ -1591,7 +1591,7 @@ export function CreativeWorkspace({
       saveProjectRepository(result.state);
       setProjectRepository(result.state);
       openProjectInCanvas(result.project);
-      setStatus(`Duplicated ${result.project.title} with complete Atlas lineage`);
+      setStatus(`Duplicated ${result.project.title} with its project history`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "The project could not be duplicated.");
     }
@@ -1606,7 +1606,7 @@ export function CreativeWorkspace({
       saveProjectRepository(repository);
       setProjectRepository(repository);
       if (projectId === activeProject?.id) openProjectInCanvas(next);
-      setStatus("Local Atlas project deleted");
+      setStatus("Project deleted from this device");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "The project could not be deleted.");
     }
@@ -1623,7 +1623,7 @@ export function CreativeWorkspace({
       };
       setVersions((current) => [version, ...current].slice(0, VERSION_LIMIT));
       commitDraftToProject(draft, source === "restored" ? "restored" : "human");
-      setStatus(`Checkpoint saved · ${version.name}`);
+      setStatus(`Version saved · ${version.name}`);
       return version;
     },
     [commitDraftToProject, draft, title],
@@ -1679,7 +1679,7 @@ export function CreativeWorkspace({
     setMode(nextMode);
     setRightTab("preview");
     setMobilePane("input");
-    setStatus(`${modeDetails[nextMode].label} workspace active`);
+    setStatus(`${modeDetails[nextMode].label} editor open`);
   };
 
   const transformTo = (target: WorkspaceMode) => {
@@ -1709,7 +1709,7 @@ export function CreativeWorkspace({
       }
       persistProject(next);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "The linked transformation could not be recorded.");
+      setStatus(error instanceof Error ? error.message : "The converted draft could not be saved.");
       return;
     }
     if (target === "code") {
@@ -1721,7 +1721,7 @@ export function CreativeWorkspace({
     }
     setMode(target);
     setRightTab("preview");
-    setStatus(`Created a linked ${transformLabels[target].toLocaleLowerCase()}`);
+    setStatus(`Created ${transformLabels[target].toLocaleLowerCase()} from the current draft`);
   };
 
   const restoreVersion = (version: WorkspaceVersion) => {
@@ -1740,7 +1740,7 @@ export function CreativeWorkspace({
       }));
     }
     setRightTab("preview");
-    setStatus(`Restored ${version.name} as a new branch`);
+    setStatus(`Restored ${version.name} as a new version`);
   };
 
   const exportCurrent = () => {
@@ -1890,7 +1890,7 @@ export function CreativeWorkspace({
         response: payload,
       };
       setReviewHistory((current) => [record, ...current].slice(0, REVIEW_HISTORY_LIMIT));
-      setStatus(`Review complete · ${payload.source === "openai" ? "Uses AI" : "Local fallback"}`);
+      setStatus(`Review complete · ${payload.source === "openai" ? "AI-assisted review" : "Local rule-based review"}`);
     } catch (error) {
       reviewBindingRef.current = null;
       setReviewBinding(null);
@@ -1920,13 +1920,13 @@ export function CreativeWorkspace({
 
     try {
       const project = commitDraftToProject(draft, "human");
-      if (!project) throw new Error("The current draft could not be committed before orchestration.");
+      if (!project) throw new Error("The current draft could not be saved before the project review.");
       const artifact = artifactForProjectMode(project, mode);
       const revision = artifact
         ? project.revisions.find(({ id }) => id === artifact.activeRevisionId)
         : undefined;
       if (!artifact || !revision) {
-        throw new Error("The active artifact revision could not be bound to the Conductor run.");
+        throw new Error("The active artifact revision could not be attached to the project review.");
       }
       const snapshot = buildProjectSnapshot(project, { activeArtifactId: artifact.id });
       const binding: IntelligenceBinding = {
@@ -1984,7 +1984,7 @@ export function CreativeWorkspace({
         throw new Error(
           typeof raw?.error === "string"
             ? raw.error
-            : "The governed Conductor run did not complete.",
+            : "The project review did not complete.",
         );
       }
       const payload = intelligenceRunResponseSchema.parse(raw);
@@ -1996,7 +1996,7 @@ export function CreativeWorkspace({
         || liveProject?.id !== binding.projectId
         || editorHashRef.current !== binding.editorHash
       ) {
-        throw new Error("The project changed during orchestration, so the result was not attached.");
+        throw new Error("The project changed during the review, so the result was not attached.");
       }
       const echoed = payload.projectContext;
       if (
@@ -2007,7 +2007,7 @@ export function CreativeWorkspace({
         || echoed.artifactRevisionId !== binding.artifactRevisionId
         || echoed.draftHash !== binding.draftHash
       ) {
-        throw new Error("The Conductor did not return the exact Atlas snapshot and revision binding.");
+        throw new Error("The project review did not return the expected Atlas snapshot and revision.");
       }
 
       const reviewedProject = addProjectReviewLink(liveProject, {
@@ -2040,18 +2040,18 @@ export function CreativeWorkspace({
       setIntelligenceBinding(completedBinding);
       setIntelligenceResponse(payload);
       setStatus(
-        `Conductor complete · ${payload.orchestration.passes.length} specialist passes · ${payload.source === "openai" ? "Uses AI" : "Local fallback"}`,
+        `Project review complete · ${payload.orchestration.passes.length} specialist reviews · ${payload.source === "openai" ? "AI-assisted review" : "Local rule-based review"}`,
       );
     } catch (error) {
       intelligenceBindingRef.current = null;
       setIntelligenceBinding(null);
       if (error instanceof DOMException && error.name === "AbortError") {
-        setIntelligenceError("Conductor stopped. The project graph and current input are unchanged.");
+        setIntelligenceError("Project review stopped. The project and current input are unchanged.");
       } else {
         setIntelligenceError(
           error instanceof Error
             ? error.message
-            : "The Conductor run did not complete. The project remains unchanged.",
+            : "The project review did not complete. The project remains unchanged.",
         );
       }
     } finally {
@@ -2145,10 +2145,10 @@ export function CreativeWorkspace({
       intelligenceBindingRef.current = null;
       setRightTab("preview");
       setMobilePane("preview");
-      setStatus("Conductor synthesis accepted as an immutable project revision");
+      setStatus("Project review proposal saved as a new project revision");
     } catch (error) {
       setIntelligenceError(
-        error instanceof Error ? error.message : "The Conductor revision could not be accepted.",
+        error instanceof Error ? error.message : "The project review proposal could not be accepted.",
       );
     } finally {
       setIntelligenceAccepting(false);
@@ -2191,7 +2191,7 @@ export function CreativeWorkspace({
     setMobilePane("preview");
     setReviewBinding(null);
     reviewBindingRef.current = null;
-    setStatus("Agent proposal applied as a new version");
+    setStatus("Review proposal applied as a new version");
   };
 
   const openHandoff = () => handoffRef.current?.showModal();
@@ -2297,7 +2297,7 @@ export function CreativeWorkspace({
 
   const askPhaseSpecialist = (phase: PlatformPhaseId) => {
     setReviewLens(phase);
-    setReviewInstruction(`Act as the ${phase} specialist. Examine this exact project revision, identify the strongest unresolved issue, and propose the smallest evidence-conscious next step.`);
+    setReviewInstruction(`Review the current project revision from the ${phase} perspective. Identify the most important unresolved issue and propose one evidence-based next step.`);
     setRightTab("agent");
     setMobilePane("agent");
     setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} specialist ready`);
@@ -2309,14 +2309,14 @@ export function CreativeWorkspace({
       .filter((artifact) => artifact.phase === phase && artifact.kind === "evidence")
       .map(({ id }) => id);
     if (evidenceArtifactIds.length === 0) {
-      setStatus(`Human approval blocked · add evidence in ${phase} first`);
+      setStatus(`Approval requires evidence for the ${phase} phase`);
       return;
     }
     const rationale = window.prompt(
-      `Record why the ${phase} gate should be approved. This is a human decision and cannot be inferred by AI.`,
+      `Explain why the ${phase} phase should be approved. Only you can record this approval; AI output cannot do so.`,
     )?.trim();
     if (!rationale) {
-      setStatus("Human approval was not recorded; a rationale is required.");
+      setStatus("Approval was not recorded because a rationale is required.");
       return;
     }
     try {
@@ -2328,9 +2328,9 @@ export function CreativeWorkspace({
         actorId: "local-project-owner",
       });
       persistProject(next);
-      setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} gate approved by a person`);
+      setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} approval recorded`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "The human gate decision was not recorded.");
+      setStatus(error instanceof Error ? error.message : "The approval decision was not recorded.");
     }
   };
 
@@ -2346,23 +2346,23 @@ export function CreativeWorkspace({
     >
       <section className={styles.intro} aria-labelledby="canvas-title">
         <div>
-          <p>Kingxford Canvas · Creative intelligence workspace</p>
-          <h1 id="canvas-title">Move from first thought to working proof.</h1>
+          <p>Kingxford Canvas · Project workspace</p>
+          <h1 id="canvas-title">Develop an idea into a testable prototype.</h1>
         </div>
         <p>
           Develop an idea, run front-end code, map a system, test a prompt, or
-          shape a production brief—with the input and its result always in view.
+          shape an implementation brief, with the input and preview in view together.
         </p>
       </section>
 
-      <section className={styles.projectManager} aria-label="Local project portfolio">
+      <section className={styles.projectManager} aria-label="Local project library">
         <div>
-          <span>Project portfolio</span>
-          <strong>{projectRepository.projects.length} / {PROJECT_REPOSITORY_MAX_PROJECTS} local projects</strong>
-          <small>Private on this device · runtime-validated packages</small>
+          <span>Project library</span>
+          <strong>{projectRepository.projects.length} / {PROJECT_REPOSITORY_MAX_PROJECTS} projects on this device</strong>
+          <small>Stored on this device · imported project files are validated before opening</small>
         </div>
         <label>
-          <span>Active project</span>
+          <span>Current project</span>
           <select
             value={activeProject?.id ?? ""}
             disabled={projectMutationLocked}
@@ -2379,10 +2379,10 @@ export function CreativeWorkspace({
             disabled={projectMutationLocked || projectRepository.projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS}
             onClick={createLocalProject}
           >
-            <Plus aria-hidden="true" /> New
+            <Plus aria-hidden="true" /> New project
           </button>
           <button type="button" disabled={!activeProject || projectMutationLocked} onClick={() => exportProjectPackage()}>
-            <Download aria-hidden="true" /> Package
+            <Download aria-hidden="true" /> Export project
           </button>
           <button
             type="button"
@@ -2451,7 +2451,7 @@ export function CreativeWorkspace({
         </div>
         <div className={styles.topbarStatus} aria-live="polite">
           <span>{isOnline ? status : "Offline · Local previews still work"}</span>
-          <small>Private until you ask the Agent</small>
+          <small>Stored locally until you start a review</small>
         </div>
         <div className={styles.topbarActions}>
           <button type="button" onClick={() => saveVersion()}>
@@ -2500,7 +2500,7 @@ export function CreativeWorkspace({
         className={styles.workspaceShell}
         style={shellStyle}
       >
-        <section className={styles.workbench} aria-label="Creative input workbench">
+        <section className={styles.workbench} aria-label="Project input editor">
           <nav className={styles.modeRail} role="tablist" aria-label="Creation modes">
             {workspaceModes.map((value, index) => {
               const Icon = modeIcons[value];
@@ -2527,7 +2527,7 @@ export function CreativeWorkspace({
           <div id="workspace-editor" className={styles.editorPane} role="tabpanel" aria-labelledby={`workspace-mode-${mode}`}>
             <header className={styles.editorHeading}>
               <div>
-                <span>{modeDetails[mode].label} workbench</span>
+                <span>{modeDetails[mode].label} editor</span>
                 <h2>{modeDetails[mode].description}</h2>
               </div>
               <label className={styles.transformControl}>
@@ -2600,7 +2600,7 @@ export function CreativeWorkspace({
             <footer className={styles.editorFooter}>
               <div>
                 <span>{sourceLength.toLocaleString()} characters</span>
-                <span>Local source</span>
+                <span>Stored locally</span>
               </div>
               {mode === "code" && (
                 <label className={styles.autoRun}>
@@ -2623,7 +2623,7 @@ export function CreativeWorkspace({
         <div
           className={styles.paneSeparator}
           role="separator"
-          aria-label="Resize workbench and result panes"
+          aria-label="Resize editor and result panes"
           aria-orientation="vertical"
           aria-valuemin={32}
           aria-valuemax={68}
@@ -2645,7 +2645,7 @@ export function CreativeWorkspace({
           <small>{Math.round(paneWidth)} / {100 - Math.round(paneWidth)}</small>
         </div>
 
-        <section className={styles.resultPane} aria-label="Live result and agent review">
+        <section className={styles.resultPane} aria-label="Preview, project review, and version history">
           <nav className={styles.resultTabs} role="tablist" aria-label="Result views">
             {(
               [
@@ -2674,7 +2674,7 @@ export function CreativeWorkspace({
               className={styles.localBadge}
               title="The editable source and project repository remain on this device. Checked context is sent only when you deliberately start a review or Conductor run."
             >
-              <span /> Local source
+              <span /> Stored locally
             </span>
           </nav>
 
@@ -2708,7 +2708,7 @@ export function CreativeWorkspace({
                 bindingIsCurrent={intelligenceBindingIsCurrent}
                 accepting={intelligenceAccepting}
                 runDisabled={!canReview || !isOnline || reviewRunning}
-                statusMessage="Ready to plan, coordinate specialists, and synthesize against this exact Atlas revision."
+                statusMessage="Ready to review the current Atlas revision."
                 errorMessage={intelligenceError}
                 onDepthChange={setIntelligenceDepth}
                 onRun={runConductor}
@@ -2758,7 +2758,7 @@ export function CreativeWorkspace({
               }}
               onClearHistory={() => {
                 setReviewHistory([]);
-                setStatus("Private review memory cleared");
+                setStatus("Review history cleared");
               }}
             />
           </div>
@@ -2810,15 +2810,15 @@ export function CreativeWorkspace({
 
       <section className={styles.handoffStrip}>
         <div>
-          <span>From tested idea to production</span>
-          <h2>You have the proof. Kingxford can build the system.</h2>
+          <span>Implementation planning</span>
+          <h2>Turn the current project into an implementation plan.</h2>
         </div>
         <p>
-          A validated starting point can reduce discovery work. We will review
-          the actual scope before providing a tailored plan and estimate.
+          Your current project provides context for an initial scope review.
+          Kingxford will confirm requirements before proposing a plan and estimate.
         </p>
         <button type="button" onClick={openHandoff}>
-          Prepare a build request
+          Prepare an implementation request
           <ArrowRight aria-hidden="true" />
         </button>
       </section>
@@ -2853,16 +2853,16 @@ export function CreativeWorkspace({
         <div className={styles.handoffCard}>
           <header>
             <div>
-              <span>Build with Kingxford</span>
-              <h2 id="handoff-title">Take this from tested idea to production.</h2>
+              <span>Implementation request</span>
+              <h2 id="handoff-title">Request an implementation plan for this project.</h2>
             </div>
             <button type="button" aria-label="Close build request" onClick={() => handoffRef.current?.close()}>
               <X aria-hidden="true" />
             </button>
           </header>
           <p>
-            Choose the context to carry into your private problem brief. Nothing
-            is submitted until you deliberately contact Kingxford.
+            Choose the context to include in your project brief. Nothing is
+            submitted until you contact Kingxford.
           </p>
           <div className={styles.handoffOptions}>
             <label><input type="checkbox" checked readOnly /> Current version</label>
@@ -2873,7 +2873,7 @@ export function CreativeWorkspace({
                 disabled={!intelligenceResponse && !reviewResponse}
                 onChange={(event) => setHandoffAgent(event.target.checked)}
               />
-              Agent or Conductor review
+              Latest project review
             </label>
             <label>
               <input
@@ -2888,7 +2888,7 @@ export function CreativeWorkspace({
           <div className={styles.handoffSummary}>
             <span>{transformLabels[mode]}</span>
             <strong>{title || "Untitled concept"}</strong>
-            <small>{sourceLength.toLocaleString()} source characters · {versions.length} saved versions</small>
+            <small>{sourceLength.toLocaleString()} characters in current draft · {versions.length} saved versions</small>
           </div>
           <button className={styles.handoffPrimary} type="button" onClick={continueToContact}>
             Request a scoped build plan
@@ -2896,13 +2896,13 @@ export function CreativeWorkspace({
           </button>
           {entrepreneurshipUrl ? (
             <a className={styles.entrepreneurshipLink} href={entrepreneurshipUrl}>
-              Continue in AI-driven Entrepreneurship Platform
+              Open the Entrepreneurship workspace
               <ArrowRight aria-hidden="true" />
             </a>
           ) : (
-            <button className={styles.entrepreneurshipLink} type="button" disabled title="This destination is not available yet. Your workspace can be transferred when it launches.">
-              Continue in AI-driven Entrepreneurship Platform
-              <span>Coming later</span>
+            <button className={styles.entrepreneurshipLink} type="button" disabled title="This workspace is not available yet.">
+              Open the Entrepreneurship workspace
+              <span>Not yet available</span>
             </button>
           )}
         </div>

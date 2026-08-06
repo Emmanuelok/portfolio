@@ -82,28 +82,28 @@ const chapters: readonly CinematicChapter[] = [
     label: "Mission",
     index: "00",
     range: [0, 0.18],
-    eyebrow: "kingXford & Co / Intelligence for shared progress",
-    title: "Prepare for sustainable abundance.",
+    eyebrow: "kingXford & Co / Research, design, and responsible technology",
+    title: "Research hard problems. Build useful systems.",
     body:
-      "We research, develop, and apply responsible AI to help people and institutions solve complex problems and build ambitious ideas, projects, and systems for an abundant future.",
+      "We combine research, product design, development, and responsible AI to help people and institutions make better decisions and deliver complex work.",
     image: missionImage,
     imageAlt:
       "Documentary photograph of a design professional studying a physical model at a working desk",
-    evidence: "Mission / Sustainable abundance",
+    evidence: "Mission / Responsible delivery",
   },
   {
     id: "intelligence",
-    label: "Intelligence",
+    label: "Decision support",
     index: "01",
     range: [0.17, 0.36],
-    eyebrow: "Intelligence / From signals to decisions",
+    eyebrow: "Decision support / From evidence to action",
     title: "See the system before choosing the move.",
     body:
-      "We connect evidence, foresight, domain knowledge, and human judgement so complexity becomes a field of informed choices—not a reason to stand still.",
+      "We connect evidence, foresight, domain knowledge, and human judgement so teams can compare options and make informed decisions.",
     image: intelligenceImage,
     imageAlt:
       "Documentary photograph of architectural plans, material samples, and a physical scale model used to evaluate a complex design",
-    evidence: "Strategy / Systems intelligence",
+    evidence: "Strategy / Systems analysis",
     align: "end",
     proofs: [
       {
@@ -121,7 +121,7 @@ const chapters: readonly CinematicChapter[] = [
     label: "R&D",
     index: "02",
     range: [0.35, 0.54],
-    eyebrow: "Research & development / Inquiry into capability",
+    eyebrow: "Research & development / Questions, evidence, prototypes",
     title: "Turn uncertainty into testable knowledge.",
     body:
       "We investigate difficult questions, build prototypes, evaluate evidence, and translate useful findings into tools, policies, platforms, and ventures that can endure.",
@@ -135,14 +135,14 @@ const chapters: readonly CinematicChapter[] = [
     label: "Responsible AI",
     index: "03",
     range: [0.53, 0.72],
-    eyebrow: "Responsible AI / Capability with accountability",
-    title: "Build intelligence people can question and govern.",
+    eyebrow: "Responsible AI / Reviewable by design",
+    title: "Build AI-assisted systems people can question and govern.",
     body:
-      "We pursue AI that expands human agency, makes uncertainty visible, protects meaningful oversight, and is evaluated against the people and institutions it affects.",
+      "We design AI-assisted workflows with visible uncertainty, human review, clear boundaries, and tests matched to the people and institutions affected.",
     image: governanceGateImage,
     imageAlt:
-      "Conceptual editorial image of a physical governance gate making the evidence, review, and oversight of intelligent systems visible",
-    evidence: "Human agency / Responsible deployment",
+      "Conceptual editorial image of a physical governance gate making the evidence, review, and oversight of AI-assisted systems visible",
+    evidence: "Human review / Responsible deployment",
     align: "end",
     proofs: [
       {
@@ -160,14 +160,14 @@ const chapters: readonly CinematicChapter[] = [
     label: "& Co",
     index: "04",
     range: [0.71, 0.87],
-    eyebrow: "& Co / Progress is a collective undertaking",
-    title: "The future is built with others.",
+    eyebrow: "Collaboration / Work with accountable owners",
+    title: "Bring the right contributors to the same brief.",
     body:
-      "We create the conditions for aligned contributors to combine insight, commitment, and capability around consequential work.",
+      "We define roles, decisions, and handoffs so contributors can work from shared evidence without losing accountability.",
     image: signalObservatoryImage,
     imageAlt:
       "Conceptual editorial image of a signal observatory where multiple lenses and evidence streams converge through an architectural X",
-    evidence: "Collaboration / Shared capability",
+    evidence: "Collaboration / Clear ownership",
     proofs: [
       { src: "/work/veridanth-evidence-v2.webp", label: "Studio" },
       {
@@ -181,18 +181,18 @@ const chapters: readonly CinematicChapter[] = [
     ],
   },
   {
-    id: "abundant-future",
-    label: "Abundant Future",
+    id: "durable-progress",
+    label: "Durable Progress",
     index: "05",
     range: [0.86, 1],
-    eyebrow: "Abundant future / Prepared, inclusive, sustainable",
+    eyebrow: "Durable progress / Useful, inclusive, resource-aware",
     title: "Make progress durable—and widely useful.",
     body:
-      "We prepare people and institutions to turn expanding intelligence, knowledge, and productive capacity into long-term human and ecological value.",
+      "We help teams turn research, digital systems, and productive capacity into services that remain useful over time and within real resource limits.",
     image: capabilityReactorImage,
     imageAlt:
-      "Conceptual editorial image of an engineered X connecting water, energy, mobility, research, and productive systems for an abundant future",
-    evidence: "Craft signature / Complex ideas. Unforgettable form.",
+      "Conceptual editorial image of an engineered X connecting water, energy, mobility, research, and productive systems",
+    evidence: "Design principle / Complex ideas, clearly delivered.",
     align: "end",
   },
 ] as const;
@@ -328,11 +328,11 @@ function Chapter({ chapter, progress }: ChapterProps) {
           ))}
         </div>
       ) : null}
-      {chapter.id === "abundant-future" ? (
+      {chapter.id === "durable-progress" ? (
         <div className="kx-cinematic__chapter-actions">
-          <a href="#three-worlds">Delivery worlds</a>
+          <a href="#three-worlds">Ways to work</a>
           <a href="/lab">Explore R&amp;D</a>
-          <a href="/contact">Build with us</a>
+          <a href="/contact">Discuss a project</a>
         </div>
       ) : null}
     </m.article>
@@ -351,16 +351,16 @@ function StaticCinematic() {
           className="kx-static__logo"
           decorative
         />
-        <p>kingXford &amp; Co / Intelligence for shared progress</p>
+        <p>kingXford &amp; Co / Research, design, and responsible technology</p>
         <h2 id="kx-static-title">
-          Prepare for
-          <em>sustainable abundance.</em>
+          Research hard problems.
+          <em>Build useful systems.</em>
         </h2>
         <div>
           <p>
-            We research, develop, and apply responsible AI to help people and
-            institutions solve complex problems and build ambitious ideas,
-            projects, and systems for an abundant future.
+            We combine research, product design, development, and responsible
+            AI to help people and institutions make better decisions and
+            deliver complex work.
           </p>
           <a href="#three-worlds">
             Explore how we deliver
@@ -430,7 +430,7 @@ export function KingxfordCinematic() {
       className="kx-cinematic"
       id="mission"
       ref={sectionRef}
-      aria-label="kingXford & Co mission: intelligence and research for sustainable abundance"
+      aria-label="kingXford & Co mission: research, design, and responsible technology for complex work"
       data-media-ready="true"
     >
       <div className="kx-cinematic__stage">
@@ -461,8 +461,8 @@ export function KingxfordCinematic() {
             className="kx-cinematic__logo"
             decorative
           />
-          <span>Intelligence / R&amp;D / Responsible AI</span>
-          <span>Preparing for sustainable abundance</span>
+          <span>Research / Digital products / Responsible AI</span>
+          <span>From complex problem to tested delivery</span>
         </div>
 
         <div className="kx-cinematic__chapters">

@@ -7,29 +7,30 @@ import { Reveal } from "@/components/Reveal";
 import { mediaPosts } from "@/data/media";
 
 export const metadata: Metadata = {
-  title: "Media",
+  title: "Field notes",
   description:
-    "kingXford & Co evidence briefings and essays on sustainable abundance, intelligence, research and development, AI, and solving complex problems.",
+    "kingXford & Co research briefings and practical essays on responsible AI, research and development, and useful systems.",
   alternates: {
     canonical: "/media",
   },
   openGraph: {
-    title: "Media — kingXford & Co",
+    title: "Field notes — kingXford & Co",
     description:
-      "Evidence and ideas for expanding human capability through intelligence, research, AI, and sustainable systems.",
+      "Research briefings and practical essays on responsible AI, R&D, and useful systems.",
     type: "website",
     url: "/media",
   },
   twitter: {
     card: "summary",
-    title: "Media — kingXford & Co",
+    title: "Field notes — kingXford & Co",
     description:
-      "Evidence briefings on sustainable abundance, intelligence, research, AI, and complex systems.",
+      "Research briefings and practical essays from kingXford & Co.",
   },
 };
 
 export default function MediaPage() {
   const topicCount = new Set(mediaPosts.flatMap((post) => post.topics)).size;
+  const formatCount = new Set(mediaPosts.map((post) => post.format)).size;
 
   return (
     <main className="page page--media">
@@ -38,20 +39,20 @@ export default function MediaPage() {
         aria-labelledby="media-heading"
       >
         <div className="page-hero__index" aria-hidden="true">
-          04 / Media
+          Field notes
         </div>
 
         <div className="page-hero__content">
           <Reveal>
             <p className="eyebrow">
-              kingXford &amp; Co · Intelligence · Evidence · Abundant futures
+              kingXford &amp; Co · Research briefings · Practical essays
             </p>
           </Reveal>
           <Reveal distance={48}>
             <h1 className="page-hero__title" id="media-heading">
-              <span className="page-hero__line">Intelligence for an</span>
+              <span className="page-hero__line">Field notes for</span>
               <span className="page-hero__line page-hero__line--accent">
-                abundant future.
+                difficult decisions.
               </span>
             </h1>
           </Reveal>
@@ -59,9 +60,8 @@ export default function MediaPage() {
 
         <Reveal className="page-hero__aside" delay={0.16}>
           <p>
-            Evidence-led thinking on research and development, trustworthy AI,
-            sustainable abundance, and the systems people and institutions need
-            to solve consequential problems.
+            Research briefings and essays on responsible AI, R&amp;D,
+            sustainable abundance, and the design of useful systems.
           </p>
           <a className="text-link" href="#latest">
             <span>Read the latest</span>
@@ -79,8 +79,8 @@ export default function MediaPage() {
             Topics
           </span>
           <span>
-            <strong>Open</strong>
-            Editorial range
+            <strong>{String(formatCount).padStart(2, "0")}</strong>
+            Formats
           </span>
         </div>
       </section>
@@ -91,9 +91,9 @@ export default function MediaPage() {
         aria-labelledby="latest-media-title"
       >
         <div className="section-heading section-heading--split">
-          <p className="eyebrow">Latest from kingXford &amp; Co</p>
+          <p className="eyebrow">Latest field notes</p>
           <h2 id="latest-media-title">
-            Complex questions, followed through with evidence.
+            Research and practical guidance, grounded in evidence.
           </h2>
         </div>
 
@@ -111,8 +111,8 @@ export default function MediaPage() {
       </section>
 
       <Reveal className="page-cta">
-        <p className="eyebrow">A question worth examining?</p>
-        <h2>Bring the difficult subject into the room.</h2>
+        <p className="eyebrow">Have a question worth examining?</p>
+        <h2>Start a research conversation.</h2>
         <Link className="button button--primary" href="/contact">
           <span>Start a conversation</span>
           <ArrowUpRight aria-hidden="true" />

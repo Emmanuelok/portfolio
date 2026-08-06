@@ -233,8 +233,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   tags: [...project.categories, "published-work"],
                 },
               }}
-              label="Carry this case into Canvas"
-              description="Add the challenge and current outcome as inspectable project evidence."
+              label="Add this case to Canvas"
+              description="Save the challenge and current outcome as project evidence."
               variant="evidence"
             />
           </Reveal>
@@ -245,9 +245,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           aria-labelledby="project-approach-title"
         >
           <div className="section-heading section-heading--split">
-            <p className="eyebrow">Design approach</p>
+            <p className="eyebrow">What we designed</p>
             <h2 id="project-approach-title">
-              A system is only powerful when its logic can be felt.
+              The decisions that shaped the product.
             </h2>
           </div>
           <ol className="project-approach__list">
@@ -270,8 +270,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           aria-labelledby="project-chapters-title"
         >
           <div className="section-heading">
-            <p className="eyebrow">Inside the system</p>
-            <h2 id="project-chapters-title">Three threads that hold it together.</h2>
+            <p className="eyebrow">Product details</p>
+            <h2 id="project-chapters-title">Three parts of the system in detail.</h2>
           </div>
           <div className="project-chapters__grid">
             {project.chapters.map((chapter, index) => (
@@ -294,7 +294,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             aria-labelledby="related-work-title"
           >
             <div className="section-heading section-heading--split">
-              <p className="eyebrow">Follow another thread</p>
+              <p className="eyebrow">More work</p>
               <h2 id="related-work-title">Related work</h2>
             </div>
             <div className="related-work__grid">

@@ -45,7 +45,7 @@ export function MediaPostCard({
             priority={priority}
             sizes="(max-width: 760px) 100vw, 88vw"
           />
-          <figcaption>Conceptual editorial image</figcaption>
+          <figcaption>Illustrative editorial image</figcaption>
         </figure>
 
         <div className="media-card__body">
@@ -67,7 +67,7 @@ export function MediaPostCard({
               ))}
             </ul>
             <span className="media-card__read">
-              Read the field note
+              Read article
               <ArrowUpRight aria-hidden="true" />
             </span>
           </div>

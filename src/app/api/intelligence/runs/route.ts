@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
 
   if (!sameOrigin(request)) {
     return errorResponse(
-      "This intelligence endpoint accepts same-origin Kingxford requests only.",
+      "This project review endpoint accepts requests only from the Kingxford site.",
       403,
       requestId,
     );
@@ -298,7 +298,7 @@ export async function POST(request: NextRequest) {
     .toLocaleLowerCase("en");
   if (mediaType !== "application/json") {
     return errorResponse(
-      "A JSON project-intelligence request is required.",
+      "A JSON project review request is required.",
       415,
       requestId,
     );
@@ -307,7 +307,7 @@ export async function POST(request: NextRequest) {
   const declaredLength = Number(request.headers.get("content-length") || 0);
   if (Number.isFinite(declaredLength) && declaredLength > MAX_REQUEST_BYTES) {
     return errorResponse(
-      "The selected project context is too large for one intelligence run.",
+      "The selected project context is too large for one project review.",
       413,
       requestId,
     );
@@ -328,8 +328,8 @@ export async function POST(request: NextRequest) {
   if (!admission.allowed) {
     const message =
       admission.reason === "concurrency"
-        ? "Two intelligence runs are already active for this visitor. Let one finish before starting another."
-        : "Intelligence run limit reached. Keep working locally and retry shortly.";
+        ? "Two project reviews are already running. Wait for one to finish before starting another."
+        : "Project review limit reached. Continue working locally and try again shortly.";
     return errorResponse(message, 429, requestId, {
       headers: {
         "Retry-After": String(admission.retryAfter),
@@ -347,8 +347,8 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       return errorResponse(
         error instanceof RequestBodyTooLargeError
-          ? "The selected project context is too large for one intelligence run."
-          : "The project-intelligence request could not be read.",
+          ? "The selected project context is too large for one project review."
+          : "The project review request could not be read.",
         error instanceof RequestBodyTooLargeError ? 413 : 400,
         requestId,
         { limits: admission.usage },
@@ -357,7 +357,7 @@ export async function POST(request: NextRequest) {
 
     if (containsLikelySecret(rawBody)) {
       return errorResponse(
-        "A likely credential or private key was detected. Remove it before starting an intelligence run.",
+        "A likely credential or private key was detected. Remove it before starting the project review.",
         422,
         requestId,
         { limits: admission.usage },
@@ -369,7 +369,7 @@ export async function POST(request: NextRequest) {
       raw = JSON.parse(rawBody) as unknown;
     } catch {
       return errorResponse(
-        "The project-intelligence request could not be read.",
+        "The project review request could not be read.",
         400,
         requestId,
         { limits: admission.usage },
@@ -380,7 +380,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return errorResponse(
         parsed.error.issues[0]?.message ||
-          "The project-intelligence request is invalid.",
+          "The project review request is invalid.",
         400,
         requestId,
         { limits: admission.usage },
@@ -427,7 +427,7 @@ export async function POST(request: NextRequest) {
     );
     if (!credits.allowed) {
       return errorResponse(
-        "The anonymous AI intelligence allowance has been used for today. Local Kingxford work remains available.",
+        "Today’s anonymous AI review allowance has been used. You can continue working locally.",
         429,
         requestId,
         {
@@ -455,7 +455,7 @@ export async function POST(request: NextRequest) {
         request.signal.aborted
       ) {
         return errorResponse(
-          "The intelligence run was cancelled before it completed.",
+          "The project review was cancelled before it completed.",
           499,
           requestId,
           { limits: credits.usage },
@@ -466,7 +466,7 @@ export async function POST(request: NextRequest) {
       const fallback = executeLocalIntelligenceRun(input, {
         runId: requestId,
         notice:
-          "The governed runtime was temporarily unavailable. No project input was changed; this result uses deterministic local structural rules.",
+          "The AI service was unavailable. No project content changed; this result uses local rule-based analysis.",
       });
       return NextResponse.json(fallback, {
         headers: responseHeaders(requestId, usageHeaders(credits.usage)),

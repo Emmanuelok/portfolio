@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "kingXford & Co",
     short_name: "kingXford & Co",
     description:
-      "Intelligence, research and development, and responsible AI for sustainable abundance.",
+      "Research-led digital systems and responsible AI tools for complex organisational and public-interest work.",
     start_url: "/",
     scope: "/",
     display: "standalone",

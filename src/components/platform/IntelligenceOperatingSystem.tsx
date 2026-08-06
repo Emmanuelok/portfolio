@@ -66,7 +66,7 @@ const entryLenses: ReadonlyArray<
   {
     label: "Media",
     eyebrow: "Signals · arguments · field notes",
-    description: "Capture consequential observations without losing their origin.",
+    description: "Record observations and arguments with their sources.",
     href: "/media",
     icon: Newspaper,
     feeds: "Signals & context",
@@ -74,7 +74,7 @@ const entryLenses: ReadonlyArray<
   {
     label: "Work",
     eyebrow: "Cases · precedents · outcomes",
-    description: "Connect prior proofs and operating lessons to the active project.",
+    description: "Use relevant case studies and operating lessons in the active project.",
     href: "/work",
     icon: Boxes,
     feeds: "Precedents & proof",
@@ -95,7 +95,7 @@ const governanceSignals = [
   { label: "Context preserved", icon: Database },
   { label: "Evidence traceable", icon: BookOpenCheck },
   { label: "Decisions explicit", icon: Route },
-  { label: "Human acceptance required", icon: CheckCircle2 },
+  { label: "Human approval required", icon: CheckCircle2 },
 ] as const;
 
 export function IntelligenceOperatingSystem() {
@@ -118,22 +118,22 @@ export function IntelligenceOperatingSystem() {
     >
       <header className={styles.heading}>
         <Reveal className={styles.index}>
-          <span>01 / One intelligence operating system</span>
-          <span>Every surface contributes to the same project</span>
+          <span>01 / Integrated project workflow</span>
+          <span>Each section can contribute to the current project</span>
         </Reveal>
         <Reveal className={styles.headingCopy} delay={0.05}>
           <div>
-            <p>Not a catalogue of disconnected tools</p>
+            <p>A consistent method across the platform</p>
             <h2 id="intelligence-system-title">
-              Four ways into the work.
-              <em>One memory carrying it forward.</em>
+              Four starting points.
+              <em>One project record.</em>
             </h2>
           </div>
           <p>
-            Create, Lab, Media, and Work are lenses on one continuing project.
-            The Conductor assembles the relevant context, assigns specialist
-            intelligence, and preserves evidence and decisions as the project
-            moves through six connected phases.
+            Create, Lab, Field notes, and Work provide different ways to begin
+            or extend a project. The workspace keeps the relevant context,
+            evidence, decisions, and accepted revisions together across six
+            phases.
           </p>
         </Reveal>
       </header>
@@ -142,7 +142,7 @@ export function IntelligenceOperatingSystem() {
         <Reveal className={styles.entryRail} ariaLabel="Platform entry lenses">
           <div className={styles.railLabel}>
             <Radar aria-hidden="true" />
-            <span>Entry lenses</span>
+            <span>Starting points</span>
           </div>
           {entryLenses.map((lens) => {
             const Icon = lens.icon;
@@ -165,7 +165,7 @@ export function IntelligenceOperatingSystem() {
 
         <Reveal className={styles.spine} delay={0.08}>
           <div className={styles.flowLabel}>
-            <span>Shared project spine</span>
+            <span>Project record</span>
             <i aria-hidden="true" />
           </div>
 
@@ -177,20 +177,21 @@ export function IntelligenceOperatingSystem() {
               <span />
             </div>
             <div>
-              <span>Coordinating intelligence</span>
-              <h3 id="conductor-title">Conductor</h3>
+              <span>Coordinated review</span>
+              <h3 id="conductor-title">Project review</h3>
               <p>
-                Reads the active objective, phase, source, evidence, decisions,
-                and accepted outputs before directing the next useful move.
+                Reviews the current objective, phase, source material,
+                evidence, decisions, and accepted outputs before recommending
+                the next step.
               </p>
             </div>
           </div>
 
-          <div className={styles.memory} aria-label="Project memory">
+          <div className={styles.memory} aria-label="Project record">
             <div>
               <Database aria-hidden="true" />
               <span>
-                <small>Persistent project memory</small>
+                <small>Saved project record</small>
                 <strong>Objective · source · evidence · decisions</strong>
               </span>
             </div>
@@ -205,10 +206,10 @@ export function IntelligenceOperatingSystem() {
 
           <div className={styles.specialists}>
             <div className={styles.specialistHeading}>
-              <span>Six specialist agents</span>
-              <small>Assigned by phase · coordinated as one system</small>
+              <span>Six review disciplines</span>
+              <small>Selected according to the current phase</small>
             </div>
-            <div className={styles.specialistGrid} aria-label="Specialist agents">
+            <div className={styles.specialistGrid} aria-label="Review disciplines">
               {specialists.map((agent) => {
                 const Icon = agentIcons[agent.id];
                 const active = assignedAgents.has(agent.id);
@@ -232,7 +233,7 @@ export function IntelligenceOperatingSystem() {
         <div className={styles.lifecycleTopline}>
           <div>
             <BrainCircuit aria-hidden="true" />
-            <span>Connected project lifecycle</span>
+            <span>Project lifecycle</span>
           </div>
           <p id="lifecycle-phase-description">
             <strong>{phase.outcome}</strong>
@@ -258,7 +259,7 @@ export function IntelligenceOperatingSystem() {
         <div className={styles.phaseAction}>
           <span>
             <Sparkles aria-hidden="true" />
-            {phase.agents.length} coordinated intelligences assigned
+            {phase.agents.length} review perspectives available
           </span>
           <Link href={phase.route}>
             Continue at {phase.label}

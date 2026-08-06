@@ -2,7 +2,7 @@ export const PLATFORM_DESTINATIONS = [
   {
     href: "/",
     label: "Mission",
-    description: "The shared purpose and operating system",
+    description: "Purpose, principles, and working method",
     keywords: "home mission kingxford platform intelligence",
   },
   {
@@ -67,7 +67,7 @@ export const CREATE_CATALOGUE_DESTINATIONS = [
     label: "Research and AI tools",
     shortLabel: "Research + AI",
     href: "/create#capability-research-ai-tools",
-    description: "Inspectable intelligence for inquiry and verification.",
+    description: "Research and assisted analysis with visible sources and limits.",
     keywords: "research ai evidence synthesis retrieval knowledge graph evaluation",
   },
   {
@@ -185,10 +185,10 @@ export type PlatformPhaseId = PlatformPhase["id"];
 
 export const PLATFORM_NAME = "kingXford Atlas";
 export const PLATFORM_CONDUCTOR = {
-  name: "Conductor",
-  role: "A coordinating intelligence layer across the complete project lifecycle",
+  name: "Project review",
+  role: "A coordinated review across the complete project lifecycle",
   boundary:
-    "Conductor can analyse, route, compare, and propose. People remain responsible for approvals, publication, and consequential decisions.",
+    "The review can analyse, compare, and recommend. People remain responsible for approvals, publication, and consequential decisions.",
 } as const;
 
 export function isPlatformPhaseId(value: string): value is PlatformPhaseId {

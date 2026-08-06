@@ -39,23 +39,23 @@ export const PLATFORM_ROUTES = {
 export const PLATFORM_AGENTS: readonly PlatformAgentDefinition[] = [
   {
     id: "conductor",
-    label: "Conductor",
-    shortLabel: "Conductor",
-    description: "Coordinates the complete project without flattening specialist judgment.",
-    mandate: "Identify the current phase, assemble the right context, and direct the next highest-value move.",
+    label: "Project review",
+    shortLabel: "Coordination",
+    description: "Reviews the complete project record and coordinates the relevant disciplines.",
+    mandate: "Identify the current phase, assemble the relevant context, and recommend the next review step.",
     phases: ["discovery", "evidence", "systems", "prototype", "validation", "delivery"],
   },
   {
     id: "discovery",
-    label: "Discovery Agent",
+    label: "Discovery review",
     shortLabel: "Discovery",
     description: "Clarifies the need, people, stakes, constraints, and intended change.",
-    mandate: "Turn an initial ambition into a precise problem frame and a useful first hypothesis.",
+    mandate: "Turn an initial brief into a precise problem frame and a useful first hypothesis.",
     phases: ["discovery"],
   },
   {
     id: "evidence",
-    label: "Evidence Agent",
+    label: "Evidence review",
     shortLabel: "Evidence",
     description: "Separates observations, assumptions, unknowns, and evidence requirements.",
     mandate: "Build an auditable evidence plan and expose unsupported claims before they travel downstream.",
@@ -63,7 +63,7 @@ export const PLATFORM_AGENTS: readonly PlatformAgentDefinition[] = [
   },
   {
     id: "systems",
-    label: "Systems Agent",
+    label: "Systems review",
     shortLabel: "Systems",
     description: "Models relationships, dependencies, scenarios, and intervention points.",
     mandate: "Make the whole system legible enough to choose where and how to intervene.",
@@ -71,7 +71,7 @@ export const PLATFORM_AGENTS: readonly PlatformAgentDefinition[] = [
   },
   {
     id: "prototype",
-    label: "Prototype Agent",
+    label: "Prototype review",
     shortLabel: "Prototype",
     description: "Converts the selected intervention into a testable experience or implementation.",
     mandate: "Produce the smallest credible working proof while preserving the project intent and constraints.",
@@ -79,7 +79,7 @@ export const PLATFORM_AGENTS: readonly PlatformAgentDefinition[] = [
   },
   {
     id: "validation",
-    label: "Validation Agent",
+    label: "Validation review",
     shortLabel: "Validation",
     description: "Challenges usability, evidence, resilience, accessibility, and failure modes.",
     mandate: "Define and evaluate the tests required before a prototype can responsibly advance.",
@@ -87,7 +87,7 @@ export const PLATFORM_AGENTS: readonly PlatformAgentDefinition[] = [
   },
   {
     id: "delivery",
-    label: "Delivery Agent",
+    label: "Delivery review",
     shortLabel: "Delivery",
     description: "Turns validated work into a scoped release, operating plan, and handoff.",
     mandate: "Make ownership, sequencing, dependencies, measures, and the next release decision explicit.",
@@ -186,8 +186,8 @@ export const PLATFORM_WORKSPACE_MODES: ReadonlyArray<
 ] as const;
 
 export const platformRegistry = {
-  name: "Kingxford Intelligence Platform",
-  promise: "One connected system from question to durable capability.",
+  name: "Kingxford Project Platform",
+  promise: "A continuous project record from initial question to delivery.",
   routes: PLATFORM_ROUTES,
   lifecycle: PLATFORM_LIFECYCLE,
   agents: PLATFORM_AGENTS,

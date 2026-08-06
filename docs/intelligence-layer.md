@@ -1,26 +1,25 @@
-# Kingxford intelligence layer
+# Kingxford AI review layer
 
 - Focused-review protocol: `kxci-2026-08-05.2`
 - Conductor protocol: `kx-intelligence-2026-08-05.2`
 
 ## What is implemented
 
-The Canvas combines a local-first Project Atlas with two production-oriented,
-proposal-only intelligence surfaces: focused specialist review and bounded
-Conductor orchestration. A request remains inside the Kingxford server
+The Canvas combines a local-first Project Atlas with two proposal-only review
+surfaces: focused review and a coordinated project review. A request remains inside the Kingxford server
 boundary until the API route has validated origin, media type, request size,
 schema, workspace budget, rate/concurrency allowance, likely-secret patterns,
 and any submitted project snapshot. When Gateway identity is available, the
 server generates a structured review; when it is unavailable or a provider
-request fails, the server returns an explicitly labelled deterministic local
-review. User work is never silently discarded.
+request fails, the server returns an explicitly labelled deterministic,
+rule-based local review. User work is never silently discarded.
 
 The implementation includes:
 
 - seven specialist lenses: Conductor, Discovery, Evidence, Systems, Prototype,
   Validation, and Delivery;
-- an Atlas-bound Conductor that produces a typed phase plan, coordinates up to
-  two specialist passes in parallel, and synthesizes them within a four-call
+- an Atlas-bound project review that produces a structured phase plan, runs up to
+  two specialist reviews in parallel, and summarizes them within a four-call
   server reservation;
 - a fixed, version-controlled Kingxford playbook retrieved deterministically by
   mode, lens, objective, and workspace terms, with at most three grounding notes;
@@ -35,7 +34,7 @@ The implementation includes:
   enforcement, output limits, response and site security headers, and truthful
   local fallback;
 - a bounded, integrity-checked Project Atlas snapshot for review continuity,
-  optional for focused review and required for every Conductor run, tied to the
+  optional for focused review and required for every coordinated project review, tied to the
   exact active artifact revision and full draft hash; and
 - deterministic governance checks in CI.
 
@@ -79,11 +78,11 @@ can bind a review to the context actually assessed.
 | Deep | `openai/gpt-5.6-sol` | `openai/gpt-5.4`, `openai/gpt-5.6-terra` | `xhigh` | 5,200 tokens | 3 |
 
 The environment variables in `.env.example` can override model slugs for both
-focused review and Conductor orchestration. Each
+focused review and coordinated project review. Each
 fallback variable is capped at two unique entries. The application makes one SDK
-generation call per focused review and one SDK call per Conductor stage; Gateway
+generation call per focused review and one SDK call per coordinated-review stage; Gateway
 performs fallback routing, avoiding route-level retry loops that could amplify
-costs. A complete Conductor run is capped at plan + two parallel specialists +
+costs. A complete coordinated review is capped at plan + two parallel specialists +
 synthesis. Every stage records its actual model, status, latency, and token use.
 
 The models receive the submitted workspace, selected fixed playbook notes, and
@@ -109,8 +108,8 @@ The top-level readiness fields have deliberately separate meanings:
 | `codeReady` | The loaded route has valid primary/fallback slugs and retains proposal-only governance: no tools, no automatic apply, and human-only gate approval. |
 | `providerReady` | A non-blank Gateway API key, local OIDC identity, or Vercel deployment with automatic request-scoped OIDC is available and the model routes are syntactically valid. This is configuration readiness, not a live provider probe. |
 | `usageProtectionReady` | The exact protection used by POST is available. Production requires a server-only salt of at least 32 characters; development may use its documented local fallback. |
-| `deploymentReady` | `codeReady`, `providerReady`, and `usageProtectionReady` are all true, so the environment is configured to attempt model-generated requests. |
-| `localFallbackReady` | The deterministic fallback can safely serve requests even when Gateway identity is absent. |
+| `deploymentReady` | `codeReady`, `providerReady`, and `usageProtectionReady` are all true, so the environment is configured to attempt provider-backed reviews. |
+| `localFallbackReady` | The deterministic, rule-based fallback can safely serve requests even when Gateway identity is absent. |
 
 `status` is `ready`, `local-fallback`, `deployment-blocked`, or
 `configuration-invalid`. `blockers` contains stable codes and bounded operator
@@ -122,7 +121,7 @@ three non-negotiable proposal-only controls.
 
 Gateway API-key precedence matches the installed SDK: a non-empty key is chosen
 before OIDC. A whitespace-only key is therefore reported as
-`gateway-api-key-invalid` and model calls remain on deterministic fallback until
+`gateway-api-key-invalid` and model calls remain on deterministic local fallback until
 the value is removed or corrected; readiness never silently claims OIDC would
 override it.
 
@@ -139,7 +138,7 @@ recoverable, truthfully labelled local fallback.
 
 Defaults are six starts per minute, 30 daily credits, and two concurrent runs
 per pseudonymous bucket. A focused standard review costs one credit and a deep
-review costs three. Conductor reserves and charges the exact bounded stage
+review costs three. A coordinated review reserves and charges the exact stage
 budget: up to four standard units or twelve deep credits. Routes reserve
 request/concurrency capacity before generation, consume daily credits before a
 configured model call, and release the resolved bucket in `finally` even after
@@ -157,7 +156,7 @@ instead of evicting a bucket and granting a fresh quota.
 
 ## Deliberate boundaries
 
-The public reviewer and Conductor do **not** have web search, shell, browser, email, calendar,
+The focused and coordinated reviewers do **not** have web search, shell, browser, email, calendar,
 deployment, payment, database-write, MCP, or other action tools. It cannot deploy,
 publish, buy, message, or change an external system. This boundary is enforced in
 both instructions and construction: the agent is created without a `tools`
@@ -208,9 +207,9 @@ Do not add those powers to this anonymous endpoint.
    `readiness.deploymentReady: true` additionally confirms that Gateway identity
    and usage protection are configured. This remains a configuration check, not
    proof of a successful provider call.
-6. Submit a non-sensitive focused review and Conductor run in
+6. Submit a non-sensitive focused review and coordinated project review in
    `/create/workspace`. Confirm the responses are
-   model-generated, its request ID and grounding are visible, and usage appears
+   AI-assisted, its request ID and grounding are visible, and usage appears
    in Gateway observability. Also test a no-key local environment and verify the
    response is labelled local.
 7. Create or import a local Atlas project, submit a revision-bound review, and

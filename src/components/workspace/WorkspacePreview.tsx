@@ -86,8 +86,8 @@ function ConceptPreview({ draft }: Readonly<{ draft: WorkspaceDraft }>) {
   return (
     <article className={styles.conceptPreview} aria-label="Local concept preview">
       <header>
-        <p>Concept specimen · Local interpretation</p>
-        <span>01 / Working proof</span>
+        <p>Concept preview · Processed locally</p>
+        <span>Working draft</span>
       </header>
       <div className={styles.conceptHero}>
         <div>
@@ -706,8 +706,8 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
     <section className={styles.mapPreview} aria-label="Mind map preview">
       <header>
         <div>
-          <span>Relationship view</span>
-          <strong>{nodes.length} root {nodes.length === 1 ? "system" : "systems"}</strong>
+          <span>Mind map</span>
+          <strong>{nodes.length} top-level {nodes.length === 1 ? "item" : "items"}</strong>
           <small id="mindmap-drag-instructions" className={styles.mapHint}>
             <Move aria-hidden="true" /> Drag to move · Arrow keys to nudge · Shift for larger steps
           </small>
@@ -788,7 +788,7 @@ function MindMapPreview({ text }: Readonly<{ text: string }>) {
           </div>
         ) : (
           <div className={styles.previewEmpty}>
-            <p>Your map will form as you add indented lines.</p>
+            <p>Your map will appear as you add indented lines.</p>
           </div>
         )}
       </div>
@@ -809,8 +809,8 @@ function PromptPreview({ text }: Readonly<{ text: string }>) {
     <article className={styles.promptPreview}>
       <header>
         <div>
-          <span>Prompt instrument</span>
-          <strong>{present} / {signals.length} structural signals</strong>
+          <span>Prompt review</span>
+          <strong>{present} / {signals.length} prompt elements present</strong>
         </div>
         <div className={styles.signalTrack} aria-label={`${present} of ${signals.length} prompt signals present`}>
           {signals.map((signal) => (
@@ -852,12 +852,12 @@ function BriefPreview({ draft }: Readonly<{ draft: WorkspaceDraft }>) {
   return (
     <article className={styles.briefPreview}>
       <header>
-        <p>kingXford &amp; Co · Working production brief</p>
+        <p>kingXford &amp; Co · Working brief</p>
         <span>Saved on this device</span>
       </header>
       <div className={styles.briefTitle}>
         <span>Project</span>
-        <h2>{draft.title || "Untitled production brief"}</h2>
+        <h2>{draft.title || "Untitled brief"}</h2>
       </div>
       <div className={styles.briefSections}>
         {sections.map((section, index) => {

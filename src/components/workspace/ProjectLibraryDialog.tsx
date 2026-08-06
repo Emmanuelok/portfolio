@@ -45,8 +45,8 @@ const phaseLabels = Object.fromEntries(
 
 function originLabel(project: KingxfordProject) {
   if (project.origin.kind === "canvas-v1-migration") return "Migrated from Canvas v1";
-  if (project.origin.kind === "import-clone") return "Source lineage retained";
-  return "Created in Atlas";
+  if (project.origin.kind === "import-clone") return "Imported as a copy";
+  return "Created in Canvas";
 }
 
 export function ProjectLibraryDialog({
@@ -96,11 +96,11 @@ export function ProjectLibraryDialog({
       <div className={styles.card}>
         <header className={styles.heading}>
           <div>
-            <span>Atlas project library</span>
-            <h2 id="project-library-title">Your connected intelligence</h2>
+            <span>Project Library · Project Atlas</span>
+            <h2 id="project-library-title">Your projects</h2>
             <p id="project-library-description">
-              Re-enter any project with its artifacts, evidence, decisions,
-              graph relationships, and review provenance intact.
+              Open any project with its drafts, evidence, decisions, revisions,
+              and review history intact.
             </p>
           </div>
           <button type="button" aria-label="Close project library" onClick={requestClose}>
@@ -116,7 +116,7 @@ export function ProjectLibraryDialog({
             <span>
               {atLimit
                 ? "20-project limit reached · export or delete one to make room"
-                : "complete Atlas projects stored on this device"}
+                : "projects stored on this device"}
             </span>
           </div>
           <div>
@@ -132,7 +132,7 @@ export function ProjectLibraryDialog({
               ref={fileInputRef}
               className={styles.fileInput}
               type="file"
-              aria-label="Import a complete Kingxford project bundle"
+              aria-label="Import a Kingxford project file"
               accept=".kxproject.json,.kxcanvas.json,.json,application/json"
               onChange={(event) => {
                 const file = event.target.files?.[0];
@@ -148,7 +148,7 @@ export function ProjectLibraryDialog({
             <li className={styles.emptyState}>
               <FolderKanban aria-hidden="true" />
               <div>
-                <h3>Start your first Atlas project</h3>
+                <h3>Create your first project</h3>
                 <p>
                   Every phase, artifact, decision, and revision will stay
                   connected here as the work develops.
@@ -173,7 +173,7 @@ export function ProjectLibraryDialog({
               <li key={project.id} data-active={active}>
                 <div className={styles.projectMark}>
                   <FolderKanban aria-hidden="true" />
-                  {active ? <span>Open</span> : null}
+                  {active ? <span>Current project</span> : null}
                 </div>
                 <section>
                   <div className={styles.projectMeta}>
@@ -184,11 +184,11 @@ export function ProjectLibraryDialog({
                   </div>
                   <h3>{project.title}</h3>
                   <p className={styles.projectSummary}>
-                    {project.summary || "A connected Atlas project ready for its next move."}
+                    {project.summary || "No project summary has been added."}
                   </p>
                   <div className={styles.projectSignals}>
-                    <span>{evidenceCount} evidence</span>
-                    <span>{decidedGateCount} / {project.gates.length} gates decided</span>
+                    <span>{evidenceCount} {evidenceCount === 1 ? "evidence item" : "evidence items"}</span>
+                    <span>{decidedGateCount} / {project.gates.length} phase approvals recorded</span>
                     <span>{originLabel(project)}</span>
                     <time dateTime={project.updatedAt}>
                       Updated {formatUpdated(project.updatedAt)}
@@ -220,7 +220,7 @@ export function ProjectLibraryDialog({
                   </button>
                   <button
                     type="button"
-                    title="Export project bundle"
+                    title="Export project file"
                     aria-label={`Export ${project.title}`}
                     onClick={() => {
                       setConfirmDeleteId(null);
@@ -259,9 +259,8 @@ export function ProjectLibraryDialog({
 
         <footer>
           <p>
-            Complete <code>.kxproject.json</code> bundles preserve editable
-            artifacts, immutable revisions, evidence, decisions, graph layout,
-            and accepted Agent provenance.
+            Exported <code>.kxproject.json</code> files include editable drafts,
+            revision history, evidence, decisions, graph layout, and saved review records.
           </p>
           <span>Private on this device until you choose to export.</span>
         </footer>

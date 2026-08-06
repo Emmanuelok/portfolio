@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "kingXford & Co — Intelligence for Sustainable Abundance";
+  "kingXford & Co — Research, Digital Systems and Responsible AI";
 export const size = {
   width: 1200,
   height: 630,
@@ -115,7 +115,7 @@ export default function OpenGraphImage() {
             </span>
           </div>
           <span style={{ color: "#86a0ff" }}>
-            Intelligence / R&amp;D / Responsible AI
+            Research / Digital systems / Responsible AI
           </span>
         </div>
 
@@ -137,7 +137,7 @@ export default function OpenGraphImage() {
               letterSpacing: "-0.06em",
             }}
           >
-            Intelligence for
+            Research-led
           </div>
           <div
             style={{
@@ -149,7 +149,7 @@ export default function OpenGraphImage() {
               color: "#7894ff",
             }}
           >
-            sustainable abundance.
+            digital systems.
           </div>
         </div>
 
@@ -169,8 +169,8 @@ export default function OpenGraphImage() {
               color: "rgba(244,241,233,0.7)",
             }}
           >
-            Helping people and institutions solve complex problems and
-            develop ambitious ideas, projects, and systems.
+            Applied research, product design, and software development for
+            complex organisational and public-interest work.
           </div>
           <div
             style={{
@@ -187,8 +187,8 @@ export default function OpenGraphImage() {
               color: "rgba(244,241,233,0.7)",
             }}
           >
-            <span>Craft signature</span>
-            <span>Complex ideas. Unforgettable form.</span>
+            <span>Working method</span>
+            <span>Evidence. Decisions. Delivery.</span>
           </div>
         </div>
       </div>

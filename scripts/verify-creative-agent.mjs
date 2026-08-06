@@ -7,6 +7,7 @@ import process from "node:process";
 const ROOT = process.cwd();
 const PATHS = {
   agent: "src/lib/workspace/agent.ts",
+  intelligenceAgents: "src/lib/intelligence/agents.ts",
   route: "src/app/api/workspace/agent/route.ts",
   lenses: "src/lib/workspace/lenses.ts",
   knowledge: "src/lib/workspace/knowledge.ts",
@@ -426,6 +427,21 @@ function validateSchemaAndPrompts(corpus, sources, checks) {
       "Instructions explicitly deny consequential external actions.",
     ),
     passOrFail(
+      "prompt.professional-output-style",
+      "prompt",
+      [sources.agent, sources.intelligenceAgents].every((source) =>
+        [
+          "concise, professional prose",
+          "promotional claims",
+          "superlatives",
+          "stock AI phrases",
+          "anthropomorphism",
+          "rhetorical filler",
+          "State evidence, uncertainty, risks, and next steps directly",
+        ].every((phrase) => source.includes(phrase))),
+      "Focused and coordinated review prompts require concise, evidence-led professional prose.",
+    ),
+    passOrFail(
       "schema.response-provenance",
       "schema",
       ["agent", "grounding", "request", "projectContext", "usage", "limits", "protocolVersion"]
@@ -523,7 +539,7 @@ function validateRoute(corpus, sources, checks) {
     passOrFail(
       "route.truthful-local-fallback",
       "route",
-      route.includes("local structural review, not model-generated feedback") &&
+      route.includes("local rule-based checks, not a language model") &&
         route.includes("local-readiness-rules-v1") &&
         /source:\s*"local"/.test(route),
       "No-key fallback is explicitly labelled deterministic local analysis.",
@@ -715,8 +731,8 @@ function validateProjectAtlas(corpus, sources, checks) {
       /approvalMode:\s*z\.literal\("human-only"\)/.test(graph) &&
         /kind:\s*z\.literal\("human-confirmation"\)/.test(graph) &&
         /function recordHumanGateDecision/.test(graph) &&
-        sources.continuum.includes("Record human approval") &&
-        sources.continuum.includes("No automatic approval") &&
+        sources.continuum.includes("Record approval") &&
+        sources.continuum.includes("never inferred from an AI response") &&
         sources.continuum.includes("People approve, publish, and remain accountable"),
       "Project phase gates require recorded human confirmation and are never advanced by an AI response.",
     ),

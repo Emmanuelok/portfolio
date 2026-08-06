@@ -578,7 +578,7 @@ export function FinanceExperience({ showcase }: FinanceExperienceProps) {
           </figure>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>Mandate · Evidence · Stewardship</p>
-            <h1 id="finance-heading">A decision should survive the meeting.</h1>
+            <h1 id="finance-heading">Keep assumptions, evidence, and review history with each decision.</h1>
             <p className={styles.heroOverview}>{showcase.overview}</p>
             <p className={styles.disclaimerLine}>
               <ShieldCheck aria-hidden="true" />
@@ -838,7 +838,7 @@ export function FinanceExperience({ showcase }: FinanceExperienceProps) {
           </div>
 
           <div className={styles.ledgerHeading}>
-            <p className={styles.eyebrow}>Living governance ledger</p>
+            <p className={styles.eyebrow}>Governance record</p>
             <h3>Open every role, challenge, and condition.</h3>
           </div>
           <div className={styles.ledgerLayout}>

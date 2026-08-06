@@ -17,30 +17,23 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "kingXford & Co — Intelligence for Sustainable Abundance",
+    default: "kingXford & Co — Research, Digital Systems and Responsible AI",
     template: "%s | kingXford & Co",
   },
   description:
-    "kingXford & Co advances intelligence, research and development, and responsible AI to help people and institutions solve complex problems and prepare for sustainable abundance.",
+    "kingXford & Co develops research-led digital systems and responsible AI tools for complex organisational and public-interest work.",
   keywords: [
     "kingXford & Co",
-    "intelligence",
     "research and development",
     "responsible AI",
-    "sustainable abundance",
-    "abundant future",
-    "complex problem solving",
-    "complex project development",
-    "institutional intelligence",
     "applied research",
-    "strategic foresight",
     "website and digital platform development",
     "digital tools",
     "educational technology",
-    "project intelligence",
-    "creative intelligence workspace",
-    "governed AI agents",
-    "connected project lifecycle",
+    "research software",
+    "institutional systems",
+    "AI-assisted project review",
+    "project lifecycle management",
   ],
   authors: [{ name: "kingXford & Co", url: siteUrl }],
   creator: "kingXford & Co",
@@ -50,23 +43,23 @@ export const metadata: Metadata = {
     type: "website",
     url: "/",
     siteName: "kingXford & Co",
-    title: "Intelligence for Sustainable Abundance | kingXford & Co",
+    title: "Research, Digital Systems and Responsible AI | kingXford & Co",
     description:
-      "Research, development, and responsible AI for people and institutions solving complex problems and preparing an abundant future.",
+      "Research-led digital systems and responsible AI tools for complex organisational and public-interest work.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "kingXford & Co — Intelligence for Sustainable Abundance",
+        alt: "kingXford & Co — Research, Digital Systems and Responsible AI",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "kingXford & Co — Intelligence for Sustainable Abundance",
+    title: "kingXford & Co — Research, Digital Systems and Responsible AI",
     description:
-      "Research, development, and responsible AI for complex problems, ambitious ideas, and an abundant future.",
+      "Research-led digital systems and responsible AI tools for complex organisational and public-interest work.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -113,16 +106,13 @@ const organizationSchema = {
   name: "kingXford & Co",
   url: siteUrl,
   description:
-    "A company advancing intelligence, research and development, and responsible AI to help people and institutions solve complex problems and prepare for sustainable abundance.",
+    "A research and development company that designs digital systems and responsible AI tools for complex organisational and public-interest work.",
   knowsAbout: [
-    "Strategic intelligence",
     "Research and development",
     "Responsible artificial intelligence",
-    "Sustainable abundance",
     "Complex problem solving",
-    "Complex project development",
-    "Institutional transformation",
-    "Strategic foresight",
+    "Digital product development",
+    "Institutional systems",
     "Knowledge systems",
     "Website and digital platform development",
     "Digital tool design",
@@ -152,7 +142,7 @@ const organizationSchema = {
         "@type": "Offer",
         itemOffered: {
           "@type": "Service",
-          name: "Research, intelligence, and learning systems",
+          name: "Research and learning systems",
         },
       },
     ],
@@ -169,7 +159,7 @@ const websiteSchema = {
     name: "kingXford & Co",
   },
   description:
-    "Intelligence, R&D, responsible AI, complex project development, and evidence-led media for sustainable abundance.",
+    "Applied research, digital product development, responsible AI, and evidence-led publications.",
 };
 
 export default function RootLayout({

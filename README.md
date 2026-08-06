@@ -9,9 +9,9 @@ The platform now centres on one continuous **Kingxford Intelligence** project
 system. Work moves through six canonical phases—Discovery, Evidence, Systems,
 Prototype, Validation, and Delivery—without discarding its source, evidence,
 or decisions. Public-facing verbs such as Discover, Investigate, Model, Build,
-Validate, and Deliver are views onto that same lifecycle. A Conductor
-coordinates governed specialist passes inside the same Atlas-backed project
-rather than presenting a collection of disconnected AI tools.
+Validate, and Deliver are views onto that same lifecycle. A coordinated project
+review uses the current Atlas revision and up to two phase-specific specialist
+reviews rather than presenting a collection of disconnected AI tools.
 
 The `& Co` represents investors of every kind: people and institutions who
 contribute capital, time, knowledge, research, technology, infrastructure,
@@ -47,16 +47,16 @@ listening-review requirements in `creative/narration-policy.md`.
 
 The public routes remain useful lenses into one platform. `/create` contains the
 real creation workspace, while `/create/workspace` remains the focused entry for
-ideas, code, mind maps, prompts, briefs, live previews, versions, and governed AI
-review. The implementation plan and architectural decision are documented in
+ideas, code, mind maps, prompts, briefs, live previews, versions, and optional
+AI-assisted review. The implementation plan and architectural decision are documented in
 [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) and
 [`docs/adr/0001-unified-intelligence-platform.md`](docs/adr/0001-unified-intelligence-platform.md).
 
 The current build generates 26 public, framework, and API routes, including
 eight case studies, the Media index, two Media articles, the focused Canvas,
-and the governed review and Conductor endpoints.
+and two project-review API endpoints.
 
-## Kingxford Creative Intelligence
+## Kingxford project review
 
 The Canvas at `/create/workspace` is the shared operating surface for one
 project lifecycle: Discovery → Evidence → Systems → Prototype → Validation →
@@ -66,12 +66,12 @@ Projects can be created, switched, imported, and exported without claiming
 cloud persistence; public Work, Lab, Media, and Create surfaces can deliberately
 seed a new project or add evidence to an existing one.
 
-The Canvas also includes two complementary, server-mediated intelligence paths.
+The Canvas also includes two complementary, server-mediated review paths.
 Focused review combines seven selectable lenses, a fixed Kingxford playbook,
-graph-aware structured output, standard/deep Gateway routing, deterministic
+project-aware structured output, standard/deep Gateway routing, deterministic
 local fallback, and private review history stored in the current browser. The
-Conductor can plan a bounded run, coordinate up to two phase specialists, and
-synthesize their work against the exact Atlas snapshot and artifact revision.
+coordinated review can create a phase plan, run up to two specialist reviews,
+and summarize their findings against the exact Atlas snapshot and artifact revision.
 Both paths are proposal-only: nothing changes the project and no lifecycle gate
 is approved until a person deliberately accepts a revision or records a gate
 decision.
@@ -86,8 +86,8 @@ operational tags; workspace prompts are not used to train Kingxford models.
 Both AI diagnostic endpoints expose the same strict, secret-free readiness
 contract. It separates `codeReady` from `providerReady`,
 `usageProtectionReady`, and `deploymentReady`, so operators and UI can tell a
-valid API with deterministic local fallback from a deployment that is actually
-configured for Gateway generation. A diagnostic never performs or claims a live
+valid API with local rule-based fallback from a deployment that is configured
+to attempt an AI-assisted review. A diagnostic never performs or claims a live
 provider request.
 
 See [`docs/intelligence-layer.md`](docs/intelligence-layer.md) for architecture,
@@ -110,14 +110,19 @@ npm run typecheck
 npm run lint -- --max-warnings=0
 npm run test:intelligence
 npm run test:platform
+npm run verify:editorial-voice
 npm run verify:creative-agent
 npm run build
 npm run verify:platform-journey
 ```
 
 The project requires Node.js 22 or newer and uses Next.js App Router. No
-environment variables are required for the public portfolio or deterministic
-local Canvas review. Configure Vercel AI Gateway/OIDC to enable model-generated
-reviews. Production also requires a private `KINGXFORD_USAGE_HASH_SALT`; set
+environment variables are required for the public portfolio or local rule-based
+Canvas review. Configure Vercel AI Gateway/OIDC to enable AI-assisted reviews.
+Production also requires a private `KINGXFORD_USAGE_HASH_SALT`; set
 `NEXT_PUBLIC_CONTACT_EMAIL` to an owner-controlled public project inbox. Start
 from `.env.example` and never commit real credentials.
+
+Public interface copy follows [`docs/editorial-voice.md`](docs/editorial-voice.md).
+The editorial verification rejects promotional stock phrases and inaccurate
+AI-readiness language in user-facing source files.

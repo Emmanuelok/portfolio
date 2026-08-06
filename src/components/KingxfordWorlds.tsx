@@ -38,12 +38,12 @@ const worlds: readonly World[] = [
     number: "01",
     title: "Studio",
     kicker: "Product & digital systems",
-    statement: "Build intelligence into useful systems.",
+    statement: "Turn a defined need into a working product.",
     body:
-      "The Studio translates research and strategic insight into intelligent tools, platforms, products, and experiences people can put to work.",
-    signature: "From validated proposition to resilient release.",
+      "Studio combines research, product strategy, design, and development to build tools, platforms, and digital services people can use.",
+    signature: "From tested proposition to supported release.",
     services: [
-      "Intelligent tools & platforms",
+      "Digital tools & platforms",
       "AI-enabled products",
       "Decision-support systems",
       "Product & service design",
@@ -61,10 +61,10 @@ const worlds: readonly World[] = [
     kicker: "Strategy & complex mandates",
     statement: "Solve the problem before it hardens.",
     body:
-      "The Living Room is our situation room for institutions, collaborators, and uncommon briefs that need structured intelligence before they need a predefined service.",
-    signature: "The right coalition around the real question.",
+      "The Living Room helps institutions and collaborators frame unusual or cross-disciplinary briefs before choosing a service or solution.",
+    signature: "Define the question, then assemble the right contributors.",
     services: [
-      "Strategic intelligence",
+      "Strategy & decision support",
       "Complex problem framing",
       "Foresight & scenario work",
       "Institutional transformation",
@@ -82,8 +82,8 @@ const worlds: readonly World[] = [
     kicker: "Research & development",
     statement: "Make uncertainty testable.",
     body:
-      "The Lab conducts and translates rigorous inquiry for scientific, academic, public-interest, and industry partners developing knowledge with consequence.",
-    signature: "Evidence that can travel into action.",
+      "The Lab conducts and translates research for scientific, academic, public-interest, and industry partners.",
+    signature: "Evidence prepared for decisions and delivery.",
     services: [
       "Applied research & experimentation",
       "Responsible AI evaluation",
@@ -176,18 +176,17 @@ export function KingxfordWorlds() {
     >
       <header className="worlds__header">
         <div className="worlds__index">
-          <span>01 / Delivery environments</span>
-          <span>One mission, three modes of work</span>
+          <span>01 / Ways to work with kingXford</span>
+          <span>Studio · The Living Room · Lab</span>
         </div>
         <div className="worlds__heading">
           <h2 id="worlds-title">
-            One mission.
-            <em>Three delivery environments.</em>
+            One practice.
+            <em>Three ways to begin.</em>
           </h2>
           <p>
-            Intelligence, R&amp;D, responsible AI, and preparation for sustainable
-            abundance lead the work. Studio, The Living Room, and Lab are the
-            environments through which kingXford &amp; Co delivers it.
+            Use Studio for product delivery, The Living Room for problem
+            framing, and Lab for research and evaluation.
           </p>
         </div>
       </header>
@@ -266,9 +265,9 @@ function scoreIntent(value: string) {
 }
 
 const ideaPrompts = [
-  "An intelligent system for a difficult workflow",
-  "A complex institutional challenge with no obvious owner",
-  "A research programme for sustainable abundance",
+  "An AI-assisted tool for a difficult workflow",
+  "An institutional challenge with no clear owner",
+  "A research programme with defined questions and evidence needs",
 ] as const;
 
 export function IdeaRouter() {
@@ -296,7 +295,7 @@ export function IdeaRouter() {
         setStatus("This browser could not prepare the private project start. Your words were not sent anywhere.");
         return;
       }
-      setStatus("Project prepared. Opening the same idea in the workspace…");
+      setStatus("Project start saved in this browser tab. Opening Canvas…");
       router.push("/create/workspace?start=seed&phase=discovery&mode=idea");
     } catch {
       setStatus("This project could not be prepared safely. Your words were not sent anywhere.");
@@ -309,15 +308,15 @@ export function IdeaRouter() {
       aria-labelledby="idea-router-title"
     >
       <div className="idea-router__intro">
-        <span>02 / The complexity router</span>
+        <span>02 / Find a starting point</span>
         <h2 id="idea-router-title">
-          What future are you trying
-          <em>to make possible?</em>
+          What are you trying to understand,
+          <em>improve, or build?</em>
         </h2>
         <p>
-          Describe the problem, idea, or project plainly. kingXford &amp; Co will
-          identify the most useful specialist lens, then carry your original
-          words into one continuing project.
+          Describe it in plain language. This local router suggests a starting
+          environment and carries your exact words into Canvas without
+          contacting an AI service.
         </p>
       </div>
 
@@ -365,7 +364,7 @@ export function IdeaRouter() {
             data-world={recommendation.id}
           >
             <div>
-              <span>Recommended first specialist lens</span>
+              <span>Suggested starting point</span>
               <strong>{recommendation.title}</strong>
             </div>
             <p>{recommendation.body}</p>

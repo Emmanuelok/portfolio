@@ -37,19 +37,19 @@ const createModes = [
   {
     href: "/create/workspace?mode=idea",
     label: "Idea",
-    description: "Shape the need",
+    description: "Define the need",
     icon: Lightbulb,
   },
   {
     href: "/create/workspace?mode=code",
     label: "Code",
-    description: "Run a prototype",
+    description: "Build a prototype",
     icon: Code2,
   },
   {
     href: "/create/workspace?mode=mindmap",
     label: "Mind map",
-    description: "Move the system",
+    description: "Map the system",
     icon: Network,
   },
   {
@@ -61,7 +61,7 @@ const createModes = [
   {
     href: "/create/workspace?mode=brief",
     label: "Brief",
-    description: "Make it buildable",
+    description: "Plan delivery",
     icon: FileText,
   },
 ] as const;
@@ -159,22 +159,22 @@ function CreateDesktopMenu({
         <section
           className="site-header__create-panel"
           id="site-header-create-panel"
-          aria-label="Create catalogue, concept proofs, and Kingxford Canvas"
+          aria-label="Create categories, concept demos, and Canvas"
         >
           <header className="site-header__create-panel-topline">
-            <span>Create · Seven directions · Three live proofs · One Atlas</span>
+            <span>Create · 7 categories · 3 demos · Canvas</span>
             <span className="site-header__create-live">
-              <i aria-hidden="true" /> Conductor ready
+              <i aria-hidden="true" /> Canvas available
             </span>
           </header>
 
           <div className="site-header__create-panel-grid">
             <div className="site-header__create-intro">
-              <span className="site-header__create-kicker">One project · Six connected phases</span>
-              <h2>Choose what to create. Keep the whole project connected.</h2>
+              <span className="site-header__create-kicker">From discovery to delivery</span>
+              <h2>Choose a starting point. Continue the work in Canvas.</h2>
               <p>
-                Explore seven complete creation directions, inspect live concept
-                proofs, or take an idea directly into Canvas and its Project Atlas.
+                Browse seven types of work, try three interactive concept demos,
+                or take an idea directly into the Canvas workspace.
               </p>
               <nav
                 className="site-header__create-catalogue"
@@ -188,7 +188,7 @@ function CreateDesktopMenu({
                 ))}
               </nav>
               <Link href="/create#catalogue" onClick={onClose}>
-                Explore the complete Create catalogue
+                Browse all Create categories
                 <ArrowUpRight aria-hidden="true" />
               </Link>
             </div>
@@ -199,25 +199,25 @@ function CreateDesktopMenu({
               onClick={onClose}
             >
               <span className="site-header__create-canvas-label">
-                <Sparkles aria-hidden="true" /> Live project workspace
+                <Sparkles aria-hidden="true" /> Browser-based Canvas workspace
               </span>
-              <strong>Open the workspace</strong>
+              <strong>Open Canvas</strong>
               <p>
-                Work with any creative input on the left. Inspect the result,
-                evidence, specialist review, and versions on the right.
+                Add an idea, code, map, prompt, or brief. Review the result,
+                evidence, specialist feedback, and saved versions beside it.
               </p>
               <span className="site-header__create-canvas-panes" aria-hidden="true">
                 <i><b>Input</b><em>Idea · Code · Map</em></i>
-                <i><b>Live</b><em>Preview · Review</em></i>
+                <i><b>Result</b><em>Preview · Review</em></i>
               </span>
               <span className="site-header__create-canvas-cta">
-                Continue the same project <ArrowUpRight aria-hidden="true" />
+                Continue in Canvas <ArrowUpRight aria-hidden="true" />
               </span>
             </Link>
 
             <div className="site-header__create-start">
               <div>
-                <span>Choose an instrument</span>
+                <span>Choose a workspace mode</span>
                 <small>Your work stays on this device</small>
               </div>
               <div className="site-header__create-modes">
@@ -238,7 +238,7 @@ function CreateDesktopMenu({
 
           <footer className="site-header__create-panel-footer">
             <div className="site-header__create-proofs" aria-label="Interactive concept demonstrations">
-              <span>Explore live starting proofs</span>
+              <span>Explore interactive concept demos</span>
               {CREATE_PROOF_DESTINATIONS.map((item) => (
                 <Link href={item.href} onClick={onClose} key={item.href}>
                   <small>{item.index}</small> {item.label}
@@ -250,8 +250,8 @@ function CreateDesktopMenu({
               href="/contact?brief=create"
               onClick={onClose}
             >
-              <span>Ready to go further?</span>
-              Let kingXford build it
+              <span>Need a production build?</span>
+              Discuss it with kingXford
               <ArrowUpRight aria-hidden="true" />
             </Link>
           </footer>
@@ -280,7 +280,7 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
       <summary>
         <span>
           <strong>Create</strong>
-          <small>Seven directions · Canvas · Live proofs</small>
+          <small>Categories · Demos · Canvas</small>
         </span>
         <ChevronDown aria-hidden="true" />
       </summary>
@@ -291,9 +291,9 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
           aria-current={isWorkspaceCurrent ? "page" : undefined}
           onClick={onNavigate}
         >
-          <span><Sparkles aria-hidden="true" /> Kingxford Intelligence</span>
-          <strong>Open the workspace</strong>
-          <small>Source · Live result · Conductor · Versions</small>
+          <span><Sparkles aria-hidden="true" /> Canvas workspace</span>
+          <strong>Open Canvas</strong>
+          <small>Source · Result · Reviews · Versions</small>
           <ArrowUpRight aria-hidden="true" />
         </Link>
 
@@ -328,7 +328,7 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
           {CREATE_PROOF_DESTINATIONS.map((item) => (
             <Link href={item.href} onClick={onNavigate} key={item.href}>
               <small>{item.index}</small>
-              <span>{item.label} proof</span>
+              <span>{item.label} demo</span>
             </Link>
           ))}
         </nav>
@@ -339,11 +339,11 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
             aria-current={pathname === "/create" ? "page" : undefined}
             onClick={onNavigate}
           >
-            <span>Explore all creations</span>
+            <span>Browse Create</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
           <Link href="/contact?brief=create" onClick={onNavigate}>
-            <span>Let kingXford build it</span>
+            <span>Discuss a build</span>
             <ArrowUpRight aria-hidden="true" />
           </Link>
         </div>
@@ -478,8 +478,8 @@ export function SiteHeader() {
                 <CreateMobileMenu pathname={pathname} onNavigate={closeMobileMenu} />
               </nav>
               <p className="site-header__mobile-note">
-                Intelligence, research and development, and responsible AI for
-                people and institutions preparing for sustainable abundance.
+                Research, digital products, responsible AI, and institutional
+                systems for complex work.
               </p>
               <div className="site-header__mobile-tools">
                 <p>Choose a color theme</p>

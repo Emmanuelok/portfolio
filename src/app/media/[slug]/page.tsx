@@ -175,7 +175,7 @@ export default async function MediaArticlePage({
           <div className="media-article__nav">
             <Link className="text-link" href="/media">
               <ArrowLeft aria-hidden="true" />
-              <span>All media</span>
+              <span>All field notes</span>
             </Link>
             <span>
               {post.format} / {post.readingLabel}
@@ -366,7 +366,7 @@ export default async function MediaArticlePage({
             >
               <p className="eyebrow">Closing note</p>
               <h2 id="media-closing-title">
-                {post.closingTitle ?? "Capability with accountability."}
+                {post.closingTitle ?? "Useful work remains accountable."}
               </h2>
               {post.closing.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
@@ -380,11 +380,11 @@ export default async function MediaArticlePage({
             >
               <p className="eyebrow">Research notes</p>
               <h2 id="research-notes-title">
-                {post.sourcesTitle ?? "Sources for going deeper."}
+                {post.sourcesTitle ?? "Sources and further reading."}
               </h2>
               <p>
                 {post.sourcesIntroduction ??
-                  "This field note is an original kingXford & Co perspective. These primary and institutional sources helped ground its wider context."}
+                  "These primary and institutional sources provide context for this field note."}
               </p>
               <ul>
                 {post.sources.map((source) => (
@@ -410,8 +410,8 @@ export default async function MediaArticlePage({
 
         <footer className="media-article__footer">
           <div>
-            <p className="eyebrow">Continue through the platform</p>
-            <h2>Turn this field note into grounded project evidence.</h2>
+            <p className="eyebrow">Continue in Canvas</p>
+            <h2>Add this field note to your project evidence.</h2>
             <ProjectSeedAction
               seed={{
                 action: "add-evidence",
@@ -433,12 +433,12 @@ export default async function MediaArticlePage({
                   tags: [...post.topics, "field-note"],
                 },
               }}
-              label="Carry this note into Canvas"
-              description="Preserve the article reference, summary, and topic context in your project."
+              label="Add this note to Canvas"
+              description="Save the article reference, summary, and topics with your project."
               variant="evidence"
             />
             <Link className="button button--primary" href="/contact">
-              <span>Bring it to kingXford &amp; Co</span>
+              <span>Discuss this question with kingXford</span>
               <ArrowUpRight aria-hidden="true" />
             </Link>
           </div>

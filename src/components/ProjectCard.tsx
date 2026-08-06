@@ -59,7 +59,7 @@ export function ProjectCard({
             {cardNumber}
           </span>
           <span className="project-card__view">
-            View case
+            Read case study
             <ArrowUpRight aria-hidden="true" />
           </span>
         </div>

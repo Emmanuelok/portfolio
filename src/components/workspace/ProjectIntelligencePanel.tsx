@@ -236,9 +236,9 @@ export function ProjectIntelligencePanel({
         phase: project.activePhase,
       });
       form.reset();
-      setEvidenceNotice("Evidence handed to the project graph for validation and storage.");
+      setEvidenceNotice("Evidence added to this local project.");
     } catch {
-      setEvidenceNotice("The evidence was not added. The project graph remains unchanged.");
+      setEvidenceNotice("The evidence was not added. The project remains unchanged.");
     } finally {
       setEvidenceSubmitting(false);
     }
@@ -248,7 +248,7 @@ export function ProjectIntelligencePanel({
     <section className={styles.panel} aria-labelledby={`${instanceId}-heading`}>
       <header className={styles.heading}>
         <div>
-          <span><Orbit aria-hidden="true" /> Project intelligence · Conductor</span>
+          <span><Orbit aria-hidden="true" /> Project review</span>
           <h2 id={`${instanceId}-heading`}>{project.title}</h2>
           <p>{phase.label} · {phase.outcome}</p>
         </div>
@@ -262,18 +262,18 @@ export function ProjectIntelligencePanel({
       <section className={styles.objective} aria-labelledby={`${instanceId}-objective`}>
         <div>
           <Radar aria-hidden="true" />
-          <span>Canonical objective</span>
+          <span>Project objective</span>
         </div>
         <p id={`${instanceId}-objective`}>
-          {project.summary.trim() || "No objective has been committed to this project graph yet."}
+          {project.summary.trim() || "No project objective has been saved yet."}
         </p>
       </section>
 
       <section className={styles.controlDeck} aria-labelledby={`${instanceId}-conductor-control`}>
         <div className={styles.controlCopy}>
-          <span><BrainCircuit aria-hidden="true" /> Governed orchestration</span>
-          <h3 id={`${instanceId}-conductor-control`}>Direct one evidence-bound Conductor run.</h3>
-          <p>Plan, specialist passes, synthesis, provenance, and acceptance remain one reviewable operation.</p>
+          <span><BrainCircuit aria-hidden="true" /> Project review</span>
+          <h3 id={`${instanceId}-conductor-control`}>Review the current project revision.</h3>
+          <p>The review returns a phase plan, up to two specialist reviews, a summary, and an audit trail. You decide whether to accept it.</p>
         </div>
         <fieldset className={styles.depthControl} disabled={running}>
           <legend>Reasoning depth</legend>
@@ -288,14 +288,14 @@ export function ProjectIntelligencePanel({
               />
               <span>
                 <strong>{titleCase(value)}</strong>
-                <small>{value === "deep" ? "Extended orchestration" : "Focused orchestration"}</small>
+                <small>{value === "deep" ? "Extended review" : "Focused review"}</small>
               </span>
             </label>
           ))}
         </fieldset>
         {running ? (
           <button className={styles.stopButton} type="button" onClick={onStop}>
-            <CircleStop aria-hidden="true" /> Stop run
+            <CircleStop aria-hidden="true" /> Stop review
           </button>
         ) : (
           <button
@@ -304,12 +304,12 @@ export function ProjectIntelligencePanel({
             disabled={runDisabled}
             onClick={() => onRun(depth)}
           >
-            <Play aria-hidden="true" /> Run Conductor
+            <Play aria-hidden="true" /> Run project review
           </button>
         )}
         <div className={styles.runState} data-running={running ? "true" : "false"} aria-live="polite">
           <i aria-hidden="true" />
-          <span>{running ? "Conductor is coordinating the bounded run…" : statusMessage || "Ready for a bound project review."}</span>
+          <span>{running ? "Project review in progress…" : statusMessage || "Ready to review the current project revision."}</span>
         </div>
       </section>
 
@@ -319,7 +319,7 @@ export function ProjectIntelligencePanel({
         </p>
       ) : null}
 
-      <nav className={styles.tabs} role="tablist" aria-label="Project intelligence views">
+      <nav className={styles.tabs} role="tablist" aria-label="Project review views">
         {tabs.map((value) => (
           <button
             id={tabId(value)}
@@ -332,7 +332,7 @@ export function ProjectIntelligencePanel({
             onKeyDown={(event) => handleTabKeyDown(event, tab, setTab, tabId)}
             key={value}
           >
-            {value === "project" ? "Project graph" : titleCase(value)}
+            {value === "project" ? "Project graph" : value === "conductor" ? "Review plan" : titleCase(value)}
             {value === "conductor" && response ? <span>1</span> : null}
             {value === "provenance" && providerCalls.length ? <span>{providerCalls.length}</span> : null}
           </button>
@@ -376,9 +376,9 @@ export function ProjectIntelligencePanel({
             <header>
               <div>
                 <span><Plus aria-hidden="true" /> Manual evidence</span>
-                <h3 id={`${instanceId}-evidence-heading`}>Add an inspectable claim to the graph.</h3>
+                <h3 id={`${instanceId}-evidence-heading`}>Add a source, observation, or unresolved claim.</h3>
               </div>
-              <p>The caller validates and persists this submission; this panel never writes storage.</p>
+              <p>The entry is checked for structure and saved to this project in your browser.</p>
             </header>
             <div className={styles.formGrid}>
               <label>
@@ -447,7 +447,7 @@ export function ProjectIntelligencePanel({
           <div className={styles.runResult}>
             <header className={styles.resultHeader}>
               <div>
-                <span><Sparkles aria-hidden="true" /> Typed phase plan</span>
+                <span><Sparkles aria-hidden="true" /> Phase plan</span>
                 <h3>{phaseDefinition(response.orchestration.plan.phase).label} · {response.orchestration.plan.summary}</h3>
               </div>
               <span data-status={response.status}>{titleCase(response.status)}</span>
@@ -494,31 +494,31 @@ export function ProjectIntelligencePanel({
               {response.orchestration.plan.conflicts.length ? (
                 <div className={styles.planWarnings}>
                   <TriangleAlert aria-hidden="true" />
-                  <div><strong>Conflicts retained</strong><p>{response.orchestration.plan.conflicts.join(" · ")}</p></div>
+                  <div><strong>Unresolved conflicts</strong><p>{response.orchestration.plan.conflicts.join(" · ")}</p></div>
                 </div>
               ) : null}
               <details className={styles.planBoundaries}>
-                <summary>Governance boundaries</summary>
+                <summary>Review boundaries</summary>
                 <ul>
                   {response.orchestration.plan.boundaries.map((boundary, index) => (
                     <li key={`boundary-${index}`}>{boundary}</li>
                   ))}
                 </ul>
               </details>
-              <footer><span>Governed handoff</span><p>{response.orchestration.plan.handoff}</p></footer>
+              <footer><span>Next handoff</span><p>{response.orchestration.plan.handoff}</p></footer>
             </section>
 
             <section className={styles.specialists} aria-labelledby={`${instanceId}-specialists`}>
               <header>
-                <span><Layers3 aria-hidden="true" /> Specialist passes</span>
-                <strong id={`${instanceId}-specialists`}>{response.orchestration.passes.length} coordinated</strong>
+                <span><Layers3 aria-hidden="true" /> Specialist reviews</span>
+                <strong id={`${instanceId}-specialists`}>{response.orchestration.passes.length} assigned</strong>
               </header>
               <div>
                 {response.orchestration.passes.map((pass) => (
                   <article data-status={pass.status} key={pass.id}>
                     <header>
                       <div><i aria-hidden="true" /><span>{titleCase(pass.role)}</span></div>
-                      <small>{titleCase(pass.status)} · {pass.source} · {pass.model}</small>
+                      <small>{titleCase(pass.status)} · {pass.source === "openai" ? "AI-assisted review" : "Local rule-based review"} · {pass.model}</small>
                     </header>
                     {pass.review ? (
                       <div className={styles.passReview}>
@@ -530,7 +530,7 @@ export function ProjectIntelligencePanel({
                         </dl>
                       </div>
                     ) : (
-                      <p className={styles.passNotice}>{pass.notice || "This specialist pass returned no review."}</p>
+                      <p className={styles.passNotice}>{pass.notice || "This specialist review returned no result."}</p>
                     )}
                   </article>
                 ))}
@@ -539,7 +539,7 @@ export function ProjectIntelligencePanel({
 
             {response.capabilityNegotiation.declined.length ? (
               <section className={styles.capabilityDenials} aria-labelledby={`${instanceId}-capability-denials`}>
-                <header><ShieldAlert aria-hidden="true" /><h4 id={`${instanceId}-capability-denials`}>Capabilities deliberately not granted</h4></header>
+                <header><ShieldAlert aria-hidden="true" /><h4 id={`${instanceId}-capability-denials`}>Capabilities unavailable in this review</h4></header>
                 <ul>
                   {response.capabilityNegotiation.declined.map((item) => (
                     <li key={item.capability}><strong>{titleCase(item.capability)}</strong><span>{item.reason}</span></li>
@@ -550,7 +550,7 @@ export function ProjectIntelligencePanel({
 
             <section className={styles.synthesis} aria-labelledby={`${instanceId}-synthesis`}>
               <header>
-                <div><Orbit aria-hidden="true" /><span>Final Conductor synthesis</span></div>
+                <div><Orbit aria-hidden="true" /><span>Project review summary</span></div>
                 <strong>{response.review.status}</strong>
               </header>
               <h3 id={`${instanceId}-synthesis`}>{response.review.summary}</h3>
@@ -562,7 +562,7 @@ export function ProjectIntelligencePanel({
               </div>
               <div className={styles.nextTest}>
                 <FileCheck2 aria-hidden="true" />
-                <div><span>Decisive next test</span><p>{response.review.nextTest}</p></div>
+                <div><span>Recommended next test</span><p>{response.review.nextTest}</p></div>
               </div>
             </section>
 
@@ -570,8 +570,8 @@ export function ProjectIntelligencePanel({
               <div>
                 {bindingIsCurrent ? <ShieldCheck aria-hidden="true" /> : <ShieldAlert aria-hidden="true" />}
                 <p>
-                  <strong>{bindingIsCurrent ? "Exact revision binding confirmed" : "Project changed after this run"}</strong>
-                  <span>{bindingIsCurrent ? "Acceptance creates a deliberate project revision; nothing applies automatically." : "Run Conductor again against the current project before accepting a proposal."}</span>
+                  <strong>{bindingIsCurrent ? "Current revision confirmed" : "Project changed after this review"}</strong>
+                  <span>{bindingIsCurrent ? "Accepting saves the proposal as a new project revision. It will not be applied automatically." : "Run the project review again before accepting this result."}</span>
                 </p>
               </div>
               <button
@@ -587,8 +587,8 @@ export function ProjectIntelligencePanel({
         ) : (
           <div className={styles.emptyRun}>
             <Orbit aria-hidden="true" />
-            <h3>No Conductor run yet</h3>
-            <p>Choose a reasoning depth and run the bound project. The phase plan, specialist judgments, synthesis, and provenance will appear here.</p>
+            <h3>No project review yet</h3>
+            <p>Choose a review depth and start the review. The phase plan, specialist reviews, summary, and audit trail will appear here.</p>
           </div>
         )}
       </div>
@@ -605,7 +605,7 @@ export function ProjectIntelligencePanel({
             <section className={styles.runIdentity}>
               <div><span>Run</span><code>{response.runId}</code></div>
               <div><span>Protocol</span><code>{response.protocolVersion}</code></div>
-              <div><span>Provider result</span><strong>{response.source} · {response.model}</strong></div>
+              <div><span>Analysis source</span><strong>{response.source === "openai" ? "AI-assisted review" : "Local rule-based review"} · {response.model}</strong></div>
               <div><span>Completed</span><strong>{formatDateTime(response.completedAt)}</strong></div>
             </section>
 
@@ -618,8 +618,8 @@ export function ProjectIntelligencePanel({
 
             <section className={styles.providerLedger} aria-labelledby={`${instanceId}-provider-ledger`}>
               <header>
-                <span><GitBranch aria-hidden="true" /> Provider call ledger</span>
-                <strong id={`${instanceId}-provider-ledger`}>{providerCalls.length} bounded calls</strong>
+                <span><GitBranch aria-hidden="true" /> Provider calls</span>
+                <strong id={`${instanceId}-provider-ledger`}>{providerCalls.length} calls</strong>
               </header>
               {providerCalls.length ? (
                 <ol>
@@ -640,12 +640,12 @@ export function ProjectIntelligencePanel({
                   ))}
                 </ol>
               ) : (
-                <p className={styles.localNotice}>This result used deterministic local analysis; no provider call was made.</p>
+                <p className={styles.localNotice}>This result used local rule-based analysis; no provider call was made.</p>
               )}
             </section>
 
-            <section className={styles.binding} aria-label="Exact project binding">
-              <header><ShieldCheck aria-hidden="true" /><span>Exact graph binding</span></header>
+            <section className={styles.binding} aria-label="Project revision binding">
+              <header><ShieldCheck aria-hidden="true" /><span>Project revision binding</span></header>
               <dl>
                 <div><dt>Project</dt><dd><code>{response.projectContext.projectId}</code></dd></div>
                 <div><dt>Snapshot</dt><dd><code>{response.projectContext.snapshotId}</code></dd></div>
@@ -654,14 +654,14 @@ export function ProjectIntelligencePanel({
                 <div><dt>Snapshot hash</dt><dd><code>{response.projectContext.snapshotHash}</code></dd></div>
                 <div><dt>Draft hash</dt><dd><code>{response.projectContext.draftHash}</code></dd></div>
               </dl>
-              <p><ShieldCheck aria-hidden="true" /> {bindingIsCurrent ? "This binding still matches the caller’s active project revision." : "This binding is historical and cannot be accepted into the current revision."}</p>
+              <p><ShieldCheck aria-hidden="true" /> {bindingIsCurrent ? "This result still matches the active project revision." : "This result belongs to an earlier revision and cannot be accepted into the current revision."}</p>
             </section>
           </div>
         ) : (
           <div className={styles.emptyRun}>
             <Database aria-hidden="true" />
             <h3>No provenance record yet</h3>
-            <p>Provider, model, token, latency, snapshot, and revision evidence appears only after a completed run.</p>
+            <p>Provider, model, usage, timing, snapshot, and revision details appear after a review completes.</p>
           </div>
         )}
       </div>

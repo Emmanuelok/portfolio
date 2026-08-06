@@ -231,7 +231,7 @@ export function buildAiReadiness({
     blockers.push({
       code: "governance-boundary-invalid",
       message:
-        "The proposal-only runtime must keep tools and automatic apply disabled with human-only gate approval.",
+        "AI reviews must keep tools and automatic changes disabled, and gate approval must remain human-only.",
     });
   }
   if (!authReady && authMethod === "gateway-api-key") {
@@ -244,7 +244,7 @@ export function buildAiReadiness({
     blockers.push({
       code: "gateway-auth-missing",
       message:
-        "Configure Vercel OIDC or the server-only AI_GATEWAY_API_KEY to enable model-generated results.",
+        "Configure Vercel OIDC or the server-only AI_GATEWAY_API_KEY to enable AI-assisted reviews.",
     });
   }
   if (!usageProtectionReady) {

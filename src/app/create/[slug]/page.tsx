@@ -83,9 +83,9 @@ export default async function ShowcasePage({ params }: ShowcasePageProps) {
       />
       <WebsiteShowcase showcase={showcase} />
       <section className="page-cta" aria-labelledby="showcase-canvas-title">
-        <p className="eyebrow">From demonstration to accountable project</p>
+        <p className="eyebrow">Continue in Kingxford Canvas</p>
         <h2 id="showcase-canvas-title">
-          Use this concept as a starting point, then make the brief your own.
+          Use this demonstration as a starting point for your own project.
         </h2>
         <ProjectSeedAction
           seed={{
@@ -108,8 +108,8 @@ export default async function ShowcasePage({ params }: ShowcasePageProps) {
               tags: [showcase.sector, "concept-demonstration"],
             },
           }}
-          label="Develop this concept in Canvas"
-          description="Start a new Atlas project with the concept, capabilities, and disclosure preserved."
+          label="Start a project from this demonstration"
+          description="Create a new project with the demonstration brief, capabilities, and disclosure included."
         />
       </section>
     </>

@@ -52,11 +52,11 @@ const CREATE_MENU_DIRECTIONS = [
   ["Everyday tools", "/create#capability-personal-tools"],
 ];
 const CREATE_SECTION_ANCHORS = [
-  ["Live proofs", "#websites"],
-  ["Seven directions", "#capabilities"],
-  ["Canvas + Atlas", "#studio"],
-  ["Full catalogue", "#catalogue"],
-  ["Focus mode", WORKSPACE_ROUTE],
+  ["Interactive demonstrations", "#websites"],
+  ["Creation categories", "#capabilities"],
+  ["Canvas + Project Atlas", "#studio"],
+  ["Complete catalogue", "#catalogue"],
+  ["Open full workspace", WORKSPACE_ROUTE],
 ];
 const CREATE_PROOFS = [
   ["Science", "/create/lumen-vale-laboratory"],
@@ -604,7 +604,7 @@ async function inspectCreateSurface(page) {
         visible: visible(anchor),
       }));
       const routerLinks = links(
-        'nav[aria-label="Kingxford Intelligence sections"] a',
+        'nav[aria-label="Create sections"] a',
       ).map((item) => ({
         ...item,
         normalizedLabel: item.label.replace(/^(?:\d{2}|↗)\s*/, ""),
@@ -741,7 +741,7 @@ async function verifyCreateSurface(page, viewport) {
 
   check(
     `create.${viewport}.hero-and-seven-direction-menu`,
-    state.heroHeading === "What should exist next?" &&
+    state.heroHeading === "What do you need to create?" &&
       JSON.stringify(actualCategoryLinks) === JSON.stringify(CREATE_DIRECTIONS) &&
       JSON.stringify(actualDirectionLinks) === JSON.stringify(CREATE_DIRECTIONS) &&
       state.categoryLinks.every(({ visible }) => visible) &&
@@ -775,7 +775,7 @@ async function verifyCreateSurface(page, viewport) {
     `create.${viewport}.embedded-canvas-library-conductor`,
     state.embeddedCanvas.visible &&
       state.embeddedCanvas.canvasHeading ===
-        "Move from first thought to working proof." &&
+        "Develop an idea into a testable prototype." &&
       state.embeddedCanvas.libraryVisible &&
       state.embeddedCanvas.conductorVisible,
     { embeddedCanvas: state.embeddedCanvas },
@@ -1468,7 +1468,7 @@ try {
       .getByRole("button", { name: "Library", exact: true })
       .click();
     const embeddedLibrary = createNavigationPage.getByRole("dialog", {
-      name: "Your connected intelligence",
+      name: "Your projects",
     });
     await embeddedLibrary.waitFor({ state: "visible" });
     const embeddedCurrentProject = embeddedLibrary.locator(
@@ -1482,7 +1482,7 @@ try {
           exact: true,
         }).isVisible()) &&
         (await embeddedCurrentProject.locator('button[title="Duplicate project"]').isVisible()) &&
-        (await embeddedCurrentProject.locator('button[title="Export project bundle"]').isVisible()),
+        (await embeddedCurrentProject.locator('button[title="Export project file"]').isVisible()),
       {
         currentProject:
           (await embeddedCurrentProject.textContent())
@@ -1593,7 +1593,7 @@ try {
   const projectLibraryButton = page.getByRole("button", { name: "Library", exact: true });
   await projectLibraryButton.click();
   const projectLibrary = page.getByRole("dialog", {
-    name: "Your connected intelligence",
+    name: "Your projects",
   });
   await projectLibrary.waitFor({ state: "visible" });
   const currentLibraryProject = projectLibrary.locator('li[data-active="true"]');
@@ -1640,7 +1640,7 @@ try {
 
   await visit(page, WORK_ROUTE);
   const workAction = page.getByRole("button", {
-    name: /Carry this case into Canvas/i,
+    name: /Add this case to Canvas/i,
   });
   await workAction.scrollIntoViewIfNeeded();
   await enterCanvas(page, workAction);
@@ -1694,7 +1694,7 @@ try {
 
   await visit(page, MEDIA_ROUTE);
   const mediaAction = page.getByRole("button", {
-    name: /Carry this note into Canvas/i,
+    name: /Add this note to Canvas/i,
   });
   await mediaAction.scrollIntoViewIfNeeded();
   await enterCanvas(page, mediaAction);
@@ -1767,12 +1767,12 @@ try {
     .textContent();
   check(
     "evidence.atlas-lineage",
-    /Lineage/i.test(lineageText ?? "") &&
+    /Source history/i.test(lineageText ?? "") &&
       asArray(mediaProject.artifacts).length >= 2 &&
       mediaEvidenceText.includes("Veridanth") &&
       mediaEvidenceText.includes("Sustainable Abundance"),
     {
-      lineageRendered: /Lineage/i.test(lineageText ?? ""),
+      lineageRendered: /Source history/i.test(lineageText ?? ""),
       evidenceRevisionId: mediaEvidenceRevision?.id ?? null,
       retainsWork: mediaEvidenceText.includes("Veridanth"),
       retainsMedia: mediaEvidenceText.includes("Sustainable Abundance"),
@@ -1960,7 +1960,7 @@ try {
       responseExcerpt: upstreamResponse?.responseExcerpt ?? null,
     },
   );
-  await page.getByText("Local structural review", { exact: true }).waitFor({
+  await page.getByText("Local rule-based review", { exact: true }).waitFor({
     state: "visible",
     timeout: 15_000,
   });
@@ -2183,7 +2183,7 @@ try {
       new URL(response.url()).pathname === "/api/intelligence/runs",
     { timeout: 30_000 },
   );
-  await intelligencePanel.getByRole("button", { name: "Run Conductor" }).click();
+  await intelligencePanel.getByRole("button", { name: "Run project review" }).click();
   const nativeConductorResponse = await nativeConductorResponsePromise;
   const conductorRequestHeaders =
     await nativeConductorResponse.request().allHeaders();
@@ -2318,24 +2318,24 @@ try {
   );
 
   const intelligenceTabs = intelligencePanel.getByRole("tablist", {
-    name: "Project intelligence views",
+    name: "Project review views",
   });
-  await intelligenceTabs.getByRole("tab", { name: /^Conductor/ }).click();
+  await intelligenceTabs.getByRole("tab", { name: /^Review plan/ }).click();
   const conductorView = intelligencePanel.locator(
     '[role="tabpanel"][aria-labelledby$="-tab-conductor"]',
   );
   await conductorView.waitFor({ state: "visible" });
   const capabilityDenialsHeading = conductorView.getByRole("heading", {
-    name: "Capabilities deliberately not granted",
+    name: "Capabilities unavailable in this review",
   });
   const capabilityDenials = conductorView
-    .getByRole("heading", { name: "Capabilities deliberately not granted" })
+    .getByRole("heading", { name: "Capabilities unavailable in this review" })
     .locator("xpath=ancestor::section[1]")
     .getByRole("listitem");
   check(
     "conductor.ui.plan-passes-and-capability-denials",
-    (await conductorView.getByText("Typed phase plan", { exact: true }).isVisible()) &&
-      (await conductorView.getByText("2 coordinated", { exact: true }).isVisible()) &&
+    (await conductorView.getByText("Phase plan", { exact: true }).isVisible()) &&
+      (await conductorView.getByText("2 assigned", { exact: true }).isVisible()) &&
       (await capabilityDenialsHeading.isVisible()) &&
       (await capabilityDenials.count()) === 3 &&
       expectedDeclinedCapabilities.every((capability) =>
@@ -2359,8 +2359,8 @@ try {
     (await provenanceView.textContent())?.replace(/\s+/g, " ").trim() ?? "";
   check(
     "conductor.ui.provenance-and-exact-binding",
-    (await provenanceView.getByText("Exact graph binding", { exact: true }).isVisible()) &&
-      (await provenanceView.getByText("0 bounded calls", { exact: true }).isVisible()) &&
+    (await provenanceView.getByText("Project revision binding", { exact: true }).isVisible()) &&
+      (await provenanceView.getByText("0 calls", { exact: true }).isVisible()) &&
       provenanceText.includes(conductorResponse.runId) &&
       provenanceText.includes(conductorResponse.protocolVersion) &&
       provenanceText.includes(conductorResponse.projectContext.projectId) &&
@@ -2378,7 +2378,7 @@ try {
     },
   );
 
-  await intelligenceTabs.getByRole("tab", { name: /^Conductor/ }).click();
+  await intelligenceTabs.getByRole("tab", { name: /^Review plan/ }).click();
   const acceptConductorButton = conductorView.getByRole("button", {
     name: "Accept as revision",
   });

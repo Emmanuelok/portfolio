@@ -114,7 +114,7 @@ export class IntelligenceProjectBindingError extends Error {
 
 export class IntelligenceRunCancelledError extends Error {
   constructor() {
-    super("The intelligence run was cancelled before it completed.");
+    super("The project review was cancelled before it completed.");
     this.name = "IntelligenceRunCancelledError";
   }
 }
@@ -565,7 +565,7 @@ export function executeLocalIntelligenceRun(
         inputDigest: digest(`${context.canonical.inputDigest}:${role}`),
         outputDigest: passArtifact.digest,
         artifactId: passArtifact.id,
-        notice: "Deterministic structural lens; no model or external tool was called.",
+        notice: "Local rule-based review; no model or external tool was used.",
       },
       artifact: passArtifact,
     };
@@ -612,7 +612,7 @@ export function executeLocalIntelligenceRun(
     projectContext: context.projectContext,
     notice:
       options.notice ||
-      "AI analysis is not configured in this environment. This result uses deterministic local structural rules and does not represent external research, execution, validation, artifact mutation, or gate approval.",
+      "AI generation is not configured. This result comes from local rule-based checks; it did not browse, execute code, validate evidence, change the project, or record gate approval.",
   });
 }
 
@@ -671,7 +671,7 @@ export async function executeIntelligenceRun(
       startedAt: context.startedAt,
       providerCalls: ledger.calls,
       notice:
-        "The governed provider plan was unavailable. No project input was changed; this run uses deterministic local structural rules.",
+        "The AI planning step was unavailable. No project content changed; this run uses local rule-based analysis.",
     });
   }
 
@@ -724,7 +724,7 @@ export async function executeIntelligenceRun(
             inputDigest: passInputDigest,
             outputDigest: null,
             artifactId: null,
-            notice: "This specialist pass did not complete; the Conductor will preserve the gap.",
+            notice: "This specialist review did not complete; the run records it as incomplete.",
           },
           artifact: null,
         };
@@ -842,12 +842,12 @@ export async function executeIntelligenceRun(
     ...(status === "partial"
       ? {
           notice:
-            "One or more governed passes used a bounded fallback or did not complete. No proposal was applied and no human gate was approved; review provenance before accepting this result.",
+            "One or more specialist steps used a fallback or did not complete. No proposal was applied and no gate was approved. Review the run details before accepting this result.",
         }
       : usedGatewayFallback
         ? {
             notice:
-              "AI Gateway completed one or more governed stages with an approved fallback model. Review the per-stage provenance before accepting this result.",
+              "AI Gateway used an approved fallback model for one or more steps. Review each step’s source before accepting the result.",
           }
       : {}),
   });

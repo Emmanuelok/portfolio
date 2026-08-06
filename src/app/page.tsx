@@ -25,8 +25,8 @@ export default function HomePage() {
       >
         <div className="kx-practice__architecture" aria-hidden="true">
           <span>Question</span>
-          <span>Shared intelligence</span>
-          <span>Durable capability</span>
+          <span>Project record</span>
+          <span>Delivered system</span>
         </div>
         <div className="kx-practice__copy">
           <Reveal>
@@ -34,16 +34,16 @@ export default function HomePage() {
           </Reveal>
           <Reveal delay={0.05}>
             <h2 id="kx-practice-title">
-              Developing intelligence for
-              <em>an abundant future.</em>
+              Research and development for
+              <em>complex, practical work.</em>
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
             <p>
-              kingXford &amp; Co is one connected intelligence platform for
-              consequential work. Research, evidence, systems thinking,
-              responsible AI, design, and development remain attached to the
-              same project from its first question to its operating reality.
+              kingXford &amp; Co combines applied research, systems thinking,
+              responsible AI, product design, and software development. Each
+              project keeps its source material, evidence, decisions, and
+              revisions together from the first question through delivery.
             </p>
           </Reveal>
           <Reveal className="kx-practice__actions" delay={0.15}>
@@ -63,12 +63,12 @@ export default function HomePage() {
         <div className="home-finale__noise" aria-hidden="true" />
         <Reveal className="home-finale__meta">
           <span>04 / Start</span>
-          <span>Your first sentence becomes a continuing project.</span>
+          <span>Start a local project record from a short brief.</span>
         </Reveal>
         <Reveal>
           <h2 id="home-finale-title">
-            Bring the ambition.
-            <em>Keep the whole intelligence.</em>
+            Start with the problem.
+            <em>Keep the evidence and decisions.</em>
           </h2>
         </Reveal>
         <Reveal className="home-finale__action" delay={0.08}>

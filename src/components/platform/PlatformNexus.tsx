@@ -43,9 +43,9 @@ const phaseIcons: Record<PlatformPhase, LucideIcon> = {
 };
 
 const startingPoints = [
-  "A learning system that adapts to how each student understands",
-  "A tool that turns complex evidence into a clear next decision",
-  "A new service for a problem people have learned to tolerate",
+  "A learning service that responds to different student needs",
+  "A tool that turns complex evidence into a clear decision record",
+  "A service that improves a difficult or unreliable workflow",
 ] as const;
 
 export function PlatformNexus() {
@@ -70,7 +70,7 @@ export function PlatformNexus() {
   const startProject = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canStart) {
-      setStatus("Add a short description of what you want to make possible.");
+      setStatus("Add a short description of the project or problem.");
       return;
     }
 
@@ -83,18 +83,18 @@ export function PlatformNexus() {
       const result = writePlatformSeed(window.sessionStorage, seed);
       if (!result.ok) {
         setStatus(
-          "This browser could not prepare the private project start. Your words have not been submitted or sent anywhere.",
+          "The project could not be saved in this browser. Nothing was submitted or sent.",
         );
         return;
       }
 
-      setStatus("Private project start prepared. Opening the workspace…");
+      setStatus("Project saved in this browser. Opening the workspace…");
       router.push(
         "/create/workspace?start=seed&phase=discovery&mode=idea",
       );
     } catch {
       setStatus(
-        "This project start could not be prepared safely. Your words have not been submitted or sent anywhere.",
+        "The project could not be prepared. Nothing was submitted or sent.",
       );
     }
   };
@@ -114,29 +114,29 @@ export function PlatformNexus() {
         <header className={styles.topline}>
           <div>
             <span className={styles.signal}><i /> Workspace ready</span>
-            <span>Kingxford Intelligence Platform</span>
+            <span>Kingxford Project Platform</span>
           </div>
-          <p>One project · Six connected phases · Specialist intelligence</p>
+          <p>One project record · Six phases · Structured review</p>
         </header>
 
         <div className={styles.mainGrid}>
           <div className={styles.proposition}>
             <p className={styles.eyebrow}>
-              <Sparkles aria-hidden="true" /> Intelligence that moves work forward
+              <Sparkles aria-hidden="true" /> Research, design, and delivery in one workspace
             </p>
             <h1 id="platform-nexus-title">
-              Every form of thought.
-              <em>One intelligence system.</em>
+              Develop complex work.
+              <em>Keep the record intact.</em>
             </h1>
             <p className={styles.lede}>
-              Begin with an idea, question, concept, code fragment, map, or
-              prompt. Kingxford keeps the thread intact as you investigate,
-              model, build, validate, and prepare it for the world.
+              Start with an idea, question, code fragment, map, prompt, or
+              brief. Kingxford keeps the source, evidence, decisions, and
+              revisions together from initial inquiry through delivery.
             </p>
 
             <form className={styles.startForm} onSubmit={startProject}>
               <label htmlFor="platform-project-start">
-                What are you trying to make possible?
+                Describe the project or problem.
               </label>
               <div className={styles.inputShell}>
                 <textarea
@@ -144,7 +144,7 @@ export function PlatformNexus() {
                   value={input}
                   rows={3}
                   maxLength={HOME_SEED_INPUT_LIMIT}
-                  placeholder="Describe the idea, need, question, or system in your own words…"
+                  placeholder="State the need, intended outcome, or question in your own words…"
                   onChange={(event) => {
                     setInput(event.target.value);
                     setStatus("");
@@ -152,7 +152,7 @@ export function PlatformNexus() {
                 />
                 <div className={styles.inputMeta}>
                   <span>{input.length.toLocaleString()} / {HOME_SEED_INPUT_LIMIT.toLocaleString()}</span>
-                  <span><LockKeyhole aria-hidden="true" /> Private project start</span>
+                  <span><LockKeyhole aria-hidden="true" /> Stored in this browser</span>
                 </div>
               </div>
 
@@ -179,13 +179,13 @@ export function PlatformNexus() {
                   <ArrowUpRight aria-hidden="true" />
                 </button>
                 <Link href="/create">
-                  Explore the complete platform
+                  Review the Create workspace
                   <ArrowUpRight aria-hidden="true" />
                 </Link>
               </div>
               <p className={styles.privacy}>
-                Starting stores this sentence only in this browser tab and opens
-                Canvas. It does not contact Kingxford or send it to an Agent.
+                This text is stored only in this browser tab when Canvas opens.
+                It is not submitted to Kingxford or sent for AI review.
               </p>
               <p className={styles.status} role="status" aria-live="polite">
                 {status}
@@ -200,8 +200,8 @@ export function PlatformNexus() {
                 <span />
               </div>
               <div>
-                <span>Project intelligence · Operating model</span>
-                <h2>The Conductor preserves the whole. Specialists deepen each phase.</h2>
+                <span>Project lifecycle · Review model</span>
+                <h2>A single project record, reviewed at each phase.</h2>
               </div>
               <Workflow aria-hidden="true" />
             </header>
@@ -240,7 +240,7 @@ export function PlatformNexus() {
                 <p>{currentPhase.description}</p>
               </div>
               <div className={styles.agentStack}>
-                <span>Intelligence assigned</span>
+                <span>Review disciplines</span>
                 {currentAgents.map((agent, index) => (
                   <div key={agent.id} data-conductor={agent.id === "conductor" ? "true" : "false"}>
                     <i>{index === 0 ? <Orbit aria-hidden="true" /> : <Sparkles aria-hidden="true" />}</i>

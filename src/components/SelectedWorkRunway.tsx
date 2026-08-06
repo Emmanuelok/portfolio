@@ -20,8 +20,8 @@ export function SelectedWorkRunway({
     >
       <header className="work-runway__header">
         <Reveal className="work-runway__index">
-          <span>03 / Mission in practice</span>
-          <span>Evidence across our delivery environments</span>
+          <span>04 / Mission in practice</span>
+          <span>Evidence carried through one project continuum</span>
         </Reveal>
         <Reveal className="work-runway__heading" delay={0.05}>
           <h2 id="work-runway-title">

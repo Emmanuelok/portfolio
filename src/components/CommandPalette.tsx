@@ -5,12 +5,9 @@ import {
   BriefcaseBusiness,
   FlaskConical,
   House,
-  Mail,
   Newspaper,
-  PanelsTopLeft,
   Search,
   Sparkles,
-  UserRound,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -36,57 +33,25 @@ const commands: readonly CommandItem[] = [
     id: "mission",
     label: "Mission",
     description: "Intelligence and responsible innovation for sustainable abundance",
-    href: "/#mission",
-    keywords: "kingxford co mission intelligence sustainable abundance abundant future complex problems ideas projects",
+    href: "/",
+    keywords: "kingxford atlas mission intelligence platform sustainable abundance complex problems ideas projects",
     icon: House,
   },
   {
     id: "lab",
-    label: "R&D / Lab",
-    description: "Research, experimentation, responsible AI, and knowledge systems",
+    label: "Lab",
+    description: "Research, experiments, open questions, and evidence",
     href: "/lab",
     keywords: "kingxford research development science academic experiments evidence responsible ai",
     icon: FlaskConical,
   },
   {
-    id: "create",
-    label: "What we create",
-    description: "Websites, digital tools, and systems shaped around real needs",
-    href: "/create",
-    keywords: "create websites digital tools platforms science laboratory finance education schools institutions businesses professionals individuals communities everyday needs",
-    icon: PanelsTopLeft,
-  },
-  {
     id: "create-workspace",
-    label: "Kingxford Canvas",
-    description: "Test ideas, code, mind maps, prompts, and briefs beside a live result",
+    label: "Canvas",
+    description: "Move one project through the complete six-phase Atlas",
     href: "/create/workspace",
-    keywords: "canvas workspace creative tool idea concept code html css javascript mind map prompt brief live preview agent prototype build",
+    keywords: "canvas workspace project atlas discovery evidence systems prototype validation delivery conductor",
     icon: Sparkles,
-  },
-  {
-    id: "create-science",
-    label: "Lumen Vale Laboratory",
-    description: "Explore the interactive scientific research website concept",
-    href: "/create/lumen-vale-laboratory",
-    keywords: "science laboratory research microscopy specimens observations interactive concept prototype",
-    icon: FlaskConical,
-  },
-  {
-    id: "create-finance",
-    label: "Meridian Financial Office",
-    description: "Explore the interactive institutional finance website concept",
-    href: "/create/meridian-financial-office",
-    keywords: "finance stewardship governance scenarios mandate committee interactive concept prototype",
-    icon: BriefcaseBusiness,
-  },
-  {
-    id: "create-education",
-    label: "Commonfield Institute",
-    description: "Explore the interactive education website concept",
-    href: "/create/commonfield-institute",
-    keywords: "education learning curriculum weekly syllabus school institute interactive concept prototype",
-    icon: PanelsTopLeft,
   },
   {
     id: "work",
@@ -98,27 +63,11 @@ const commands: readonly CommandItem[] = [
   },
   {
     id: "media",
-    label: "Media",
-    description: "Evidence-led ideas on AI, R&D, and sustainable abundance",
+    label: "Field notes",
+    description: "Evidence-led ideas that can become project inputs",
     href: "/media",
     keywords: "blog podcast media artificial intelligence sustainable abundance business finance design research",
     icon: Newspaper,
-  },
-  {
-    id: "about",
-    label: "About kingXford & Co",
-    description: "Mission, operating model, perspective, and capabilities",
-    href: "/about",
-    keywords: "company co mission investors contributors practice perspective capabilities",
-    icon: UserRound,
-  },
-  {
-    id: "contact",
-    label: "Bring a complex challenge",
-    description: "Start with a problem, opportunity, idea, or ambitious project",
-    href: "/contact",
-    keywords: "contact collaborate institution research development email project problem",
-    icon: Mail,
   },
 ];
 
@@ -142,11 +91,13 @@ export function CommandPalette({
     const needle = query.toLocaleLowerCase().trim();
     if (!needle) return commands;
 
-    return commands.filter((command) =>
-      `${command.label} ${command.description} ${command.keywords}`
-        .toLocaleLowerCase()
-        .includes(needle),
-    );
+    const terms = needle.split(/\s+/).filter(Boolean);
+
+    return commands.filter((command) => {
+      const searchable = `${command.label} ${command.description} ${command.keywords}`
+        .toLocaleLowerCase();
+      return terms.every((term) => searchable.includes(term));
+    });
   }, [query]);
 
   useEffect(() => {
@@ -338,8 +289,8 @@ export function CommandPalette({
 
             {filteredCommands.length === 0 && (
               <p className="command-palette__empty">
-                No destination found. Try “mission”, “create”, “R&amp;D”,
-                “media”, or “contact”.
+                No destination found. Try “mission”, “work”, “lab”, “field
+                notes”, or “Canvas”.
               </p>
             )}
           </div>

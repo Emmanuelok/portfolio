@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Plus } from "lucide-react";
 
+import { ProjectSeedAction } from "@/components/ProjectSeedAction";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -158,10 +159,29 @@ export default function LabPage() {
         <p className="eyebrow">A useful research programme needs a real problem</p>
         <h2>Bring a consequential question that deserves disciplined inquiry.</h2>
         <div className="page-cta__actions">
-          <Link className="button button--primary" href="/contact">
-            <span>Propose an R&amp;D challenge</span>
-            <ArrowUpRight aria-hidden="true" />
-          </Link>
+          <ProjectSeedAction
+            seed={{
+              action: "start-project",
+              source: {
+                kind: "lab",
+                href: "/lab",
+                label: "kingXford Lab research agenda",
+              },
+              payload: {
+                title: "A consequential R&D question",
+                brief:
+                  "Frame and investigate a consequential question using the kingXford Atlas. Begin with the human need, state uncertainty explicitly, and connect every claim to evidence before prototyping.",
+                evidence: experiments.map((experiment) => ({
+                  title: experiment.title,
+                  content: experiment.text,
+                  sourceUrl: "/lab",
+                })),
+                tags: ["research", "responsible-ai", "lab"],
+              },
+            }}
+            label="Start an R&D project in Canvas"
+            description="Carry the Lab agenda forward as a new, traceable project—not a disconnected request."
+          />
           <Link className="button button--quiet" href="/work">
             <span>See mission in practice</span>
             <ArrowUpRight aria-hidden="true" />

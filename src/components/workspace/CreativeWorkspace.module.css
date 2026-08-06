@@ -52,6 +52,94 @@
   line-height: 1.65;
 }
 
+.projectManager {
+  display: grid;
+  width: min(100% - (var(--page-gutter) * 2), var(--content-max));
+  margin: 0 auto 1rem;
+  grid-template-columns: minmax(12rem, 0.8fr) minmax(14rem, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--workspace-rule);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+}
+
+.projectManager > div:first-child,
+.projectManager label {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.projectManager span,
+.projectManager small {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.projectManager strong {
+  font-size: 0.84rem;
+}
+
+.projectManager select {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.7rem;
+  padding: 0.6rem 2.4rem 0.6rem 0.75rem;
+  border: 1px solid var(--workspace-rule-strong);
+  border-radius: var(--radius-s);
+  background: var(--canvas-deep);
+  color: var(--text);
+  font-size: 0.72rem;
+}
+
+.projectManagerActions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.projectManagerActions button {
+  display: inline-flex;
+  min-height: 2.7rem;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--workspace-rule-strong);
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.projectManagerActions button:hover:not(:disabled),
+.projectManagerActions button:focus-visible {
+  border-color: var(--workspace-blue);
+  color: var(--text);
+}
+
+.projectManagerActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.projectManagerActions svg {
+  width: 0.82rem;
+}
+
+.atlasShell {
+  width: min(100% - (var(--page-gutter) * 2), var(--content-max));
+  margin: 0 auto clamp(2rem, 5vw, 5rem);
+}
+
 .workspaceTopbar {
   position: sticky;
   top: var(--header-height);
@@ -2145,6 +2233,15 @@ button.entrepreneurshipLink:disabled {
 }
 
 @media (max-width: 1180px) {
+  .projectManager {
+    grid-template-columns: minmax(12rem, 0.7fr) minmax(14rem, 1fr);
+  }
+
+  .projectManagerActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
   .workspaceTopbar {
     grid-template-columns: 1fr auto;
   }
@@ -2183,6 +2280,23 @@ button.entrepreneurshipLink:disabled {
     grid-template-columns: 1fr;
     align-content: end;
     gap: 2rem;
+  }
+
+  .projectManager {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .projectManagerActions {
+    display: grid;
+    grid-column: 1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .projectManagerActions button {
+    min-width: 0;
+    justify-content: center;
   }
 
   .workspaceTopbar {

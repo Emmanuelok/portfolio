@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Download } from "lucide-react";
+import { Check, Copy, Download, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { parseConcept } from "@/lib/workspace/local-analysis";
@@ -43,6 +43,49 @@ const initialBrief: BriefState = {
   constraints: "",
   investment: "",
   horizon: "",
+};
+
+const queryPresets: Readonly<Record<string, Partial<BriefState>>> = {
+  create: {
+    problem: "I want to turn an early idea into a useful, testable digital product.",
+    future: "A working prototype with a clear audience, evidence plan, and responsible delivery path.",
+  },
+  "digital-tool": {
+    problem: "I need a digital tool that makes a difficult task substantially easier or more reliable.",
+    future: "A focused, usable product that can be tested with the people who need it.",
+  },
+  "institutional-system": {
+    problem: "I need to improve an institutional process or decision system that is currently fragmented.",
+    future: "A coherent, accountable operating system with measurable outcomes.",
+  },
+  "research-ai": {
+    problem: "I need a responsible research or AI instrument for a complex evidence problem.",
+    future: "A transparent research workflow with traceable evidence, evaluation, and human oversight.",
+  },
+  operations: {
+    problem: "I need to redesign an operation whose current workflow creates delay, duplication, or avoidable risk.",
+    future: "A clearer system with practical controls, useful automation, and measurable performance.",
+  },
+  education: {
+    problem: "I need a learning experience or education tool built around a real student or educator need.",
+    future: "An accessible learning system that improves understanding, practice, and evidence of progress.",
+  },
+  "education-website": {
+    problem: "I want to turn an education concept into a credible, accessible digital experience.",
+    future: "A tested learning journey with clear content, interaction, and progress evidence.",
+  },
+  "science-website": {
+    problem: "I want to make scientific evidence explorable without sacrificing rigor or provenance.",
+    future: "An interactive evidence experience that communicates uncertainty and source quality clearly.",
+  },
+  "finance-website": {
+    problem: "I need a financial intelligence experience that supports informed decisions without false certainty.",
+    future: "A transparent interface with evidence, risk context, and clear decision boundaries.",
+  },
+  "personal-tool": {
+    problem: "I need an everyday tool that helps people make a difficult recurring decision with less friction.",
+    future: "A calm, trustworthy product that is useful without requiring specialist knowledge.",
+  },
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -205,7 +248,24 @@ function loadCanvasHandoff(): Readonly<{
   notice: HandoffNotice;
 }> | null {
   const search = new URLSearchParams(window.location.search);
-  if (search.get("brief") !== "workspace") return null;
+  const briefType = search.get("brief");
+  const world = search.get("world");
+  if (briefType !== "workspace") {
+    const preset = (briefType && queryPresets[briefType])
+      || (world === "living-room" ? {
+        problem: "I need a quiet, rigorous space to make sense of an important decision or emerging idea.",
+        future: "A legible problem, explicit assumptions, and the smallest responsible next step.",
+      } : null);
+    if (!preset) return null;
+    return {
+      brief: { ...initialBrief, ...preset },
+      notice: {
+        state: "ready",
+        heading: "A relevant starting frame has been prepared.",
+        detail: "This is only a local prompt based on the route you selected. Review and replace every field before opening an email draft, copying, or downloading it.",
+      },
+    };
+  }
 
   const raw = window.sessionStorage.getItem(CANVAS_HANDOFF_KEY);
   if (!raw) {
@@ -277,11 +337,24 @@ function buildBrief(value: BriefState) {
   ].join("\n\n");
 }
 
-export function ProjectBriefBuilder() {
+function buildMailtoUrl(email: string, brief: string) {
+  const subject = "Kingxford complex problem brief";
+  const prefix = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=`;
+  let body = brief;
+  let url = `${prefix}${encodeURIComponent(body)}`;
+  while (url.length > 7_500 && body.length > 400) {
+    body = `${body.slice(0, Math.max(400, body.length - 320)).trimEnd()}\n\n[Brief shortened for email compatibility. The full version can be attached from the downloaded file.]`;
+    url = `${prefix}${encodeURIComponent(body)}`;
+  }
+  return url;
+}
+
+export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: string | null }>) {
   const [brief, setBrief] = useState<BriefState>(initialBrief);
   const [status, setStatus] = useState("");
   const [handoffNotice, setHandoffNotice] = useState<HandoffNotice | null>(null);
   const output = buildBrief(brief);
+  const emailDraftUrl = contactEmail ? buildMailtoUrl(contactEmail, output) : null;
 
   useEffect(() => {
     const handoff = loadCanvasHandoff();
@@ -418,6 +491,17 @@ export function ProjectBriefBuilder() {
         </label>
 
         <div className={styles.actions}>
+          {emailDraftUrl ? (
+            <a className={styles.emailAction} href={emailDraftUrl}>
+              <Mail aria-hidden="true" />
+              Open email draft
+            </a>
+          ) : (
+            <button type="button" disabled title="The project inbox has not been configured.">
+              <Mail aria-hidden="true" />
+              Email unavailable
+            </button>
+          )}
           <button type="button" onClick={copyBrief}>
             {status.startsWith("Brief copied") ? (
               <Check aria-hidden="true" />
@@ -436,8 +520,9 @@ export function ProjectBriefBuilder() {
         <p className={styles.privacy}>
           Privacy: this worksheet runs locally in your browser. It does not
           submit or transmit the information you enter, and changes made here
-          are not saved automatically. Copying or downloading creates a copy
-          only when you choose that action.
+          are not saved automatically. Opening an email draft, copying, or
+          downloading happens only when you choose that action; an email is
+          never sent automatically.
         </p>
       </form>
     </section>

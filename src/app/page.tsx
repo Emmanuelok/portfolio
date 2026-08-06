@@ -6,32 +6,10 @@ import {
   IdeaRouter,
   KingxfordWorlds,
 } from "@/components/KingxfordWorlds";
+import { PlatformContinuum } from "@/components/PlatformContinuum";
 import { Reveal } from "@/components/Reveal";
 import { SelectedWorkRunway } from "@/components/SelectedWorkRunway";
 import { projects } from "@/data/projects";
-
-const method = [
-  {
-    number: "01",
-    title: "Investigate",
-    copy: "Find the real system, evidence, and human stakes beneath the brief.",
-  },
-  {
-    number: "02",
-    title: "Model",
-    copy: "Turn complexity into testable relationships, scenarios, and decisions.",
-  },
-  {
-    number: "03",
-    title: "Develop",
-    copy: "Build the research, intelligence, prototype, or system the mission needs.",
-  },
-  {
-    number: "04",
-    title: "Validate",
-    copy: "Test impact, responsibility, resilience, and usefulness before scaling.",
-  },
-] as const;
 
 export default function HomePage() {
   const featured = projects
@@ -42,37 +20,9 @@ export default function HomePage() {
     <main className="page page--home">
       <KingxfordCinematic />
       <KingxfordWorlds />
-      <SelectedWorkRunway items={featured} />
       <IdeaRouter />
-
-      <section
-        className="kx-method"
-        aria-labelledby="kx-method-title"
-      >
-        <div className="kx-method__topline">
-          <span>04 / How kingXford &amp; Co works</span>
-          <span>One thread from uncertainty to durable value</span>
-        </div>
-        <Reveal className="kx-method__heading">
-          <h2 id="kx-method-title">
-            Evidence before certainty.
-            <em>Responsibility before scale.</em>
-          </h2>
-        </Reveal>
-        <div className="kx-method__steps">
-          {method.map((step, index) => (
-            <Reveal
-              className="kx-method__step"
-              delay={index * 0.06}
-              key={step.number}
-            >
-              <span>{step.number}</span>
-              <h3>{step.title}</h3>
-              <p>{step.copy}</p>
-            </Reveal>
-          ))}
-        </div>
-      </section>
+      <PlatformContinuum />
+      <SelectedWorkRunway items={featured} />
 
       <section
         className="kx-practice"

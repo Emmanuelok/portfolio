@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 
+import { ProjectSeedAction } from "@/components/ProjectSeedAction";
 import { Reveal } from "@/components/Reveal";
 import {
   getProjectBySlug,
@@ -209,6 +210,34 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </a>
             </Reveal>
           )}
+
+          <Reveal className="project-links" delay={0.08}>
+            <ProjectSeedAction
+              seed={{
+                action: "add-evidence",
+                source: {
+                  kind: "work",
+                  href: `/work/${project.slug}`,
+                  label: `Published work: ${project.title}`,
+                },
+                payload: {
+                  title: `Evidence from ${project.title}`,
+                  brief: project.summary,
+                  evidence: [
+                    {
+                      title: `${project.title} case evidence`,
+                      content: `Challenge: ${project.challenge}\n\nCurrent outcome: ${project.outcome}`,
+                      sourceUrl: `/work/${project.slug}`,
+                    },
+                  ],
+                  tags: [...project.categories, "published-work"],
+                },
+              }}
+              label="Carry this case into Canvas"
+              description="Add the challenge and current outcome as inspectable project evidence."
+              variant="evidence"
+            />
+          </Reveal>
         </section>
 
         <section

@@ -41,6 +41,28 @@ import styles from "./CreativeWorkspace.module.css";
 
 type PreviewDevice = "desktop" | "tablet" | "mobile";
 
+const PREVIEW_CONSOLE_PROTOCOL = "kingxford.preview.console.v1";
+const PREVIEW_LOG_LEVELS = new Set(["log", "warn", "error"]);
+const PREVIEW_MAX_VALUES = 8;
+const PREVIEW_MAX_VALUE_CHARS = 640;
+const PREVIEW_MAX_VALUE_BYTES = 1_024;
+const PREVIEW_MAX_LINE_CHARS = 1_800;
+const PREVIEW_MAX_LINE_BYTES = 2_048;
+const PREVIEW_MAX_LINES = 12;
+const PREVIEW_MAX_ACCEPTED_LINES = 40;
+const PREVIEW_MAX_ACCEPTED_BYTES = 16 * 1_024;
+const PREVIEW_BURST_MESSAGES = 24;
+
+function utf8Length(value: string) {
+  return new TextEncoder().encode(value).byteLength;
+}
+
+function truncateUtf8(value: string, maxChars: number, maxBytes: number) {
+  let next = value.slice(0, maxChars);
+  while (next && utf8Length(next) > maxBytes) next = next.slice(0, -16);
+  return next;
+}
+
 type WorkspacePreviewProps = Readonly<{
   draft: WorkspaceDraft;
   committedCode: CodeFiles;
@@ -95,11 +117,57 @@ function buildCodeDocument(code: CodeFiles, channel: string) {
   const safeJavascript = code.javascript.replaceAll("</script", "<\\/script");
   const bridge = `
     (() => {
+      'use strict';
+      const protocol = ${JSON.stringify(PREVIEW_CONSOLE_PROTOCOL)};
       const channel = ${JSON.stringify(channel)};
-      const emit = (type, values) => parent.postMessage({ channel, type, values: values.map((value) => {
-        try { return typeof value === 'string' ? value : JSON.stringify(value); }
-        catch { return String(value); }
-      }) }, '*');
+      const encoder = new TextEncoder();
+      const seen = new WeakSet();
+      let sent = 0;
+      let windowStartedAt = performance.now();
+      let windowCount = 0;
+      const clean = (value) => String(value).replace(/[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f]/g, ' ').replace(/\\r?\\n/g, ' ↵ ');
+      const bounded = (value, chars = 640, bytes = 1024) => {
+        let next = clean(value).slice(0, chars);
+        while (next.length && encoder.encode(next).byteLength > bytes) next = next.slice(0, -16);
+        return next;
+      };
+      const serialize = (value, depth = 0) => {
+        try {
+          if (value === null) return 'null';
+          if (typeof value === 'string') return bounded(value);
+          if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'undefined' || typeof value === 'bigint') return bounded(String(value));
+          if (typeof value === 'symbol') return bounded(value.description ? 'Symbol(' + value.description + ')' : 'Symbol');
+          if (typeof value === 'function') return '[Function' + (value.name ? ': ' + bounded(value.name, 80, 160) : '') + ']';
+          if (value instanceof Error) return bounded(value.name + ': ' + value.message);
+          if (depth >= 3) return '[Max depth]';
+          if (typeof value !== 'object') return bounded(String(value));
+          if (seen.has(value)) return '[Circular]';
+          seen.add(value);
+          if (Array.isArray(value)) {
+            return bounded('[' + value.slice(0, 12).map((item) => serialize(item, depth + 1)).join(', ') + (value.length > 12 ? ', …' : '') + ']');
+          }
+          let keys = [];
+          try { keys = Object.keys(value).slice(0, 12); } catch { return '[Uninspectable object]'; }
+          const pairs = keys.map((key) => {
+            try { return bounded(key, 80, 160) + ': ' + serialize(value[key], depth + 1); }
+            catch { return bounded(key, 80, 160) + ': [Getter threw]'; }
+          });
+          return bounded('{' + pairs.join(', ') + (Object.keys(value).length > 12 ? ', …' : '') + '}');
+        } catch { return '[Unserializable value]'; }
+      };
+      const emit = (type, values) => {
+        const now = performance.now();
+        if (now - windowStartedAt >= 1000) { windowStartedAt = now; windowCount = 0; }
+        if (sent >= 40 || windowCount >= 24) return;
+        sent += 1;
+        windowCount += 1;
+        parent.postMessage({
+          protocol,
+          channel,
+          type,
+          values: values.slice(0, 8).map((value) => serialize(value)),
+        }, '*');
+      };
       ['log', 'warn', 'error'].forEach((method) => {
         const original = console[method];
         console[method] = (...values) => { emit(method, values); original.apply(console, values); };
@@ -134,6 +202,13 @@ function CodePreview({
   onCodeLogs: (logs: readonly string[]) => void;
 }>) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const messageBudgetRef = useRef({
+    acceptedLines: 0,
+    acceptedBytes: 0,
+    burstStartedAt: 0,
+    burstMessages: 0,
+    blocked: false,
+  });
   const previewId = useId();
   const channel = `kingxford-preview-${previewId}-${runId}`;
   const [device, setDevice] = useState<PreviewDevice>("desktop");
@@ -141,15 +216,66 @@ function CodePreview({
   const srcDoc = useMemo(() => buildCodeDocument(code, channel), [channel, code]);
 
   useEffect(() => {
+    messageBudgetRef.current = {
+      acceptedLines: 0,
+      acceptedBytes: 0,
+      burstStartedAt: performance.now(),
+      burstMessages: 0,
+      blocked: false,
+    };
+    onCodeLogs([]);
+
     const receive = (event: MessageEvent) => {
       if (event.source !== iframeRef.current?.contentWindow) return;
       const data = event.data as
-        | { channel?: string; type?: string; values?: readonly string[] }
+        | { protocol?: string; channel?: string; type?: string; values?: readonly unknown[] }
         | undefined;
-      if (!data || data.channel !== channel || !Array.isArray(data.values)) return;
-      const line = `[${data.type ?? "log"}] ${data.values.join(" ")}`;
+      if (
+        !data
+        || data.protocol !== PREVIEW_CONSOLE_PROTOCOL
+        || data.channel !== channel
+        || typeof data.type !== "string"
+        || !PREVIEW_LOG_LEVELS.has(data.type)
+        || !Array.isArray(data.values)
+        || data.values.length > PREVIEW_MAX_VALUES
+        || !data.values.every((value) => typeof value === "string")
+      ) return;
+
+      const budget = messageBudgetRef.current;
+      if (budget.blocked) return;
+      const now = performance.now();
+      if (now - budget.burstStartedAt >= 1_000) {
+        budget.burstStartedAt = now;
+        budget.burstMessages = 0;
+      }
+      budget.burstMessages += 1;
+      if (budget.burstMessages > PREVIEW_BURST_MESSAGES) {
+        budget.blocked = true;
+        const warning = "[warn] Preview console paused after excessive messages. Reset the preview to run again.";
+        setLogs((current) => [...current, warning].slice(-PREVIEW_MAX_LINES));
+        return;
+      }
+
+      const values = (data.values as readonly string[]).map((value) => (
+        truncateUtf8(value, PREVIEW_MAX_VALUE_CHARS, PREVIEW_MAX_VALUE_BYTES)
+      ));
+      const line = truncateUtf8(
+        `[${data.type}] ${values.join(" ")}`,
+        PREVIEW_MAX_LINE_CHARS,
+        PREVIEW_MAX_LINE_BYTES,
+      );
+      const lineBytes = utf8Length(line);
+      if (
+        budget.acceptedLines >= PREVIEW_MAX_ACCEPTED_LINES
+        || budget.acceptedBytes + lineBytes > PREVIEW_MAX_ACCEPTED_BYTES
+      ) {
+        budget.blocked = true;
+        return;
+      }
+      budget.acceptedLines += 1;
+      budget.acceptedBytes += lineBytes;
       setLogs((current) => {
-        const next = [...current, line].slice(-12);
+        const next = [...current, line].slice(-PREVIEW_MAX_LINES);
         onCodeLogs(next);
         return next;
       });

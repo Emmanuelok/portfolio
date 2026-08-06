@@ -95,6 +95,46 @@ than workspace text. Kingxford does not fine-tune or train model weights on
 workspace submissions. Provider retention and processing remain governed by the
 Gateway/provider terms selected by the owner.
 
+## Readiness contract
+
+`GET /api/workspace/agent` and `GET /api/intelligence/runs` return the same
+strict, client-safe `readiness` object under contract
+`kx-ai-readiness-2026-08-06.1`. The diagnostic performs no paid generation and
+never returns a key, token, salt, prompt, visitor fingerprint, or project data.
+
+The top-level readiness fields have deliberately separate meanings:
+
+| Field | Meaning |
+| --- | --- |
+| `codeReady` | The loaded route has valid primary/fallback slugs and retains proposal-only governance: no tools, no automatic apply, and human-only gate approval. |
+| `providerReady` | A non-blank Gateway API key, local OIDC identity, or Vercel deployment with automatic request-scoped OIDC is available and the model routes are syntactically valid. This is configuration readiness, not a live provider probe. |
+| `usageProtectionReady` | The exact protection used by POST is available. Production requires a server-only salt of at least 32 characters; development may use its documented local fallback. |
+| `deploymentReady` | `codeReady`, `providerReady`, and `usageProtectionReady` are all true, so the environment is configured to attempt model-generated requests. |
+| `localFallbackReady` | The deterministic fallback can safely serve requests even when Gateway identity is absent. |
+
+`status` is `ready`, `local-fallback`, `deployment-blocked`, or
+`configuration-invalid`. `blockers` contains stable codes and bounded operator
+messages. `provider.authMethod` is only `gateway-api-key`, `vercel-oidc`, or
+`none`; both live-connection and request-time catalog verification remain
+explicitly `false`. `routes` publishes normalized standard/deep primary,
+fallback, reasoning, and output-ceiling configuration. `governance` exposes the
+three non-negotiable proposal-only controls.
+
+Gateway API-key precedence matches the installed SDK: a non-empty key is chosen
+before OIDC. A whitespace-only key is therefore reported as
+`gateway-api-key-invalid` and model calls remain on deterministic fallback until
+the value is removed or corrected; readiness never silently claims OIDC would
+override it.
+
+The older `available`, `gateway`, and `usageProtectionConfigured` fields remain
+for compatibility and mirror `deploymentReady`, `providerReady`, and
+`usageProtectionReady`. A UI may use `providerReady` to distinguish real model
+generation from local fallback. It should keep `local-fallback` usable and treat
+`deployment-blocked` as an environment blocker; `configuration-invalid` is a
+release defect rather than an environment state. Provider credentials or model
+reachability can still fail after a configured diagnostic, so POST keeps its
+recoverable, truthfully labelled local fallback.
+
 ## Usage controls
 
 Defaults are six starts per minute, 30 daily credits, and two concurrent runs
@@ -162,8 +202,12 @@ Do not add those powers to this anonymous endpoint.
    budget; they do not replace it.
 5. Deploy a Preview, open `/api/workspace/agent` and `/api/intelligence/runs`,
    and confirm the reported protocols, lenses/roles, model routes, retrieval
-   mode, snapshot bounds, capability negotiation, and limits.
-   `available: true` means both Gateway identity and usage protection are ready.
+   mode, snapshot bounds, capability negotiation, limits, and identical
+   readiness-contract versions. `readiness.codeReady: true` confirms that the
+   loaded API contract and governance configuration are valid;
+   `readiness.deploymentReady: true` additionally confirms that Gateway identity
+   and usage protection are configured. This remains a configuration check, not
+   proof of a successful provider call.
 6. Submit a non-sensitive focused review and Conductor run in
    `/create/workspace`. Confirm the responses are
    model-generated, its request ID and grounding are visible, and usage appears
@@ -192,5 +236,7 @@ npm run verify:platform-journey
 
 The governance command is deterministic and makes no paid generation request.
 Set `VERIFY_GATEWAY_MODEL_CATALOG=true` only when an optional public model-catalog
-check is desired. Its JSON and Markdown reports default to a temporary directory,
-or use `--report-dir <path>`.
+check is desired. It verifies every approved primary and fallback model plus the
+requested reasoning effort against the current public Gateway catalog. Its JSON
+and Markdown reports default to a temporary directory, or use
+`--report-dir <path>`.

@@ -1022,19 +1022,64 @@ async function verifyCatalog(routes, checks) {
     if (!response.ok) throw new Error(`catalog returned HTTP ${response.status}`);
     const payload = await response.json();
     const models = Array.isArray(payload?.data) ? payload.data : [];
-    const missing = [routes.standard.primary, routes.deep.primary]
-      .filter((model) => !models.some((entry) => entry?.id === model));
+    const requirements = [
+      ...[routes.standard.primary, ...routes.standard.fallbacks].map((model) => ({
+        model,
+        reasoning: routes.standard.reasoning,
+      })),
+      ...[routes.deep.primary, ...routes.deep.fallbacks].map((model) => ({
+        model,
+        reasoning: routes.deep.reasoning,
+      })),
+    ];
+    const uniqueRequirements = Array.from(
+      new Map(
+        requirements.map((requirement) => [
+          `${requirement.model}:${requirement.reasoning}`,
+          requirement,
+        ]),
+      ).values(),
+    );
+    const missing = Array.from(new Set(uniqueRequirements
+      .filter(({ model }) => !models.some((entry) => entry?.id === model))
+      .map(({ model }) => model)));
+    const unsupportedReasoning = uniqueRequirements
+      .filter(({ model, reasoning }) => {
+        const entry = models.find((candidate) => candidate?.id === model);
+        if (!entry) return false;
+        const parameters = Array.isArray(entry.supported_parameters)
+          ? entry.supported_parameters
+          : [];
+        const efforts = Array.isArray(entry.reasoning_options)
+          ? entry.reasoning_options
+              .filter((option) => option?.type === "effort")
+              .flatMap((option) => Array.isArray(option.values) ? option.values : [])
+          : [];
+        return !parameters.includes("reasoning") ||
+          (efforts.length > 0 && !efforts.includes(reasoning));
+      })
+      .map(({ model, reasoning }) => `${model}:${reasoning}`);
     checks.push(passOrFail(
-      "catalog.primary-models",
+      "catalog.approved-models",
       "catalog",
       missing.length === 0,
-      "Both configured primary models appear in the public Gateway catalog.",
+      "Every approved primary and fallback model appears in the public Gateway catalog.",
       missing.length ? `missing: ${missing.join(", ")}` : `${models.length} entries inspected`,
     ));
+    checks.push(passOrFail(
+      "catalog.reasoning-effort",
+      "catalog",
+      unsupportedReasoning.length === 0,
+      "Every approved route supports its configured reasoning effort.",
+      unsupportedReasoning.length
+        ? `unsupported: ${unsupportedReasoning.join(", ")}`
+        : "all route efforts supported",
+    ));
     return {
-      status: missing.length ? "failed" : "passed",
+      status: missing.length || unsupportedReasoning.length ? "failed" : "passed",
       endpoint: CATALOG_URL,
       missing,
+      unsupportedReasoning,
       modelCount: models.length,
     };
   } catch (error) {

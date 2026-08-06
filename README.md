@@ -83,6 +83,13 @@ request ID, elapsed time, token usage, model, and remaining process-local
 allowance. Vercel AI Gateway receives a pseudonymous user identifier and
 operational tags; workspace prompts are not used to train Kingxford models.
 
+Both AI diagnostic endpoints expose the same strict, secret-free readiness
+contract. It separates `codeReady` from `providerReady`,
+`usageProtectionReady`, and `deploymentReady`, so operators and UI can tell a
+valid API with deterministic local fallback from a deployment that is actually
+configured for Gateway generation. A diagnostic never performs or claims a live
+provider request.
+
 See [`docs/intelligence-layer.md`](docs/intelligence-layer.md) for architecture,
 environment variables, deployment instructions, limitations, and the owner
 checklist. Governance policy and fixed cases live in

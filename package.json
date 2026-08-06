@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "verify:creative-agent": "node scripts/verify-creative-agent.mjs",
     "verify:platform-journey": "bash scripts/run-platform-journey.sh",
-    "test:intelligence": "node --import tsx --test tests/intelligence-runtime.test.ts",
+    "test:intelligence": "node --import tsx --test tests/intelligence-runtime.test.ts tests/ai-readiness.test.ts",
     "test:platform": "node --import tsx --test tests/platform-project-bundle.test.ts tests/unified-project-migration.test.ts"
   },
   "dependencies": {

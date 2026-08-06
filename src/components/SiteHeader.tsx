@@ -23,10 +23,14 @@ import {
 import { CommandPalette } from "@/components/CommandPalette";
 import { KingxfordLogo } from "@/components/KingxfordLogo";
 import { ThemeControls } from "@/components/ThemeControls";
-import { PLATFORM_DESTINATIONS } from "@/lib/platform";
+import {
+  CREATE_CATALOGUE_DESTINATIONS,
+  CREATE_PROOF_DESTINATIONS,
+  PLATFORM_DESTINATIONS,
+} from "@/lib/platform";
 
 const navigationBeforeCreate = PLATFORM_DESTINATIONS.filter(
-  ({ href }) => href !== "/create/workspace",
+  ({ href }) => href !== "/create",
 );
 
 const createModes = [
@@ -60,12 +64,6 @@ const createModes = [
     description: "Make it buildable",
     icon: FileText,
   },
-] as const;
-
-const createProofs = [
-  { href: "/create/lumen-vale-laboratory", label: "Science", index: "01" },
-  { href: "/create/meridian-financial-office", label: "Finance", index: "02" },
-  { href: "/create/commonfield-institute", label: "Education", index: "03" },
 ] as const;
 
 type NavigationItem = Readonly<{ href: string; label: string }>;
@@ -132,9 +130,9 @@ function CreateDesktopMenu({
     >
       <Link
         className="site-header__nav-link site-header__create-link"
-        href="/create/workspace"
+        href="/create"
         aria-current={
-          pathname === "/create/workspace"
+          pathname === "/create"
             ? "page"
             : isCreateCurrent
               ? "location"
@@ -143,13 +141,13 @@ function CreateDesktopMenu({
         data-current={isCreateCurrent ? "true" : "false"}
         onClick={onClose}
       >
-        <span>Canvas</span>
+        <span>Create</span>
       </Link>
       <button
         className="site-header__create-disclosure"
         type="button"
         ref={triggerRef}
-        aria-label={`${isOpen ? "Close" : "Open"} Canvas menu`}
+        aria-label={`${isOpen ? "Close" : "Open"} Create menu`}
         aria-expanded={isOpen}
         aria-controls="site-header-create-panel"
         onClick={onToggle}
@@ -161,10 +159,10 @@ function CreateDesktopMenu({
         <section
           className="site-header__create-panel"
           id="site-header-create-panel"
-          aria-label="Kingxford Intelligence workspace and project starting points"
+          aria-label="Create catalogue, concept proofs, and Kingxford Canvas"
         >
           <header className="site-header__create-panel-topline">
-            <span>Kingxford Intelligence · Discover → Launch</span>
+            <span>Create · Seven directions · Three live proofs · One Atlas</span>
             <span className="site-header__create-live">
               <i aria-hidden="true" /> Conductor ready
             </span>
@@ -173,18 +171,24 @@ function CreateDesktopMenu({
           <div className="site-header__create-panel-grid">
             <div className="site-header__create-intro">
               <span className="site-header__create-kicker">One project · Six connected phases</span>
-              <h2>Think, test, prove, and launch in one system.</h2>
+              <h2>Choose what to create. Keep the whole project connected.</h2>
               <p>
-                The Conductor keeps your source, evidence, decisions, prototypes,
-                and validation connected from the first question to delivery.
+                Explore seven complete creation directions, inspect live concept
+                proofs, or take an idea directly into Canvas and its Project Atlas.
               </p>
-              <ol aria-label="Kingxford Intelligence project lifecycle">
-                <li><span>01–02</span> Discover</li>
-                <li><span>03–04</span> Create</li>
-                <li><span>05–06</span> Deliver</li>
-              </ol>
-              <Link href="/create" onClick={onClose}>
-                Enter Kingxford Intelligence
+              <nav
+                className="site-header__create-catalogue"
+                aria-label="Seven creation directions"
+              >
+                {CREATE_CATALOGUE_DESTINATIONS.map((item) => (
+                  <Link href={item.href} onClick={onClose} key={item.slug}>
+                    <small>{item.index}</small>
+                    <span>{item.shortLabel}</span>
+                  </Link>
+                ))}
+              </nav>
+              <Link href="/create#catalogue" onClick={onClose}>
+                Explore the complete Create catalogue
                 <ArrowUpRight aria-hidden="true" />
               </Link>
             </div>
@@ -235,7 +239,7 @@ function CreateDesktopMenu({
           <footer className="site-header__create-panel-footer">
             <div className="site-header__create-proofs" aria-label="Interactive concept demonstrations">
               <span>Explore live starting proofs</span>
-              {createProofs.map((item) => (
+              {CREATE_PROOF_DESTINATIONS.map((item) => (
                 <Link href={item.href} onClick={onClose} key={item.href}>
                   <small>{item.index}</small> {item.label}
                 </Link>
@@ -275,8 +279,8 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
     >
       <summary>
         <span>
-          <strong>Canvas</strong>
-          <small>One project · Six phases · Live proof</small>
+          <strong>Create</strong>
+          <small>Seven directions · Canvas · Live proofs</small>
         </span>
         <ChevronDown aria-hidden="true" />
       </summary>
@@ -304,6 +308,30 @@ function CreateMobileMenu({ pathname, onNavigate }: CreateMobileMenuProps) {
             );
           })}
         </div>
+
+        <nav
+          className="site-header__mobile-create-catalogue"
+          aria-label="Seven creation directions"
+        >
+          {CREATE_CATALOGUE_DESTINATIONS.map((item) => (
+            <Link href={item.href} onClick={onNavigate} key={item.slug}>
+              <small>{item.index}</small>
+              <span>{item.shortLabel}</span>
+            </Link>
+          ))}
+        </nav>
+
+        <nav
+          className="site-header__mobile-create-proofs"
+          aria-label="Interactive concept demonstrations"
+        >
+          {CREATE_PROOF_DESTINATIONS.map((item) => (
+            <Link href={item.href} onClick={onNavigate} key={item.href}>
+              <small>{item.index}</small>
+              <span>{item.label} proof</span>
+            </Link>
+          ))}
+        </nav>
 
         <div className="site-header__mobile-create-links">
           <Link

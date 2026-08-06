@@ -661,6 +661,39 @@ a {
   list-style: none;
 }
 
+.site-header__create-catalogue {
+  display: grid;
+  margin: 1.15rem 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--create-panel-rule);
+  border-left: 1px solid var(--create-panel-rule);
+}
+
+.site-header__create-catalogue > a {
+  display: grid;
+  min-height: 2.35rem;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  border-right: 1px solid var(--create-panel-rule);
+  border-bottom: 1px solid var(--create-panel-rule);
+  color: var(--create-panel-soft);
+  font-size: 0.56rem;
+  line-height: 1.25;
+}
+
+.site-header__create-catalogue > a:hover,
+.site-header__create-catalogue > a:focus-visible {
+  background: rgba(166, 171, 255, 0.08);
+  color: var(--create-panel-text);
+}
+
+.site-header__create-catalogue small {
+  color: #a6abff;
+  font: 0.46rem var(--font-mono);
+}
+
 .site-header__create-intro li {
   display: grid;
   min-height: 3.7rem;
@@ -4325,6 +4358,39 @@ a {
   .site-header__mobile-create-modes svg {
     width: 0.78rem;
     color: var(--blue-bright);
+  }
+
+  .site-header__mobile-create-catalogue,
+  .site-header__mobile-create-proofs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+
+  .site-header__mobile-create-catalogue > a,
+  .site-header__mobile-create-proofs > a {
+    display: grid;
+    min-height: 3rem;
+    grid-template-columns: 1.55rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-soft);
+    font-size: 0.62rem;
+    line-height: 1.25;
+  }
+
+  .site-header__mobile-create-catalogue small,
+  .site-header__mobile-create-proofs small {
+    color: var(--blue-bright);
+    font: 0.48rem var(--font-mono);
+  }
+
+  .site-header__mobile-create-proofs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .site-header__mobile-create-links {

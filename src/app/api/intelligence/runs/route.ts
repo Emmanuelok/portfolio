@@ -14,6 +14,7 @@ import {
   intelligenceSpecialistRoles,
   supportedIntelligenceCapabilities,
 } from "@/lib/intelligence/contracts";
+import { buildAiReadiness } from "@/lib/intelligence/readiness";
 import {
   PHASE_OPERATING_PLANS,
   selectSpecialistRoles,
@@ -217,15 +218,21 @@ function reportRuntimeFailure(error: unknown, requestId: string) {
 
 export async function GET() {
   const requestId = randomUUID();
-  const gatewayConfigured = canUseIntelligenceRuntime();
-  const usageProtectionConfigured = Boolean(usageHashSecret());
-  const available = gatewayConfigured && usageProtectionConfigured;
   const standard = getIntelligenceModelRoute("standard");
   const deep = getIntelligenceModelRoute("deep");
+  const readiness = buildAiReadiness({
+    routes: { standard, deep },
+    usageProtectionReady: Boolean(usageHashSecret()),
+    toolsEnabled: false,
+    automaticApplyEnabled: false,
+    gateApprovalMode: "human-only",
+  });
+  const gatewayConfigured = readiness.providerReady;
+  const usageProtectionConfigured = readiness.usageProtectionReady;
 
   return NextResponse.json(
     {
-      available,
+      available: readiness.deploymentReady,
       mode: !usageProtectionConfigured
         ? "unavailable"
         : gatewayConfigured
@@ -235,6 +242,7 @@ export async function GET() {
       usageProtectionConfigured,
       model: deep.model.replace(/^openai\//, ""),
       routing: { standard, deep },
+      readiness,
       protocolVersion: INTELLIGENCE_PROTOCOL_VERSION,
       phases: Object.entries(PHASE_OPERATING_PLANS).map(([phase, plan]) => ({
         phase,

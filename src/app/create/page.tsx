@@ -92,7 +92,7 @@ export default function CreatePage() {
       />
 
       <section className={styles.hero} aria-labelledby="create-heading">
-        <div className={styles.heroIndex}>Kingxford Intelligence · One project / Six connected phases</div>
+        <div className={styles.heroIndex}>Create · Seven directions / Three live proofs / One connected Atlas</div>
         <div className={styles.heroCopy}>
           <Reveal>
             <p className="eyebrow">kingXford &amp; Co · Designed around real work</p>
@@ -113,18 +113,22 @@ export default function CreatePage() {
             Start with the work people need to do—not a template, a trend, or a
             predetermined technology.
           </p>
-          <a className="text-link" href="#studio">
-            <span>Start in the live workspace</span>
-            <ArrowDownRight aria-hidden="true" />
-          </a>
           <a className="text-link" href="#websites">
             <span>Enter the concept gallery</span>
+            <ArrowDownRight aria-hidden="true" />
+          </a>
+          <a className="text-link" href="#capabilities">
+            <span>Explore all seven directions</span>
+            <ArrowDownRight aria-hidden="true" />
+          </a>
+          <a className="text-link" href="#studio">
+            <span>Open Canvas and Atlas</span>
             <ArrowDownRight aria-hidden="true" />
           </a>
         </aside>
         <nav className={styles.heroRail} aria-label="Creation categories">
           {creationCatalogue.map((item) => (
-            <a href={`#${item.slug}`} key={item.slug}>
+            <a href={`#capability-${item.slug}`} key={item.slug}>
               <span>{item.index}</span>
               {item.name}
             </a>
@@ -133,19 +137,12 @@ export default function CreatePage() {
       </section>
 
       <nav className={styles.pageRouter} aria-label="Kingxford Intelligence sections">
-        <a href="#studio"><span>01</span> Live workspace</a>
-        <a href="#websites"><span>02</span> Starting proofs</a>
-        <a href="#catalogue"><span>03</span> What we build</a>
+        <a href="#websites"><span>01</span> Live proofs</a>
+        <a href="#capabilities"><span>02</span> Seven directions</a>
+        <a href="#studio"><span>03</span> Canvas + Atlas</a>
+        <a href="#catalogue"><span>04</span> Full catalogue</a>
         <Link href="/create/workspace"><span>↗</span> Focus mode</Link>
       </nav>
-
-      <div className={styles.studioFrame} id="studio">
-        <CreativeWorkspace
-          embedded
-          entrepreneurshipUrl={entrepreneurshipUrl}
-          initialMode={null}
-        />
-      </div>
 
       <section className={styles.showcases} id="websites" aria-labelledby="websites-heading">
         <div className={styles.sectionHeading}>
@@ -165,6 +162,79 @@ export default function CreatePage() {
         </Reveal>
       </section>
 
+      <section
+        className={styles.capabilityMenu}
+        id="capabilities"
+        aria-labelledby="capability-menu-heading"
+        data-create-capability-menu
+      >
+        <div className={styles.sectionHeading}>
+          <div>
+            <p className="eyebrow">Create menu / Seven directions / No disconnected services</p>
+            <h2 id="capability-menu-heading">Seven ways to enter. One system carrying the work forward.</h2>
+          </div>
+          <p>
+            Choose the closest starting direction. Research, responsible AI,
+            design, development, evidence, and delivery can then assemble around
+            the same Project Atlas instead of splitting into separate services.
+          </p>
+        </div>
+
+        <nav className={styles.capabilityGrid} aria-label="Seven creation directions">
+          {creationCatalogue.map((item) => {
+            const Icon = categoryIcons[item.slug];
+            return (
+              <a href={`#capability-${item.slug}`} key={item.slug}>
+                <span className={styles.capabilityMark}>
+                  <small>{item.index}</small>
+                  <Icon aria-hidden="true" />
+                </span>
+                <span className={styles.capabilityCopy}>
+                  <small>{item.eyebrow}</small>
+                  <strong>{item.name}</strong>
+                  <span>{item.thesis}</span>
+                </span>
+                <span className={styles.capabilitySignal}>
+                  {item.capabilities.length} capabilities · {item.exampleNeeds.length} examples
+                  <ArrowDownRight aria-hidden="true" />
+                </span>
+              </a>
+            );
+          })}
+        </nav>
+      </section>
+
+      <section
+        className={styles.studioSection}
+        id="studio"
+        aria-labelledby="studio-heading"
+        data-create-studio
+      >
+        <header className={styles.studioHeading}>
+          <div>
+            <p className="eyebrow">Canvas + Project Atlas / Embedded workspace</p>
+            <h2 id="studio-heading">Move a chosen direction into working proof without losing its history.</h2>
+          </div>
+          <div>
+            <p>
+              Source, evidence, decisions, specialist intelligence, revisions,
+              and human gates remain attached to one local-first project.
+            </p>
+            <Link className="text-link" href="/create/workspace">
+              <span>Open Canvas in focus mode</span>
+              <ArrowUpRight aria-hidden="true" />
+            </Link>
+          </div>
+        </header>
+        <div className={styles.studioFrame}>
+          <CreativeWorkspace
+            embedded
+            entrepreneurshipUrl={entrepreneurshipUrl}
+            initialMode={null}
+          />
+        </div>
+      </section>
+
       <section className={styles.catalogue} id="catalogue" aria-labelledby="catalogue-heading">
         <div className={styles.sectionHeading}>
           <div>
@@ -181,12 +251,20 @@ export default function CreatePage() {
         <div className={styles.catalogueList}>
           {creationCatalogue.map((item) => {
             const Icon = categoryIcons[item.slug];
+            const legacyAnchor =
+              item.slug === "websites" ? "websites-capability" : item.slug;
             return (
               <article
                 className={styles.catalogueItem}
-                id={item.slug === "websites" ? "websites-capability" : item.slug}
+                data-create-capability={item.slug}
+                id={`capability-${item.slug}`}
                 key={item.slug}
               >
+                <span
+                  className={styles.anchorAlias}
+                  id={legacyAnchor}
+                  aria-hidden="true"
+                />
                 <div className={styles.catalogueIndex}>
                   <span>{item.index}</span>
                   <Icon aria-hidden="true" />

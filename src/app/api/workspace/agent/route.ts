@@ -9,6 +9,7 @@ import {
   CREATIVE_AGENT_PROTOCOL_VERSION,
   getCreativeAgentModelRoute,
 } from "@/lib/workspace/agent";
+import { buildAiReadiness } from "@/lib/intelligence/readiness";
 import {
   formatKingxfordKnowledgeContext,
   KINGXFORD_PLAYBOOK_VERSION,
@@ -463,15 +464,21 @@ function isPrimaryModel(actual: string, configured: string) {
 
 export async function GET() {
   const requestId = randomUUID();
-  const gatewayConfigured = canUseCreativeAgent();
-  const usageProtectionConfigured = Boolean(usageHashSecret());
-  const available = gatewayConfigured && usageProtectionConfigured;
   const standard = getCreativeAgentModelRoute("standard");
   const deep = getCreativeAgentModelRoute("deep");
+  const readiness = buildAiReadiness({
+    routes: { standard, deep },
+    usageProtectionReady: Boolean(usageHashSecret()),
+    toolsEnabled: false,
+    automaticApplyEnabled: false,
+    gateApprovalMode: "human-only",
+  });
+  const gatewayConfigured = readiness.providerReady;
+  const usageProtectionConfigured = readiness.usageProtectionReady;
 
   return NextResponse.json(
     {
-      available,
+      available: readiness.deploymentReady,
       mode: !usageProtectionConfigured
         ? "unavailable"
         : gatewayConfigured
@@ -484,6 +491,7 @@ export async function GET() {
         standard,
         deep,
       },
+      readiness,
       agents: agentLenses.map((id) => ({
         id,
         label: agentLensDetails[id].label,
@@ -506,6 +514,8 @@ export async function GET() {
       dailyEvaluationEnabled: true,
       improvementPolicy: "versioned-evaluation-human-approval-rollback",
       toolsEnabled: false,
+      automaticApplyEnabled: false,
+      gateApprovalMode: "human-only",
     },
     { headers: responseHeaders(requestId) },
   );

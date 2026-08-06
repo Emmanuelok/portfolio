@@ -8,6 +8,7 @@ import {
   intelligenceReviewSchema,
   type IntelligenceSpecialistRole,
 } from "@/lib/intelligence/contracts";
+import { hasGatewayAuth } from "@/lib/intelligence/readiness";
 
 export const INTELLIGENCE_ROLE_MANDATE_VERSION = "kx-intelligence-role-2026-08-05.2";
 
@@ -218,5 +219,5 @@ export function createSynthesisAgent(
 }
 
 export function canUseIntelligenceRuntime() {
-  return Boolean(process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN);
+  return hasGatewayAuth();
 }

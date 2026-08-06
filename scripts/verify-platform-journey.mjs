@@ -9,6 +9,11 @@ import chromiumBinary from "@sparticuz/chromium";
 import { chromium } from "playwright-core";
 
 const BASE_URL = process.env.VERIFY_BASE_URL ?? "http://127.0.0.1:3000";
+const READINESS_ONLY = process.env.VERIFY_READINESS_ONLY === "1";
+const EXPECTED_READINESS_STATE =
+  process.env.VERIFY_EXPECTED_READINESS_STATE ??
+  (READINESS_ONLY ? "deployment-blocked" : "local-fallback");
+const AI_READINESS_CONTRACT_VERSION = "kx-ai-readiness-2026-08-06.1";
 const REPORT_DIR = path.resolve(
   process.env.PLATFORM_JOURNEY_REPORT_DIR ?? "verification/platform-journey",
 );
@@ -19,13 +24,44 @@ const IDEA =
   "Build a neighbourhood heat evidence exchange for libraries and residents.";
 const WORK_ROUTE = "/work/veridanth";
 const MEDIA_ROUTE = "/media/sustainable-abundance-for-all";
+const CREATE_ROUTE = "/create";
 const WORKSPACE_ROUTE = "/create/workspace";
 const SHARED_NAVIGATION = [
   ["Mission", "/"],
   ["Work", "/work"],
   ["Lab", "/lab"],
   ["Field notes", "/media"],
-  ["Canvas", WORKSPACE_ROUTE],
+  ["Create", CREATE_ROUTE],
+];
+const CREATE_DIRECTIONS = [
+  ["Websites and digital destinations", "#capability-websites"],
+  ["Digital tools", "#capability-digital-tools"],
+  ["Institutional systems", "#capability-institutional-systems"],
+  ["Research and AI tools", "#capability-research-ai-tools"],
+  ["Operational tools", "#capability-operational-tools"],
+  ["Education tools", "#capability-education-tools"],
+  ["Everyday personal tools", "#capability-personal-tools"],
+];
+const CREATE_MENU_DIRECTIONS = [
+  ["Websites", "/create#capability-websites"],
+  ["Digital tools", "/create#capability-digital-tools"],
+  ["Institutional systems", "/create#capability-institutional-systems"],
+  ["Research + AI", "/create#capability-research-ai-tools"],
+  ["Operations", "/create#capability-operational-tools"],
+  ["Education", "/create#capability-education-tools"],
+  ["Everyday tools", "/create#capability-personal-tools"],
+];
+const CREATE_SECTION_ANCHORS = [
+  ["Live proofs", "#websites"],
+  ["Seven directions", "#capabilities"],
+  ["Canvas + Atlas", "#studio"],
+  ["Full catalogue", "#catalogue"],
+  ["Focus mode", WORKSPACE_ROUTE],
+];
+const CREATE_PROOFS = [
+  ["Science", "/create/lumen-vale-laboratory"],
+  ["Finance", "/create/meridian-financial-office"],
+  ["Education", "/create/commonfield-institute"],
 ];
 const PHASES = [
   ["discovery", "Discovery"],
@@ -90,6 +126,215 @@ function asArray(value) {
 function isSuperset(values, expected) {
   const actual = new Set(values);
   return expected.every((value) => actual.has(value));
+}
+
+function hasExactKeys(value, expected) {
+  return (
+    isRecord(value) &&
+    JSON.stringify(Object.keys(value).sort()) ===
+      JSON.stringify([...expected].sort())
+  );
+}
+
+function validReadinessRoute(route, expectedReasoning) {
+  if (
+    !hasExactKeys(route, [
+      "primary",
+      "fallbacks",
+      "reasoning",
+      "maxOutputTokens",
+    ])
+  ) {
+    return false;
+  }
+  const modelPattern =
+    /^[a-z0-9][a-z0-9._-]{0,63}\/[a-z0-9][a-z0-9._:-]{0,127}$/i;
+  const fallbacks = asArray(route.fallbacks);
+  return (
+    typeof route.primary === "string" &&
+    modelPattern.test(route.primary) &&
+    fallbacks.length <= 2 &&
+    fallbacks.every(
+      (model) =>
+        typeof model === "string" &&
+        modelPattern.test(model) &&
+        model !== route.primary,
+    ) &&
+    new Set(fallbacks).size === fallbacks.length &&
+    route.reasoning === expectedReasoning &&
+    Number.isInteger(route.maxOutputTokens) &&
+    route.maxOutputTokens > 0
+  );
+}
+
+function readinessStateIsExact(payload, expectedState) {
+  const readiness = payload?.readiness;
+  if (
+    !hasExactKeys(readiness, [
+      "contractVersion",
+      "codeReady",
+      "deploymentReady",
+      "providerReady",
+      "usageProtectionReady",
+      "localFallbackReady",
+      "status",
+      "blockers",
+      "provider",
+      "usageProtection",
+      "routes",
+      "governance",
+    ]) ||
+    !hasExactKeys(readiness.provider, [
+      "authMethod",
+      "configurationVerified",
+      "liveConnectionVerified",
+      "modelCatalogVerifiedAtRequest",
+    ]) ||
+    !hasExactKeys(readiness.usageProtection, [
+      "source",
+      "requiredInProduction",
+      "minimumSecretCharacters",
+    ]) ||
+    !hasExactKeys(readiness.routes, ["standard", "deep"]) ||
+    !hasExactKeys(readiness.governance, [
+      "toolsEnabled",
+      "automaticApplyEnabled",
+      "gateApprovalMode",
+    ])
+  ) {
+    return false;
+  }
+
+  const expected =
+    expectedState === "local-fallback"
+      ? {
+          usageProtectionReady: true,
+          localFallbackReady: true,
+          status: "local-fallback",
+          blockers: ["gateway-auth-missing"],
+          usageSource: "configured-secret",
+          mode: "local-fallback",
+        }
+      : expectedState === "deployment-blocked"
+        ? {
+            usageProtectionReady: false,
+            localFallbackReady: false,
+            status: "deployment-blocked",
+            blockers: [
+              "gateway-auth-missing",
+              "usage-protection-missing",
+            ],
+            usageSource: "missing",
+            mode: "unavailable",
+          }
+        : null;
+  if (!expected) return false;
+
+  const blockers = asArray(readiness.blockers);
+  return (
+    readiness.contractVersion === AI_READINESS_CONTRACT_VERSION &&
+    readiness.codeReady === true &&
+    readiness.deploymentReady === false &&
+    readiness.providerReady === false &&
+    readiness.usageProtectionReady === expected.usageProtectionReady &&
+    readiness.localFallbackReady === expected.localFallbackReady &&
+    readiness.status === expected.status &&
+    JSON.stringify(blockers.map(({ code }) => code)) ===
+      JSON.stringify(expected.blockers) &&
+    blockers.every(
+      (blocker) =>
+        hasExactKeys(blocker, ["code", "message"]) &&
+        typeof blocker.message === "string" &&
+        blocker.message.length > 0 &&
+        blocker.message.length <= 240,
+    ) &&
+    readiness.provider.authMethod === "none" &&
+    readiness.provider.configurationVerified === false &&
+    readiness.provider.liveConnectionVerified === false &&
+    readiness.provider.modelCatalogVerifiedAtRequest === false &&
+    readiness.usageProtection.source === expected.usageSource &&
+    readiness.usageProtection.requiredInProduction === true &&
+    readiness.usageProtection.minimumSecretCharacters === 32 &&
+    validReadinessRoute(readiness.routes.standard, "medium") &&
+    validReadinessRoute(readiness.routes.deep, "xhigh") &&
+    readiness.governance.toolsEnabled === false &&
+    readiness.governance.automaticApplyEnabled === false &&
+    readiness.governance.gateApprovalMode === "human-only" &&
+    payload.available === readiness.deploymentReady &&
+    payload.gateway === readiness.providerReady &&
+    payload.usageProtectionConfigured === readiness.usageProtectionReady &&
+    payload.mode === expected.mode
+  );
+}
+
+async function verifyLiveAiReadiness(page, expectedState) {
+  const endpoints = ["/api/workspace/agent", "/api/intelligence/runs"];
+  const diagnostics = await page.evaluate(async (routes) => {
+    const output = [];
+    for (const route of routes) {
+      const response = await fetch(route, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const text = await response.text();
+      let body = null;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // The bounded excerpt below makes a non-JSON regression explicit.
+      }
+      output.push({
+        route,
+        ok: response.ok,
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+        body,
+        responseExcerpt: body ? null : text.slice(0, 500),
+      });
+    }
+    return output;
+  }, endpoints);
+
+  for (const diagnostic of diagnostics) {
+    const id = diagnostic.route.endsWith("workspace/agent")
+      ? "workspace-agent"
+      : "intelligence-runs";
+    demand(
+      `readiness.${id}.${expectedState}`,
+      diagnostic.ok &&
+        diagnostic.status === 200 &&
+        diagnostic.contentType?.startsWith("application/json") &&
+        readinessStateIsExact(diagnostic.body, expectedState),
+      {
+        route: diagnostic.route,
+        httpStatus: diagnostic.status,
+        contentType: diagnostic.contentType,
+        readiness: diagnostic.body?.readiness ?? null,
+        legacy: diagnostic.body
+          ? {
+              available: diagnostic.body.available,
+              gateway: diagnostic.body.gateway,
+              usageProtectionConfigured:
+                diagnostic.body.usageProtectionConfigured,
+              mode: diagnostic.body.mode,
+            }
+          : null,
+        responseExcerpt: diagnostic.responseExcerpt,
+      },
+    );
+  }
+
+  const [workspace, intelligence] = diagnostics.map(({ body }) => body);
+  demand(
+    `readiness.cross-api-coherent.${expectedState}`,
+    JSON.stringify(workspace?.readiness) ===
+      JSON.stringify(intelligence?.readiness),
+    {
+      workspaceReadiness: workspace?.readiness ?? null,
+      intelligenceReadiness: intelligence?.readiness ?? null,
+    },
+  );
 }
 
 async function poll(label, read, accept = Boolean, timeoutMs = 12_000) {
@@ -267,6 +512,571 @@ async function verifySharedNavigation(page, surface) {
       JSON.stringify(SHARED_NAVIGATION) &&
       links.every(({ visible }) => visible),
     { links },
+  );
+}
+
+async function inspectCreateSurface(page) {
+  return page.evaluate(
+    ({ directions, sectionAnchors }) => {
+      const visible = (element) => {
+        if (!(element instanceof HTMLElement)) return false;
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return (
+          rect.width > 0 &&
+          rect.height > 0 &&
+          style.display !== "none" &&
+          style.visibility !== "hidden"
+        );
+      };
+      const box = (element) => {
+        if (!(element instanceof HTMLElement)) return null;
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+          height: rect.height,
+          visible: visible(element),
+        };
+      };
+      const describe = (element) => {
+        if (!(element instanceof Element)) return null;
+        const id = element.id ? `#${element.id}` : "";
+        const classes = [...element.classList]
+          .slice(0, 4)
+          .map((value) => `.${value}`)
+          .join("");
+        const role = element.getAttribute("role");
+        const label = element.getAttribute("aria-label");
+        const dataSurface = [
+          "data-create-capability-menu",
+          "data-create-capability",
+          "data-create-studio",
+          "data-prototype-gallery",
+          "data-embedded",
+        ].find((attribute) => element.hasAttribute(attribute));
+        return `${element.tagName.toLowerCase()}${id}${classes}${role ? `[role=${role}]` : ""}${label ? `[aria-label=${label}]` : ""}${dataSurface ? `[${dataSurface}=${element.getAttribute(dataSurface) ?? ""}]` : ""}`;
+      };
+      const links = (selector) =>
+        [...document.querySelectorAll(selector)].map((anchor) => ({
+          label: anchor.textContent?.replace(/\s+/g, " ").trim() ?? "",
+          href: anchor.getAttribute("href"),
+          visible: visible(anchor),
+        }));
+      const embedded = document.querySelector(
+        '#studio [data-embedded="true"]',
+      );
+      const embeddedButtons = embedded
+        ? [...embedded.querySelectorAll("button")]
+        : [];
+      const internalAnchors = links('main a[href^="#"]').map((anchor) => {
+        const target = anchor.href
+          ? document.getElementById(anchor.href.slice(1))
+          : null;
+        return {
+          ...anchor,
+          targetExists: Boolean(target),
+          targetVisible: visible(target),
+        };
+      });
+      const keySurfaces = Object.fromEntries(
+        [
+          ["hero", 'section[aria-labelledby="create-heading"]'],
+          ["gallery", "#websites"],
+          ["directions", "#capabilities"],
+          ["studio", "#studio"],
+          ["catalogue", "#catalogue"],
+        ].map(([name, selector]) => [name, box(document.querySelector(selector))]),
+      );
+      const categoryLinks = links(
+        'nav[aria-label="Creation categories"] a',
+      );
+      const directionLinks = [
+        ...document.querySelectorAll(
+          '[data-create-capability-menu] nav[aria-label="Seven creation directions"] a',
+        ),
+      ].map((anchor) => ({
+        label:
+          anchor.querySelector("strong")?.textContent?.replace(/\s+/g, " ").trim() ??
+          "",
+        href: anchor.getAttribute("href"),
+        visible: visible(anchor),
+      }));
+      const routerLinks = links(
+        'nav[aria-label="Kingxford Intelligence sections"] a',
+      ).map((item) => ({
+        ...item,
+        normalizedLabel: item.label.replace(/^(?:\d{2}|↗)\s*/, ""),
+      }));
+      const viewportWidth = document.documentElement.clientWidth;
+      const overflowCandidates = [...document.body.querySelectorAll("*")]
+        .flatMap((element) => {
+          const rect = element.getBoundingClientRect();
+          const escapesViewport =
+            rect.width > 0 &&
+            rect.height > 0 &&
+            (rect.right > viewportWidth + 1 || rect.left < -1);
+          const ownsOverflow = element.scrollWidth > element.clientWidth + 1;
+          if (!escapesViewport && !ownsOverflow) return [];
+
+          let ancestor = element.parentElement;
+          let clippingAncestor = null;
+          while (ancestor && ancestor !== document.body) {
+            const ancestorStyle = getComputedStyle(ancestor);
+            if (/^(auto|scroll|hidden|clip)$/.test(ancestorStyle.overflowX)) {
+              clippingAncestor = ancestor;
+              break;
+            }
+            ancestor = ancestor.parentElement;
+          }
+          const style = getComputedStyle(element);
+          return [{
+            selector: describe(element),
+            parent: describe(element.parentElement),
+            left: rect.left,
+            right: rect.right,
+            width: rect.width,
+            clientWidth: element.clientWidth,
+            scrollWidth: element.scrollWidth,
+            escapesViewport,
+            ownsOverflow,
+            position: style.position,
+            display: style.display,
+            overflowX: style.overflowX,
+            minWidth: style.minWidth,
+            maxWidth: style.maxWidth,
+            whiteSpace: style.whiteSpace,
+            clippingAncestor: describe(clippingAncestor),
+          }];
+        })
+        .sort((left, right) => {
+          const escapedDelta = Number(right.escapesViewport) - Number(left.escapesViewport);
+          if (escapedDelta) return escapedDelta;
+          const clippingDelta = Number(Boolean(left.clippingAncestor)) -
+            Number(Boolean(right.clippingAncestor));
+          if (clippingDelta) return clippingDelta;
+          return (right.right - viewportWidth) - (left.right - viewportWidth);
+        })
+        .slice(0, 40);
+      return {
+        expectedDirections: directions,
+        expectedSectionAnchors: sectionAnchors,
+        viewportWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        documentOverflow:
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth + 1,
+        documentWidths: {
+          htmlClient: document.documentElement.clientWidth,
+          htmlScroll: document.documentElement.scrollWidth,
+          bodyClient: document.body.clientWidth,
+          bodyScroll: document.body.scrollWidth,
+        },
+        overflowCandidates,
+        heroHeading:
+          document.querySelector("#create-heading")?.textContent?.trim() ?? "",
+        categoryLinks,
+        directionLinks,
+        routerLinks,
+        internalAnchors,
+        keySurfaces,
+        gallery: {
+          visible: visible(document.querySelector("#websites")),
+          prototypeVisible: visible(
+            document.querySelector('[data-prototype-gallery="true"]'),
+          ),
+          tabs: links(
+            '[data-prototype-gallery="true"] [role="tab"]',
+          ),
+        },
+        catalogue: {
+          visible: visible(document.querySelector("#catalogue")),
+          articles: [
+            ...document.querySelectorAll("#catalogue article[id]"),
+          ].map((article) => ({
+            id: article.id,
+            capability: article.getAttribute("data-create-capability"),
+            visible: visible(article),
+          })),
+        },
+        embeddedCanvas: {
+          visible: visible(embedded),
+          canvasHeading:
+            embedded?.querySelector("#canvas-title")?.textContent?.trim() ?? "",
+          libraryVisible: embeddedButtons.some(
+            (button) =>
+              button.textContent?.replace(/\s+/g, " ").trim() === "Library" &&
+              visible(button),
+          ),
+          conductorVisible: embeddedButtons.some(
+            (button) =>
+              button.textContent?.replace(/\s+/g, " ").trim() === "Conductor" &&
+              visible(button),
+          ),
+        },
+      };
+    },
+    {
+      directions: CREATE_DIRECTIONS,
+      sectionAnchors: CREATE_SECTION_ANCHORS,
+    },
+  );
+}
+
+async function verifyCreateSurface(page, viewport) {
+  const state = await inspectCreateSurface(page);
+  const expectedDirectionIds = CREATE_DIRECTIONS.map(([, href]) => href.slice(1));
+  const actualCategoryLinks = state.categoryLinks.map(({ label, href }) => [
+    label.replace(/^\d{2}\s*/, ""),
+    href,
+  ]);
+  const actualDirectionLinks = state.directionLinks.map(({ label, href }) => [
+    label.replace(/^\d{2}\s*/, ""),
+    href,
+  ]);
+  const actualRouterLinks = state.routerLinks.map(
+    ({ normalizedLabel, href }) => [normalizedLabel, href],
+  );
+
+  check(
+    `create.${viewport}.hero-and-seven-direction-menu`,
+    state.heroHeading === "What should exist next?" &&
+      JSON.stringify(actualCategoryLinks) === JSON.stringify(CREATE_DIRECTIONS) &&
+      JSON.stringify(actualDirectionLinks) === JSON.stringify(CREATE_DIRECTIONS) &&
+      state.categoryLinks.every(({ visible }) => visible) &&
+      state.directionLinks.every(({ visible }) => visible),
+    {
+      heroHeading: state.heroHeading,
+      categoryLinks: state.categoryLinks,
+      directionLinks: state.directionLinks,
+    },
+  );
+  check(
+    `create.${viewport}.gallery-and-full-catalogue`,
+    state.gallery.visible &&
+      state.gallery.prototypeVisible &&
+      state.gallery.tabs.length === 3 &&
+      state.gallery.tabs.every(({ visible }) => visible) &&
+      state.catalogue.visible &&
+      JSON.stringify(
+        state.catalogue.articles.map(({ id, capability }) => [id, capability]),
+      ) ===
+        JSON.stringify(
+          expectedDirectionIds.map((id) => [id, id.replace(/^capability-/, "")]),
+        ) &&
+      state.catalogue.articles.every(({ visible }) => visible),
+    {
+      gallery: state.gallery,
+      catalogue: state.catalogue,
+    },
+  );
+  check(
+    `create.${viewport}.embedded-canvas-library-conductor`,
+    state.embeddedCanvas.visible &&
+      state.embeddedCanvas.canvasHeading ===
+        "Move from first thought to working proof." &&
+      state.embeddedCanvas.libraryVisible &&
+      state.embeddedCanvas.conductorVisible,
+    { embeddedCanvas: state.embeddedCanvas },
+  );
+  check(
+    `create.${viewport}.anchors-and-no-document-overflow`,
+    JSON.stringify(actualRouterLinks) ===
+      JSON.stringify(CREATE_SECTION_ANCHORS) &&
+      state.routerLinks.every(({ visible }) => visible) &&
+      state.internalAnchors.length >= 12 &&
+      state.internalAnchors.every(
+        ({ visible, targetExists, targetVisible }) =>
+          visible && targetExists && targetVisible,
+      ) &&
+      !state.documentOverflow &&
+      Object.values(state.keySurfaces).every(
+        (surface) =>
+          surface &&
+          surface.visible &&
+          surface.left >= -1 &&
+          surface.right <= state.viewportWidth + 1,
+      ),
+    {
+      routerLinks: state.routerLinks,
+      internalAnchors: state.internalAnchors,
+      viewportWidth: state.viewportWidth,
+      documentWidth: state.documentWidth,
+      documentWidths: state.documentWidths,
+      overflowCandidates: state.overflowCandidates,
+      keySurfaces: state.keySurfaces,
+    },
+  );
+}
+
+async function waitForCreateMobileStyles(page) {
+  // Chromium can briefly expose the new viewport dimensions before the loaded
+  // stylesheet has recomputed its media-query cascade. Wait on product styles,
+  // not elapsed time, so overflow is measured only after the 390px layout is
+  // the layout a native mobile navigation would receive.
+  await page.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ),
+  );
+  return poll(
+    "the Create mobile media-query cascade",
+    () =>
+      page.evaluate(() => {
+        const categoryRail = document.querySelector(
+          'nav[aria-label="Creation categories"]',
+        );
+        const buildButton = [
+          ...document.querySelectorAll('[data-embedded="true"] button'),
+        ].find(
+          (button) =>
+            button.textContent?.replace(/\s+/g, " ").trim() ===
+            "Build with Kingxford",
+        );
+        const categoryColumns = categoryRail
+          ? getComputedStyle(categoryRail).gridTemplateColumns
+              .split(/\s+/)
+              .filter(Boolean)
+          : [];
+        return {
+          viewportWidth: document.documentElement.clientWidth,
+          mobileMediaMatches: matchMedia("(max-width: 820px)").matches,
+          categoryColumnCount: categoryColumns.length,
+          buildButtonMinWidth:
+            buildButton instanceof HTMLElement
+              ? getComputedStyle(buildButton).minWidth
+              : null,
+        };
+      }),
+    (state) =>
+      state.viewportWidth === 390 &&
+      state.mobileMediaMatches &&
+      state.categoryColumnCount === 2 &&
+      state.buildButtonMinWidth === "0px",
+  );
+}
+
+async function verifyCreatePageDirectionClicks(page, viewport) {
+  const clicked = [];
+  for (const [label, href] of CREATE_DIRECTIONS) {
+    const anchor = page.locator(
+      `[data-create-capability-menu] nav[aria-label="Seven creation directions"] a[href="${href}"]`,
+    );
+    await anchor.scrollIntoViewIfNeeded();
+    await anchor.click();
+    const state = await poll(
+      `${viewport} Create direction ${href}`,
+      () =>
+        page.evaluate((targetHref) => {
+          const target = document.getElementById(targetHref.slice(1));
+          const rect = target?.getBoundingClientRect();
+          return {
+            hash: window.location.hash,
+            targetExists: Boolean(target),
+            targetVisible: Boolean(
+              target &&
+                rect &&
+                rect.width > 0 &&
+                rect.height > 0 &&
+                getComputedStyle(target).visibility !== "hidden",
+            ),
+            documentWidth: document.documentElement.scrollWidth,
+            viewportWidth: document.documentElement.clientWidth,
+          };
+        }, href),
+      (value) =>
+        value.hash === href &&
+        value.targetExists &&
+        value.targetVisible &&
+        value.documentWidth <= value.viewportWidth + 1,
+    );
+    clicked.push({ label, href, ...state });
+  }
+  check(
+    `create.${viewport}.seven-canonical-direction-clicks`,
+    clicked.length === CREATE_DIRECTIONS.length &&
+      clicked.every(
+        ({ href, hash, targetExists, targetVisible, documentWidth, viewportWidth }) =>
+          hash === href &&
+          targetExists &&
+          targetVisible &&
+          documentWidth <= viewportWidth + 1,
+      ),
+    { clicked },
+  );
+}
+
+async function resetCreateRoute(page) {
+  const response = await page.goto(`${BASE_URL}${CREATE_ROUTE}`, {
+    waitUntil: "domcontentloaded",
+  });
+  if (!response?.ok()) {
+    throw new Error(
+      `Could not restore ${CREATE_ROUTE}; HTTP ${response?.status() ?? "unknown"}.`,
+    );
+  }
+  await page.locator("#create-heading").waitFor({ state: "visible" });
+  await waitForNetworkIdle(page);
+}
+
+async function openCreateHeaderMenu(page, viewport) {
+  if (viewport === "desktop") {
+    const panel = page.locator("#site-header-create-panel");
+    if (!(await panel.isVisible())) {
+      await page
+        .locator('button[aria-controls="site-header-create-panel"]')
+        .click();
+    }
+    await panel.waitFor({ state: "visible" });
+    return;
+  }
+
+  const mobileMenu = page.locator("details.site-header__mobile-menu");
+  const mobileMenuOpen = await mobileMenu.evaluate(
+    (element) => element instanceof HTMLDetailsElement && element.open,
+  );
+  if (!mobileMenuOpen) {
+    await mobileMenu.locator('summary[aria-label="Navigation menu"]').click();
+  }
+
+  const createMenu = mobileMenu.locator("details.site-header__mobile-create");
+  const createMenuOpen = await createMenu.evaluate(
+    (element) => element instanceof HTMLDetailsElement && element.open,
+  );
+  if (!createMenuOpen) await createMenu.locator("summary").click();
+  await createMenu
+    .locator(".site-header__mobile-create-catalogue")
+    .waitFor({ state: "visible" });
+}
+
+async function inspectCreateHeaderMenu(page, viewport) {
+  const selectors =
+    viewport === "desktop"
+      ? {
+          directions: "#site-header-create-panel .site-header__create-catalogue a",
+          proofs: "#site-header-create-panel .site-header__create-proofs a",
+        }
+      : {
+          directions: ".site-header__mobile-create-catalogue a",
+          proofs: ".site-header__mobile-create-proofs a",
+        };
+  return page.evaluate((menuSelectors) => {
+    const read = (selector) =>
+      [...document.querySelectorAll(selector)].map((anchor) => {
+        const rect = anchor.getBoundingClientRect();
+        const style = getComputedStyle(anchor);
+        return {
+          label: anchor.textContent?.replace(/\s+/g, " ").trim() ?? "",
+          href: anchor.getAttribute("href"),
+          visible:
+            rect.width > 0 &&
+            rect.height > 0 &&
+            style.display !== "none" &&
+            style.visibility !== "hidden",
+        };
+      });
+    return {
+      directions: read(menuSelectors.directions),
+      proofs: read(menuSelectors.proofs),
+      viewportWidth: document.documentElement.clientWidth,
+      documentWidth: document.documentElement.scrollWidth,
+    };
+  }, selectors);
+}
+
+async function clickCreateHeaderDestination(page, viewport, href) {
+  await openCreateHeaderMenu(page, viewport);
+  const scope =
+    viewport === "desktop"
+      ? href.includes("#capability-")
+        ? "#site-header-create-panel .site-header__create-catalogue"
+        : "#site-header-create-panel .site-header__create-proofs"
+      : href.includes("#capability-")
+        ? ".site-header__mobile-create-catalogue"
+        : ".site-header__mobile-create-proofs";
+  const anchor = page.locator(`${scope} a[href="${href}"]`);
+  await anchor.scrollIntoViewIfNeeded();
+  await anchor.click();
+  const expected = new URL(href, BASE_URL);
+  return poll(
+    `${viewport} Create menu destination ${href}`,
+    () =>
+      page.evaluate(() => ({
+        pathname: window.location.pathname,
+        hash: window.location.hash,
+        headingVisible: Boolean(
+          document.querySelector("main h1")?.getBoundingClientRect().height,
+        ),
+        targetVisible: window.location.hash
+          ? Boolean(
+              document
+                .getElementById(window.location.hash.slice(1))
+                ?.getBoundingClientRect().height,
+            )
+          : true,
+      })),
+    (value) =>
+      value.pathname === expected.pathname &&
+      value.hash === expected.hash &&
+      value.headingVisible &&
+      value.targetVisible,
+  );
+}
+
+async function verifyCreateHeaderMenuDestinations(page, viewport) {
+  await openCreateHeaderMenu(page, viewport);
+  const initial = await inspectCreateHeaderMenu(page, viewport);
+  const expectedDirectionHrefs = CREATE_MENU_DIRECTIONS.map(([, href]) => href);
+  const expectedProofHrefs = CREATE_PROOFS.map(([, href]) => href);
+  const menuShapeIsExact =
+    JSON.stringify(initial.directions.map(({ href }) => href)) ===
+      JSON.stringify(expectedDirectionHrefs) &&
+    JSON.stringify(initial.proofs.map(({ href }) => href)) ===
+      JSON.stringify(expectedProofHrefs) &&
+    initial.directions.every(({ visible }) => visible) &&
+    initial.proofs.every(({ visible }) => visible) &&
+    initial.documentWidth <= initial.viewportWidth + 1;
+
+  const clickedDirections = [];
+  for (const [label, href] of CREATE_MENU_DIRECTIONS) {
+    const destination = await clickCreateHeaderDestination(
+      page,
+      viewport,
+      href,
+    );
+    clickedDirections.push({ label, href, ...destination });
+  }
+
+  const clickedProofs = [];
+  for (const [label, href] of CREATE_PROOFS) {
+    const destination = await clickCreateHeaderDestination(
+      page,
+      viewport,
+      href,
+    );
+    clickedProofs.push({ label, href, ...destination });
+    await resetCreateRoute(page);
+  }
+
+  check(
+    `create.${viewport}.header-seven-directions-and-three-proofs`,
+    menuShapeIsExact &&
+      clickedDirections.length === CREATE_MENU_DIRECTIONS.length &&
+      clickedProofs.length === CREATE_PROOFS.length &&
+      [...clickedDirections, ...clickedProofs].every(
+        ({ href, pathname, hash, headingVisible, targetVisible }) => {
+          const expected = new URL(href, BASE_URL);
+          return (
+            pathname === expected.pathname &&
+            hash === expected.hash &&
+            headingVisible &&
+            targetVisible
+          );
+        },
+      ),
+    { initial, clickedDirections, clickedProofs },
   );
 }
 
@@ -549,6 +1359,51 @@ function recordRuntimeChecks() {
   });
 }
 
+function observeRuntime(observedPage) {
+  observedPage.on("console", (message) => {
+    if (message.type() !== "error") return;
+    runtime.consoleErrors.push({
+      url: observedPage.url(),
+      text: message.text(),
+      location: message.location(),
+    });
+  });
+  observedPage.on("pageerror", (error) => {
+    runtime.pageErrors.push({
+      url: observedPage.url(),
+      ...serializableError(error),
+    });
+  });
+  observedPage.on("requestfailed", (request) => {
+    const errorText = request.failure()?.errorText ?? "Unknown request failure";
+    if (
+      request.method() === "GET" &&
+      request.resourceType() === "fetch" &&
+      request.url().includes("_rsc=") &&
+      errorText === "net::ERR_ABORTED"
+    ) {
+      // Next may cancel a speculative RSC prefetch when the verified navigation
+      // wins. This is not a failed product request.
+      return;
+    }
+    runtime.requestFailures.push({
+      method: request.method(),
+      resourceType: request.resourceType(),
+      url: request.url(),
+      errorText,
+    });
+  });
+  observedPage.on("response", (response) => {
+    if (response.status() < 400) return;
+    runtime.httpErrors.push({
+      method: response.request().method(),
+      resourceType: response.request().resourceType(),
+      status: response.status(),
+      url: response.url(),
+    });
+  });
+}
+
 try {
   const launch = await executablePathAndArgs();
   browser = await chromium.launch({ ...launch, headless: true });
@@ -584,52 +1439,82 @@ try {
   );
 
   page = await context.newPage();
-  page.on("console", (message) => {
-    if (message.type() !== "error") return;
-    runtime.consoleErrors.push({
-      url: page.url(),
-      text: message.text(),
-      location: message.location(),
-    });
-  });
-  page.on("pageerror", (error) => {
-    runtime.pageErrors.push({ url: page.url(), ...serializableError(error) });
-  });
-  page.on("requestfailed", (request) => {
-    const errorText = request.failure()?.errorText ?? "Unknown request failure";
-    if (
-      request.method() === "GET" &&
-      request.resourceType() === "fetch" &&
-      request.url().includes("_rsc=") &&
-      errorText === "net::ERR_ABORTED"
-    ) {
-      // Next may cancel a speculative RSC prefetch when the verified navigation
-      // wins. This is not a failed product request.
-      return;
-    }
-    runtime.requestFailures.push({
-      method: request.method(),
-      resourceType: request.resourceType(),
-      url: request.url(),
-      errorText,
-    });
-  });
-  page.on("response", (response) => {
-    if (response.status() < 400) return;
-    runtime.httpErrors.push({
-      method: response.request().method(),
-      resourceType: response.request().resourceType(),
-      status: response.status(),
-      url: response.url(),
-    });
-  });
+  observeRuntime(page);
 
   await visit(page, "/");
+  await verifyLiveAiReadiness(page, EXPECTED_READINESS_STATE);
+
+  if (!READINESS_ONLY) {
   await verifySharedNavigation(page, "home");
   const createNavigationPage = await context.newPage();
+  observeRuntime(createNavigationPage);
   try {
-    await visit(createNavigationPage, "/create");
+    await visit(createNavigationPage, CREATE_ROUTE);
     await verifySharedNavigation(createNavigationPage, "create");
+    await poll(
+      "the embedded Create Canvas project",
+      () =>
+        createNavigationPage
+          .locator('#studio [data-embedded="true"] select option')
+          .count(),
+      (count) => count >= 1,
+    );
+    await verifyCreateSurface(createNavigationPage, "desktop");
+
+    const embeddedCreateCanvas = createNavigationPage.locator(
+      '#studio [data-embedded="true"]',
+    );
+    await embeddedCreateCanvas
+      .getByRole("button", { name: "Library", exact: true })
+      .click();
+    const embeddedLibrary = createNavigationPage.getByRole("dialog", {
+      name: "Your connected intelligence",
+    });
+    await embeddedLibrary.waitFor({ state: "visible" });
+    const embeddedCurrentProject = embeddedLibrary.locator(
+      'li[data-active="true"]',
+    );
+    check(
+      "create.desktop.embedded-library-operational",
+      (await embeddedCurrentProject.count()) === 1 &&
+        (await embeddedCurrentProject.getByRole("button", {
+          name: "Current",
+          exact: true,
+        }).isVisible()) &&
+        (await embeddedCurrentProject.locator('button[title="Duplicate project"]').isVisible()) &&
+        (await embeddedCurrentProject.locator('button[title="Export project bundle"]').isVisible()),
+      {
+        currentProject:
+          (await embeddedCurrentProject.textContent())
+            ?.replace(/\s+/g, " ")
+            .trim() ?? "",
+      },
+    );
+    await embeddedLibrary
+      .getByRole("button", { name: "Close project library" })
+      .click();
+    await embeddedLibrary.waitFor({ state: "hidden" });
+
+    await createNavigationPage
+      .locator('section[aria-labelledby="create-heading"]')
+      .screenshot({ path: path.join(REPORT_DIR, "create-desktop-hero.png") });
+    await createNavigationPage.locator("#capabilities").screenshot({
+      path: path.join(REPORT_DIR, "create-desktop-directions.png"),
+    });
+    await verifyCreatePageDirectionClicks(createNavigationPage, "desktop");
+    await verifyCreateHeaderMenuDestinations(createNavigationPage, "desktop");
+
+    await createNavigationPage.setViewportSize({ width: 390, height: 844 });
+    await waitForCreateMobileStyles(createNavigationPage);
+    await verifyCreateSurface(createNavigationPage, "mobile");
+    await verifyCreatePageDirectionClicks(createNavigationPage, "mobile");
+    await createNavigationPage
+      .locator('section[aria-labelledby="create-heading"]')
+      .screenshot({ path: path.join(REPORT_DIR, "create-mobile-hero.png") });
+    await createNavigationPage.locator("#capabilities").screenshot({
+      path: path.join(REPORT_DIR, "create-mobile-directions.png"),
+    });
+    await verifyCreateHeaderMenuDestinations(createNavigationPage, "mobile");
   } finally {
     await createNavigationPage.close();
   }
@@ -1561,6 +2446,7 @@ try {
       ),
     },
   );
+  }
 
   await page.waitForTimeout(400);
   recordRuntimeChecks();

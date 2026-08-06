@@ -35,6 +35,7 @@ export type AgentReview = Readonly<{
   nextTest: string;
   proposedChanges: readonly string[];
   improvedInput: string;
+  proposedCode?: CodeFiles;
   buildBrief: Readonly<{
     title: string;
     oneLine: string;
@@ -42,6 +43,26 @@ export type AgentReview = Readonly<{
     coreExperience: string;
     deliverables: readonly string[];
     complexity: "Focused" | "Layered" | "Advanced";
+  }>;
+}>;
+
+export type AgentProjectContext = Readonly<{
+  projectId: string;
+  snapshotId: string;
+  snapshotHash: string;
+  snapshotSchemaVersion: number;
+  snapshotCharacterCount: number;
+  artifactRevisionId?: string;
+  artifactId?: string;
+  draftHash?: string;
+  counts: Readonly<{
+    nodes: number;
+    edges: number;
+    artifacts: number;
+    revisions: number;
+    reviews: number;
+    decisions: number;
+    gates: number;
   }>;
 }>;
 
@@ -63,6 +84,7 @@ export type AgentReviewResponse = Readonly<{
     durationMs: number;
     depth: "standard" | "deep";
   }>;
+  projectContext?: AgentProjectContext;
   usage?: Readonly<{
     inputTokens?: number;
     outputTokens?: number;

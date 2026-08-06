@@ -9,6 +9,7 @@ import {
   Headphones,
 } from "lucide-react";
 
+import { ProjectSeedAction } from "@/components/ProjectSeedAction";
 import { Reveal } from "@/components/Reveal";
 import { SustainableAbundanceEvidence } from "@/components/SustainableAbundanceEvidence";
 import {
@@ -409,8 +410,33 @@ export default async function MediaArticlePage({
 
         <footer className="media-article__footer">
           <div>
-            <p className="eyebrow">Continue the conversation</p>
-            <h2>What part of your work deserves a better system?</h2>
+            <p className="eyebrow">Continue through the platform</p>
+            <h2>Turn this field note into grounded project evidence.</h2>
+            <ProjectSeedAction
+              seed={{
+                action: "add-evidence",
+                source: {
+                  kind: "media",
+                  href: `/media/${post.slug}`,
+                  label: `Field note: ${post.title}`,
+                },
+                payload: {
+                  title: `Evidence from ${post.title}`,
+                  brief: post.description,
+                  evidence: [
+                    {
+                      title: post.title,
+                      content: `${post.standfirst}\n\n${post.introduction[0] ?? post.description}`,
+                      sourceUrl: `/media/${post.slug}`,
+                    },
+                  ],
+                  tags: [...post.topics, "field-note"],
+                },
+              }}
+              label="Carry this note into Canvas"
+              description="Preserve the article reference, summary, and topic context in your project."
+              variant="evidence"
+            />
             <Link className="button button--primary" href="/contact">
               <span>Bring it to kingXford &amp; Co</span>
               <ArrowUpRight aria-hidden="true" />

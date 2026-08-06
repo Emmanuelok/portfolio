@@ -7,17 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import { CommandPalette } from "@/components/CommandPalette";
 import { KingxfordLogo } from "@/components/KingxfordLogo";
 import { ThemeControls } from "@/components/ThemeControls";
+import { PLATFORM_DESTINATIONS } from "@/lib/platform";
 
-const navigation = [
-  { href: "/#mission", label: "Mission" },
-  { href: "/lab", label: "R&D / Lab" },
-  { href: "/create", label: "Create" },
-  { href: "/create/workspace", label: "Canvas" },
-  { href: "/work", label: "Work" },
-  { href: "/media", label: "Media" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-] as const;
+const navigation = PLATFORM_DESTINATIONS;
 
 type NavigationLinksProps = Readonly<{
   pathname: string;
@@ -29,15 +21,12 @@ function NavigationLinks({
   onNavigate,
 }: NavigationLinksProps) {
   return navigation.map((item) => {
-    const isSectionLink = item.href.includes("#");
-    const isCreateIndex = item.href === "/create";
     const isCurrent =
-      !isSectionLink &&
-      (pathname === item.href ||
-        (isCreateIndex
-          ? pathname.startsWith("/create/") &&
-            !pathname.startsWith("/create/workspace")
-          : pathname.startsWith(`${item.href}/`)));
+      item.href === "/"
+        ? pathname === "/"
+        : item.href === "/create/workspace"
+          ? pathname === "/create" || pathname.startsWith("/create/")
+          : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
     return (
       <Link
@@ -134,8 +123,8 @@ export function SiteHeader() {
                 />
               </nav>
               <p className="site-header__mobile-note">
-                Intelligence, research and development, and responsible AI for
-                people and institutions preparing for sustainable abundance.
+                One project continuum for discovery, evidence, systems,
+                prototypes, validation, and accountable delivery.
               </p>
               <div className="site-header__mobile-tools">
                 <p>Choose a color theme</p>

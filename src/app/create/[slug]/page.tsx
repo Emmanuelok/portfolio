@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { ProjectSeedAction } from "@/components/ProjectSeedAction";
 import { WebsiteShowcase } from "@/components/WebsiteShowcase";
 import { websiteShowcases } from "@/data/creations";
 
@@ -81,6 +82,36 @@ export default async function ShowcasePage({ params }: ShowcasePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
       />
       <WebsiteShowcase showcase={showcase} />
+      <section className="page-cta" aria-labelledby="showcase-canvas-title">
+        <p className="eyebrow">From demonstration to accountable project</p>
+        <h2 id="showcase-canvas-title">
+          Use this concept as a starting point, then make the brief your own.
+        </h2>
+        <ProjectSeedAction
+          seed={{
+            action: "start-project",
+            source: {
+              kind: "create",
+              href: `/create/${showcase.slug}`,
+              label: `Concept demonstration: ${showcase.name}`,
+            },
+            payload: {
+              title: `${showcase.name} project`,
+              brief: `${showcase.overview}\n\nStarting proposition: ${showcase.thesis}`,
+              evidence: [
+                {
+                  title: `${showcase.sector} concept capabilities`,
+                  content: showcase.capabilities.join("\n"),
+                  sourceUrl: `/create/${showcase.slug}`,
+                },
+              ],
+              tags: [showcase.sector, "concept-demonstration"],
+            },
+          }}
+          label="Develop this concept in Canvas"
+          description="Start a new Atlas project with the concept, capabilities, and disclosure preserved."
+        />
+      </section>
     </>
   );
 }

@@ -14,6 +14,20 @@ export const metadata: Metadata = {
   },
 };
 
+function validatedContactEmail(value: string | undefined) {
+  if (!value || value.length > 254 || value !== value.trim()) return null;
+  if (!/^[\x21-\x7e]+$/.test(value)) return null;
+  const [local, domain, ...extra] = value.split("@");
+  if (!local || !domain || extra.length || local.length > 64) return null;
+  if (!/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+$/.test(local)) return null;
+  if (local.startsWith(".") || local.endsWith(".") || local.includes("..")) return null;
+  const labels = domain.split(".");
+  if (labels.length < 2 || labels.some((label) => (
+    !label || label.length > 63 || !/^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/.test(label)
+  ))) return null;
+  return value;
+}
+
 const usefulDetails = [
   "The problem, opportunity, or future you are trying to shape",
   "The people and institutions affected by the current system",
@@ -22,6 +36,7 @@ const usefulDetails = [
 ] as const;
 
 export default function ContactPage() {
+  const contactEmail = validatedContactEmail(process.env.NEXT_PUBLIC_CONTACT_EMAIL);
   return (
     <main className="page page--contact">
       <section
@@ -57,7 +72,7 @@ export default function ContactPage() {
         </Reveal>
       </section>
 
-      <ProjectBriefBuilder />
+      <ProjectBriefBuilder contactEmail={contactEmail} />
 
       <section className="brief-guide" aria-labelledby="brief-guide-heading">
         <div className="section-heading section-heading--split">

@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import { ProjectSeedAction } from "@/components/ProjectSeedAction";
+
 type WorldId = "studio" | "living-room" | "lab";
 
 type World = Readonly<{
@@ -29,11 +31,11 @@ const worlds: readonly World[] = [
   {
     id: "studio",
     number: "01",
-    title: "Studio",
-    kicker: "Product & digital systems",
+    title: "Build lens",
+    kicker: "Prototype & delivery",
     statement: "Build intelligence into useful systems.",
     body:
-      "The Studio translates research and strategic insight into intelligent tools, platforms, products, and experiences people can put to work.",
+      "The Build lens translates the same project brief, evidence, and system model into testable tools, platforms, products, and experiences.",
     signature: "From validated proposition to resilient release.",
     services: [
       "Intelligent tools & platforms",
@@ -44,17 +46,17 @@ const worlds: readonly World[] = [
       "Communication & visual systems",
     ],
     image: "/motion/kingxford-production-spine-v2.webp",
-    href: "/create",
-    cta: "Enter Studio",
+    href: "/create/workspace?phase=prototype",
+    cta: "Open Build in Canvas",
   },
   {
     id: "living-room",
     number: "02",
-    title: "The Living Room",
-    kicker: "Strategy & complex mandates",
+    title: "Strategy lens",
+    kicker: "Discovery & systems",
     statement: "Solve the problem before it hardens.",
     body:
-      "The Living Room is our situation room for institutions, collaborators, and uncommon briefs that need structured intelligence before they need a predefined service.",
+      "The Strategy lens frames uncommon briefs, clarifies ownership, and maps the decisions a project must carry before a solution is chosen.",
     signature: "The right coalition around the real question.",
     services: [
       "Strategic intelligence",
@@ -65,17 +67,17 @@ const worlds: readonly World[] = [
       "Cross-disciplinary coalitions",
     ],
     image: "/motion/kingxford-decision-theatre-v2.webp",
-    href: "/contact?world=living-room",
-    cta: "Bring something different",
+    href: "/create/workspace?phase=discovery",
+    cta: "Open Strategy in Canvas",
   },
   {
     id: "lab",
     number: "03",
-    title: "Lab",
-    kicker: "Research & development",
+    title: "Evidence lens",
+    kicker: "Research & validation",
     statement: "Make uncertainty testable.",
     body:
-      "The Lab conducts and translates rigorous inquiry for scientific, academic, public-interest, and industry partners developing knowledge with consequence.",
+      "The Evidence lens brings sources, observations, uncertainty, and validation into the same project record used by strategy and delivery.",
     signature: "Evidence that can travel into action.",
     services: [
       "Applied research & experimentation",
@@ -86,8 +88,8 @@ const worlds: readonly World[] = [
       "Scientific communication",
     ],
     image: "/motion/kingxford-instrument-corridor-v2.webp",
-    href: "/lab",
-    cta: "Enter Lab",
+    href: "/create/workspace?phase=evidence",
+    cta: "Open Evidence in Canvas",
   },
 ] as const;
 
@@ -169,18 +171,18 @@ export function KingxfordWorlds() {
     >
       <header className="worlds__header">
         <div className="worlds__index">
-          <span>01 / Delivery environments</span>
-          <span>One mission, three modes of work</span>
+          <span>01 / Connected intelligence lenses</span>
+          <span>One platform, three ways to enter the same project</span>
         </div>
         <div className="worlds__heading">
           <h2 id="worlds-title">
-            One mission.
-            <em>Three delivery environments.</em>
+            One project memory.
+            <em>Three connected lenses.</em>
           </h2>
           <p>
-            Intelligence, R&amp;D, responsible AI, and preparation for sustainable
-            abundance lead the work. Studio, The Living Room, and Lab are the
-            environments through which kingXford &amp; Co delivers it.
+            Build, strategy, and evidence no longer operate as separate
+            destinations. Each lens feeds the same Atlas, where the brief,
+            sources, decisions, and artifacts move forward together.
           </p>
         </div>
       </header>
@@ -285,8 +287,9 @@ export function IdeaRouter() {
           <em>to make possible?</em>
         </h2>
         <p>
-          Describe the problem, idea, or project plainly. kingXford &amp; Co will
-          point you toward the delivery environment best equipped to begin.
+          Describe the problem, idea, or project plainly. The router identifies
+          the strongest starting lens, then carries your exact words into one
+          connected Canvas.
         </p>
       </div>
 
@@ -331,10 +334,23 @@ export function IdeaRouter() {
               <strong>{recommendation.title}</strong>
             </div>
             <p>{recommendation.body}</p>
-            <Link href={recommendation.href}>
-              {recommendation.cta}
-              <ArrowUpRight aria-hidden="true" />
-            </Link>
+            <ProjectSeedAction
+              seed={{
+                action: "start-project",
+                source: {
+                  kind: "idea-router",
+                  href: "/",
+                  label: "Homepage idea router",
+                },
+                payload: {
+                  title: idea.trim().slice(0, 180),
+                  brief: idea.trim(),
+                  tags: [recommendation.id, "idea-router"],
+                },
+              }}
+              label="Carry this idea into Canvas"
+              description={`Begin with the ${recommendation.title} lens without losing your original words.`}
+            />
           </div>
         )}
       </div>

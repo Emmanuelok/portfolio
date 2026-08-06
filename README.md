@@ -42,10 +42,19 @@ including eight case studies, the Media index, and two Media articles.
 
 ## Kingxford Creative Intelligence
 
-The Canvas at `/create/workspace` includes a server-mediated AI review layer.
-It combines seven selectable specialist lenses, a fixed Kingxford playbook,
-structured reviews, standard/deep Gateway routing, deterministic local fallback,
-and private review history stored in the current browser.
+The Canvas at `/create/workspace` is the shared operating surface for one
+project lifecycle: Discovery → Evidence → Systems → Prototype → Validation →
+Delivery. The Project Atlas links artifacts, immutable revisions, evidence,
+open questions, reviews, and human gates in a versioned local-first graph.
+Projects can be created, switched, imported, and exported without claiming
+cloud persistence; public Work, Lab, Media, and Create surfaces can deliberately
+seed a new project or add evidence to an existing one.
+
+The Canvas also includes a server-mediated AI review layer. It combines seven
+selectable specialist lenses, a fixed Kingxford playbook, graph-aware structured
+reviews, standard/deep Gateway routing, deterministic local fallback, and
+private review history stored in the current browser. AI proposals remain
+read-only until a person deliberately accepts a new revision.
 
 The public reviewer is intentionally bounded: workspace content is treated as
 untrusted, the agent has no external-action tools, credentials are rejected
@@ -74,9 +83,12 @@ npm run typecheck
 npm run lint
 npm run verify:creative-agent
 npm run build
+npm run verify:platform-journey
 ```
 
 The project requires Node.js 22 or newer and uses Next.js App Router. No
 environment variables are required for the public portfolio or deterministic
 local Canvas review. Configure Vercel AI Gateway/OIDC to enable model-generated
-reviews; start from `.env.example` and never commit real credentials.
+reviews. Production also requires a private `KINGXFORD_USAGE_HASH_SALT`; set
+`NEXT_PUBLIC_CONTACT_EMAIL` to an owner-controlled public project inbox. Start
+from `.env.example` and never commit real credentials.

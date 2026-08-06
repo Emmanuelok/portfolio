@@ -243,9 +243,9 @@ const scienceLabCommandResults = await desktop.page
   );
 const scienceLabCommandPassed = scienceLabCommandResults.some(
   (result) =>
-    result.id === "command-create" &&
-    /create/i.test(result.text) &&
-    /websites?/i.test(result.text),
+    result.id === "command-lab" &&
+    /lab/i.test(result.text) &&
+    /evidence/i.test(result.text),
 );
 results.push({
   interaction: "command-search-science-lab",
@@ -403,14 +403,14 @@ await desktop.page
   .fill("A research platform for scientific evidence and academic data");
 await desktop.page.waitForTimeout(250);
 const routedWorld = await desktop.page
-  .locator(".idea-router__result strong")
+  .locator(".idea-router__result > div:first-child > strong")
   .textContent();
 results.push({
   interaction: "idea-router",
-  passed: routedWorld?.trim() === "Lab",
+  passed: routedWorld?.trim() === "Evidence lens",
   routedWorld,
 });
-if (routedWorld?.trim() !== "Lab") {
+if (routedWorld?.trim() !== "Evidence lens") {
   failures.push({ interaction: "idea-router", routedWorld });
 }
 await desktop.page.screenshot({
@@ -473,7 +473,7 @@ const createIndexState = await create.page.evaluate((expectedShowcases) => {
   const gallery = document.querySelector("[data-prototype-gallery]");
   const tabs = [...gallery?.querySelectorAll("[role='tab']") ?? []];
   const navLinks = [
-    ...document.querySelectorAll(".site-header__nav-link[href='/create']"),
+    ...document.querySelectorAll(".site-header__nav-link[href='/create/workspace']"),
   ];
   const schemaNode = document.querySelector("#create-collection-schema");
   let schema = null;
@@ -1154,7 +1154,7 @@ const canvasAgentPanelText = await canvasAgentPanel.textContent();
 const canvasAgentContextPassed =
   (await canvasAgentPanel.isVisible()) &&
   /Choose what the Agent can see/.test(canvasAgentPanelText ?? "") &&
-  /Only the checked workspace context is sent/.test(canvasAgentPanelText ?? "") &&
+  /Only the checked workspace context and the visible bounded project snapshot are sent/.test(canvasAgentPanelText ?? "") &&
   (await canvasAgentPanel.getByLabel("Current input", { exact: true }).isChecked()) &&
   !(await canvasAgentPanel.getByLabel("Preview console", { exact: true }).isChecked()) &&
   !(await canvasAgentPanel.getByLabel("Previous versions", { exact: true }).isChecked()) &&
@@ -1295,7 +1295,7 @@ for (const expected of expectedCreateShowcases) {
       "aside[aria-label='Concept disclosure']",
     );
     const navLinks = [
-      ...document.querySelectorAll(".site-header__nav-link[href='/create']"),
+      ...document.querySelectorAll(".site-header__nav-link[href='/create/workspace']"),
     ];
     const schemaNode = document.querySelector(`#showcase-schema-${slug}`);
     const breadcrumbsNode = document.querySelector(
@@ -1456,7 +1456,7 @@ const createHeaderState = await createHeader.page.evaluate(() => {
     navLinkCount: nav.querySelectorAll(".site-header__nav-link").length,
     currentNav:
       nav
-        .querySelector(".site-header__nav-link[href='/create']")
+        .querySelector(".site-header__nav-link[href='/create/workspace']")
         ?.getAttribute("aria-current") === "page",
     brandNavOverlap: Math.max(0, brandRect.right - navRect.left),
     navActionsOverlap: Math.max(0, navRect.right - actionsRect.left),
@@ -1465,7 +1465,7 @@ const createHeaderState = await createHeader.page.evaluate(() => {
 const createHeaderPassed =
   createHeaderState.elementsPresent &&
   createHeaderState.navDisplay !== "none" &&
-  createHeaderState.navLinkCount >= 7 &&
+  createHeaderState.navLinkCount === 5 &&
   createHeaderState.currentNav &&
   createHeaderState.brandNavOverlap <= 0.5 &&
   createHeaderState.navActionsOverlap <= 0.5;
@@ -1747,7 +1747,7 @@ const mobileCreateState = {
     .isVisible(),
   currentNavVisible: await mobileCreate.page
     .locator(
-      ".site-header__mobile-panel .site-header__nav-link[href='/create'][aria-current='page']",
+      ".site-header__mobile-panel .site-header__nav-link[href='/create/workspace'][aria-current='page']",
     )
     .isVisible(),
   featuredCount: await mobileCreate.page
@@ -1845,7 +1845,7 @@ const mobileCanvasAgentState = {
   agentVisible: await mobileAgentPanel.isVisible(),
   contextDisclosureVisible:
     /Choose what the Agent can see/.test(mobileAgentText ?? "") &&
-    /Only the checked workspace context is sent/.test(mobileAgentText ?? ""),
+    /Only the checked workspace context and the visible bounded project snapshot are sent/.test(mobileAgentText ?? ""),
 };
 await mobileCanvas.page.screenshot({
   path: path.join(outputDir, "canvas-mobile-agent-390.png"),

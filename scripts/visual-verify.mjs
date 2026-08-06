@@ -55,6 +55,14 @@ const browser = await chromium.launch({
 const results = [];
 const failures = [];
 
+const expectedPrimaryDestinations = [
+  { label: "Mission", href: "/" },
+  { label: "Work", href: "/work" },
+  { label: "Lab", href: "/lab" },
+  { label: "Field notes", href: "/media" },
+  { label: "Canvas", href: "/create/workspace" },
+];
+
 async function inspectPage(name, route, viewport, options = {}) {
   const context = await browser.newContext({
     viewport,
@@ -183,6 +191,114 @@ const desktop = await inspectPage(
   { width: 1440, height: 1000 },
 );
 
+const homeNexusState = await desktop.page.evaluate((expectedDestinations) => {
+  const nexusTitle = document.querySelector("#platform-nexus-title");
+  const nexus = nexusTitle?.closest("section");
+  const projectInput = document.querySelector("#platform-project-start");
+  const privacy = nexus
+    ? [...nexus.querySelectorAll("p")].find((element) =>
+        /Starting stores this sentence only in this browser tab/.test(
+          element.textContent ?? "",
+        ),
+      )
+    : null;
+  const firstScreen = (element) => {
+    if (!(element instanceof HTMLElement)) return false;
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return (
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.top >= 0 &&
+      rect.bottom <= window.innerHeight + 1 &&
+      style.visibility !== "hidden" &&
+      style.display !== "none"
+    );
+  };
+  const elementGeometry = (element) => {
+    if (!(element instanceof HTMLElement)) return null;
+    const rect = element.getBoundingClientRect();
+    return {
+      top: Math.round(rect.top * 10) / 10,
+      bottom: Math.round(rect.bottom * 10) / 10,
+      height: Math.round(rect.height * 10) / 10,
+      viewportHeight: window.innerHeight,
+    };
+  };
+  const destinationLinks = [
+    ...document.querySelectorAll(
+      ".site-header__desktop-nav .site-header__nav-link",
+    ),
+  ].map((link) => ({
+    label: link.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    href: link.getAttribute("href"),
+  }));
+  const expectedLabels = expectedDestinations.map(({ label }) => label);
+  const expectedHrefs = expectedDestinations.map(({ href }) => href);
+
+  return {
+    h1Count: document.querySelectorAll("h1").length,
+    heading:
+      nexusTitle?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    inputLabel:
+      document.querySelector("label[for='platform-project-start']")
+        ?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    privacyText: privacy?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    headingFirstScreen: firstScreen(nexusTitle),
+    inputFirstScreen: firstScreen(projectInput),
+    privacyFirstScreen: firstScreen(privacy),
+    headingGeometry: elementGeometry(nexusTitle),
+    inputGeometry: elementGeometry(projectInput),
+    privacyGeometry: elementGeometry(privacy),
+    phaseLabels: [
+      ...nexus?.querySelectorAll(
+        "[aria-label='Connected project lifecycle'] button strong",
+      ) ?? [],
+    ].map((element) => element.textContent?.trim() ?? ""),
+    destinationLabels: destinationLinks.map(({ label }) => label),
+    destinationHrefs: destinationLinks.map(({ href }) => href),
+    expectedLabels,
+    expectedHrefs,
+  };
+}, expectedPrimaryDestinations);
+const homeNexusPassed =
+  homeNexusState.h1Count === 1 &&
+  /^Every form of thought\.\s*One intelligence system\.$/.test(
+    homeNexusState.heading,
+  ) &&
+  homeNexusState.inputLabel === "What are you trying to make possible?" &&
+  /only in this browser tab/i.test(homeNexusState.privacyText) &&
+  /does not contact Kingxford or send it to an Agent/i.test(
+    homeNexusState.privacyText,
+  ) &&
+  homeNexusState.headingFirstScreen &&
+  homeNexusState.inputFirstScreen &&
+  homeNexusState.privacyFirstScreen &&
+  JSON.stringify(homeNexusState.phaseLabels) ===
+    JSON.stringify([
+      "Discover",
+      "Investigate",
+      "Model",
+      "Build",
+      "Validate",
+      "Deliver",
+    ]) &&
+  JSON.stringify(homeNexusState.destinationLabels) ===
+    JSON.stringify(homeNexusState.expectedLabels) &&
+  JSON.stringify(homeNexusState.destinationHrefs) ===
+    JSON.stringify(homeNexusState.expectedHrefs);
+results.push({
+  interaction: "home-platform-nexus-first-screen",
+  passed: homeNexusPassed,
+  ...homeNexusState,
+});
+if (!homeNexusPassed) {
+  failures.push({
+    interaction: "home-platform-nexus-first-screen",
+    ...homeNexusState,
+  });
+}
+
 const selectedDesktopTheme = desktop.page.locator(
   ".site-header__theme [role='radio'][aria-checked='true']",
 );
@@ -241,12 +357,19 @@ const scienceLabCommandResults = await desktop.page
       text: option.textContent?.replace(/\s+/g, " ").trim() ?? "",
     })),
   );
-const scienceLabCommandPassed = scienceLabCommandResults.some(
-  (result) =>
-    result.id === "command-lab" &&
-    /lab/i.test(result.text) &&
-    /evidence/i.test(result.text),
-);
+const scienceLabCommandPassed =
+  scienceLabCommandResults.some(
+    (result) =>
+      result.id === "command-create" &&
+      /kingxford intelligence/i.test(result.text) &&
+      /continuous project/i.test(result.text) &&
+      /working proof/i.test(result.text),
+  ) &&
+  scienceLabCommandResults.some(
+    (result) =>
+      result.id === "command-create-science" &&
+      /lumen vale laboratory/i.test(result.text),
+  );
 results.push({
   interaction: "command-search-science-lab",
   passed: scienceLabCommandPassed,
@@ -263,160 +386,168 @@ await desktop.page
   .locator("dialog.command-palette[open]")
   .waitFor({ state: "hidden" });
 
-const missionImage = desktop.page.locator(
-  ".kx-reality-plate[data-plate='mission'] img",
-);
-await missionImage.waitFor({ state: "visible" });
-await desktop.page.waitForFunction(() => {
-  const image = document.querySelector(
-    ".kx-reality-plate[data-plate='mission'] img",
-  );
-  return (
-    image instanceof HTMLImageElement &&
-    image.complete &&
-    image.naturalWidth > 0
-  );
-});
+await desktop.page.locator("#intelligence-system").scrollIntoViewIfNeeded();
+const operatingSystemState = await desktop.page
+  .locator("#intelligence-system")
+  .evaluate((system) => ({
+    heading:
+      system
+        .querySelector("#intelligence-system-title")
+        ?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    entryPointCount: system.querySelectorAll(
+      "[aria-label='Platform entry lenses'] a",
+    ).length,
+    memoryFields: (
+      system.querySelector("[aria-label='Project memory'] strong")
+        ?.textContent ?? ""
+    )
+      .split("·")
+      .map((field) => field.trim())
+      .filter(Boolean),
+    specialistCount: system.querySelectorAll(
+      "[aria-label='Specialist agents'] article",
+    ).length,
+    lifecycleLabels: [
+      ...system.querySelectorAll(
+        "[aria-label='Six connected project phases'] button strong",
+      ),
+    ].map((element) => element.textContent?.trim() ?? ""),
+    conductor: system.querySelector("#conductor-title")?.textContent?.trim(),
+    legacyDisconnectedSurfaceCount: document.querySelectorAll(
+      ".kx-cinematic, .worlds__portal, .idea-router",
+    ).length,
+  }));
 
-const storyMetrics = await desktop.page.locator(".kx-cinematic").evaluate((story) => {
-  const stage = story.querySelector(".kx-cinematic__stage");
-  const arrival = story.querySelector(
-    ".kx-reality-plate[data-plate='mission'] img",
-  );
-  const rect = story.getBoundingClientRect();
-  return {
-    top: rect.top + window.scrollY,
-    height: rect.height,
-    viewportHeight: window.innerHeight,
-    chapterCount: story.querySelectorAll(".kx-cinematic__chapter").length,
-    plateCount: story.querySelectorAll(".kx-reality-plate").length,
-    videoCount: story.querySelectorAll("video").length,
-    stagePosition: stage ? getComputedStyle(stage).position : null,
-    arrivalReady:
-      arrival instanceof HTMLImageElement &&
-      arrival.complete &&
-      arrival.naturalWidth > 0,
-  };
-});
-const storyStructurePassed =
-  storyMetrics.chapterCount === 6 &&
-  storyMetrics.plateCount === 6 &&
-  storyMetrics.videoCount === 0 &&
-  storyMetrics.stagePosition === "sticky" &&
-  storyMetrics.arrivalReady &&
-  storyMetrics.height > storyMetrics.viewportHeight * 6;
+const lifecycleValidation = desktop.page
+  .locator("[aria-label='Six connected project phases']")
+  .getByRole("button", { name: /Validate/ });
+await lifecycleValidation.click();
+const lifecycleInteractionState = {
+  validationSelected:
+    (await lifecycleValidation.getAttribute("aria-pressed")) === "true",
+  description:
+    (await desktop.page.locator("#lifecycle-phase-description").textContent())
+      ?.replace(/\s+/g, " ")
+      .trim() ?? "",
+  assignedSpecialistCount: await desktop.page.locator(
+    "[aria-label='Specialist agents'] article[data-active='true']",
+  ).count(),
+};
+const expectedLifecycleLabels = [
+  "Discover",
+  "Investigate",
+  "Model",
+  "Build",
+  "Validate",
+  "Deliver",
+];
+const operatingSystemPassed =
+  /^Four ways into the work\.\s*One memory carrying it forward\.$/.test(
+    operatingSystemState.heading,
+  ) &&
+  operatingSystemState.entryPointCount === 4 &&
+  JSON.stringify(operatingSystemState.memoryFields) ===
+    JSON.stringify(["Objective", "source", "evidence", "decisions"]) &&
+  operatingSystemState.specialistCount === 6 &&
+  JSON.stringify(operatingSystemState.lifecycleLabels) ===
+    JSON.stringify(expectedLifecycleLabels) &&
+  operatingSystemState.conductor === "Conductor" &&
+  operatingSystemState.legacyDisconnectedSurfaceCount === 0 &&
+  lifecycleInteractionState.validationSelected &&
+  /decision-ready validation record/i.test(
+    lifecycleInteractionState.description,
+  ) &&
+  lifecycleInteractionState.assignedSpecialistCount === 2;
 results.push({
-  interaction: "kingxford-cinematic-structure",
-  passed: storyStructurePassed,
-  ...storyMetrics,
+  interaction: "unified-intelligence-operating-system",
+  passed: operatingSystemPassed,
+  ...operatingSystemState,
+  lifecycleInteraction: lifecycleInteractionState,
 });
-if (!storyStructurePassed) {
+if (!operatingSystemPassed) {
   failures.push({
-    interaction: "kingxford-cinematic-structure",
-    ...storyMetrics,
+    interaction: "unified-intelligence-operating-system",
+    ...operatingSystemState,
+    lifecycleInteraction: lifecycleInteractionState,
   });
 }
-
-await desktop.page.addStyleTag({
-  content: "html, body { scroll-behavior: auto !important; }",
+await desktop.page.screenshot({
+  path: path.join(
+    outputDir,
+    "kingxford-intelligence-operating-system.png",
+  ),
+  fullPage: false,
 });
 
-for (const [captureName, expectedChapter, progress] of [
-  ["mission", "mission", 0.05],
-  ["intelligence", "intelligence", 0.27],
-  ["research-development", "research-development", 0.445],
-  ["responsible-ai", "responsible-ai", 0.625],
-  ["and-co", "and-co", 0.79],
-  ["abundant-future", "abundant-future", 0.95],
-]) {
-  await desktop.page.evaluate(
-    ({ top, height, viewportHeight, progress }) => {
-      window.scrollTo({
-        top: top + (height - viewportHeight) * progress,
-        behavior: "auto",
-      });
-    },
-    {
-      top: storyMetrics.top,
-      height: storyMetrics.height,
-      viewportHeight: storyMetrics.viewportHeight,
-      progress,
-    },
-  );
-  await desktop.page.waitForTimeout(180);
-  const chapterVisibility = await desktop.page
-    .locator(".kx-cinematic__chapter")
-    .evaluateAll((chapters) =>
-      chapters.map((chapter) => ({
-        id: chapter.getAttribute("data-chapter"),
-        opacity: Number.parseFloat(getComputedStyle(chapter).opacity),
-      })),
+const routedIdea =
+  "A research platform for scientific evidence and academic data";
+await desktop.page.locator("#platform-project-start").scrollIntoViewIfNeeded();
+await desktop.page.locator("#platform-project-start").fill(routedIdea);
+await Promise.all([
+  desktop.page.waitForURL(
+    "**/create/workspace?start=seed&phase=discovery&mode=idea",
+  ),
+  desktop.page.getByRole("button", { name: /Start project/ }).click(),
+]);
+await desktop.page.locator("#workspace-text-editor").waitFor({
+  state: "visible",
+});
+await desktop.page.waitForFunction((expectedInput) => {
+  const editor = document.querySelector("#workspace-text-editor");
+  let projectCount = 0;
+  try {
+    const repository = JSON.parse(
+      window.localStorage.getItem("kingxford:projects:v2") ?? "null",
     );
-  const visibleChapters = chapterVisibility.filter(
-    (chapter) => chapter.opacity > 0.05,
-  );
-  const chapterIsolationPassed =
-    visibleChapters.length === 1 &&
-    visibleChapters[0].id === expectedChapter &&
-    visibleChapters[0].opacity > 0.95;
-  results.push({
-    interaction: `chapter-isolation-${expectedChapter}`,
-    passed: chapterIsolationPassed,
-    chapterVisibility,
-  });
-  if (!chapterIsolationPassed) {
-    failures.push({
-      interaction: `chapter-isolation-${expectedChapter}`,
-      chapterVisibility,
-    });
+    projectCount = Array.isArray(repository?.projects)
+      ? repository.projects.length
+      : 0;
+  } catch {
+    projectCount = 0;
   }
-  await desktop.page.screenshot({
-    path: path.join(outputDir, `kingxford-${captureName}.png`),
-    fullPage: false,
+  return (
+    editor instanceof HTMLTextAreaElement &&
+    editor.value === expectedInput &&
+    projectCount >= 1 &&
+    window.sessionStorage.getItem("kingxford:project-seed:v1") === null
+  );
+}, routedIdea);
+const ideaTransferState = await desktop.page.evaluate(() => ({
+  input:
+    document.querySelector("#workspace-text-editor") instanceof
+    HTMLTextAreaElement
+      ? document.querySelector("#workspace-text-editor").value
+      : "",
+  seedConsumed:
+    window.sessionStorage.getItem("kingxford:project-seed:v1") === null,
+  userContentInUrl: window.location.href.includes("scientific evidence"),
+  projectCount: (() => {
+    try {
+      const value = JSON.parse(
+        window.localStorage.getItem("kingxford:projects:v2") ?? "null",
+      );
+      return Array.isArray(value?.projects) ? value.projects.length : 0;
+    } catch {
+      return 0;
+    }
+  })(),
+}));
+const ideaTransferPassed =
+  ideaTransferState.input === routedIdea &&
+  ideaTransferState.seedConsumed &&
+  !ideaTransferState.userContentInUrl &&
+  ideaTransferState.projectCount >= 1;
+results.push({
+  interaction: "idea-to-project-context-transfer",
+  passed: ideaTransferPassed,
+  ...ideaTransferState,
+});
+if (!ideaTransferPassed) {
+  failures.push({
+    interaction: "idea-to-project-context-transfer",
+    ...ideaTransferState,
   });
 }
-
-await desktop.page.locator(".worlds__portal").scrollIntoViewIfNeeded();
-await desktop.page.locator("#living-room").hover();
-await desktop.page.waitForTimeout(250);
-const activeWorld = await desktop.page
-  .locator(".world-panel[data-active='true']")
-  .getAttribute("id");
-results.push({
-  interaction: "three-world-portal",
-  passed:
-    (await desktop.page.locator(".world-panel").count()) === 3 &&
-    activeWorld === "living-room",
-  activeWorld,
-});
-if (activeWorld !== "living-room") {
-  failures.push({ interaction: "three-world-portal", activeWorld });
-}
-await desktop.page.screenshot({
-  path: path.join(outputDir, "kingxford-three-worlds.png"),
-  fullPage: false,
-});
-
-await desktop.page.locator(".idea-router").scrollIntoViewIfNeeded();
-await desktop.page
-  .locator("#idea-router-input")
-  .fill("A research platform for scientific evidence and academic data");
-await desktop.page.waitForTimeout(250);
-const routedWorld = await desktop.page
-  .locator(".idea-router__result > div:first-child > strong")
-  .textContent();
-results.push({
-  interaction: "idea-router",
-  passed: routedWorld?.trim() === "Evidence lens",
-  routedWorld,
-});
-if (routedWorld?.trim() !== "Evidence lens") {
-  failures.push({ interaction: "idea-router", routedWorld });
-}
-await desktop.page.screenshot({
-  path: path.join(outputDir, "kingxford-idea-router.png"),
-  fullPage: false,
-});
 
 await desktop.context.close();
 
@@ -472,9 +603,10 @@ const create = await inspectPage(
 const createIndexState = await create.page.evaluate((expectedShowcases) => {
   const gallery = document.querySelector("[data-prototype-gallery]");
   const tabs = [...gallery?.querySelectorAll("[role='tab']") ?? []];
-  const navLinks = [
-    ...document.querySelectorAll(".site-header__nav-link[href='/create/workspace']"),
-  ];
+  const canvasNav = document.querySelector(
+    ".site-header__desktop-nav .site-header__create-link",
+  );
+  const embeddedCanvas = document.querySelector("[data-embedded='true']");
   const schemaNode = document.querySelector("#create-collection-schema");
   let schema = null;
   try {
@@ -495,9 +627,25 @@ const createIndexState = await create.page.evaluate((expectedShowcases) => {
     catalogueCount: document.querySelectorAll(
       "section[aria-labelledby='catalogue-heading'] article[id]",
     ).length,
-    currentNav:
-      navLinks.length > 0 &&
-      navLinks.every((link) => link.getAttribute("aria-current") === "page"),
+    currentNav: canvasNav?.getAttribute("aria-current") === "location",
+    embeddedCanvas: Boolean(embeddedCanvas),
+    embeddedCanvasHeading:
+      embeddedCanvas
+        ?.querySelector("#canvas-title")
+        ?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    embeddedModeCount:
+      embeddedCanvas?.querySelectorAll(
+        "[role='tab'][id^='workspace-mode-']",
+      ).length ?? 0,
+    embeddedResultTabCount:
+      embeddedCanvas?.querySelectorAll(
+        "[aria-label='Result views'] [role='tab']",
+      ).length ?? 0,
+    embeddedConductorTab: Boolean(
+      embeddedCanvas?.querySelector("#workspace-result-tab-intelligence"),
+    ),
+    embeddedProjectLibrary: [...embeddedCanvas?.querySelectorAll("button") ?? []]
+      .some((button) => button.textContent?.trim() === "Library"),
     schemaType: schema?.["@type"] ?? null,
     schemaPartCount: Array.isArray(schema?.hasPart) ? schema.hasPart.length : 0,
   };
@@ -531,6 +679,13 @@ const createIndexPassed =
   prototypeStates.every((state) => state.liveControls >= 3 && state.panelText.length > 120) &&
   createIndexState.catalogueCount === 7 &&
   createIndexState.currentNav &&
+  createIndexState.embeddedCanvas &&
+  createIndexState.embeddedCanvasHeading ===
+    "Move from first thought to working proof." &&
+  createIndexState.embeddedModeCount === 5 &&
+  createIndexState.embeddedResultTabCount === 4 &&
+  createIndexState.embeddedConductorTab &&
+  createIndexState.embeddedProjectLibrary &&
   createIndexState.schemaType === "CollectionPage" &&
   createIndexState.schemaPartCount === 4;
 results.push({
@@ -758,6 +913,12 @@ const canvasRouteState = await canvas.page.evaluate(() => {
     hasResultPane: Boolean(
       document.querySelector("[aria-label='Live result and agent review']"),
     ),
+    resultTabLabels: [
+      ...document.querySelectorAll("[aria-label='Result views'] [role='tab']"),
+    ].map((tab) => tab.textContent?.replace(/\s+/g, " ").trim() ?? ""),
+    hasProjectLibraryButton: [...document.querySelectorAll("button")].some(
+      (button) => button.textContent?.trim() === "Library",
+    ),
     schemaType: schema?.["@type"] ?? null,
   };
 });
@@ -768,6 +929,14 @@ const canvasRoutePassed =
   canvasRouteState.selectedMode === "workspace-mode-idea" &&
   canvasRouteState.hasWorkbench &&
   canvasRouteState.hasResultPane &&
+  JSON.stringify(canvasRouteState.resultTabLabels) ===
+    JSON.stringify([
+      "Live preview",
+      "Conductor",
+      "Agent review",
+      "Versions 0",
+    ]) &&
+  canvasRouteState.hasProjectLibraryButton &&
   canvasRouteState.schemaType === "WebApplication";
 results.push({
   interaction: "canvas-route-desktop",
@@ -781,6 +950,84 @@ if (!canvasRoutePassed) {
     ...canvasRouteState,
   });
 }
+
+const desktopLibraryButton = canvas.page.getByRole("button", {
+  name: "Library",
+  exact: true,
+});
+await desktopLibraryButton.click();
+const desktopProjectLibrary = canvas.page.getByRole("dialog", {
+  name: "Your connected intelligence",
+});
+await desktopProjectLibrary.waitFor({ state: "visible" });
+const desktopProjectLibraryState = {
+  buttonVisible: await desktopLibraryButton.isVisible(),
+  dialogVisible: await desktopProjectLibrary.isVisible(),
+  description:
+    (await desktopProjectLibrary
+      .locator("#project-library-description")
+      .textContent())
+      ?.replace(/\s+/g, " ")
+      .trim() ?? "",
+  projectCount: await desktopProjectLibrary.locator("ol > li").count(),
+};
+const desktopProjectLibraryPassed =
+  desktopProjectLibraryState.buttonVisible &&
+  desktopProjectLibraryState.dialogVisible &&
+  /artifacts, evidence, decisions, graph relationships, and review provenance intact/i.test(
+    desktopProjectLibraryState.description,
+  ) &&
+  desktopProjectLibraryState.projectCount >= 1;
+results.push({
+  interaction: "canvas-project-library-desktop",
+  passed: desktopProjectLibraryPassed,
+  ...desktopProjectLibraryState,
+});
+if (!desktopProjectLibraryPassed) {
+  failures.push({
+    interaction: "canvas-project-library-desktop",
+    ...desktopProjectLibraryState,
+  });
+}
+await desktopProjectLibrary
+  .getByRole("button", { name: "Close project library" })
+  .click();
+await desktopProjectLibrary.waitFor({ state: "hidden" });
+
+const desktopConductorTab = canvas.page
+  .locator("[aria-label='Result views']")
+  .getByRole("tab", {
+    name: "Conductor",
+    exact: true,
+  });
+await desktopConductorTab.click();
+const desktopConductorPanel = canvas.page.locator(
+  "#workspace-intelligence-panel",
+);
+await desktopConductorPanel.waitFor({ state: "visible" });
+const desktopConductorText =
+  (await desktopConductorPanel.textContent())?.replace(/\s+/g, " ").trim() ??
+  "";
+const desktopConductorPassed =
+  (await desktopConductorTab.getAttribute("aria-selected")) === "true" &&
+  /Project intelligence · Conductor/i.test(desktopConductorText) &&
+  /Direct one evidence-bound Conductor run/i.test(desktopConductorText) &&
+  /acceptance remain one reviewable operation/i.test(desktopConductorText);
+results.push({
+  interaction: "canvas-conductor-tab-desktop",
+  passed: desktopConductorPassed,
+  panelText: desktopConductorText.slice(0, 520),
+});
+if (!desktopConductorPassed) {
+  failures.push({
+    interaction: "canvas-conductor-tab-desktop",
+    panelText: desktopConductorText.slice(0, 520),
+  });
+}
+await canvas.page
+  .locator("[aria-label='Result views']")
+  .getByRole("tab", { name: "Live preview", exact: true })
+  .click();
 
 const canvasModeChecks = [];
 for (const expected of [
@@ -1294,9 +1541,9 @@ for (const expected of expectedCreateShowcases) {
     const disclosure = document.querySelector(
       "aside[aria-label='Concept disclosure']",
     );
-    const navLinks = [
-      ...document.querySelectorAll(".site-header__nav-link[href='/create/workspace']"),
-    ];
+    const canvasNav = document.querySelector(
+      ".site-header__desktop-nav .site-header__create-link",
+    );
     const schemaNode = document.querySelector(`#showcase-schema-${slug}`);
     const breadcrumbsNode = document.querySelector(
       `#showcase-breadcrumbs-${slug}`,
@@ -1321,9 +1568,7 @@ for (const expected of expectedCreateShowcases) {
           .querySelector("[data-showcase-sector]")
           ?.getAttribute("data-showcase-sector") ?? null,
       heading: document.querySelector("main h1")?.textContent?.trim() ?? "",
-      currentNav:
-        navLinks.length > 0 &&
-        navLinks.every((link) => link.getAttribute("aria-current") === "page"),
+      currentNav: canvasNav?.getAttribute("aria-current") === "location",
       disclosurePresent: Boolean(disclosure),
       disclosureText: disclosure?.textContent?.replace(/\s+/g, " ").trim() ?? "",
       schemaType: schema?.["@type"] ?? null,
@@ -1433,7 +1678,7 @@ const createHeader = await inspectPage(
   "/create",
   { width: 1201, height: 900 },
 );
-const createHeaderState = await createHeader.page.evaluate(() => {
+const createHeaderState = await createHeader.page.evaluate((expectedDestinations) => {
   const brand = document.querySelector(".site-header__brand");
   const nav = document.querySelector(".site-header__desktop-nav");
   const actions = document.querySelector(".site-header__actions");
@@ -1454,18 +1699,27 @@ const createHeaderState = await createHeader.page.evaluate(() => {
     elementsPresent: true,
     navDisplay: getComputedStyle(nav).display,
     navLinkCount: nav.querySelectorAll(".site-header__nav-link").length,
+    navDestinations: [...nav.querySelectorAll(".site-header__nav-link")].map(
+      (link) => ({
+        label: link.textContent?.replace(/\s+/g, " ").trim() ?? "",
+        href: link.getAttribute("href"),
+      }),
+    ),
+    expectedDestinations,
     currentNav:
       nav
         .querySelector(".site-header__nav-link[href='/create/workspace']")
-        ?.getAttribute("aria-current") === "page",
+        ?.getAttribute("aria-current") === "location",
     brandNavOverlap: Math.max(0, brandRect.right - navRect.left),
     navActionsOverlap: Math.max(0, navRect.right - actionsRect.left),
   };
-});
+}, expectedPrimaryDestinations);
 const createHeaderPassed =
   createHeaderState.elementsPresent &&
   createHeaderState.navDisplay !== "none" &&
   createHeaderState.navLinkCount === 5 &&
+  JSON.stringify(createHeaderState.navDestinations) ===
+    JSON.stringify(createHeaderState.expectedDestinations) &&
   createHeaderState.currentNav &&
   createHeaderState.brandNavOverlap <= 0.5 &&
   createHeaderState.navActionsOverlap <= 0.5;
@@ -1694,36 +1948,71 @@ results.push({
 if (!mobileThemeKeyboard) {
   failures.push({ interaction: "mobile-theme-access" });
 }
+await mobile.page
+  .locator(".site-header__mobile-create > summary")
+  .click();
+const mobileDestinationState = await mobile.page.evaluate(
+  (expectedDestinations) => {
+    const primaryLinks = [
+      ...document.querySelectorAll(
+        ".site-header__mobile-panel nav > .site-header__nav-link",
+      ),
+    ].map((link) => ({
+      label: link.textContent?.replace(/\s+/g, " ").trim() ?? "",
+      href: link.getAttribute("href"),
+    }));
+    const canvasSummary = document.querySelector(
+      ".site-header__mobile-create > summary strong",
+    );
+    const canvasLink = document.querySelector(
+      ".site-header__mobile-create .site-header__mobile-canvas",
+    );
+    return {
+      destinations: [
+        ...primaryLinks,
+        {
+          label: canvasSummary?.textContent?.trim() ?? "",
+          href: canvasLink?.getAttribute("href") ?? null,
+        },
+      ],
+      expectedDestinations,
+      canvasExpanded: Boolean(
+        document.querySelector(".site-header__mobile-create[open]"),
+      ),
+    };
+  },
+  expectedPrimaryDestinations,
+);
+const mobileDestinationsPassed =
+  mobileDestinationState.canvasExpanded &&
+  JSON.stringify(mobileDestinationState.destinations) ===
+    JSON.stringify(mobileDestinationState.expectedDestinations);
+results.push({
+  interaction: "mobile-five-destination-navigation",
+  passed: mobileDestinationsPassed,
+  ...mobileDestinationState,
+});
+if (!mobileDestinationsPassed) {
+  failures.push({
+    interaction: "mobile-five-destination-navigation",
+    ...mobileDestinationState,
+  });
+}
 await mobile.page.screenshot({
   path: path.join(outputDir, "home-mobile-menu.png"),
   fullPage: false,
 });
 await menuSummary.click();
-await mobile.page.addStyleTag({
-  content: "html, body { scroll-behavior: auto !important; }",
-});
-const mobileStoryMetrics = await mobile.page
-  .locator(".kx-cinematic")
-  .evaluate((story) => {
-    const rect = story.getBoundingClientRect();
-    return {
-      top: rect.top + window.scrollY,
-      height: rect.height,
-      viewportHeight: window.innerHeight,
-    };
-  });
-await mobile.page.evaluate(
-  ({ top, height, viewportHeight }) => {
-    window.scrollTo({
-      top: top + (height - viewportHeight) * 0.34,
-      behavior: "auto",
-    });
-  },
-  mobileStoryMetrics,
-);
-await mobile.page.waitForTimeout(180);
+await mobile.page.locator("#platform-project-start").scrollIntoViewIfNeeded();
+await mobile.page.waitForTimeout(120);
 await mobile.page.screenshot({
-  path: path.join(outputDir, "kingxford-mobile-studio.png"),
+  path: path.join(outputDir, "kingxford-mobile-nexus.png"),
+  fullPage: false,
+});
+await mobile.page.locator("#intelligence-system").scrollIntoViewIfNeeded();
+await mobile.page.waitForTimeout(120);
+await mobile.page.screenshot({
+  path: path.join(outputDir, "kingxford-mobile-intelligence-system.png"),
   fullPage: false,
 });
 await mobile.context.close();
@@ -1745,10 +2034,22 @@ const mobileCreateState = {
   menuOpen: await mobileCreate.page
     .locator(".site-header__mobile-menu[open]")
     .isVisible(),
-  currentNavVisible: await mobileCreate.page
-    .locator(
-      ".site-header__mobile-panel .site-header__nav-link[href='/create/workspace'][aria-current='page']",
-    )
+  canvasSectionCurrent:
+    (await mobileCreate.page
+      .locator(".site-header__mobile-create")
+      .getAttribute("data-current")) === "true",
+  canvasSectionVisible: await mobileCreate.page
+    .locator(".site-header__mobile-create > summary")
+    .isVisible(),
+  canvasWorkspaceLinkVisible: await mobileCreate.page
+    .locator(".site-header__mobile-canvas[href='/create/workspace']")
+    .isVisible(),
+  embeddedCanvas: await mobileCreate.page
+    .locator("[data-embedded='true']")
+    .count(),
+  embeddedConductorTab: await mobileCreate.page
+    .locator("[data-embedded='true'] [aria-label='Mobile workspace panes']")
+    .getByRole("button", { name: "Conductor", exact: true })
     .isVisible(),
   featuredCount: await mobileCreate.page
     .locator("[data-prototype-gallery] [role='tab']")
@@ -1759,7 +2060,11 @@ const mobileCreateState = {
 };
 const mobileCreatePassed =
   mobileCreateState.menuOpen &&
-  mobileCreateState.currentNavVisible &&
+  mobileCreateState.canvasSectionCurrent &&
+  mobileCreateState.canvasSectionVisible &&
+  mobileCreateState.canvasWorkspaceLinkVisible &&
+  mobileCreateState.embeddedCanvas === 1 &&
+  mobileCreateState.embeddedConductorTab &&
   mobileCreateState.featuredCount === 3 &&
   mobileCreateState.heading?.trim() === "What should exist next?";
 results.push({
@@ -1793,6 +2098,10 @@ const mobileCanvasPreviewTab = mobileCanvasTabs.getByRole("button", {
   name: "Preview",
   exact: true,
 });
+const mobileCanvasConductorTab = mobileCanvasTabs.getByRole("button", {
+  name: "Conductor",
+  exact: true,
+});
 const mobileCanvasAgentTab = mobileCanvasTabs.getByRole("button", {
   name: "Agent",
   exact: true,
@@ -1806,7 +2115,49 @@ const mobileResultPane = mobileCanvas.page.locator(
 const mobilePreviewPanel = mobileCanvas.page.locator(
   "#workspace-preview-panel",
 );
+const mobileConductorPanel = mobileCanvas.page.locator(
+  "#workspace-intelligence-panel",
+);
 const mobileAgentPanel = mobileCanvas.page.locator("#workspace-agent-panel");
+
+const mobileLibraryButton = mobileCanvas.page.getByRole("button", {
+  name: "Library",
+  exact: true,
+});
+const mobileLibraryButtonVisible = await mobileLibraryButton.isVisible();
+await mobileLibraryButton.click();
+const mobileProjectLibrary = mobileCanvas.page.getByRole("dialog", {
+  name: "Your connected intelligence",
+});
+await mobileProjectLibrary.waitFor({ state: "visible" });
+const mobileProjectLibraryState = {
+  buttonVisible: mobileLibraryButtonVisible,
+  dialogVisible: await mobileProjectLibrary.isVisible(),
+  closeVisible: await mobileProjectLibrary
+    .getByRole("button", { name: "Close project library" })
+    .isVisible(),
+  projectCount: await mobileProjectLibrary.locator("ol > li").count(),
+};
+const mobileProjectLibraryPassed =
+  mobileProjectLibraryState.buttonVisible &&
+  mobileProjectLibraryState.dialogVisible &&
+  mobileProjectLibraryState.closeVisible &&
+  mobileProjectLibraryState.projectCount >= 1;
+results.push({
+  interaction: "canvas-project-library-mobile",
+  passed: mobileProjectLibraryPassed,
+  ...mobileProjectLibraryState,
+});
+if (!mobileProjectLibraryPassed) {
+  failures.push({
+    interaction: "canvas-project-library-mobile",
+    ...mobileProjectLibraryState,
+  });
+}
+await mobileProjectLibrary
+  .getByRole("button", { name: "Close project library" })
+  .click();
+await mobileProjectLibrary.waitFor({ state: "hidden" });
 
 const mobileCanvasInputState = {
   pane: await mobileCanvas.page.locator("main[data-mobile-pane]").getAttribute("data-mobile-pane"),
@@ -1823,6 +2174,7 @@ const mobileCanvasPreviewState = {
   workbenchHidden: !(await mobileWorkbench.isVisible()),
   resultVisible: await mobileResultPane.isVisible(),
   previewVisible: await mobilePreviewPanel.isVisible(),
+  conductorHidden: !(await mobileConductorPanel.isVisible()),
   agentHidden: !(await mobileAgentPanel.isVisible()),
   conceptVisible: await mobilePreviewPanel
     .locator("[aria-label='Local concept preview']")
@@ -1830,6 +2182,31 @@ const mobileCanvasPreviewState = {
 };
 await mobileCanvas.page.screenshot({
   path: path.join(outputDir, "canvas-mobile-preview-390.png"),
+  fullPage: false,
+});
+
+await mobileCanvasConductorTab.click();
+await mobileConductorPanel.waitFor({ state: "visible" });
+const mobileConductorText = await mobileConductorPanel.textContent();
+const mobileCanvasConductorState = {
+  pane: await mobileCanvas.page
+    .locator("main[data-mobile-pane]")
+    .getAttribute("data-mobile-pane"),
+  selected:
+    (await mobileCanvasConductorTab.getAttribute("aria-pressed")) === "true",
+  workbenchHidden: !(await mobileWorkbench.isVisible()),
+  resultVisible: await mobileResultPane.isVisible(),
+  previewHidden: !(await mobilePreviewPanel.isVisible()),
+  conductorVisible: await mobileConductorPanel.isVisible(),
+  agentHidden: !(await mobileAgentPanel.isVisible()),
+  governedControlVisible:
+    /Project intelligence · Conductor/.test(mobileConductorText ?? "") &&
+    /Direct one evidence-bound Conductor run/.test(
+      mobileConductorText ?? "",
+    ),
+};
+await mobileCanvas.page.screenshot({
+  path: path.join(outputDir, "canvas-mobile-conductor-390.png"),
   fullPage: false,
 });
 
@@ -1842,6 +2219,7 @@ const mobileCanvasAgentState = {
   workbenchHidden: !(await mobileWorkbench.isVisible()),
   resultVisible: await mobileResultPane.isVisible(),
   previewHidden: !(await mobilePreviewPanel.isVisible()),
+  conductorHidden: !(await mobileConductorPanel.isVisible()),
   agentVisible: await mobileAgentPanel.isVisible(),
   contextDisclosureVisible:
     /Choose what the Agent can see/.test(mobileAgentText ?? "") &&
@@ -1871,13 +2249,23 @@ const mobileCanvasPassed =
   mobileCanvasPreviewState.workbenchHidden &&
   mobileCanvasPreviewState.resultVisible &&
   mobileCanvasPreviewState.previewVisible &&
+  mobileCanvasPreviewState.conductorHidden &&
   mobileCanvasPreviewState.agentHidden &&
   mobileCanvasPreviewState.conceptVisible &&
+  mobileCanvasConductorState.pane === "intelligence" &&
+  mobileCanvasConductorState.selected &&
+  mobileCanvasConductorState.workbenchHidden &&
+  mobileCanvasConductorState.resultVisible &&
+  mobileCanvasConductorState.previewHidden &&
+  mobileCanvasConductorState.conductorVisible &&
+  mobileCanvasConductorState.agentHidden &&
+  mobileCanvasConductorState.governedControlVisible &&
   mobileCanvasAgentState.pane === "agent" &&
   mobileCanvasAgentState.selected &&
   mobileCanvasAgentState.workbenchHidden &&
   mobileCanvasAgentState.resultVisible &&
   mobileCanvasAgentState.previewHidden &&
+  mobileCanvasAgentState.conductorHidden &&
   mobileCanvasAgentState.agentVisible &&
   mobileCanvasAgentState.contextDisclosureVisible &&
   mobileCanvasReturnState.pane === "input" &&
@@ -1889,6 +2277,7 @@ results.push({
   passed: mobileCanvasPassed,
   input: mobileCanvasInputState,
   preview: mobileCanvasPreviewState,
+  conductor: mobileCanvasConductorState,
   agent: mobileCanvasAgentState,
   returnedInput: mobileCanvasReturnState,
 });
@@ -1897,6 +2286,7 @@ if (!mobileCanvasPassed) {
     interaction: "canvas-mobile-pane-navigation",
     input: mobileCanvasInputState,
     preview: mobileCanvasPreviewState,
+    conductor: mobileCanvasConductorState,
     agent: mobileCanvasAgentState,
     returnedInput: mobileCanvasReturnState,
   });
@@ -2155,26 +2545,53 @@ if (!reducedMotionMatches) {
   failures.push({ interaction: "reduced-motion-emulation" });
 }
 await reduced.page.waitForTimeout(500);
-const reducedStory = await reduced.page.locator(".kx-static").evaluate((story) => {
+const reducedPlatform = await reduced.page.evaluate(() => {
+  const nexusTitle = document.querySelector("#platform-nexus-title");
+  const nexus = nexusTitle?.closest("section");
+  const animatedNexusElements = nexus
+    ? [...nexus.querySelectorAll("*")].filter((element) => {
+        const style = getComputedStyle(element);
+        return (
+          style.animationName !== "none" &&
+          !style.animationDuration.split(",").every((value) =>
+            ["0s", "0ms"].includes(value.trim()),
+          )
+        );
+      }).length
+    : -1;
   return {
-    sourceCount: story.querySelectorAll("video source").length,
-    chapterCount: story.querySelectorAll(".kx-static__chapter").length,
-    heroVisible: Boolean(story.querySelector(".kx-static__hero")),
+    headingVisible:
+      nexusTitle instanceof HTMLElement &&
+      nexusTitle.getBoundingClientRect().width > 0 &&
+      nexusTitle.getBoundingClientRect().height > 0,
+    inputVisible:
+      document.querySelector("#platform-project-start") instanceof
+      HTMLTextAreaElement,
+    operatingSystemPresent: Boolean(
+      document.querySelector("#intelligence-system"),
+    ),
+    phaseCount:
+      document.querySelectorAll(
+        "[aria-label='Six connected project phases'] button",
+      ).length,
+    animatedNexusElements,
   };
 });
-const reducedStoryPassed =
-  reducedStory.sourceCount === 0 &&
-  reducedStory.heroVisible &&
-  reducedStory.chapterCount === 5;
+const reducedPlatformPassed =
+  reducedPlatform.headingVisible &&
+  reducedPlatform.inputVisible &&
+  reducedPlatform.operatingSystemPresent &&
+  reducedPlatform.phaseCount === 6 &&
+  reducedPlatform.animatedNexusElements === 0;
 results.push({
-  interaction: "kingxford-reduced-motion-fallback",
-  passed: reducedStoryPassed,
-  ...reducedStory,
+  interaction: "kingxford-reduced-motion-platform",
+  passed: reducedPlatformPassed,
+  ...reducedPlatform,
 });
-if (!reducedStoryPassed) {
+if (!reducedPlatformPassed) {
   failures.push({
-    interaction: "kingxford-reduced-motion-fallback",
-    ...reducedStory,
+    interaction: "kingxford-reduced-motion-platform",
+    ...reducedPlatform,
   });
 }
 await reduced.context.close();

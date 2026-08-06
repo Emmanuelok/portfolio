@@ -566,6 +566,7 @@
   min-width: 0;
   min-height: 3.9rem;
   align-items: stretch;
+  overflow-x: auto;
   border-bottom: 1px solid var(--workspace-rule);
   background: var(--canvas-deep);
 }
@@ -580,6 +581,7 @@
   color: var(--text-faint);
   cursor: pointer;
   font-size: 0.62rem;
+  white-space: nowrap;
 }
 
 .resultTabs > button svg {
@@ -2329,7 +2331,7 @@ button.entrepreneurshipLink:disabled {
     top: var(--header-height);
     z-index: 19;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     border-bottom: 1px solid var(--workspace-rule);
     background: color-mix(in srgb, var(--canvas-deep) 94%, transparent);
     backdrop-filter: blur(20px);
@@ -2358,11 +2360,13 @@ button.entrepreneurshipLink:disabled {
 
   .workspacePage[data-mobile-pane="input"] .resultPane,
   .workspacePage[data-mobile-pane="preview"] .workbench,
+  .workspacePage[data-mobile-pane="intelligence"] .workbench,
   .workspacePage[data-mobile-pane="agent"] .workbench {
     display: none;
   }
 
   .workspacePage[data-mobile-pane="preview"] .resultTabs,
+  .workspacePage[data-mobile-pane="intelligence"] .resultTabs,
   .workspacePage[data-mobile-pane="agent"] .resultTabs {
     display: none;
   }
@@ -2404,7 +2408,7 @@ button.entrepreneurshipLink:disabled {
     bottom: 0;
     z-index: 30;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     border-top: 1px solid var(--workspace-rule-strong);
     background: var(--canvas-deep);
   }

@@ -13,11 +13,19 @@ import {
   type ProjectReviewLink,
   type ProjectRevision,
 } from "./project-graph";
+import { readUnifiedCreateSystemProjects } from "./unified-migration";
 
 export const PROJECT_REPOSITORY_STORAGE_KEY = "kingxford:projects:v2" as const;
+export const PROJECT_REPOSITORY_CHANGE_EVENT =
+  "kingxford:project-repository-change" as const;
 export const PROJECT_REPOSITORY_SCHEMA_VERSION = 2 as const;
-export const PROJECT_REPOSITORY_MAX_PROJECTS = 8 as const;
-export const PROJECT_REPOSITORY_MAX_BYTES = 1_800_000 as const;
+export const PROJECT_REPOSITORY_MAX_PROJECTS = 20 as const;
+export const PROJECT_REPOSITORY_MAX_BYTES = 4_500_000 as const;
+
+export type ProjectRepositoryChangeDetail = Readonly<{
+  activeProjectId: string | null;
+  projectCount: number;
+}>;
 
 export type ProjectRepositoryState = Readonly<{
   schema: "kingxford-project-repository";
@@ -37,6 +45,38 @@ const repositoryEnvelopeSchema = z.object({
 
 function getDefaultStorage(): ProjectStorage | null {
   return typeof window === "undefined" ? null : window.localStorage;
+}
+
+function isBrowserLocalStorage(storage: ProjectStorage) {
+  if (typeof window === "undefined") return false;
+  try {
+    return storage === window.localStorage;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * `storage` does not fire in the tab that performed a write. This bounded,
+ * content-free event lets public continuity surfaces refresh without exposing
+ * project source through an event payload.
+ */
+export function dispatchProjectRepositoryChange(
+  stateValue: ProjectRepositoryState,
+) {
+  if (typeof window === "undefined") return;
+  const state = parseProjectRepository(stateValue);
+  const detail: ProjectRepositoryChangeDetail = {
+    activeProjectId: state.activeProjectId,
+    projectCount: state.projects.length,
+  };
+  const target = window;
+  target.queueMicrotask(() => {
+    target.dispatchEvent(new CustomEvent<ProjectRepositoryChangeDetail>(
+      PROJECT_REPOSITORY_CHANGE_EVENT,
+      { detail },
+    ));
+  });
 }
 
 export function createEmptyProjectRepository(): ProjectRepositoryState {
@@ -91,20 +131,55 @@ export function loadProjectRepository(
 ): ProjectRepositoryState {
   if (!storage) return createEmptyProjectRepository();
   const stored = storage.getItem(PROJECT_REPOSITORY_STORAGE_KEY);
+  let baseState: ProjectRepositoryState;
   if (stored) {
     if (new TextEncoder().encode(stored).byteLength > PROJECT_REPOSITORY_MAX_BYTES) {
       throw new Error("Stored project repository exceeds its safety boundary.");
     }
-    return parseProjectRepository(JSON.parse(stored));
+    baseState = parseProjectRepository(JSON.parse(stored));
+  } else {
+    const legacy = storage.getItem(CANVAS_V1_STORAGE_KEY);
+    const migrated = legacy
+      ? tryMigrateCanvasV1ToProject(JSON.parse(legacy))
+      : null;
+    baseState = migrated
+      ? upsertRepositoryProject(createEmptyProjectRepository(), migrated)
+      : createEmptyProjectRepository();
   }
 
-  const legacy = storage.getItem(CANVAS_V1_STORAGE_KEY);
-  if (!legacy) return createEmptyProjectRepository();
-  const migrated = tryMigrateCanvasV1ToProject(JSON.parse(legacy));
-  if (!migrated) return createEmptyProjectRepository();
-  const state = upsertRepositoryProject(createEmptyProjectRepository(), migrated);
-  saveProjectRepository(state, storage);
-  return state;
+  // Import the first unified-platform library transactionally. Deterministic
+  // migration IDs make this idempotent; the legacy keys remain untouched for
+  // recovery. Any invalid or over-capacity migration leaves Atlas intact.
+  try {
+    const migration = readUnifiedCreateSystemProjects(
+      storage,
+      new Set(baseState.projects.map(({ id }) => id)),
+    );
+    if (migration.warnings.length > 0) return baseState;
+    if (migration.projects.length === 0) {
+      if (!stored && baseState.projects.length > 0) {
+        saveProjectRepository(baseState, storage);
+      }
+      return baseState;
+    }
+    if (
+      baseState.projects.length + migration.projects.length
+      > PROJECT_REPOSITORY_MAX_PROJECTS
+    ) {
+      return baseState;
+    }
+    const merged = parseProjectRepository({
+      ...baseState,
+      activeProjectId: baseState.activeProjectId
+        ?? migration.projects.at(-1)?.id
+        ?? null,
+      projects: [...baseState.projects, ...migration.projects],
+    });
+    saveProjectRepository(merged, storage);
+    return merged;
+  } catch {
+    return baseState;
+  }
 }
 
 export function saveProjectRepository(
@@ -112,8 +187,15 @@ export function saveProjectRepository(
   storage: ProjectStorage | null = getDefaultStorage(),
 ) {
   if (!storage) return state;
-  storage.setItem(PROJECT_REPOSITORY_STORAGE_KEY, serializeProjectRepository(state));
-  return state;
+  const validated = parseProjectRepository(state);
+  storage.setItem(
+    PROJECT_REPOSITORY_STORAGE_KEY,
+    serializeProjectRepository(validated),
+  );
+  if (isBrowserLocalStorage(storage)) {
+    dispatchProjectRepositoryChange(validated);
+  }
+  return validated;
 }
 
 export function upsertRepositoryProject(
@@ -162,41 +244,88 @@ export function removeRepositoryProject(
   });
 }
 
-function cloneImportedProject(
+type RepositoryCloneReason = "duplicate" | "import";
+
+function allocateRemappedIds(
+  namespace: string,
+  projectId: string,
+  sourceIds: readonly string[],
+) {
+  const allocated = new Set<string>();
+  return new Map(sourceIds.map((sourceId) => {
+    let attempt = 0;
+    let nextId = stableEntityId(namespace, projectId, sourceId, attempt);
+    while (allocated.has(nextId)) {
+      attempt += 1;
+      nextId = stableEntityId(namespace, projectId, sourceId, attempt);
+    }
+    allocated.add(nextId);
+    return [sourceId, nextId] as const;
+  }));
+}
+
+function cloneTitle(title: string, reason: RepositoryCloneReason) {
+  const suffix = reason === "duplicate" ? " · copy" : " · imported copy";
+  return `${title.slice(0, 160 - suffix.length).trimEnd()}${suffix}`;
+}
+
+function cloneProjectForRepository(
   source: KingxfordProject,
-  importedAt: string,
+  clonedAt: string,
   occupiedIds: ReadonlySet<string>,
+  reason: RepositoryCloneReason,
 ) {
   let attempt = 0;
-  let projectId = stableEntityId("project", "import-clone", source.id, importedAt, attempt);
+  let projectId = stableEntityId("project", reason, source.id, clonedAt, attempt);
   while (occupiedIds.has(projectId)) {
     attempt += 1;
-    projectId = stableEntityId("project", "import-clone", source.id, importedAt, attempt);
+    projectId = stableEntityId("project", reason, source.id, clonedAt, attempt);
   }
-  const artifactIds = new Map(source.artifacts.map(({ id }) => [
-    id,
-    stableEntityId("artifact", projectId, id),
-  ]));
-  const revisionIds = new Map(source.revisions.map(({ id }) => [
-    id,
-    stableEntityId("revision", projectId, id),
-  ]));
-  const gateIds = new Map(source.gates.map(({ id }) => [
-    id,
-    stableEntityId("gate", projectId, id),
-  ]));
-  const decisionIds = new Map(source.decisions.map(({ id }) => [
-    id,
-    stableEntityId("decision", projectId, id),
-  ]));
-  const reviewIds = new Map(source.reviewLinks.map(({ id }) => [
-    id,
-    stableEntityId("review", projectId, id),
-  ]));
-  const nodeIds = new Map(source.nodes.map(({ id }) => [
-    id,
-    stableEntityId("node", projectId, id),
-  ]));
+  const artifactIds = allocateRemappedIds(
+    "artifact",
+    projectId,
+    source.artifacts.map(({ id }) => id),
+  );
+  const revisionIds = allocateRemappedIds(
+    "revision",
+    projectId,
+    source.revisions.map(({ id }) => id),
+  );
+  const gateIds = allocateRemappedIds(
+    "gate",
+    projectId,
+    source.gates.map(({ id }) => id),
+  );
+  const decisionIds = allocateRemappedIds(
+    "decision",
+    projectId,
+    source.decisions.map(({ id }) => id),
+  );
+  const reviewIds = allocateRemappedIds(
+    "review",
+    projectId,
+    source.reviewLinks.map(({ id }) => id),
+  );
+  const nodeIds = allocateRemappedIds(
+    "node",
+    projectId,
+    source.nodes.map(({ id }) => id),
+  );
+  const edgeIds = allocateRemappedIds(
+    "edge",
+    projectId,
+    source.edges.map(({ id }) => id),
+  );
+  const remapStructuralReference = (reference: string | null) => {
+    if (reference === null) return null;
+    return artifactIds.get(reference)
+      ?? revisionIds.get(reference)
+      ?? gateIds.get(reference)
+      ?? decisionIds.get(reference)
+      ?? reviewIds.get(reference)
+      ?? nodeIds.get(reference)
+      ?? reference;
+  };
 
   const revisions: ProjectRevision[] = source.revisions.map((revision) => ({
     ...revision,
@@ -248,14 +377,19 @@ function cloneImportedProject(
               : node.kind === "phase"
                 ? node.refId
                 : id;
-    return { ...node, id, refId: structuralRef! };
+    return {
+      ...node,
+      id,
+      refId: structuralRef!,
+      sourceRef: remapStructuralReference(node.sourceRef),
+    };
   });
   const edges: ProjectEdge[] = source.edges.map((edge) => {
     const fromNodeId = nodeIds.get(edge.fromNodeId)!;
     const toNodeId = nodeIds.get(edge.toNodeId)!;
     return {
       ...edge,
-      id: stableEntityId("edge", projectId, edge.id, fromNodeId, toNodeId),
+      id: edgeIds.get(edge.id)!,
       fromNodeId,
       toNodeId,
     };
@@ -268,16 +402,16 @@ function cloneImportedProject(
   return parseKingxfordProject({
     ...source,
     id: projectId,
-    title: `${source.title} · imported copy`.slice(0, 160),
+    title: cloneTitle(source.title, reason),
     activeArtifactId: source.activeArtifactId
       ? artifactIds.get(source.activeArtifactId)!
       : null,
-    updatedAt: importedAt,
+    updatedAt: clonedAt,
     origin: {
       kind: "import-clone",
       sourceProjectId: source.id,
       sourceSnapshotIds,
-      recordedAt: importedAt,
+      recordedAt: clonedAt,
     },
     artifacts,
     revisions,
@@ -295,6 +429,36 @@ export type ImportProjectResult = Readonly<{
   cloned: boolean;
 }>;
 
+export type DuplicateProjectResult = Readonly<{
+  state: ProjectRepositoryState;
+  project: KingxfordProject;
+}>;
+
+export function duplicateRepositoryProject(
+  stateValue: ProjectRepositoryState,
+  projectId: string,
+  duplicatedAt = new Date().toISOString(),
+): DuplicateProjectResult {
+  const state = parseProjectRepository(stateValue);
+  if (state.projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS) {
+    throw new Error(
+      `Delete a project before duplicating; the local limit is ${PROJECT_REPOSITORY_MAX_PROJECTS}.`,
+    );
+  }
+  const source = state.projects.find(({ id }) => id === projectId);
+  if (!source) throw new Error(`Project ${projectId} does not exist.`);
+  const project = cloneProjectForRepository(
+    source,
+    duplicatedAt,
+    new Set(state.projects.map(({ id }) => id)),
+    "duplicate",
+  );
+  return {
+    state: upsertRepositoryProject(state, project),
+    project,
+  };
+}
+
 export function importProject(
   stateValue: ProjectRepositoryState,
   value: unknown,
@@ -307,7 +471,12 @@ export function importProject(
   const source = parseKingxfordProject(value);
   const collision = state.projects.some(({ id }) => id === source.id);
   const project = collision
-    ? cloneImportedProject(source, importedAt, new Set(state.projects.map(({ id }) => id)))
+    ? cloneProjectForRepository(
+        source,
+        importedAt,
+        new Set(state.projects.map(({ id }) => id)),
+        "import",
+      )
     : source;
   return {
     state: upsertRepositoryProject(state, project),

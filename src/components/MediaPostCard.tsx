@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
+import { ProjectCaptureAction } from "@/components/platform/ProjectCaptureAction";
 import type { MediaPost } from "@/data/media";
 
 type MediaPostCardProps = Readonly<{
@@ -72,6 +73,15 @@ export function MediaPostCard({
           </div>
         </div>
       </Link>
+      <div className="media-card__capture">
+        <ProjectCaptureAction
+          compact
+          title={post.title}
+          claim={post.description}
+          referenceHref={`/media/${post.slug}`}
+          source="media"
+        />
+      </div>
     </article>
   );
 }

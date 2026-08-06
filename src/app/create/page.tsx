@@ -4,11 +4,9 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Blocks,
-  Bot,
   BookOpenCheck,
   Building2,
   Calculator,
-  Code2,
   MonitorSmartphone,
   Network,
   UsersRound,
@@ -16,6 +14,7 @@ import {
 
 import { CreateLaunchGallery } from "@/components/CreateLaunchGallery";
 import { Reveal } from "@/components/Reveal";
+import { CreativeWorkspace } from "@/components/workspace/CreativeWorkspace";
 import {
   creationCatalogue,
   websiteShowcases,
@@ -25,9 +24,9 @@ import {
 import styles from "./CreatePage.module.css";
 
 export const metadata: Metadata = {
-  title: "Create",
+  title: "Kingxford Intelligence Workspace",
   description:
-    "Use Kingxford Canvas to test ideas, code, mind maps, prompts, and briefs, then explore websites, digital tools, research systems, and practical utilities created by kingXford & Co.",
+    "Use one Kingxford Intelligence Workspace to test ideas, code, mind maps, prompts, and briefs, preserve project evidence and decisions, and move the same work toward delivery.",
   alternates: { canonical: "/create" },
   openGraph: {
     title: "What we create — kingXford & Co",
@@ -55,6 +54,8 @@ const categoryIcons: Record<CreationCategory, typeof MonitorSmartphone> = {
 };
 
 export default function CreatePage() {
+  const entrepreneurshipUrl =
+    process.env.NEXT_PUBLIC_AI_ENTREPRENEURSHIP_URL?.trim() || null;
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -65,7 +66,7 @@ export default function CreatePage() {
       {
         "@type": "WebApplication",
         position: 1,
-        name: "Kingxford Canvas",
+        name: "Kingxford Intelligence Workspace",
         description:
           "A dual-pane creative intelligence workspace for testing ideas, front-end code, mind maps, prompts, and briefs.",
         url: "/create/workspace",
@@ -91,7 +92,7 @@ export default function CreatePage() {
       />
 
       <section className={styles.hero} aria-labelledby="create-heading">
-        <div className={styles.heroIndex}>Create / Capabilities and demonstrations</div>
+        <div className={styles.heroIndex}>Kingxford Intelligence · One project / Six connected phases</div>
         <div className={styles.heroCopy}>
           <Reveal>
             <p className="eyebrow">kingXford &amp; Co · Designed around real work</p>
@@ -101,9 +102,9 @@ export default function CreatePage() {
           </Reveal>
           <Reveal delay={0.08}>
             <p>
-              Websites, digital tools, research systems, learning environments,
-              and practical utilities for industries, schools, institutions,
-              communities, and everyday life.
+              Discover it. Investigate it. Model it. Build it. Validate it.
+              Then move the same project toward launch—with its source,
+              evidence, decisions, and working proof still connected.
             </p>
           </Reveal>
         </div>
@@ -112,10 +113,10 @@ export default function CreatePage() {
             Start with the work people need to do—not a template, a trend, or a
             predetermined technology.
           </p>
-          <Link className="text-link" href="/create/workspace">
-            <span>Open Kingxford Canvas</span>
-            <ArrowUpRight aria-hidden="true" />
-          </Link>
+          <a className="text-link" href="#studio">
+            <span>Start in the live workspace</span>
+            <ArrowDownRight aria-hidden="true" />
+          </a>
           <a className="text-link" href="#websites">
             <span>Enter the concept gallery</span>
             <ArrowDownRight aria-hidden="true" />
@@ -131,52 +132,20 @@ export default function CreatePage() {
         </nav>
       </section>
 
-      <section className={styles.workspaceFeature} aria-labelledby="canvas-feature-heading">
-        <div className={styles.workspaceFeatureLead}>
-          <p className="eyebrow">The flagship creative instrument</p>
-          <h2 id="canvas-feature-heading">One source. A working result beside it.</h2>
-          <p>
-            Develop an idea, execute front-end code, map a system, test a prompt,
-            or shape a production brief without losing sight of what the source
-            actually produces.
-          </p>
-          <Link className="button button--primary" href="/create/workspace">
-            <span>Enter Kingxford Canvas</span>
-            <ArrowUpRight aria-hidden="true" />
-          </Link>
-        </div>
+      <nav className={styles.pageRouter} aria-label="Kingxford Intelligence sections">
+        <a href="#studio"><span>01</span> Live workspace</a>
+        <a href="#websites"><span>02</span> Starting proofs</a>
+        <a href="#catalogue"><span>03</span> What we build</a>
+        <Link href="/create/workspace"><span>↗</span> Focus mode</Link>
+      </nav>
 
-        <div className={styles.workspaceInstrument} aria-label="Kingxford Canvas capability preview">
-          <header>
-            <span>Kingxford Canvas</span>
-            <small>Local preview · Agent on request</small>
-          </header>
-          <div className={styles.workspaceInstrumentBody}>
-            <section>
-              <div className={styles.workspaceFileTabs}>
-                <span data-active="true"><Code2 aria-hidden="true" /> Source</span>
-                <span><Network aria-hidden="true" /> Structure</span>
-              </div>
-              <pre>{`Create: A public learning system\nFor: people solving a shared problem\nChange: evidence becomes action\nProof: one observable next decision`}</pre>
-            </section>
-            <section>
-              <div className={styles.workspacePreviewTabs}>
-                <span>Live preview</span>
-                <span><Bot aria-hidden="true" /> Agent review</span>
-              </div>
-              <div className={styles.workspacePreviewCard}>
-                <small>Working concept 01</small>
-                <strong>Evidence should lead somewhere useful.</strong>
-                <div><span /> <span /> <span /></div>
-              </div>
-            </section>
-          </div>
-          <footer>
-            <span>Idea · Code · Mind map · Prompt · Brief</span>
-            <strong>Saved on this device</strong>
-          </footer>
-        </div>
-      </section>
+      <div className={styles.studioFrame} id="studio">
+        <CreativeWorkspace
+          embedded
+          entrepreneurshipUrl={entrepreneurshipUrl}
+          initialMode={null}
+        />
+      </div>
 
       <section className={styles.showcases} id="websites" aria-labelledby="websites-heading">
         <div className={styles.sectionHeading}>
@@ -196,7 +165,7 @@ export default function CreatePage() {
         </Reveal>
       </section>
 
-      <section className={styles.catalogue} aria-labelledby="catalogue-heading">
+      <section className={styles.catalogue} id="catalogue" aria-labelledby="catalogue-heading">
         <div className={styles.sectionHeading}>
           <div>
             <p className="eyebrow">Beyond websites</p>

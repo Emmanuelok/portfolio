@@ -5,15 +5,23 @@ people and institutions for sustainable abundance. It combines rigorous
 inquiry, responsible AI, systems intelligence, and product development to solve
 complex problems and turn ambitious ideas and projects into durable capability.
 
+The platform now centres on one continuous **Kingxford Intelligence** project
+system. Work moves through six canonical phases—Discovery, Evidence, Systems,
+Prototype, Validation, and Delivery—without discarding its source, evidence,
+or decisions. Public-facing verbs such as Discover, Investigate, Model, Build,
+Validate, and Deliver are views onto that same lifecycle. A Conductor
+coordinates governed specialist passes inside the same Atlas-backed project
+rather than presenting a collection of disconnected AI tools.
+
 The `& Co` represents investors of every kind: people and institutions who
 contribute capital, time, knowledge, research, technology, infrastructure,
 access, or trust to consequential work.
 
-- **Studio** develops intelligent tools, AI-enabled products, decision-support
+- **Studio** is the Build lens for intelligent tools, AI-enabled products, decision-support
   systems, web applications, digital infrastructure, and communication systems.
-- **The Living Room** is a strategic situation room for complex mandates,
+- **The Living Room** is the systems lens for complex mandates,
   foresight, institutional transformation, venture development, and coalitions.
-- **Lab** conducts and translates research, experimentation, responsible-AI
+- **Lab** is the evidence lens for research, experimentation, responsible-AI
   evaluation, evidence synthesis, data systems, and scientific communication.
 
 The landing page uses a long native-scroll cinematic built from high-resolution
@@ -37,8 +45,16 @@ this release. A player appears only when an approved audio record exists;
 future narration must meet the consent, editorial, disclosure, transcript, and
 listening-review requirements in `creative/narration-policy.md`.
 
-The current build is expected to generate 23 public and framework routes,
-including eight case studies, the Media index, and two Media articles.
+The public routes remain useful lenses into one platform. `/create` contains the
+real creation workspace, while `/create/workspace` remains the focused entry for
+ideas, code, mind maps, prompts, briefs, live previews, versions, and governed AI
+review. The implementation plan and architectural decision are documented in
+[`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) and
+[`docs/adr/0001-unified-intelligence-platform.md`](docs/adr/0001-unified-intelligence-platform.md).
+
+The current build generates 26 public, framework, and API routes, including
+eight case studies, the Media index, two Media articles, the focused Canvas,
+and the governed review and Conductor endpoints.
 
 ## Kingxford Creative Intelligence
 
@@ -50,11 +66,15 @@ Projects can be created, switched, imported, and exported without claiming
 cloud persistence; public Work, Lab, Media, and Create surfaces can deliberately
 seed a new project or add evidence to an existing one.
 
-The Canvas also includes a server-mediated AI review layer. It combines seven
-selectable specialist lenses, a fixed Kingxford playbook, graph-aware structured
-reviews, standard/deep Gateway routing, deterministic local fallback, and
-private review history stored in the current browser. AI proposals remain
-read-only until a person deliberately accepts a new revision.
+The Canvas also includes two complementary, server-mediated intelligence paths.
+Focused review combines seven selectable lenses, a fixed Kingxford playbook,
+graph-aware structured output, standard/deep Gateway routing, deterministic
+local fallback, and private review history stored in the current browser. The
+Conductor can plan a bounded run, coordinate up to two phase specialists, and
+synthesize their work against the exact Atlas snapshot and artifact revision.
+Both paths are proposal-only: nothing changes the project and no lifecycle gate
+is approved until a person deliberately accepts a revision or records a gate
+decision.
 
 The public reviewer is intentionally bounded: workspace content is treated as
 untrusted, the agent has no external-action tools, credentials are rejected
@@ -80,7 +100,9 @@ npm run dev
 
 ```bash
 npm run typecheck
-npm run lint
+npm run lint -- --max-warnings=0
+npm run test:intelligence
+npm run test:platform
 npm run verify:creative-agent
 npm run build
 npm run verify:platform-journey

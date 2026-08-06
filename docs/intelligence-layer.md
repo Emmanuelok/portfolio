@@ -1,11 +1,13 @@
 # Kingxford intelligence layer
 
-Protocol: `kxci-2026-08-05.2`
+- Focused-review protocol: `kxci-2026-08-05.2`
+- Conductor protocol: `kx-intelligence-2026-08-05.2`
 
 ## What is implemented
 
-The Canvas combines a local-first Project Atlas with a production-oriented,
-read-only intelligence surface. A request remains inside the Kingxford server
+The Canvas combines a local-first Project Atlas with two production-oriented,
+proposal-only intelligence surfaces: focused specialist review and bounded
+Conductor orchestration. A request remains inside the Kingxford server
 boundary until the API route has validated origin, media type, request size,
 schema, workspace budget, rate/concurrency allowance, likely-secret patterns,
 and any submitted project snapshot. When Gateway identity is available, the
@@ -17,6 +19,9 @@ The implementation includes:
 
 - seven specialist lenses: Conductor, Discovery, Evidence, Systems, Prototype,
   Validation, and Delivery;
+- an Atlas-bound Conductor that produces a typed phase plan, coordinates up to
+  two specialist passes in parallel, and synthesizes them within a four-call
+  server reservation;
 - a fixed, version-controlled Kingxford playbook retrieved deterministically by
   mode, lens, objective, and workspace terms, with at most three grounding notes;
 - structured analysis and build-brief fields validated before they reach the UI,
@@ -29,8 +34,9 @@ The implementation includes:
 - cancellation propagation, no-store responses, secret screening, same-origin
   enforcement, output limits, response and site security headers, and truthful
   local fallback;
-- a bounded, integrity-checked Project Atlas snapshot for optional review
-  continuity, tied to the exact active artifact revision; and
+- a bounded, integrity-checked Project Atlas snapshot for review continuity,
+  optional for focused review and required for every Conductor run, tied to the
+  exact active artifact revision and full draft hash; and
 - deterministic governance checks in CI.
 
 The fixed playbook is retrieval, but it is not an external vector database and
@@ -43,7 +49,7 @@ agent boundary.
 Project Atlas is a versioned, browser-local graph for one project lifecycle:
 Discovery, Evidence, Systems, Prototype, Validation, and Delivery. It links
 artifacts, immutable revisions, semantic nodes, evidence, reviews, decisions,
-and gates. The `kingxford:projects:v2` repository retains at most eight projects.
+and gates. The `kingxford:projects:v2` repository retains at most twenty projects.
 Projects can be created, switched, imported, and exported; valid Canvas v1 state
 is strictly migrated on first load. If an imported project ID collides, graph
 entities are remapped into a cloned project while immutable source snapshot
@@ -72,10 +78,13 @@ can bind a review to the context actually assessed.
 | Standard | `openai/gpt-5.6-terra` | `openai/gpt-5.6-luna`, `openai/gpt-5.4-mini` | `medium` | 3,200 tokens | 1 |
 | Deep | `openai/gpt-5.6-sol` | `openai/gpt-5.4`, `openai/gpt-5.6-terra` | `xhigh` | 5,200 tokens | 3 |
 
-The environment variables in `.env.example` can override model slugs. Each
+The environment variables in `.env.example` can override model slugs for both
+focused review and Conductor orchestration. Each
 fallback variable is capped at two unique entries. The application makes one SDK
-generation call per review; Gateway performs fallback routing, avoiding a route
-loop that could amplify costs.
+generation call per focused review and one SDK call per Conductor stage; Gateway
+performs fallback routing, avoiding route-level retry loops that could amplify
+costs. A complete Conductor run is capped at plan + two parallel specialists +
+synthesis. Every stage records its actual model, status, latency, and token use.
 
 The models receive the submitted workspace, selected fixed playbook notes, and
 an optional validated project snapshot to produce the requested review. Gateway
@@ -88,11 +97,13 @@ Gateway/provider terms selected by the owner.
 
 ## Usage controls
 
-Defaults are six starts per minute, 30 daily credits, and two concurrent reviews
-per pseudonymous bucket. A standard review costs one credit and a deep review
-costs three. The route reserves request/concurrency capacity before generation,
-consumes daily credits once before a configured model call, and releases the
-resolved bucket in `finally` even after cancellation or failure.
+Defaults are six starts per minute, 30 daily credits, and two concurrent runs
+per pseudonymous bucket. A focused standard review costs one credit and a deep
+review costs three. Conductor reserves and charges the exact bounded stage
+budget: up to four standard units or twelve deep credits. Routes reserve
+request/concurrency capacity before generation, consume daily credits before a
+configured model call, and release the resolved bucket in `finally` even after
+cancellation or failure.
 
 These counters use process memory. They are useful abuse and cost guardrails but
 are not durable entitlements: serverless instances do not share them and a
@@ -106,7 +117,7 @@ instead of evicting a bucket and granting a fresh quota.
 
 ## Deliberate boundaries
 
-The public reviewer does **not** have web search, shell, browser, email, calendar,
+The public reviewer and Conductor do **not** have web search, shell, browser, email, calendar,
 deployment, payment, database-write, MCP, or other action tools. It cannot deploy,
 publish, buy, message, or change an external system. This boundary is enforced in
 both instructions and construction: the agent is created without a `tools`
@@ -149,10 +160,12 @@ Do not add those powers to this anonymous endpoint.
 4. In AI Gateway, configure a conservative project budget, spend alerts, and the
    approved provider/model access. The application counters supplement this
    budget; they do not replace it.
-5. Deploy a Preview, open `/api/workspace/agent`, and confirm the reported
-   protocol, lenses, model routes, retrieval mode, snapshot bounds, and limits.
+5. Deploy a Preview, open `/api/workspace/agent` and `/api/intelligence/runs`,
+   and confirm the reported protocols, lenses/roles, model routes, retrieval
+   mode, snapshot bounds, capability negotiation, and limits.
    `available: true` means both Gateway identity and usage protection are ready.
-6. Submit a non-sensitive review in `/create/workspace`. Confirm the response is
+6. Submit a non-sensitive focused review and Conductor run in
+   `/create/workspace`. Confirm the responses are
    model-generated, its request ID and grounding are visible, and usage appears
    in Gateway observability. Also test a no-key local environment and verify the
    response is labelled local.
@@ -169,9 +182,12 @@ Do not add those powers to this anonymous endpoint.
 npm ci
 npm run typecheck
 npm run lint -- --max-warnings=0
+npm run test:intelligence
+npm run test:platform
 npm run verify:creative-agent
 npm audit --omit=dev --audit-level=high
 npm run build
+npm run verify:platform-journey
 ```
 
 The governance command is deterministic and makes no paid generation request.

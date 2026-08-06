@@ -1,0 +1,373 @@
+.dialog {
+  width: min(70rem, calc(100vw - 2rem));
+  max-height: min(52rem, calc(100svh - 2rem));
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--text) 24%, transparent);
+  background: #0b0b0f;
+  color: var(--text);
+  box-shadow: 0 2rem 8rem rgba(0, 0, 0, 0.55);
+}
+
+.dialog::backdrop {
+  background: rgba(2, 2, 4, 0.78);
+  backdrop-filter: blur(14px);
+}
+
+.card {
+  display: grid;
+  max-height: min(52rem, calc(100svh - 2rem));
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(1.5rem, 4vw, 3.2rem);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+  background:
+    radial-gradient(circle at 85% 10%, rgba(123, 131, 255, 0.25), transparent 20rem),
+    #0d0d12;
+}
+
+.heading span,
+.projectMeta span,
+.projectMeta small {
+  color: #a6abff;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.heading h2 {
+  max-width: 13ch;
+  margin: 0.6rem 0 0.7rem;
+  font-family: var(--font-serif);
+  font-size: clamp(2.4rem, 6vw, 5rem);
+  font-weight: 420;
+  letter-spacing: -0.065em;
+  line-height: 0.9;
+}
+
+.heading p {
+  max-width: 45rem;
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.heading > button {
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.heading > button svg {
+  width: 1rem;
+}
+
+.libraryToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem clamp(1rem, 3vw, 2rem);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 13%, transparent);
+}
+
+.libraryToolbar > div {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.limitStatus {
+  color: var(--text-faint);
+  font-size: 0.68rem;
+}
+
+.limitStatus strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+}
+
+.limitStatus[data-limit="true"] span {
+  color: #ffaaa3;
+}
+
+.libraryToolbar button,
+.projectActions button {
+  display: inline-flex;
+  min-height: 2.55rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--text) 17%, transparent);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.libraryToolbar button:hover,
+.libraryToolbar button:focus-visible,
+.projectActions button:hover,
+.projectActions button:focus-visible {
+  border-color: #7b83ff;
+  color: var(--text);
+}
+
+.libraryToolbar button:disabled,
+.projectActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.libraryToolbar svg,
+.projectActions svg {
+  width: 0.85rem;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.projectList {
+  display: grid;
+  align-content: start;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.projectList > li {
+  display: grid;
+  grid-template-columns: 4.3rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 3vw, 2rem);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 11%, transparent);
+}
+
+.projectList > li[data-active="true"] {
+  background: color-mix(in srgb, #7b83ff 10%, transparent);
+  box-shadow: inset 3px 0 #7b83ff;
+}
+
+.projectMark {
+  display: grid;
+  min-height: 3.7rem;
+  place-items: center;
+  align-content: center;
+  gap: 0.2rem;
+  border: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+  background: rgba(255, 255, 255, 0.025);
+  color: #a6abff;
+}
+
+.projectMark svg {
+  width: 1.1rem;
+}
+
+.projectMark span {
+  font: 0.48rem var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.projectList section {
+  min-width: 0;
+}
+
+.projectMeta,
+.projectSignals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.projectMeta small {
+  color: var(--text-faint);
+}
+
+.projectList h3 {
+  overflow: hidden;
+  margin: 0.35rem 0 0.25rem;
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectList p {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.62rem;
+}
+
+.projectList .projectSummary {
+  display: -webkit-box;
+  max-width: 55rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.45;
+}
+
+.projectSignals {
+  margin-top: 0.55rem;
+  color: var(--text-faint);
+  font: 0.53rem var(--font-mono);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.projectSignals > *:not(:last-child)::after {
+  margin-left: 0.65rem;
+  color: color-mix(in srgb, var(--text) 28%, transparent);
+  content: "·";
+}
+
+.projectList > .emptyState {
+  min-height: 15rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.emptyState > svg {
+  width: 2rem;
+  color: #a6abff;
+}
+
+.emptyState h3 {
+  margin-top: 0;
+}
+
+.emptyState p {
+  max-width: 40rem;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.emptyState button {
+  display: inline-flex;
+  min-height: 2.55rem;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #7b83ff;
+  background: color-mix(in srgb, #7b83ff 13%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.emptyState button svg {
+  width: 0.85rem;
+}
+
+.projectActions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.projectActions button:not(:first-child) {
+  width: 2.55rem;
+  padding-inline: 0;
+}
+
+.projectActions .deleteConfirm {
+  width: auto;
+  padding-inline: 0.65rem;
+  border-color: #ea776c;
+  color: #ffaaa3;
+}
+
+.card > footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem clamp(1rem, 3vw, 2rem);
+  border-top: 1px solid color-mix(in srgb, var(--text) 13%, transparent);
+  color: var(--text-faint);
+  font-size: 0.58rem;
+}
+
+.card > footer p {
+  margin: 0;
+}
+
+.card code {
+  color: #a6abff;
+}
+
+@media (max-width: 760px) {
+  .dialog {
+    width: 100vw;
+    max-width: none;
+    max-height: 100svh;
+  }
+
+  .card {
+    min-height: 100svh;
+    max-height: 100svh;
+  }
+
+  .heading {
+    padding: 1.25rem;
+  }
+
+  .heading h2 {
+    font-size: clamp(2.6rem, 14vw, 4.6rem);
+  }
+
+  .libraryToolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .libraryToolbar > div:last-child,
+  .libraryToolbar button {
+    flex: 1;
+  }
+
+  .projectList > li {
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+  }
+
+  .projectList > .emptyState {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .emptyState button {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .projectActions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .card > footer {
+    display: grid;
+  }
+}

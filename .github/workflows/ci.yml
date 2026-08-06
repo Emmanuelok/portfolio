@@ -37,6 +37,12 @@ jobs:
       - name: Lint
         run: npm run lint -- --max-warnings=0
 
+      - name: Test unified intelligence runtime
+        run: npm run test:intelligence
+
+      - name: Test platform lifecycle and project bundles
+        run: npm run test:platform
+
       - name: Verify AI governance
         run: npm run verify:creative-agent
 

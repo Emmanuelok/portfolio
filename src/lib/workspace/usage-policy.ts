@@ -18,6 +18,7 @@ const MAX_CLEANUP_SCAN = 512;
 const DEFAULT_REQUESTS_PER_MINUTE = 6;
 const DEFAULT_DAILY_CREDITS = 30;
 const DEFAULT_MAX_CONCURRENT = 2;
+const MAX_CREDIT_UNITS_PER_REQUEST = 4;
 
 const storeSymbol = Symbol.for("kingxford.workspace.usage-store.v2");
 const overflowPrefix = "__kingxford-overflow-";
@@ -210,6 +211,19 @@ function snapshot(bucket: UsageBucket, creditCost: number): WorkspaceUsageSnapsh
   };
 }
 
+function boundedCreditUnits(units: number) {
+  return Number.isInteger(units) && units > 0
+    ? Math.min(units, MAX_CREDIT_UNITS_PER_REQUEST)
+    : 1;
+}
+
+export function workspaceCreditCost(
+  depth: "standard" | "deep",
+  units = 1,
+) {
+  return workspaceUsagePolicy.creditCost[depth] * boundedCreditUnits(units);
+}
+
 export function beginWorkspaceRequest(key: string) {
   const now = Date.now();
   const store = usageStore();
@@ -246,12 +260,13 @@ export function beginWorkspaceRequest(key: string) {
 export function consumeWorkspaceCredits(
   usageKey: string,
   depth: "standard" | "deep",
+  units = 1,
 ) {
   const now = Date.now();
   const store = usageStore();
   const resolved = resolveBucket(store, usageKey, now);
   const { bucket } = resolved;
-  const creditCost = workspaceUsagePolicy.creditCost[depth];
+  const creditCost = workspaceCreditCost(depth, units);
   const remaining = workspaceUsagePolicy.dailyCredits - bucket.dailyCreditsUsed;
 
   if (remaining < creditCost) {
@@ -282,9 +297,10 @@ export function finishWorkspaceRequest(usageKey: string) {
 export function getWorkspaceUsage(
   usageKey: string,
   depth: "standard" | "deep",
+  units = 1,
 ) {
   const now = Date.now();
   const store = usageStore();
   const resolved = resolveBucket(store, usageKey, now);
-  return snapshot(resolved.bucket, workspaceUsagePolicy.creditCost[depth]);
+  return snapshot(resolved.bucket, workspaceCreditCost(depth, units));
 }

@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 type RevealProps = Readonly<{
   children: ReactNode;
   className?: string;
+  id?: string;
+  ariaLabel?: string;
   delay?: number;
   distance?: number;
   amount?: number;
@@ -19,6 +21,8 @@ type RevealProps = Readonly<{
 export function Reveal({
   children,
   className,
+  id,
+  ariaLabel,
   delay = 0,
   distance = 28,
   amount = 0.18,
@@ -28,6 +32,8 @@ export function Reveal({
   return (
     <m.div
       className={className}
+      id={id}
+      aria-label={ariaLabel}
       initial={false}
       whileInView={
         shouldReduceMotion
@@ -45,4 +51,3 @@ export function Reveal({
     </m.div>
   );
 }
-

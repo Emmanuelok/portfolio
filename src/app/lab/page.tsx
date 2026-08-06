@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Plus } from "lucide-react";
 
-import { ProjectSeedAction } from "@/components/ProjectSeedAction";
+import { ProjectCaptureAction } from "@/components/platform/ProjectCaptureAction";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 
 const experiments = [
   {
+    id: "abundance-pathways",
     index: "L–01",
     status: "Research programme",
     title: "Abundance pathways",
@@ -24,6 +25,7 @@ const experiments = [
     signal: "Foresight × distribution",
   },
   {
+    id: "institutional-intelligence",
     index: "L–02",
     status: "Applied inquiry",
     title: "Institutional intelligence",
@@ -32,6 +34,7 @@ const experiments = [
     signal: "Evidence × decisions",
   },
   {
+    id: "responsible-ai-practice",
     index: "L–03",
     status: "Evaluation framework",
     title: "Responsible AI in practice",
@@ -40,6 +43,7 @@ const experiments = [
     signal: "Capability × accountability",
   },
   {
+    id: "complex-project-systems",
     index: "L–04",
     status: "Development track",
     title: "Complex project systems",
@@ -113,6 +117,7 @@ export default function LabPage() {
           {experiments.map((experiment, index) => (
             <Reveal
               className="experiment-card"
+              id={experiment.id}
               delay={index * 0.06}
               key={experiment.index}
             >
@@ -132,6 +137,14 @@ export default function LabPage() {
                 <Plus aria-hidden="true" />
                 <span>{experiment.signal}</span>
               </div>
+              <div className="experiment-card__capture">
+                <ProjectCaptureAction
+                  title={experiment.title}
+                  claim={experiment.text}
+                  referenceHref={`/lab#${experiment.id}`}
+                  source="lab"
+                />
+              </div>
             </Reveal>
           ))}
         </div>
@@ -144,11 +157,24 @@ export default function LabPage() {
         </div>
         <ol className="field-notes__list">
           {questions.map((question, index) => (
-            <li className="field-notes__entry" key={question}>
+            <li
+              className="field-notes__entry"
+              id={`research-question-${index + 1}`}
+              key={question}
+            >
               <Reveal className="field-note" delay={index * 0.05}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <p>{question}</p>
                 <ArrowUpRight aria-hidden="true" />
+                <div className="field-note__capture">
+                  <ProjectCaptureAction
+                    compact
+                    title={`Research question ${String(index + 1).padStart(2, "0")}`}
+                    claim={question}
+                    referenceHref={`/lab#research-question-${index + 1}`}
+                    source="lab"
+                  />
+                </div>
               </Reveal>
             </li>
           ))}
@@ -159,29 +185,10 @@ export default function LabPage() {
         <p className="eyebrow">A useful research programme needs a real problem</p>
         <h2>Bring a consequential question that deserves disciplined inquiry.</h2>
         <div className="page-cta__actions">
-          <ProjectSeedAction
-            seed={{
-              action: "start-project",
-              source: {
-                kind: "lab",
-                href: "/lab",
-                label: "kingXford Lab research agenda",
-              },
-              payload: {
-                title: "A consequential R&D question",
-                brief:
-                  "Frame and investigate a consequential question using the kingXford Atlas. Begin with the human need, state uncertainty explicitly, and connect every claim to evidence before prototyping.",
-                evidence: experiments.map((experiment) => ({
-                  title: experiment.title,
-                  content: experiment.text,
-                  sourceUrl: "/lab",
-                })),
-                tags: ["research", "responsible-ai", "lab"],
-              },
-            }}
-            label="Start an R&D project in Canvas"
-            description="Carry the Lab agenda forward as a new, traceable project—not a disconnected request."
-          />
+          <Link className="button button--primary" href="/contact">
+            <span>Propose an R&amp;D challenge</span>
+            <ArrowUpRight aria-hidden="true" />
+          </Link>
           <Link className="button button--quiet" href="/work">
             <span>See mission in practice</span>
             <ArrowUpRight aria-hidden="true" />

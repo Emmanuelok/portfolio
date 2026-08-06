@@ -5,9 +5,12 @@ import {
   BriefcaseBusiness,
   FlaskConical,
   House,
+  Mail,
   Newspaper,
+  PanelsTopLeft,
   Search,
   Sparkles,
+  UserRound,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -33,41 +36,89 @@ const commands: readonly CommandItem[] = [
     id: "mission",
     label: "Mission",
     description: "Intelligence and responsible innovation for sustainable abundance",
-    href: "/",
-    keywords: "kingxford atlas mission intelligence platform sustainable abundance complex problems ideas projects",
+    href: "/#mission",
+    keywords: "kingxford co mission intelligence sustainable abundance abundant future complex problems ideas projects",
     icon: House,
   },
   {
     id: "lab",
-    label: "Lab",
-    description: "Research, experiments, open questions, and evidence",
+    label: "Evidence — R&D / Lab",
+    description: "Bring research and evidence into the same project system",
     href: "/lab",
     keywords: "kingxford research development science academic experiments evidence responsible ai",
     icon: FlaskConical,
   },
   {
+    id: "create",
+    label: "Kingxford Intelligence",
+    description: "One continuous project from discovery to working proof and launch",
+    href: "/create",
+    keywords: "create canvas studio websites digital tools platforms science laboratory finance education schools institutions businesses professionals individuals communities everyday needs",
+    icon: PanelsTopLeft,
+  },
+  {
     id: "create-workspace",
-    label: "Canvas",
-    description: "Move one project through the complete six-phase Atlas",
-    href: "/create/workspace",
-    keywords: "canvas workspace project atlas discovery evidence systems prototype validation delivery conductor",
+    label: "Open the intelligence workspace",
+    description: "Test ideas, code, systems, prompts, and briefs beside a live result",
+    href: "/create/workspace?mode=idea",
+    keywords: "canvas workspace creative tool idea concept code html css javascript mind map prompt brief live preview agent prototype build",
     icon: Sparkles,
   },
   {
+    id: "create-science",
+    label: "Lumen Vale Laboratory",
+    description: "Explore the interactive scientific research website concept",
+    href: "/create/lumen-vale-laboratory",
+    keywords: "science laboratory research microscopy specimens observations interactive concept prototype",
+    icon: FlaskConical,
+  },
+  {
+    id: "create-finance",
+    label: "Meridian Financial Office",
+    description: "Explore the interactive institutional finance website concept",
+    href: "/create/meridian-financial-office",
+    keywords: "finance stewardship governance scenarios mandate committee interactive concept prototype",
+    icon: BriefcaseBusiness,
+  },
+  {
+    id: "create-education",
+    label: "Commonfield Institute",
+    description: "Explore the interactive education website concept",
+    href: "/create/commonfield-institute",
+    keywords: "education learning curriculum weekly syllabus school institute interactive concept prototype",
+    icon: PanelsTopLeft,
+  },
+  {
     id: "work",
-    label: "Work",
-    description: "See complex ideas and research translated into working systems",
+    label: "Proofs — selected work",
+    description: "See evidence and complex ideas translated into working systems",
     href: "/work",
     keywords: "portfolio published projects case studies evidence intelligence research deployed systems",
     icon: BriefcaseBusiness,
   },
   {
     id: "media",
-    label: "Field notes",
-    description: "Evidence-led ideas that can become project inputs",
+    label: "Insights — evidence-led media",
+    description: "Ideas and evidence that can inform a Kingxford project",
     href: "/media",
     keywords: "blog podcast media artificial intelligence sustainable abundance business finance design research",
     icon: Newspaper,
+  },
+  {
+    id: "about",
+    label: "About kingXford & Co",
+    description: "Mission, operating model, perspective, and capabilities",
+    href: "/about",
+    keywords: "company co mission investors contributors practice perspective capabilities",
+    icon: UserRound,
+  },
+  {
+    id: "contact",
+    label: "Bring a complex challenge",
+    description: "Start with a problem, opportunity, idea, or ambitious project",
+    href: "/contact",
+    keywords: "contact collaborate institution research development email project problem",
+    icon: Mail,
   },
 ];
 
@@ -91,13 +142,11 @@ export function CommandPalette({
     const needle = query.toLocaleLowerCase().trim();
     if (!needle) return commands;
 
-    const terms = needle.split(/\s+/).filter(Boolean);
-
-    return commands.filter((command) => {
-      const searchable = `${command.label} ${command.description} ${command.keywords}`
-        .toLocaleLowerCase();
-      return terms.every((term) => searchable.includes(term));
-    });
+    return commands.filter((command) =>
+      `${command.label} ${command.description} ${command.keywords}`
+        .toLocaleLowerCase()
+        .includes(needle),
+    );
   }, [query]);
 
   useEffect(() => {
@@ -289,8 +338,8 @@ export function CommandPalette({
 
             {filteredCommands.length === 0 && (
               <p className="command-palette__empty">
-                No destination found. Try “mission”, “work”, “lab”, “field
-                notes”, or “Canvas”.
+                No destination found. Try “mission”, “create”, “R&amp;D”,
+                “media”, or “contact”.
               </p>
             )}
           </div>

@@ -20,6 +20,13 @@ const IDEA =
 const WORK_ROUTE = "/work/veridanth";
 const MEDIA_ROUTE = "/media/sustainable-abundance-for-all";
 const WORKSPACE_ROUTE = "/create/workspace";
+const SHARED_NAVIGATION = [
+  ["Mission", "/"],
+  ["Work", "/work"],
+  ["Lab", "/lab"],
+  ["Field notes", "/media"],
+  ["Canvas", WORKSPACE_ROUTE],
+];
 const PHASES = [
   ["discovery", "Discovery"],
   ["evidence", "Evidence"],
@@ -237,6 +244,30 @@ async function visit(page, route) {
   );
   await page.locator("main").waitFor({ state: "visible" });
   await waitForNetworkIdle(page);
+}
+
+async function verifySharedNavigation(page, surface) {
+  const links = await page
+    .locator('nav[aria-label="Primary navigation"] a.site-header__nav-link')
+    .evaluateAll((anchors) =>
+      anchors.map((anchor) => ({
+        label: anchor.textContent?.replace(/\s+/g, " ").trim() ?? "",
+        href: new URL(anchor.getAttribute("href") ?? "", window.location.href)
+          .pathname,
+        visible:
+          anchor instanceof HTMLElement &&
+          anchor.getBoundingClientRect().width > 0 &&
+          anchor.getBoundingClientRect().height > 0 &&
+          getComputedStyle(anchor).visibility !== "hidden",
+      })),
+    );
+  check(
+    `navigation.${surface}.five-shared-destinations`,
+    JSON.stringify(links.map(({ label, href }) => [label, href])) ===
+      JSON.stringify(SHARED_NAVIGATION) &&
+      links.every(({ visible }) => visible),
+    { links },
+  );
 }
 
 async function enterCanvas(page, action) {
@@ -565,11 +596,22 @@ try {
     runtime.pageErrors.push({ url: page.url(), ...serializableError(error) });
   });
   page.on("requestfailed", (request) => {
+    const errorText = request.failure()?.errorText ?? "Unknown request failure";
+    if (
+      request.method() === "GET" &&
+      request.resourceType() === "fetch" &&
+      request.url().includes("_rsc=") &&
+      errorText === "net::ERR_ABORTED"
+    ) {
+      // Next may cancel a speculative RSC prefetch when the verified navigation
+      // wins. This is not a failed product request.
+      return;
+    }
     runtime.requestFailures.push({
       method: request.method(),
       resourceType: request.resourceType(),
       url: request.url(),
-      errorText: request.failure()?.errorText ?? "Unknown request failure",
+      errorText,
     });
   });
   page.on("response", (response) => {
@@ -583,11 +625,19 @@ try {
   });
 
   await visit(page, "/");
-  const ideaInput = page.locator("#idea-router-input");
+  await verifySharedNavigation(page, "home");
+  const createNavigationPage = await context.newPage();
+  try {
+    await visit(createNavigationPage, "/create");
+    await verifySharedNavigation(createNavigationPage, "create");
+  } finally {
+    await createNavigationPage.close();
+  }
+  const ideaInput = page.locator("#platform-project-start");
   await ideaInput.scrollIntoViewIfNeeded();
   await ideaInput.fill(IDEA);
   const ideaAction = page.getByRole("button", {
-    name: /Carry this idea into Canvas/i,
+    name: /Start project/i,
   });
   await ideaAction.waitFor({ state: "visible" });
   await enterCanvas(page, ideaAction);
@@ -653,6 +703,52 @@ try {
       revisionCount: initialProject.revisions?.length ?? 0,
       gateCount: initialProject.gates?.length ?? 0,
     },
+  );
+
+  const projectLibraryButton = page.getByRole("button", { name: "Library", exact: true });
+  await projectLibraryButton.click();
+  const projectLibrary = page.getByRole("dialog", {
+    name: "Your connected intelligence",
+  });
+  await projectLibrary.waitFor({ state: "visible" });
+  const currentLibraryProject = projectLibrary.locator('li[data-active="true"]');
+  const currentLibraryText =
+    (await currentLibraryProject.textContent())?.replace(/\s+/g, " ").trim() ?? "";
+  const duplicateControl = projectLibrary.getByRole("button", {
+    name: `Duplicate ${IDEA}`,
+    exact: true,
+  });
+  const exportControl = projectLibrary.getByRole("button", {
+    name: `Export ${IDEA}`,
+    exact: true,
+  });
+  check(
+    "atlas.project-library.current-controls",
+    (await projectLibrary.isVisible()) &&
+      (await currentLibraryProject.count()) === 1 &&
+      currentLibraryText.includes(IDEA) &&
+      currentLibraryText.includes("Current") &&
+      (await duplicateControl.isVisible()) &&
+      (await duplicateControl.isEnabled()) &&
+      (await exportControl.isVisible()) &&
+      (await exportControl.isEnabled()),
+    {
+      currentProject: currentLibraryText,
+      duplicateLabel: await duplicateControl.getAttribute("aria-label"),
+      exportLabel: await exportControl.getAttribute("aria-label"),
+    },
+  );
+  await projectLibrary.getByRole("button", { name: "Close project library" }).click();
+  await projectLibrary.waitFor({ state: "hidden" });
+
+  const conductorResultTab = page.locator("#workspace-result-tab-intelligence");
+  check(
+    "conductor.result-tab.available",
+    (await conductorResultTab.isVisible()) &&
+      (await conductorResultTab.getAttribute("role")) === "tab" &&
+      (await conductorResultTab.getAttribute("aria-controls")) ===
+        "workspace-intelligence-panel" &&
+      (await conductorResultTab.textContent())?.trim() === "Conductor",
   );
 
   await verifyAtlasDesktop(page);
@@ -1083,6 +1179,386 @@ try {
       projectId: appliedStored.project.id,
       beforeRevisionCount: preReviewProject.revisions?.length ?? 0,
       afterRevisionCount: appliedStored.project.revisions?.length ?? 0,
+    },
+  );
+
+  const intelligenceCapabilityResponse = await context.request.get(
+    `${BASE_URL}/api/intelligence/runs`,
+  );
+  const intelligenceCapabilityText = await intelligenceCapabilityResponse.text();
+  let intelligenceCapability = null;
+  try {
+    intelligenceCapability = JSON.parse(intelligenceCapabilityText);
+  } catch {
+    // The demand below retains the raw excerpt for a deterministic diagnostic.
+  }
+  demand(
+    "conductor.local-fallback-configured",
+    intelligenceCapabilityResponse.ok() &&
+      intelligenceCapability?.gateway === false &&
+      intelligenceCapability?.mode === "local-fallback" &&
+      intelligenceCapability?.usageProtectionConfigured === true &&
+      intelligenceCapability?.automaticApplyEnabled === false &&
+      intelligenceCapability?.gateApprovalMode === "human-only",
+    {
+      httpStatus: intelligenceCapabilityResponse.status(),
+      mode: intelligenceCapability?.mode ?? null,
+      gateway: intelligenceCapability?.gateway ?? null,
+      usageProtectionConfigured:
+        intelligenceCapability?.usageProtectionConfigured ?? null,
+      responseExcerpt: intelligenceCapability
+        ? undefined
+        : intelligenceCapabilityText.slice(0, 500),
+    },
+  );
+
+  const beforeConductorStored = await settledProject(
+    page,
+    (project) => project.id === appliedStored.project.id,
+    "the pre-Conductor Atlas project",
+  );
+  const beforeConductorProject = beforeConductorStored.project;
+  const revisionIdsBeforeConductor = asArray(beforeConductorProject.revisions).map(
+    ({ id }) => id,
+  );
+  const gatesBeforeConductor = asArray(beforeConductorProject.gates).map(
+    ({ id, phase, status, decisionId }) => ({ id, phase, status, decisionId }),
+  );
+
+  // Observe the page's actual fetch without manufacturing or replacing its
+  // response. This proves the Conductor control performs its own same-origin
+  // browser POST and renders the real governed local fallback.
+  await page.evaluate(() => {
+    const captureKey = "__kingxfordPlatformJourneyConductorCapture__";
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const request = input instanceof Request ? input : null;
+      const url = new URL(
+        typeof input === "string" ? input : request?.url ?? String(input),
+        window.location.href,
+      );
+      const method = (init?.method ?? request?.method ?? "GET").toUpperCase();
+      if (url.pathname !== "/api/intelligence/runs" || method !== "POST") {
+        return nativeFetch(input, init);
+      }
+
+      const rawBody = typeof init?.body === "string"
+        ? init.body
+        : request
+          ? await request.clone().text()
+          : "";
+      let body = null;
+      try {
+        body = JSON.parse(rawBody);
+      } catch {
+        // The real response and request excerpt diagnose malformed data below.
+      }
+
+      try {
+        const response = await nativeFetch(input, init);
+        const responseText = await response.clone().text();
+        let responseBody = null;
+        try {
+          responseBody = JSON.parse(responseText);
+        } catch {
+          // Preserve a bounded raw excerpt when the route is not JSON.
+        }
+        window[captureKey] = {
+          rawBody,
+          body,
+          response: {
+            status: response.status,
+            body: responseBody,
+            responseExcerpt: responseBody ? null : responseText.slice(0, 500),
+          },
+          error: null,
+        };
+        return response;
+      } catch (error) {
+        window[captureKey] = {
+          rawBody,
+          body,
+          response: null,
+          error: {
+            name: error instanceof Error ? error.name : "Error",
+            message: error instanceof Error ? error.message : String(error),
+          },
+        };
+        throw error;
+      }
+    };
+  });
+
+  await conductorResultTab.click();
+  const intelligencePanel = page.locator("#workspace-intelligence-panel");
+  await intelligencePanel.waitFor({ state: "visible" });
+  const nativeConductorResponsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === "/api/intelligence/runs",
+    { timeout: 30_000 },
+  );
+  await intelligencePanel.getByRole("button", { name: "Run Conductor" }).click();
+  const nativeConductorResponse = await nativeConductorResponsePromise;
+  const conductorRequestHeaders =
+    await nativeConductorResponse.request().allHeaders();
+  const conductorCapture = await poll(
+    "the native Conductor response",
+    () =>
+      page.evaluate(
+        () => window.__kingxfordPlatformJourneyConductorCapture__ ?? null,
+      ),
+    Boolean,
+    30_000,
+  );
+  demand(
+    "conductor.request.native-route",
+    conductorCapture.error === null &&
+      nativeConductorResponse.status() === 200 &&
+      conductorCapture.response?.status === 200 &&
+      conductorRequestHeaders.origin === new URL(BASE_URL).origin &&
+      conductorRequestHeaders["sec-fetch-site"] === "same-origin",
+    {
+      routeError: conductorCapture.error,
+      httpStatus:
+        conductorCapture.response?.status ?? nativeConductorResponse.status(),
+      headers: {
+        origin: conductorRequestHeaders.origin ?? null,
+        host: conductorRequestHeaders.host ?? null,
+        secFetchSite: conductorRequestHeaders["sec-fetch-site"] ?? null,
+      },
+      responseExcerpt: conductorCapture.response?.responseExcerpt ?? null,
+    },
+  );
+
+  const conductorRequest = conductorCapture.body;
+  const conductorSnapshot = conductorRequest?.projectGraphSnapshot;
+  const conductorRevisionId = conductorRequest?.artifactRevisionId;
+  const conductorArtifact = asArray(conductorSnapshot?.artifacts).find(
+    (artifact) => artifact.activeRevision?.id === conductorRevisionId,
+  );
+  const conductorResponse = conductorCapture.response?.body;
+  const expectedDeclinedCapabilities = [
+    "external-research",
+    "code-execution",
+    "autonomous-deployment",
+  ];
+  check(
+    "conductor.request.bounded-exact-atlas-binding",
+    Buffer.byteLength(conductorCapture.rawBody ?? "", "utf8") <
+      intelligenceCapability.limits.requestBytes &&
+      snapshotWithinBounds(
+        conductorSnapshot,
+        intelligenceCapability.projectContext.bounds,
+      ) &&
+      typeof conductorRevisionId === "string" &&
+      conductorArtifact?.activeRevision?.truncated === false &&
+      conductorResponse?.projectContext?.projectId ===
+        conductorRequest?.projectContext?.projectId &&
+      conductorResponse?.projectContext?.snapshotId === conductorSnapshot?.id &&
+      conductorResponse?.projectContext?.snapshotHash === conductorSnapshot?.hash &&
+      conductorResponse?.projectContext?.snapshotSchemaVersion ===
+        conductorSnapshot?.schemaVersion &&
+      conductorResponse?.projectContext?.snapshotCharacterCount ===
+        conductorSnapshot?.characterCount &&
+      conductorResponse?.projectContext?.artifactRevisionId ===
+        conductorRevisionId &&
+      conductorResponse?.projectContext?.artifactId === conductorArtifact?.id &&
+      conductorResponse?.projectContext?.draftHash ===
+        conductorArtifact?.activeRevision?.contentHash,
+    {
+      requestBytes: Buffer.byteLength(conductorCapture.rawBody ?? "", "utf8"),
+      requestLimit: intelligenceCapability.limits.requestBytes,
+      projectId: conductorRequest?.projectContext?.projectId ?? null,
+      snapshotId: conductorSnapshot?.id ?? null,
+      snapshotHash: conductorSnapshot?.hash ?? null,
+      artifactId: conductorArtifact?.id ?? null,
+      artifactRevisionId: conductorRevisionId ?? null,
+      draftHash: conductorArtifact?.activeRevision?.contentHash ?? null,
+      echoedBinding: conductorResponse?.projectContext ?? null,
+    },
+  );
+  check(
+    "conductor.response.valid-local-orchestration",
+    conductorResponse?.status === "local-fallback" &&
+      conductorResponse?.source === "local" &&
+      conductorResponse?.model === "local-readiness-rules-v1" &&
+      conductorResponse?.agentRole === "conductor" &&
+      typeof conductorResponse?.runId === "string" &&
+      conductorResponse?.protocolVersion === intelligenceCapability.protocolVersion &&
+      conductorResponse?.orchestration?.plan?.specialists?.length === 2 &&
+      conductorResponse?.orchestration?.passes?.length === 2 &&
+      conductorResponse.orchestration.passes.every(
+        (pass) =>
+          pass.status === "completed" &&
+          pass.source === "local" &&
+          Boolean(pass.review) &&
+          typeof pass.artifactId === "string",
+      ) &&
+      JSON.stringify(
+        conductorResponse.capabilityNegotiation.declined.map(
+          ({ capability }) => capability,
+        ),
+      ) === JSON.stringify(expectedDeclinedCapabilities) &&
+      conductorResponse.artifacts.length === 4 &&
+      conductorResponse.provenance.providerCalls.length === 0 &&
+      conductorResponse.provenance.usage.totalTokens === 0 &&
+      conductorResponse.artifacts.some(
+        (artifact) =>
+          artifact.kind === "synthesis" &&
+          artifact.id === conductorResponse.provenance.finalArtifactId,
+      ),
+    {
+      status: conductorResponse?.status ?? null,
+      source: conductorResponse?.source ?? null,
+      model: conductorResponse?.model ?? null,
+      protocolVersion: conductorResponse?.protocolVersion ?? null,
+      planSpecialists:
+        conductorResponse?.orchestration?.plan?.specialists?.map(
+          ({ role }) => role,
+        ) ?? null,
+      passes:
+        conductorResponse?.orchestration?.passes?.map(
+          ({ role, status, source, artifactId }) => ({
+            role,
+            status,
+            source,
+            artifactId,
+          }),
+        ) ?? null,
+      declinedCapabilities:
+        conductorResponse?.capabilityNegotiation?.declined ?? null,
+      provenance: conductorResponse?.provenance ?? null,
+    },
+  );
+
+  const intelligenceTabs = intelligencePanel.getByRole("tablist", {
+    name: "Project intelligence views",
+  });
+  await intelligenceTabs.getByRole("tab", { name: /^Conductor/ }).click();
+  const conductorView = intelligencePanel.locator(
+    '[role="tabpanel"][aria-labelledby$="-tab-conductor"]',
+  );
+  await conductorView.waitFor({ state: "visible" });
+  const capabilityDenialsHeading = conductorView.getByRole("heading", {
+    name: "Capabilities deliberately not granted",
+  });
+  const capabilityDenials = conductorView
+    .getByRole("heading", { name: "Capabilities deliberately not granted" })
+    .locator("xpath=ancestor::section[1]")
+    .getByRole("listitem");
+  check(
+    "conductor.ui.plan-passes-and-capability-denials",
+    (await conductorView.getByText("Typed phase plan", { exact: true }).isVisible()) &&
+      (await conductorView.getByText("2 coordinated", { exact: true }).isVisible()) &&
+      (await capabilityDenialsHeading.isVisible()) &&
+      (await capabilityDenials.count()) === 3 &&
+      expectedDeclinedCapabilities.every((capability) =>
+        (conductorResponse.capabilityNegotiation.declined ?? []).some(
+          (item) => item.capability === capability,
+        ),
+      ),
+    {
+      visiblePassCount: 2,
+      visibleCapabilityDenialCount: await capabilityDenials.count(),
+      phasePlan: conductorResponse.orchestration.plan.summary,
+    },
+  );
+
+  await intelligenceTabs.getByRole("tab", { name: /^Provenance/ }).click();
+  const provenanceView = intelligencePanel.locator(
+    '[role="tabpanel"][aria-labelledby$="-tab-provenance"]',
+  );
+  await provenanceView.waitFor({ state: "visible" });
+  const provenanceText =
+    (await provenanceView.textContent())?.replace(/\s+/g, " ").trim() ?? "";
+  check(
+    "conductor.ui.provenance-and-exact-binding",
+    (await provenanceView.getByText("Exact graph binding", { exact: true }).isVisible()) &&
+      (await provenanceView.getByText("0 bounded calls", { exact: true }).isVisible()) &&
+      provenanceText.includes(conductorResponse.runId) &&
+      provenanceText.includes(conductorResponse.protocolVersion) &&
+      provenanceText.includes(conductorResponse.projectContext.projectId) &&
+      provenanceText.includes(conductorResponse.projectContext.snapshotId) &&
+      provenanceText.includes(conductorResponse.projectContext.snapshotHash) &&
+      provenanceText.includes(conductorResponse.projectContext.artifactId) &&
+      provenanceText.includes(
+        conductorResponse.projectContext.artifactRevisionId,
+      ) &&
+      provenanceText.includes(conductorResponse.projectContext.draftHash),
+    {
+      runId: conductorResponse.runId,
+      providerCalls: conductorResponse.provenance.providerCalls.length,
+      binding: conductorResponse.projectContext,
+    },
+  );
+
+  await intelligenceTabs.getByRole("tab", { name: /^Conductor/ }).click();
+  const acceptConductorButton = conductorView.getByRole("button", {
+    name: "Accept as revision",
+  });
+  await acceptConductorButton.waitFor({ state: "visible" });
+  demand(
+    "conductor.accept.deliberate-control",
+    await acceptConductorButton.isEnabled(),
+    {
+      ariaDisabled: await acceptConductorButton.getAttribute("aria-disabled"),
+      runId: conductorResponse.runId,
+    },
+  );
+  await acceptConductorButton.click();
+  const acceptedConductorStored = await settledProject(
+    page,
+    (project) =>
+      asArray(project.revisions).some(
+        (revision) =>
+          !revisionIdsBeforeConductor.includes(revision.id) &&
+          revision.source === "agent-accepted",
+      ),
+    "the deliberately accepted Conductor revision",
+  );
+  const acceptedConductorRevision = asArray(
+    acceptedConductorStored.project.revisions,
+  ).find(
+    (revision) =>
+      !revisionIdsBeforeConductor.includes(revision.id) &&
+      revision.source === "agent-accepted",
+  );
+  check(
+    "conductor.accept.revision-without-gate-approval",
+    Boolean(acceptedConductorRevision) &&
+      acceptedConductorRevision?.parentRevisionId ===
+        conductorResponse.projectContext.artifactRevisionId &&
+      acceptedConductorRevision?.contentHash ===
+        conductorResponse.projectContext.draftHash &&
+      asArray(acceptedConductorStored.project.revisions).length >
+        asArray(beforeConductorProject.revisions).length &&
+      JSON.stringify(
+        asArray(acceptedConductorStored.project.gates).map(
+          ({ id, phase, status, decisionId }) => ({
+            id,
+            phase,
+            status,
+            decisionId,
+          }),
+        ),
+      ) === JSON.stringify(gatesBeforeConductor) &&
+      asArray(acceptedConductorStored.project.gates).every(
+        ({ status }) => status !== "approved",
+      ) &&
+      asArray(acceptedConductorStored.project.reviewLinks).some(
+        ({ requestId }) => requestId === conductorResponse.runId,
+      ),
+    {
+      runId: conductorResponse.runId,
+      acceptedRevisionId: acceptedConductorRevision?.id ?? null,
+      acceptedRevisionSource: acceptedConductorRevision?.source ?? null,
+      beforeRevisionCount: beforeConductorProject.revisions.length,
+      afterRevisionCount: acceptedConductorStored.project.revisions.length,
+      gatesBefore: gatesBeforeConductor,
+      gatesAfter: acceptedConductorStored.project.gates.map(
+        ({ id, phase, status, decisionId }) => ({ id, phase, status, decisionId }),
+      ),
     },
   );
 

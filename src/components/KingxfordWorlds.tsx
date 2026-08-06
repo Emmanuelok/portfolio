@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowUpRight, CornerDownLeft } from "lucide-react";
 import {
   useDeferredValue,
@@ -9,7 +10,11 @@ import {
   useState,
 } from "react";
 
-import { ProjectSeedAction } from "@/components/ProjectSeedAction";
+import {
+  PLATFORM_SEED_INPUT_LIMIT,
+  createPlatformSeed,
+  writePlatformSeed,
+} from "@/lib/platform/seed";
 
 type WorldId = "studio" | "living-room" | "lab";
 
@@ -31,11 +36,11 @@ const worlds: readonly World[] = [
   {
     id: "studio",
     number: "01",
-    title: "Build lens",
-    kicker: "Prototype & delivery",
+    title: "Studio",
+    kicker: "Product & digital systems",
     statement: "Build intelligence into useful systems.",
     body:
-      "The Build lens translates the same project brief, evidence, and system model into testable tools, platforms, products, and experiences.",
+      "The Studio translates research and strategic insight into intelligent tools, platforms, products, and experiences people can put to work.",
     signature: "From validated proposition to resilient release.",
     services: [
       "Intelligent tools & platforms",
@@ -46,17 +51,17 @@ const worlds: readonly World[] = [
       "Communication & visual systems",
     ],
     image: "/motion/kingxford-production-spine-v2.webp",
-    href: "/create/workspace?phase=prototype",
-    cta: "Open Build in Canvas",
+    href: "/create",
+    cta: "Enter Studio",
   },
   {
     id: "living-room",
     number: "02",
-    title: "Strategy lens",
-    kicker: "Discovery & systems",
+    title: "The Living Room",
+    kicker: "Strategy & complex mandates",
     statement: "Solve the problem before it hardens.",
     body:
-      "The Strategy lens frames uncommon briefs, clarifies ownership, and maps the decisions a project must carry before a solution is chosen.",
+      "The Living Room is our situation room for institutions, collaborators, and uncommon briefs that need structured intelligence before they need a predefined service.",
     signature: "The right coalition around the real question.",
     services: [
       "Strategic intelligence",
@@ -67,17 +72,17 @@ const worlds: readonly World[] = [
       "Cross-disciplinary coalitions",
     ],
     image: "/motion/kingxford-decision-theatre-v2.webp",
-    href: "/create/workspace?phase=discovery",
-    cta: "Open Strategy in Canvas",
+    href: "/contact?world=living-room",
+    cta: "Bring something different",
   },
   {
     id: "lab",
     number: "03",
-    title: "Evidence lens",
-    kicker: "Research & validation",
+    title: "Lab",
+    kicker: "Research & development",
     statement: "Make uncertainty testable.",
     body:
-      "The Evidence lens brings sources, observations, uncertainty, and validation into the same project record used by strategy and delivery.",
+      "The Lab conducts and translates rigorous inquiry for scientific, academic, public-interest, and industry partners developing knowledge with consequence.",
     signature: "Evidence that can travel into action.",
     services: [
       "Applied research & experimentation",
@@ -88,8 +93,8 @@ const worlds: readonly World[] = [
       "Scientific communication",
     ],
     image: "/motion/kingxford-instrument-corridor-v2.webp",
-    href: "/create/workspace?phase=evidence",
-    cta: "Open Evidence in Canvas",
+    href: "/lab",
+    cta: "Enter Lab",
   },
 ] as const;
 
@@ -171,18 +176,18 @@ export function KingxfordWorlds() {
     >
       <header className="worlds__header">
         <div className="worlds__index">
-          <span>01 / Connected intelligence lenses</span>
-          <span>One platform, three ways to enter the same project</span>
+          <span>01 / Delivery environments</span>
+          <span>One mission, three modes of work</span>
         </div>
         <div className="worlds__heading">
           <h2 id="worlds-title">
-            One project memory.
-            <em>Three connected lenses.</em>
+            One mission.
+            <em>Three delivery environments.</em>
           </h2>
           <p>
-            Build, strategy, and evidence no longer operate as separate
-            destinations. Each lens feeds the same Atlas, where the brief,
-            sources, decisions, and artifacts move forward together.
+            Intelligence, R&amp;D, responsible AI, and preparation for sustainable
+            abundance lead the work. Studio, The Living Room, and Lab are the
+            environments through which kingXford &amp; Co delivers it.
           </p>
         </div>
       </header>
@@ -267,13 +272,36 @@ const ideaPrompts = [
 ] as const;
 
 export function IdeaRouter() {
+  const router = useRouter();
   const [idea, setIdea] = useState("");
+  const [status, setStatus] = useState("");
   const deferredIdea = useDeferredValue(idea);
   const recommendation = useMemo(
     () => scoreIntent(deferredIdea),
     [deferredIdea],
   );
   const hasIdea = deferredIdea.trim().length > 2;
+
+  const startProject = () => {
+    const input = idea.trim();
+    if (input.length < 3) return;
+    try {
+      const seed = createPlatformSeed(input, {
+        phase: "discovery",
+        mode: "idea",
+        source: "idea-router",
+      });
+      const saved = writePlatformSeed(window.sessionStorage, seed);
+      if (!saved.ok) {
+        setStatus("This browser could not prepare the private project start. Your words were not sent anywhere.");
+        return;
+      }
+      setStatus("Project prepared. Opening the same idea in the workspace…");
+      router.push("/create/workspace?start=seed&phase=discovery&mode=idea");
+    } catch {
+      setStatus("This project could not be prepared safely. Your words were not sent anywhere.");
+    }
+  };
 
   return (
     <section
@@ -287,9 +315,9 @@ export function IdeaRouter() {
           <em>to make possible?</em>
         </h2>
         <p>
-          Describe the problem, idea, or project plainly. The router identifies
-          the strongest starting lens, then carries your exact words into one
-          connected Canvas.
+          Describe the problem, idea, or project plainly. kingXford &amp; Co will
+          identify the most useful specialist lens, then carry your original
+          words into one continuing project.
         </p>
       </div>
 
@@ -302,11 +330,18 @@ export function IdeaRouter() {
             id="idea-router-input"
             value={idea}
             rows={3}
+            maxLength={PLATFORM_SEED_INPUT_LIMIT}
             placeholder="We need to understand, develop, or build…"
-            onChange={(event) => setIdea(event.target.value)}
+            onChange={(event) => {
+              setIdea(event.target.value);
+              setStatus("");
+            }}
           />
           <CornerDownLeft aria-hidden="true" />
         </div>
+        <p className="idea-router__count">
+          {idea.length.toLocaleString()} / {PLATFORM_SEED_INPUT_LIMIT.toLocaleString()}
+        </p>
 
         {!hasIdea && (
           <div className="idea-router__prompts" aria-label="Example ideas">
@@ -330,29 +365,17 @@ export function IdeaRouter() {
             data-world={recommendation.id}
           >
             <div>
-              <span>Recommended room</span>
+              <span>Recommended first specialist lens</span>
               <strong>{recommendation.title}</strong>
             </div>
             <p>{recommendation.body}</p>
-            <ProjectSeedAction
-              seed={{
-                action: "start-project",
-                source: {
-                  kind: "idea-router",
-                  href: "/",
-                  label: "Homepage idea router",
-                },
-                payload: {
-                  title: idea.trim().slice(0, 180),
-                  brief: idea.trim(),
-                  tags: [recommendation.id, "idea-router"],
-                },
-              }}
-              label="Carry this idea into Canvas"
-              description={`Begin with the ${recommendation.title} lens without losing your original words.`}
-            />
+            <button type="button" onClick={startProject}>
+              Start this project
+              <ArrowUpRight aria-hidden="true" />
+            </button>
           </div>
         )}
+        <p className="sr-only" role="status" aria-live="polite">{status}</p>
       </div>
     </section>
   );

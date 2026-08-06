@@ -20,7 +20,7 @@ const themeOptions = [
   { value: "system" as const, label: "Use system theme", icon: Monitor },
 ];
 
-function isThemeChoice(value: string | null): value is ThemeChoice {
+function isThemeChoice(value: string | null | undefined): value is ThemeChoice {
   return value === "light" || value === "dark" || value === "system";
 }
 
@@ -40,8 +40,17 @@ function applyTheme(choice: ThemeChoice) {
 
 function getThemeSnapshot(): ThemeChoice {
   if (typeof window === "undefined") return "system";
-  const storedTheme = localStorage.getItem(STORAGE_KEY);
-  return isThemeChoice(storedTheme) ? storedTheme : "system";
+  const appliedTheme = document.documentElement.dataset.themeChoice;
+  try {
+    const storedTheme = window.localStorage.getItem(STORAGE_KEY);
+    return isThemeChoice(storedTheme)
+      ? storedTheme
+      : isThemeChoice(appliedTheme)
+        ? appliedTheme
+        : "system";
+  } catch {
+    return isThemeChoice(appliedTheme) ? appliedTheme : "system";
+  }
 }
 
 function getServerThemeSnapshot(): ThemeChoice {
@@ -93,7 +102,12 @@ export function ThemeControls({
   }, [theme]);
 
   const selectTheme = (choice: ThemeChoice) => {
-    localStorage.setItem(STORAGE_KEY, choice);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, choice);
+    } catch {
+      // Storage can be disabled by the browser. Keep the selected theme for
+      // this page session without making the header unusable.
+    }
     applyTheme(choice);
     window.dispatchEvent(new Event(THEME_EVENT));
   };

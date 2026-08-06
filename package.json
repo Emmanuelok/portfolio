@@ -12,7 +12,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "verify:creative-agent": "node scripts/verify-creative-agent.mjs",
-    "verify:platform-journey": "bash scripts/run-platform-journey.sh"
+    "verify:platform-journey": "bash scripts/run-platform-journey.sh",
+    "test:intelligence": "node --import tsx --test tests/intelligence-runtime.test.ts",
+    "test:platform": "node --import tsx --test tests/platform-project-bundle.test.ts tests/unified-project-migration.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
@@ -33,6 +35,7 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "16.3.0",
     "playwright-core": "^1.62.0",
+    "tsx": "4.23.5",
     "typescript": "^5.9.0"
   }
 }

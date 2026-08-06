@@ -736,10 +736,10 @@ function validateProjectAtlas(corpus, sources, checks) {
       "project-atlas",
       /PROJECT_REPOSITORY_STORAGE_KEY\s*=\s*"kingxford:projects:v2"/.test(repository) &&
         /PROJECT_REPOSITORY_SCHEMA_VERSION\s*=\s*2/.test(repository) &&
-        /PROJECT_REPOSITORY_MAX_PROJECTS\s*=\s*8/.test(repository) &&
+        /PROJECT_REPOSITORY_MAX_PROJECTS\s*=\s*20/.test(repository) &&
         /projects:\s*z\.array\(z\.unknown\(\)\)\.max\(PROJECT_REPOSITORY_MAX_PROJECTS\)/.test(repository) &&
         /projects = envelope\.projects\.map\(parseKingxfordProject\)/.test(repository),
-      "The browser repository is versioned, capped at eight projects, and integrity-parses every stored graph.",
+      "The browser repository is versioned, capped at twenty projects, and integrity-parses every stored graph.",
     ),
     passOrFail(
       "atlas.strict-v1-migration",
@@ -753,9 +753,9 @@ function validateProjectAtlas(corpus, sources, checks) {
     passOrFail(
       "atlas.collision-clone-provenance",
       "project-atlas",
-      /function cloneImportedProject/.test(repository) &&
+      /function cloneProjectForRepository/.test(repository) &&
         ["artifactIds", "revisionIds", "gateIds", "decisionIds", "reviewIds", "nodeIds"]
-          .every((name) => new RegExp(`const ${name} = new Map`).test(repository)) &&
+          .every((name) => new RegExp(`const ${name} = allocateRemappedIds`).test(repository)) &&
         /kind:\s*"import-clone"/.test(repository) &&
         /sourceProjectId:\s*source\.id/.test(repository) &&
         /sourceSnapshotIds[\s\S]*?source\.reviewLinks\.map\(\(\{ snapshotId \}\) => snapshotId\)/.test(repository) &&

@@ -2,9 +2,16 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
 import { KingxfordLogo } from "@/components/KingxfordLogo";
-import { PLATFORM_DESTINATIONS } from "@/lib/platform";
 
-const footerNavigation = PLATFORM_DESTINATIONS;
+const footerNavigation = [
+  { href: "/#mission", label: "Mission" },
+  { href: "/create", label: "Intelligence workspace" },
+  { href: "/lab", label: "Evidence" },
+  { href: "/work", label: "Proofs" },
+  { href: "/media", label: "Insights" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+] as const;
 
 export function SiteFooter() {
   return (
@@ -22,8 +29,9 @@ export function SiteFooter() {
             />
           </Link>
           <p>
-            kingXford Atlas connects inquiry, evidence, modelling, making,
-            validation, and delivery as one accountable project system.
+            kingXford &amp; Co advances intelligence, R&amp;D, and responsible AI to
+            help people and institutions solve complex problems and prepare
+            for sustainable abundance.
           </p>
           <Link className="site-footer__conversation" href="/contact">
             <span>Bring a complex problem</span>
@@ -48,13 +56,7 @@ export function SiteFooter() {
         <div className="site-footer__source">
           <p className="site-footer__label">Craft signature</p>
           <p>Complex ideas. Unforgettable form.</p>
-          <p>
-            Conductor coordinates proposals across the lifecycle. People retain
-            authority over approval, publication, and consequential decisions.
-          </p>
-          <p>
-            <Link href="/about">About</Link> · <Link href="/contact">Contact</Link>
-          </p>
+          <p>One project system · Discover · Investigate · Model · Build · Validate · Launch.</p>
         </div>
 
         <div className="site-footer__base">

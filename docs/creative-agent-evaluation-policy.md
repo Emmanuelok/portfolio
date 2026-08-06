@@ -80,7 +80,7 @@ A release passes only when the deterministic verifier confirms:
     is full instead of granting a fresh quota through eviction.
 14. Project Atlas remains a schema-versioned browser-local graph with immutable
     revision lineage, deterministic integrity checks, and human-only gates. Its
-    v2 repository is capped at eight projects, strictly migrates valid Canvas v1
+    v2 repository is capped at twenty projects, strictly migrates valid Canvas v1
     data, and remaps colliding imports without erasing snapshot provenance.
 15. Optional agent graph context must be paired with an active revision ID. The
     submitted full-draft hash must match that revision before a bounded snapshot

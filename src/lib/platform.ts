@@ -24,14 +24,98 @@ export const PLATFORM_DESTINATIONS = [
     keywords: "media field notes articles evidence ideas",
   },
   {
-    href: "/create/workspace",
-    label: "Canvas",
-    description: "Move a project through the complete Atlas",
-    keywords: "canvas project workspace atlas build prototype review",
+    href: "/create",
+    label: "Create",
+    description: "Seven creation directions, live proofs, and Canvas",
+    keywords: "create websites tools systems education canvas atlas prototypes",
   },
 ] as const;
 
 export type PlatformDestination = (typeof PLATFORM_DESTINATIONS)[number];
+
+export const CREATE_CATALOGUE_DESTINATIONS = [
+  {
+    index: "01",
+    slug: "websites",
+    label: "Websites and digital destinations",
+    shortLabel: "Websites",
+    href: "/create#capability-websites",
+    description: "Clear, credible destinations for complex organizations.",
+    keywords: "website portal destination publishing content institutional",
+  },
+  {
+    index: "02",
+    slug: "digital-tools",
+    label: "Digital tools",
+    shortLabel: "Digital tools",
+    href: "/create#capability-digital-tools",
+    description: "Focused utilities shaped around the actual task.",
+    keywords: "calculator planner analyzer generator tracker workflow",
+  },
+  {
+    index: "03",
+    slug: "institutional-systems",
+    label: "Institutional systems",
+    shortLabel: "Institutional systems",
+    href: "/create#capability-institutional-systems",
+    description: "Governed systems for programmes, services, and evidence.",
+    keywords: "institution governance approvals programmes services evidence",
+  },
+  {
+    index: "04",
+    slug: "research-ai-tools",
+    label: "Research and AI tools",
+    shortLabel: "Research + AI",
+    href: "/create#capability-research-ai-tools",
+    description: "Inspectable intelligence for inquiry and verification.",
+    keywords: "research ai evidence synthesis retrieval knowledge graph evaluation",
+  },
+  {
+    index: "05",
+    slug: "operational-tools",
+    label: "Operational tools",
+    shortLabel: "Operations",
+    href: "/create#capability-operational-tools",
+    description: "Dependable visibility across everyday operations.",
+    keywords: "operations dashboard field inspection resources requests delivery",
+  },
+  {
+    index: "06",
+    slug: "education-tools",
+    label: "Education tools",
+    shortLabel: "Education",
+    href: "/create#capability-education-tools",
+    description: "Purposeful learning, feedback, and visible progress.",
+    keywords: "education learning curriculum practice feedback students teachers",
+  },
+  {
+    index: "07",
+    slug: "personal-tools",
+    label: "Everyday personal tools",
+    shortLabel: "Everyday tools",
+    href: "/create#capability-personal-tools",
+    description: "Clarity and agency for difficult everyday choices.",
+    keywords: "personal household study decision community planning organizer",
+  },
+] as const;
+
+export const CREATE_PROOF_DESTINATIONS = [
+  {
+    index: "01",
+    label: "Science",
+    href: "/create/lumen-vale-laboratory",
+  },
+  {
+    index: "02",
+    label: "Finance",
+    href: "/create/meridian-financial-office",
+  },
+  {
+    index: "03",
+    label: "Education",
+    href: "/create/commonfield-institute",
+  },
+] as const;
 
 export const PLATFORM_PHASES = [
   {

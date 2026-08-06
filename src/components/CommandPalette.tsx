@@ -22,6 +22,8 @@ import {
   useState,
 } from "react";
 
+import { CREATE_CATALOGUE_DESTINATIONS } from "@/lib/platform";
+
 type CommandItem = {
   id: string;
   label: string;
@@ -50,8 +52,8 @@ const commands: readonly CommandItem[] = [
   },
   {
     id: "create",
-    label: "Kingxford Intelligence",
-    description: "One continuous project from discovery to working proof and launch",
+    label: "Create — Kingxford Intelligence",
+    description: "Seven directions, three live proofs, and one continuous project from discovery to working proof",
     href: "/create",
     keywords: "create canvas studio websites digital tools platforms science laboratory finance education schools institutions businesses professionals individuals communities everyday needs",
     icon: PanelsTopLeft,
@@ -64,6 +66,14 @@ const commands: readonly CommandItem[] = [
     keywords: "canvas workspace creative tool idea concept code html css javascript mind map prompt brief live preview agent prototype build",
     icon: Sparkles,
   },
+  ...CREATE_CATALOGUE_DESTINATIONS.map((item) => ({
+    id: `create-category-${item.slug}`,
+    label: item.label,
+    description: item.description,
+    href: item.href,
+    keywords: `create catalogue ${item.keywords}`,
+    icon: PanelsTopLeft,
+  })),
   {
     id: "create-science",
     label: "Lumen Vale Laboratory",

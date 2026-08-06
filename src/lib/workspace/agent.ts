@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import { Output, ToolLoopAgent } from "ai";
 import { z } from "zod";
 
+import { hasGatewayAuth } from "@/lib/intelligence/readiness";
+
 import {
   agentLensDetails,
   getAgentLensInstructions,
@@ -214,7 +216,5 @@ export function createCreativeAgent({
 }
 
 export function canUseCreativeAgent() {
-  return Boolean(
-    process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN,
-  );
+  return hasGatewayAuth();
 }

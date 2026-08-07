@@ -1,6 +1,8 @@
 import {
   formatCloudProjectEtag,
   isCloudRole,
+  parseIdempotencyKey,
+  parseOrganizationId,
   type CloudProjectSummary,
   type CloudRole,
 } from "./contracts";
@@ -61,7 +63,15 @@ type FetchLike = (
   init?: RequestInit,
 ) => Promise<Response>;
 
+export type CloudDeletionKeyStorage = Pick<
+  Storage,
+  "getItem" | "setItem" | "removeItem"
+>;
+
 type JsonRecord = Record<string, unknown>;
+
+const accountDeletionKeyPrefix = "kingxford.cloud.account-deletion.v1";
+const pendingAccountDeletionKeys = new Map<string, string>();
 
 export class CloudClientError extends Error {
   readonly status: number;
@@ -204,6 +214,73 @@ export function createCloudIdempotencyKey(operation: string, subject = "account"
     }
   }
   return `kx.${safeOperation}.${safeSubject}.${nonce}`.slice(0, 160);
+}
+
+function browserDeletionKeyStorage(): CloudDeletionKeyStorage | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function accountDeletionStorageKey(organizationId: string) {
+  return `${accountDeletionKeyPrefix}:${organizationId}`;
+}
+
+function validStoredIdempotencyKey(value: string | null) {
+  try {
+    return parseIdempotencyKey(value);
+  } catch {
+    return null;
+  }
+}
+
+function pendingAccountDeletionKey(
+  organizationId: string,
+  storage: CloudDeletionKeyStorage | null,
+) {
+  const storageKey = accountDeletionStorageKey(organizationId);
+  if (storage) {
+    try {
+      const stored = validStoredIdempotencyKey(storage.getItem(storageKey));
+      if (stored) {
+        pendingAccountDeletionKeys.set(organizationId, stored);
+        return stored;
+      }
+      storage.removeItem(storageKey);
+    } catch {
+      // Browser privacy settings and storage quotas must not block deletion.
+    }
+  }
+
+  const inMemory = validStoredIdempotencyKey(
+    pendingAccountDeletionKeys.get(organizationId) ?? null,
+  );
+  const key = inMemory ?? createCloudIdempotencyKey("account-delete", organizationId);
+  pendingAccountDeletionKeys.set(organizationId, key);
+  if (storage) {
+    try {
+      storage.setItem(storageKey, key);
+    } catch {
+      // The in-memory key still makes retries safe for the current page lifetime.
+    }
+  }
+  return key;
+}
+
+function clearPendingAccountDeletionKey(
+  organizationId: string,
+  storage: CloudDeletionKeyStorage | null,
+) {
+  pendingAccountDeletionKeys.delete(organizationId);
+  if (!storage) return;
+  try {
+    storage.removeItem(accountDeletionStorageKey(organizationId));
+  } catch {
+    // A completed deletion must not be reported as failed because storage is blocked.
+  }
 }
 
 export function cloudProjectRelationship(
@@ -351,19 +428,27 @@ export async function synchronizeCloudProjects(
 export async function deleteCloudAccountData(
   organizationId: string,
   fetcher: FetchLike = fetch,
+  storage: CloudDeletionKeyStorage | null = browserDeletionKeyStorage(),
 ) {
+  const normalizedOrganizationId = parseOrganizationId(organizationId);
+  const idempotencyKey = pendingAccountDeletionKey(
+    normalizedOrganizationId,
+    storage,
+  );
   const headers = withActiveCloudOrganization({
     "Content-Type": "application/json",
-    "Idempotency-Key": createCloudIdempotencyKey("account-delete"),
+    "Idempotency-Key": idempotencyKey,
   });
-  headers.set("X-Kingxford-Organization-Id", organizationId);
+  headers.set("X-Kingxford-Organization-Id", normalizedOrganizationId);
   const response = await fetcher("/api/cloud/account", requestDefaults({
     method: "DELETE",
     headers,
     body: JSON.stringify({
       confirmation: "DELETE MY CLOUD DATA",
-      organizationId,
+      organizationId: normalizedOrganizationId,
     }),
   }));
-  return readCloudResponse(response);
+  const result = await readCloudResponse(response);
+  clearPendingAccountDeletionKey(normalizedOrganizationId, storage);
+  return result;
 }

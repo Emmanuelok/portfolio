@@ -167,6 +167,70 @@ test("cloud account removal requires the server confirmation phrase and idempote
   assert.match(createCloudIdempotencyKey("sync", project.id), /^[A-Za-z0-9][A-Za-z0-9._:-]{7,159}$/);
 });
 
+test("cloud account deletion preserves its key across network and cleanup retries, then clears it after success", async () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      values.set(key, value);
+    },
+    removeItem: (key: string) => {
+      values.delete(key);
+    },
+  };
+  const keys: string[] = [];
+  let attempt = 0;
+  const fetcher = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    keys.push(new Headers(init?.headers).get("idempotency-key") ?? "");
+    attempt += 1;
+    if (attempt === 1) {
+      throw new TypeError("Network connection interrupted.");
+    }
+    if (attempt === 2) {
+      return Response.json({
+        error: {
+          code: "evidence_cleanup_pending",
+          message: "Private evidence cleanup is still pending.",
+        },
+      }, { status: 503 });
+    }
+    return Response.json({ ok: true, status: "deleted" });
+  };
+  const organizationId = "22222222-2222-4222-8222-222222222222";
+
+  await assert.rejects(
+    deleteCloudAccountData(organizationId, fetcher, storage),
+    /Network connection interrupted\./,
+  );
+  assert.equal(values.size, 1);
+
+  await assert.rejects(
+    deleteCloudAccountData(organizationId, fetcher, storage),
+    (error: unknown) => error instanceof Error
+      && error.message === "Private evidence cleanup is still pending.",
+  );
+  assert.equal(keys[1], keys[0]);
+  assert.equal(values.size, 1);
+
+  await deleteCloudAccountData(organizationId, fetcher, storage);
+  assert.equal(keys[2], keys[1]);
+  assert.equal(values.size, 0);
+
+  await deleteCloudAccountData(organizationId, fetcher, storage);
+  assert.notEqual(keys[3], keys[2]);
+  assert.equal(values.size, 0);
+});
+
+test("the account data controls delegate deletion to the retry-safe cloud helper", async () => {
+  const source = await readFile(
+    new URL("../src/app/account/AccountDataControls.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /import \{ deleteCloudAccountData \} from "@\/lib\/cloud\/client-sync";/);
+  assert.match(source, /await deleteCloudAccountData\(account\.record\.organization\.id\);/);
+  assert.doesNotMatch(source, /Idempotency-Key|crypto\.randomUUID|method: "DELETE"/);
+});
+
 test("the cloud panel states its local-first and no-overwrite contract in the interface", async () => {
   const source = await readFile(
     new URL("../src/components/workspace/CloudProjectPanel.tsx", import.meta.url),

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { deleteCloudAccountData } from "@/lib/cloud/client-sync";
 import {
   setActiveCloudOrganization,
   withActiveCloudOrganization,
@@ -113,38 +114,16 @@ export function AccountDataControls() {
     setDeleting(true);
     setDeleteStatus("Removing cloud data…");
     try {
-      const headers = withActiveCloudOrganization({
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "Idempotency-Key": `account-delete:${crypto.randomUUID()}`,
-      });
-      headers.set("X-Kingxford-Organization-Id", account.record.organization.id);
-      const response = await fetch("/api/cloud/account", {
-        method: "DELETE",
-        credentials: "same-origin",
-        headers,
-        body: JSON.stringify({
-          confirmation: confirmationPhrase,
-          organizationId: account.record.organization.id,
-        }),
-      });
-      const body = (await response.json()) as unknown;
-      if (!response.ok) {
-        setDeleteStatus(
-          responseMessage(
-            body,
-            "Cloud data could not be removed. No local project was changed.",
-          ),
-        );
-        return;
-      }
+      await deleteCloudAccountData(account.record.organization.id);
       setDeleteStatus(
         "Cloud data was removed. Local projects on this device were not changed.",
       );
       window.setTimeout(() => router.push("/auth"), 900);
-    } catch {
+    } catch (error) {
       setDeleteStatus(
-        "Cloud data could not be removed. No local project was changed.",
+        error instanceof Error && error.message
+          ? error.message
+          : "Cloud data could not be removed. No local project was changed.",
       );
     } finally {
       setDeleting(false);

@@ -13,6 +13,13 @@ const footerNavigation = [
   { href: "/contact", label: "Contact" },
 ] as const;
 
+const trustNavigation = [
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/accessibility", label: "Accessibility" },
+  { href: "/ai-transparency", label: "AI transparency" },
+] as const;
+
 export function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -52,17 +59,22 @@ export function SiteFooter() {
           </ul>
         </nav>
 
-        <div className="site-footer__source">
-          <p className="site-footer__label">Design principle</p>
-          <p>Complex ideas, clearly designed and carefully delivered.</p>
-          <p>From discovery and evidence to tested delivery.</p>
-        </div>
+        <nav className="site-footer__nav" aria-label="Trust and legal">
+          <p className="site-footer__label">Trust</p>
+          <ul>
+            {trustNavigation.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href}>{item.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         <div className="site-footer__base">
           <p>
             © {new Date().getFullYear()} kingXford &amp; Co
           </p>
-          <p>Research · Digital products · Responsible AI</p>
+          <p>Complex ideas, clearly designed and carefully delivered</p>
           <a href="#main-content">Back to top</a>
         </div>
       </div>

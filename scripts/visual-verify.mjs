@@ -63,6 +63,73 @@ const expectedPrimaryDestinations = [
   { label: "Create", href: "/create" },
 ];
 
+function localExpectedConsoleState(message) {
+  if (message.type() !== "error") return null;
+  let base;
+  try {
+    base = new URL(baseUrl);
+  } catch {
+    return null;
+  }
+  if (!["127.0.0.1", "localhost", "::1"].includes(base.hostname)) {
+    return null;
+  }
+
+  const observabilityPaths = [
+    "/_vercel/insights/script.js",
+    "/_vercel/speed-insights/script.js",
+  ];
+  const locationUrl = message.location().url;
+  try {
+    const location = new URL(locationUrl || base.origin, base);
+    if (
+      location.origin === base.origin &&
+      observabilityPaths.includes(location.pathname) &&
+      message.text() ===
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ) {
+      return { kind: "local-observability-404", path: location.pathname };
+    }
+  } catch {
+    // The exact message form below remains independently verifiable.
+  }
+
+  if (
+    /^Refused to execute script from '.+' because its MIME type \('text\/plain'\) is not executable, and strict MIME type checking is enabled\.$/.test(
+      message.text(),
+    )
+  ) {
+    const pathname = observabilityPaths.find((candidate) =>
+      message.text().includes(`${base.origin}${candidate}`),
+    );
+    if (pathname) {
+      return { kind: "local-observability-mime", path: pathname };
+    }
+  }
+
+  if (
+    message.text() ===
+      "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ) {
+    try {
+      const location = new URL(locationUrl, base);
+      if (
+        location.origin === base.origin &&
+        (location.pathname === "/api/cloud/account" ||
+          location.pathname === "/api/cloud/organization" ||
+          /^\/api\/cloud\/projects\/kx_[a-z][a-z0-9_]{0,23}_[0-9a-f]{16}\/evidence$/.test(
+            location.pathname,
+          ))
+      ) {
+        return { kind: "unconfigured-cloud-503", path: location.pathname };
+      }
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 async function inspectPage(name, route, viewport, options = {}) {
   const context = await browser.newContext({
     viewport,
@@ -74,6 +141,7 @@ async function inspectPage(name, route, viewport, options = {}) {
   });
   const page = await context.newPage();
   const consoleErrors = [];
+  const expectedConsoleStates = [];
   const pageErrors = [];
 
   page.on("console", (message) => {
@@ -81,6 +149,14 @@ async function inspectPage(name, route, viewport, options = {}) {
       options.expectedStatus === 404 &&
       message.type() === "error" &&
       /failed to load resource.*404/i.test(message.text());
+    const expectedLocalState = localExpectedConsoleState(message);
+    if (expectedLocalState) {
+      expectedConsoleStates.push({
+        ...expectedLocalState,
+        text: message.text(),
+      });
+      return;
+    }
     if (
       message.type() === "error" &&
       !message.text().includes("ERR_BLOCKED_BY_CLIENT") &&
@@ -157,6 +233,7 @@ async function inspectPage(name, route, viewport, options = {}) {
     status: response?.status() ?? null,
     expectedStatus: options.expectedStatus ?? null,
     consoleErrors,
+    expectedConsoleStates,
     pageErrors,
     audit,
   };
@@ -1436,9 +1513,10 @@ const canvasHandoff = canvas.page.getByRole("dialog", {
   name: "Request an implementation plan for this project.",
 });
 await canvasHandoff.waitFor({ state: "visible" });
-const entrepreneurshipControl = canvasHandoff.getByRole("button", {
-  name: /Open the Entrepreneurship workspace/,
-});
+const disconnectedEntrepreneurshipControls = canvasHandoff.getByRole(
+  "button",
+  { name: /Entrepreneurship/i },
+);
 const handoffSessionAfter = await canvas.page.evaluate(() =>
   window.sessionStorage.getItem("kingxford:canvas-handoff:v1"),
 );
@@ -1447,11 +1525,8 @@ const canvasHandoffState = {
   currentVersionIncluded: await canvasHandoff
     .getByLabel("Current version", { exact: true })
     .isChecked(),
-  entrepreneurshipDisabled: await entrepreneurshipControl.isDisabled(),
-  entrepreneurshipTag: await entrepreneurshipControl.evaluate(
-    (element) => element.tagName,
-  ),
-  entrepreneurshipTitle: await entrepreneurshipControl.getAttribute("title"),
+  disconnectedEntrepreneurshipControlCount:
+    await disconnectedEntrepreneurshipControls.count(),
   locationUnchanged: canvas.page.url() === canvasLocationBeforeHandoff,
   sessionUntouched:
     handoffSessionBefore === null && handoffSessionAfter === null,
@@ -1461,9 +1536,7 @@ const canvasHandoffState = {
 const canvasHandoffPassed =
   canvasHandoffState.dialogVisible &&
   canvasHandoffState.currentVersionIncluded &&
-  canvasHandoffState.entrepreneurshipDisabled &&
-  canvasHandoffState.entrepreneurshipTag === "BUTTON" &&
-  /not available yet/i.test(canvasHandoffState.entrepreneurshipTitle ?? "") &&
+  canvasHandoffState.disconnectedEntrepreneurshipControlCount === 0 &&
   canvasHandoffState.locationUnchanged &&
   canvasHandoffState.sessionUntouched &&
   canvasHandoffState.postRequestsAfterOpen === 0;

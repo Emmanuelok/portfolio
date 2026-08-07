@@ -5,7 +5,7 @@ const repositoryRoot = process.cwd();
 const sourceTargets = [
   "src/app",
   "src/components",
-  "src/data/creations.ts",
+  "src/data",
   "src/lib/platform.ts",
   "src/lib/platform/registry.ts",
 ];

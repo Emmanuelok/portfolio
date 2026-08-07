@@ -27,7 +27,9 @@ const siteUrl = (
   "https://kingxford.co"
 ).replace(/\/$/, "");
 
-export const dynamicParams = false;
+// Known field notes are prerendered; unknown slugs reach the explicit
+// notFound() boundary without being logged as internal fallback failures.
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return mediaPosts.map((post) => ({ slug: post.slug }));

@@ -1,0 +1,367 @@
+.page {
+  min-height: 100vh;
+  padding: clamp(7rem, 13vw, 11rem) var(--page-gutter) 6rem;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.header {
+  max-width: 76rem;
+  padding-bottom: clamp(2.5rem, 6vw, 5rem);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.header > p:first-child,
+.kicker {
+  font: 600 0.72rem/1.2 var(--font-mono);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.header h1 {
+  max-width: 15ch;
+  margin: 1.2rem 0;
+  font: 500 clamp(3rem, 8vw, 7rem)/0.9 var(--font-sans);
+  letter-spacing: -0.06em;
+}
+
+.header > p:last-child {
+  max-width: 52rem;
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+  line-height: 1.55;
+  opacity: 0.74;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 76rem;
+  padding-top: clamp(2rem, 5vw, 4rem);
+}
+
+.accessPanel {
+  max-width: 76rem;
+  margin-top: clamp(2rem, 5vw, 4rem);
+}
+
+.accessHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.4fr);
+  gap: 2rem;
+  align-items: end;
+}
+
+.accessHeading h2,
+.invitationGrid h3 {
+  margin-bottom: 0.45rem;
+}
+
+.organizationSelect,
+.invitationForm label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.organizationSelect > span,
+.invitationForm label > span,
+.invitationLink > label {
+  font: 600 0.66rem/1.3 var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.organizationSelect select,
+.memberActions select,
+.invitationForm input,
+.invitationForm select,
+.invitationLink input {
+  min-height: 2.8rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+}
+
+.memberList {
+  margin-top: 2rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.memberRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.memberRow > div:first-child,
+.pendingInvitations li > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.memberRow strong,
+.pendingInvitations strong {
+  overflow-wrap: anywhere;
+}
+
+.memberRow span,
+.pendingInvitations span,
+.roleBadge,
+.readOnlyNotice {
+  font-size: 0.78rem;
+  opacity: 0.66;
+}
+
+.memberActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.memberActions button,
+.invitationForm > button,
+.invitationLink button,
+.pendingInvitations button,
+.outlineButton {
+  min-height: 2.8rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.memberActions button:disabled,
+.invitationForm > button:disabled,
+.pendingInvitations button:disabled,
+.organizationSelect select:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.memberActions .removeButton {
+  color: color-mix(in srgb, var(--danger) 78%, var(--paper));
+}
+
+.roleBadge {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  text-transform: capitalize;
+}
+
+.invitationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.invitationForm,
+.pendingInvitations {
+  padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.invitationForm {
+  display: grid;
+  gap: 1rem;
+}
+
+.invitationFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.invitationLink {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.invitationLink input {
+  width: 100%;
+  font: 0.68rem/1.4 var(--font-mono);
+}
+
+.pendingInvitations ul {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pendingInvitations li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.panel {
+  min-width: 0;
+  padding: clamp(1.4rem, 3vw, 2.5rem);
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  background: color-mix(in srgb, var(--paper) 4%, transparent);
+}
+
+.panel h2 {
+  margin: 0.65rem 0 1.25rem;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  letter-spacing: -0.035em;
+}
+
+.panel p,
+.panel label,
+.panel dd,
+.panel dt {
+  line-height: 1.55;
+}
+
+.panel dl {
+  margin: 2rem 0;
+}
+
+.panel dl div {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.8rem 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.panel dt {
+  opacity: 0.58;
+}
+
+.panel dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.actions a,
+.panel > a,
+.danger button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.72rem 1rem;
+  border: 1px solid currentColor;
+  color: inherit;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.danger label {
+  display: block;
+  margin-top: 1.5rem;
+}
+
+.danger input {
+  width: 100%;
+  min-width: 0;
+  margin: 0.55rem 0 0.8rem;
+  padding: 0.8rem;
+  border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.danger button {
+  width: 100%;
+  cursor: pointer;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.danger button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.status {
+  min-height: 2.5rem;
+  margin-bottom: 0;
+  font-size: 0.88rem;
+  opacity: 0.76;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel dl div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15rem;
+  }
+
+  .accessHeading,
+  .invitationGrid,
+  .memberRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .memberActions {
+    justify-content: flex-start;
+  }
+
+  .invitationFields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .panel,
+  .danger input,
+  .actions a,
+  .panel > a,
+  .danger button {
+    border-color: CanvasText;
+  }
+
+  .organizationSelect select,
+  .memberActions select,
+  .invitationForm input,
+  .invitationForm select,
+  .invitationLink input,
+  .memberActions button,
+  .invitationForm > button,
+  .invitationLink button,
+  .pendingInvitations button,
+  .outlineButton {
+    border-color: CanvasText;
+  }
+}

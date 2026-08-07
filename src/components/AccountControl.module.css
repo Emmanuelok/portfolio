@@ -1,0 +1,120 @@
+.account {
+  position: relative;
+}
+
+.trigger {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 650;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.trigger::-webkit-details-marker {
+  display: none;
+}
+
+.trigger svg {
+  width: 0.86rem;
+  height: 0.86rem;
+}
+
+.trigger[data-state="signed-in"] {
+  color: var(--text);
+}
+
+.trigger[data-state="signed-in"] svg {
+  color: var(--success);
+}
+
+.trigger[data-state="local"] svg,
+.trigger[data-state="checking"] svg {
+  color: var(--text-faint);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  display: grid;
+  width: min(23rem, calc(100vw - 2rem));
+  padding: 1.2rem;
+  border: 1px solid var(--border-strong);
+  background: var(--canvas);
+  box-shadow: var(--shadow);
+}
+
+.menu p {
+  margin: 0 0 0.55rem;
+  color: var(--success);
+  font: 600 0.56rem/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.menu strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+}
+
+.menu > span {
+  margin-top: 0.75rem;
+  color: var(--text-faint);
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
+
+.menu > div {
+  display: grid;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.menu a,
+.menu button {
+  display: flex;
+  min-height: 2.8rem;
+  align-items: center;
+  gap: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-size: 0.68rem;
+  text-align: left;
+}
+
+.menu button svg {
+  width: 0.8rem;
+}
+
+.menu button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+@media (max-width: 640px) {
+  .trigger {
+    width: 2.75rem;
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .trigger > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}

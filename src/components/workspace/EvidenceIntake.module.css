@@ -1,0 +1,306 @@
+.intake {
+  width: min(100% - (var(--page-gutter) * 2), var(--content-max));
+  margin: 0 auto clamp(1rem, 3vw, 2rem);
+  border: 1px solid color-mix(in srgb, var(--text) 17%, transparent);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--surface) 76%, var(--canvas-deep));
+  overflow: clip;
+}
+
+.heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.55fr);
+  align-items: end;
+  gap: clamp(1.5rem, 5vw, 5rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+}
+
+.heading > div {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.heading > div > span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #62d8ad;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.heading svg {
+  width: 0.9rem;
+}
+
+.heading h2,
+.heading h3 {
+  max-width: 19ch;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.6vw, 4rem);
+  font-weight: 420;
+  letter-spacing: -0.06em;
+  line-height: 0.98;
+}
+
+.heading > p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.modeChooser {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.modeChooser legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.modeChooser label {
+  cursor: pointer;
+}
+
+.modeChooser input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modeChooser label > span {
+  display: grid;
+  min-height: 5.6rem;
+  grid-template-columns: 1.2rem minmax(0, 1fr);
+  align-content: center;
+  gap: 0.2rem 0.55rem;
+  padding: 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  border-radius: var(--radius-s);
+  color: var(--text-soft);
+}
+
+.modeChooser input:checked + span,
+.modeChooser input:focus-visible + span {
+  border-color: #7b83ff;
+  background: color-mix(in srgb, #7b83ff 10%, transparent);
+  color: var(--text);
+}
+
+.modeChooser svg {
+  width: 1rem;
+  grid-row: span 2;
+  color: #a6abff;
+}
+
+.modeChooser strong {
+  font-size: 0.68rem;
+}
+
+.modeChooser small,
+.fields label > span,
+.textField > span,
+.urlField > span {
+  color: var(--text-faint);
+  font-size: 0.55rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) repeat(2, minmax(10rem, 0.45fr));
+  gap: 0.65rem;
+}
+
+.fields label,
+.textField,
+.urlField {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fields input,
+.fields select,
+.urlField input,
+.textField textarea {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--text) 22%, transparent);
+  border-radius: var(--radius-s);
+  background: var(--canvas-deep);
+  color: var(--text);
+  font-size: 0.68rem;
+}
+
+.textField textarea {
+  min-height: 9rem;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.textField > small,
+.urlField > small {
+  justify-self: end;
+  color: var(--text-faint);
+  font-size: 0.5rem;
+}
+
+.fileDrop {
+  display: flex;
+  min-height: 9rem;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px dashed color-mix(in srgb, #7b83ff 58%, transparent);
+  border-radius: var(--radius-s);
+  background: color-mix(in srgb, #7b83ff 7%, transparent);
+  cursor: pointer;
+}
+
+.fileDrop > svg {
+  width: 1.5rem;
+  color: #a6abff;
+}
+
+.fileDrop > span {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.fileDrop strong {
+  font-size: 0.72rem;
+}
+
+.fileDrop small {
+  color: var(--text-faint);
+  font-size: 0.53rem;
+  line-height: 1.5;
+}
+
+.fileDrop input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.governance {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.35fr);
+  align-items: center;
+  gap: 0.8rem 1rem;
+  padding: 0.9rem;
+  border: 1px solid color-mix(in srgb, #62d8ad 28%, transparent);
+  border-radius: var(--radius-s);
+  background: color-mix(in srgb, #62d8ad 6%, transparent);
+}
+
+.governance > div,
+.governance > p {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.governance svg {
+  width: 0.95rem;
+  color: #62d8ad;
+}
+
+.governance span {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.governance strong {
+  font-size: 0.67rem;
+}
+
+.governance small,
+.governance p {
+  color: var(--text-faint);
+  font-size: 0.53rem;
+}
+
+.governance progress {
+  width: 100%;
+  accent-color: #62d8ad;
+}
+
+.governance > p {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid color-mix(in srgb, #62d8ad 18%, transparent);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+}
+
+.actions p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.58rem;
+}
+
+.actions button {
+  min-height: 3rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-s);
+  background: #62d8ad;
+  color: #07120f;
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 740;
+}
+
+.actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 840px) {
+  .heading,
+  .fields,
+  .governance {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .intake {
+    width: calc(100% - 1rem);
+  }
+
+  .modeChooser,
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

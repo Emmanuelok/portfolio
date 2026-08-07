@@ -10,6 +10,7 @@ import {
   getCreativeAgentModelRoute,
 } from "@/lib/workspace/agent";
 import { buildAiReadiness } from "@/lib/intelligence/readiness";
+import { logOperationalEvent } from "@/lib/observability/structured-log";
 import {
   formatKingxfordKnowledgeContext,
   KINGXFORD_PLAYBOOK_VERSION,
@@ -30,6 +31,7 @@ import {
   consumeWorkspaceCredits,
   finishWorkspaceRequest,
   getWorkspaceUsage,
+  workspaceUsageBackend,
   workspaceUsagePolicy,
   type WorkspaceUsageSnapshot,
 } from "@/lib/workspace/usage-policy";
@@ -220,18 +222,15 @@ function usageHashSecret() {
 function clientKey(request: NextRequest, salt: string) {
   const address = (
     firstForwardedValue(request.headers.get("x-forwarded-for")) ||
-    request.headers.get("x-real-ip") ||
-    "local"
-  ).slice(0, 256);
+    request.headers.get("x-real-ip")
+  )?.slice(0, 256);
   const userAgent = (request.headers.get("user-agent") || "unknown").slice(
     0,
     256,
   );
 
   const requestFingerprint = createHash("sha256")
-    .update(address)
-    .update("\0")
-    .update(userAgent)
+    .update(address ? `network\0${address}` : `fallback\0${userAgent}`)
     .digest("hex");
 
   // This HMAC is the server-owned pseudonym. agent.ts applies a second hash
@@ -260,39 +259,21 @@ function reportAgentFailure(error: unknown, model: string, requestId: string) {
     error && typeof error === "object"
       ? (error as {
           name?: unknown;
-          message?: unknown;
-          statusCode?: unknown;
-          cause?: unknown;
-        })
-      : undefined;
-  const cause =
-    candidate?.cause && typeof candidate.cause === "object"
-      ? (candidate.cause as {
-          name?: unknown;
-          message?: unknown;
           statusCode?: unknown;
         })
       : undefined;
   const compact = (value: unknown) =>
     typeof value === "string"
-      ? value
-          .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, "[redacted]")
-          .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
-          .slice(0, 600)
+      ? value.slice(0, 120)
       : undefined;
 
-  console.error("[workspace-agent] AI review failed", {
+  logOperationalEvent("error", "workspace.review.failed", {
     requestId,
-    name: compact(candidate?.name),
-    message: compact(candidate?.message),
+    errorName: compact(candidate?.name),
     statusCode:
       typeof candidate?.statusCode === "number"
         ? candidate.statusCode
         : undefined,
-    causeName: compact(cause?.name),
-    causeMessage: compact(cause?.message),
-    causeStatusCode:
-      typeof cause?.statusCode === "number" ? cause.statusCode : undefined,
     model,
   });
 }
@@ -466,9 +447,10 @@ export async function GET() {
   const requestId = randomUUID();
   const standard = getCreativeAgentModelRoute("standard");
   const deep = getCreativeAgentModelRoute("deep");
+  const usageBackend = workspaceUsageBackend();
   const readiness = buildAiReadiness({
     routes: { standard, deep },
-    usageProtectionReady: Boolean(usageHashSecret()),
+    usageProtectionReady: Boolean(usageHashSecret()) && usageBackend.ready,
     toolsEnabled: false,
     automaticApplyEnabled: false,
     gateApprovalMode: "human-only",
@@ -509,7 +491,11 @@ export async function GET() {
         bounds: PROJECT_SNAPSHOT_BOUNDS,
         integrityRequired: true,
       },
-      limits: workspaceUsagePolicy,
+      limits: {
+        ...workspaceUsagePolicy,
+        usageBackend: usageBackend.kind,
+        durableAcrossInstances: usageBackend.durable,
+      },
       protocolVersion: CREATIVE_AGENT_PROTOCOL_VERSION,
       dailyEvaluationEnabled: true,
       improvementPolicy: "versioned-evaluation-human-approval-rollback",
@@ -560,6 +546,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const usageBackend = workspaceUsageBackend();
+  if (!usageBackend.ready) {
+    return errorResponse(
+      "Distributed AI usage protection is not configured for this deployment.",
+      503,
+      requestId,
+    );
+  }
+
   let rawBody: string;
   try {
     rawBody = await request.text();
@@ -587,14 +582,16 @@ export async function POST(request: NextRequest) {
 
   const visitorKey = clientKey(request, usageSecret);
   let key = visitorKey;
-  const admission = beginWorkspaceRequest(key);
+  const admission = await beginWorkspaceRequest(key);
   if (!admission.allowed) {
     const message =
-      admission.reason === "concurrency"
+      admission.reason === "unavailable"
+        ? "Review capacity is temporarily unavailable. No content was sent to a model."
+        : admission.reason === "concurrency"
         ? "Two reviews are already running. Wait for one to finish before starting another."
         : "Review limit reached. Keep working locally and try again shortly.";
 
-    return errorResponse(message, 429, requestId, {
+    return errorResponse(message, admission.reason === "unavailable" ? 503 : 429, requestId, {
       headers: {
         "Retry-After": String(admission.retryAfter),
         "X-RateLimit-Remaining": "0",
@@ -604,6 +601,7 @@ export async function POST(request: NextRequest) {
   }
 
   key = admission.usageKey;
+  const usageLeaseId = admission.leaseId;
   try {
     let raw: unknown;
     try {
@@ -645,7 +643,7 @@ export async function POST(request: NextRequest) {
           ? error.message
           : "The project graph snapshot failed integrity validation.";
       return errorResponse(message, 422, requestId, {
-        limits: getWorkspaceUsage(key, input.depth),
+        limits: await getWorkspaceUsage(key, input.depth),
       });
     }
 
@@ -658,17 +656,19 @@ export async function POST(request: NextRequest) {
         requestId,
         startedAt,
         {
-          ...getWorkspaceUsage(key, input.depth),
+          ...(await getWorkspaceUsage(key, input.depth)),
           creditCost: 0,
         },
       );
     }
 
-    const credits = consumeWorkspaceCredits(key, input.depth);
+    const credits = await consumeWorkspaceCredits(key, input.depth);
     if (!credits.allowed) {
       return errorResponse(
-        "Today’s anonymous AI review allowance has been used. You can continue working locally in Canvas.",
-        429,
+        credits.reason === "unavailable"
+          ? "Distributed AI usage accounting is temporarily unavailable. No content was sent to a model."
+          : "Today’s anonymous AI review allowance has been used. You can continue working locally in Canvas.",
+        credits.reason === "unavailable" ? 503 : 429,
         requestId,
         {
           headers: {
@@ -734,6 +734,17 @@ export async function POST(request: NextRequest) {
           : {}),
       };
 
+      logOperationalEvent("info", "workspace.review.completed", {
+        requestId,
+        source: response.source,
+        model: response.model,
+        depth: input.depth,
+        lens: input.lens,
+        mode: input.mode,
+        durationMs: response.request.durationMs,
+        totalTokens: response.usage?.totalTokens,
+      });
+
       return NextResponse.json(response, {
         headers: responseHeaders(requestId, {
           "X-RateLimit-Remaining": String(credits.usage.minuteRemaining),
@@ -761,6 +772,6 @@ export async function POST(request: NextRequest) {
       );
     }
   } finally {
-    finishWorkspaceRequest(key);
+    await finishWorkspaceRequest(key, usageLeaseId);
   }
 }

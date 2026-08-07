@@ -54,9 +54,24 @@ const CREATE_MENU_DIRECTIONS = [
 const CREATE_SECTION_ANCHORS = [
   ["Interactive demonstrations", "#websites"],
   ["Creation categories", "#capabilities"],
-  ["Canvas + Project Atlas", "#studio"],
+  ["Workflows + Project Atlas", "#studio"],
   ["Complete catalogue", "#catalogue"],
   ["Open full workspace", WORKSPACE_ROUTE],
+];
+const WORKFLOW_TEMPLATE_NAMES = [
+  "Websites and digital destinations",
+  "Digital tools",
+  "Institutional systems",
+  "Research and AI tools",
+  "Operational tools",
+  "Education tools",
+  "Everyday personal tools",
+];
+const TRUST_ROUTES = [
+  ["/privacy", "Privacy, stated plainly."],
+  ["/terms", "Clear terms for serious work."],
+  ["/accessibility", "Access is part of the work."],
+  ["/ai-transparency", "Assistance without hidden authority."],
 ];
 const CREATE_PROOFS = [
   ["Science", "/create/lumen-vale-laboratory"],
@@ -86,6 +101,9 @@ const runtime = {
   pageErrors: [],
   requestFailures: [],
   httpErrors: [],
+  expectedHttpStates: [],
+  expectedCloudConsoleStates: [],
+  expectedLocalObservabilityStates: [],
 };
 
 function serializableError(error) {
@@ -134,6 +152,19 @@ function hasExactKeys(value, expected) {
     JSON.stringify(Object.keys(value).sort()) ===
       JSON.stringify([...expected].sort())
   );
+}
+
+function hasExactHeaderTokens(value, expected) {
+  if (typeof value !== "string") return false;
+  const tokens = value
+    .split(",")
+    .map((token) => token.trim().toLocaleLowerCase("en"))
+    .filter(Boolean)
+    .sort();
+  const expectedTokens = expected
+    .map((token) => token.toLocaleLowerCase("en"))
+    .sort();
+  return JSON.stringify(tokens) === JSON.stringify(expectedTokens);
 }
 
 function validReadinessRoute(route, expectedReasoning) {
@@ -570,6 +601,10 @@ async function inspectCreateSurface(page) {
       const embeddedButtons = embedded
         ? [...embedded.querySelectorAll("button")]
         : [];
+      const workflowLibrary = embedded?.querySelector(
+        "[data-workflow-library]",
+      );
+      const evidenceIntake = embedded?.querySelector("[data-evidence-intake]");
       const internalAnchors = links('main a[href^="#"]').map((anchor) => {
         const target = anchor.href
           ? document.getElementById(anchor.href.slice(1))
@@ -714,6 +749,55 @@ async function inspectCreateSurface(page) {
               button.textContent?.replace(/\s+/g, " ").trim() === "Conductor" &&
               visible(button),
           ),
+          workflowLibrary: {
+            visible: visible(workflowLibrary),
+            heading:
+              workflowLibrary
+                ?.querySelector("#workflow-library-heading")
+                ?.textContent?.trim() ?? "",
+            templates: workflowLibrary
+              ? [
+                  ...workflowLibrary.querySelectorAll(
+                    'nav[aria-label="Atlas workflow templates"] button',
+                  ),
+                ].map((button) => ({
+                  label:
+                    button.querySelector("strong")?.textContent?.trim() ?? "",
+                  pressed: button.getAttribute("aria-pressed"),
+                  visible: visible(button),
+                }))
+              : [],
+            phaseCount:
+              workflowLibrary?.querySelectorAll(
+                'ol[aria-label$="workflow phases"] li',
+              ).length ?? 0,
+          },
+          evidenceIntake: {
+            visible: visible(evidenceIntake),
+            heading:
+              evidenceIntake
+                ?.querySelector("h2, h3")
+                ?.textContent?.trim() ?? "",
+            modes: evidenceIntake
+              ? [
+                  ...evidenceIntake.querySelectorAll(
+                    'fieldset input[type="radio"]',
+                  ),
+                ].map((input) => ({
+                  label:
+                    input
+                      .closest("label")
+                      ?.querySelector("strong")
+                      ?.textContent?.trim() ?? "",
+                  checked: input.checked,
+                }))
+              : [],
+            submitLabel:
+              evidenceIntake
+                ?.querySelector('button[type="submit"]')
+                ?.textContent?.replace(/\s+/g, " ")
+                .trim() ?? "",
+          },
         },
       };
     },
@@ -779,6 +863,34 @@ async function verifyCreateSurface(page, viewport) {
       state.embeddedCanvas.libraryVisible &&
       state.embeddedCanvas.conductorVisible,
     { embeddedCanvas: state.embeddedCanvas },
+  );
+  check(
+    `create.${viewport}.seven-workflows-and-governed-evidence`,
+    state.embeddedCanvas.workflowLibrary.visible &&
+      state.embeddedCanvas.workflowLibrary.heading ===
+        "Start with a governed project structure." &&
+      JSON.stringify(
+        state.embeddedCanvas.workflowLibrary.templates.map(({ label }) => label),
+      ) === JSON.stringify(WORKFLOW_TEMPLATE_NAMES) &&
+      state.embeddedCanvas.workflowLibrary.templates.every(({ visible }) => visible) &&
+      state.embeddedCanvas.workflowLibrary.templates.filter(
+        ({ pressed }) => pressed === "true",
+      ).length === 1 &&
+      state.embeddedCanvas.workflowLibrary.phaseCount === PHASES.length &&
+      state.embeddedCanvas.evidenceIntake.visible &&
+      state.embeddedCanvas.evidenceIntake.heading ===
+        "Add sources without leaving Project Atlas." &&
+      JSON.stringify(
+        state.embeddedCanvas.evidenceIntake.modes.map(({ label }) => label),
+      ) === JSON.stringify(["Paste text", "Record URL", "Local file"]) &&
+      state.embeddedCanvas.evidenceIntake.modes.filter(({ checked }) => checked)
+        .length === 1 &&
+      state.embeddedCanvas.evidenceIntake.submitLabel ===
+        "Record evidence in Atlas",
+    {
+      workflowLibrary: state.embeddedCanvas.workflowLibrary,
+      evidenceIntake: state.embeddedCanvas.evidenceIntake,
+    },
   );
   check(
     `create.${viewport}.anchors-and-no-document-overflow`,
@@ -1337,6 +1449,308 @@ function snapshotWithinBounds(snapshot, bounds) {
   );
 }
 
+async function readApiResponse(response) {
+  const text = await response.text();
+  let body = null;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    // The bounded excerpt makes non-JSON infrastructure regressions explicit.
+  }
+  return {
+    body,
+    textExcerpt: body ? null : text.slice(0, 500),
+    headers: response.headers(),
+    status: response.status(),
+  };
+}
+
+async function verifyFoundationDiagnostics(browserContext) {
+  const health = await readApiResponse(
+    await browserContext.request.get(`${BASE_URL}/api/health`),
+  );
+  const expectedCapabilities = [
+    "publicSite",
+    "localWorkspace",
+    "aiProviderConfigured",
+    "pseudonymousUsageIdentityConfigured",
+    "distributedUsageConfigured",
+    "cloudWorkspaceConfigured",
+    "privateEvidenceStorageConfigured",
+    "durableReviewWorkflowConfigured",
+    "enquiryDeliveryConfigured",
+  ];
+  demand(
+    "foundation.health.secret-free-capabilities",
+    health.status === 200 &&
+      health.headers["cache-control"] === "no-store, max-age=0" &&
+      health.body?.service === "kingxford-platform" &&
+      health.body?.status === "configuration-required" &&
+      typeof health.body?.requestId === "string" &&
+      !Number.isNaN(Date.parse(health.body?.checkedAt ?? "")) &&
+      hasExactKeys(health.body?.capabilities, expectedCapabilities) &&
+      health.body.capabilities.publicSite === true &&
+      health.body.capabilities.localWorkspace === true &&
+      health.body.capabilities.aiProviderConfigured === false &&
+      health.body.capabilities.pseudonymousUsageIdentityConfigured === true &&
+      health.body.capabilities.distributedUsageConfigured === false &&
+      health.body.capabilities.cloudWorkspaceConfigured === false &&
+      health.body.capabilities.privateEvidenceStorageConfigured === false &&
+      health.body.capabilities.durableReviewWorkflowConfigured === false &&
+      health.body.capabilities.enquiryDeliveryConfigured === false,
+    health,
+  );
+
+  const cloudStatus = await readApiResponse(
+    await browserContext.request.get(`${BASE_URL}/api/cloud/status`),
+  );
+  demand(
+    "foundation.cloud.honest-local-only-state",
+    cloudStatus.status === 200 &&
+      cloudStatus.body?.ok === true &&
+      cloudStatus.body?.authenticated === false &&
+      cloudStatus.body?.cloud?.configured === false &&
+      cloudStatus.body?.cloud?.mode === "local-only" &&
+      typeof cloudStatus.body?.cloud?.message === "string" &&
+      cloudStatus.body.cloud.message.includes("Local Canvas and Atlas projects"),
+    cloudStatus,
+  );
+
+  const contactDiagnostic = await readApiResponse(
+    await browserContext.request.get(`${BASE_URL}/api/contact`),
+  );
+  demand(
+    "foundation.contact.honest-unavailable-state",
+    contactDiagnostic.status === 200 &&
+      contactDiagnostic.body?.onlineSubmission?.available === false &&
+      contactDiagnostic.body?.onlineSubmission?.status ===
+        "configuration-required" &&
+      contactDiagnostic.body?.deliveryProviderConfigured === false &&
+      contactDiagnostic.body?.abuseProtection?.available === false &&
+      contactDiagnostic.body?.abuseProtection?.durable === false &&
+      contactDiagnostic.body?.abuseProtection?.mode === "unavailable" &&
+      contactDiagnostic.body?.fallbackEmailAvailable === false &&
+      Number.isInteger(contactDiagnostic.body?.retentionTargetDays) &&
+      contactDiagnostic.body.retentionTargetDays > 0,
+    contactDiagnostic,
+  );
+
+  const enquiry = {
+    idempotencyKey: "kx.platform.journey.contact.20260806",
+    name: "Release verifier",
+    email: "release-verifier@example.com",
+    organization: "Kingxford verification",
+    brief: {
+      problem:
+        "Confirm that an unavailable project inbox fails closed without losing the prepared brief.",
+      affected: "Prospective project teams and the site operator.",
+      evidence: "This is a fixed, non-sensitive release fixture.",
+      future: "A clear unavailable response with local fallback options.",
+      constraints: "No message may leave this local verification run.",
+      investment: "Not applicable to this release fixture.",
+      horizon: "Pilot and evidence · 3–12 months",
+    },
+    consent: true,
+    website: "",
+  };
+  const contactPost = await readApiResponse(
+    await browserContext.request.post(`${BASE_URL}/api/contact`, {
+      data: JSON.stringify(enquiry),
+      headers: {
+        "Content-Type": "application/json",
+        Origin: new URL(BASE_URL).origin,
+        "Sec-Fetch-Site": "same-origin",
+      },
+    }),
+  );
+  demand(
+    "foundation.contact.fail-closed-with-local-copy",
+    contactPost.status === 503 &&
+      contactPost.body?.submitted === false &&
+      contactPost.body?.unavailable === true &&
+      typeof contactPost.body?.requestId === "string" &&
+      contactPost.headers["cache-control"] === "no-store, max-age=0",
+    contactPost,
+  );
+
+  const durableStatus = await readApiResponse(
+    await browserContext.request.get(
+      `${BASE_URL}/api/intelligence/workflows?runId=wr_local-verification`,
+    ),
+  );
+  demand(
+    "foundation.durable-workflow.requires-cloud-context",
+    durableStatus.status === 503 &&
+      durableStatus.body?.ok === false &&
+      durableStatus.body?.error?.code === "cloud_not_configured" &&
+      durableStatus.headers["cache-control"] === "private, no-store",
+    durableStatus,
+  );
+
+  for (const [surface, route] of [
+    ["account", "/api/cloud/account"],
+    ["organization", "/api/cloud/organization"],
+    [
+      "private-evidence-index",
+      "/api/cloud/projects/kx_project_0123456789abcdef/evidence",
+    ],
+  ]) {
+    const response = await readApiResponse(
+      await browserContext.request.get(`${BASE_URL}${route}`),
+    );
+    demand(
+      `foundation.cloud.${surface}.fails-closed-when-unconfigured`,
+      response.status === 503 &&
+        response.body?.ok === false &&
+        response.body?.error?.code === "cloud_not_configured" &&
+        response.body?.error?.message ===
+          "Cloud projects are not configured on this deployment. Local Canvas and Atlas projects remain available." &&
+        response.headers["cache-control"] === "private, no-store" &&
+        hasExactHeaderTokens(response.headers.vary, [
+          "rsc",
+          "next-router-state-tree",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "Cookie",
+          "X-Kingxford-Organization-Id",
+        ]),
+      { route, ...response },
+    );
+  }
+}
+
+async function verifyTrustSurfaces(browserContext) {
+  const trustPage = await browserContext.newPage();
+  observeRuntime(trustPage);
+  try {
+    for (const [route, expectedHeading] of TRUST_ROUTES) {
+      await visit(trustPage, route);
+      const state = await trustPage.evaluate(() => ({
+        heading:
+          document.querySelector("main h1")?.textContent?.replace(/\s+/g, " ").trim() ??
+          "",
+        headingCount: document.querySelectorAll("main h1").length,
+        contentsLinks: document.querySelectorAll('main nav[aria-label$=" contents"] a')
+          .length,
+        related: [
+          ...document.querySelectorAll(
+            'main nav[aria-label="Trust and legal pages"] a',
+          ),
+        ].map((anchor) => [
+          anchor.textContent?.replace(/\s+/g, " ").trim() ?? "",
+          anchor.getAttribute("href"),
+        ]),
+        footerTrust: [
+          ...document.querySelectorAll(
+            'footer nav[aria-label="Trust and legal"] a',
+          ),
+        ].map((anchor) => anchor.getAttribute("href")),
+      }));
+      check(
+        `trust${route.replaceAll("/", ".")}.structured-and-connected`,
+        state.heading === expectedHeading &&
+          state.headingCount === 1 &&
+          state.contentsLinks >= 5 &&
+          JSON.stringify(state.related) ===
+            JSON.stringify([
+              ["Privacy", "/privacy"],
+              ["Terms", "/terms"],
+              ["Accessibility", "/accessibility"],
+              ["AI transparency", "/ai-transparency"],
+            ]) &&
+          JSON.stringify(state.footerTrust) ===
+            JSON.stringify([
+              "/privacy",
+              "/terms",
+              "/accessibility",
+              "/ai-transparency",
+            ]),
+        { route, ...state },
+      );
+    }
+
+    await visit(trustPage, "/contact");
+    check(
+      "trust.contact.offline-delivery-is-explicit",
+      (await trustPage.locator("main h1").count()) === 1 &&
+        (await trustPage
+          .getByText("Online delivery is not ready on this deployment.", {
+            exact: true,
+          })
+          .isVisible()) &&
+        (await trustPage
+          .getByRole("button", { name: "Online submission unavailable" })
+          .isDisabled()) &&
+        (await trustPage
+          .getByRole("button", { name: "Copy structured brief" })
+          .isVisible()) &&
+        (await trustPage.getByRole("button", { name: "Download .txt" }).isVisible()),
+    );
+
+    await visit(trustPage, "/account");
+    const robots = await trustPage
+      .locator('meta[name="robots"]')
+      .getAttribute("content");
+    check(
+      "trust.account.private-data-controls-route",
+      (await trustPage.getByRole("heading", {
+        name: "Cloud project administration.",
+        exact: true,
+      }).isVisible()) &&
+        Boolean(robots?.includes("noindex")) &&
+        (await trustPage.getByRole("heading", {
+          name: "Access management unavailable",
+          exact: true,
+        }).isVisible()) &&
+        (await trustPage.getByRole("button", {
+          name: "Try again",
+          exact: true,
+        }).isVisible()) &&
+        (await trustPage.getByRole("heading", {
+          name: "Cloud account unavailable",
+          exact: true,
+        }).isVisible()) &&
+        (await trustPage.getByRole("link", {
+          name: "Sign in or review configuration",
+          exact: true,
+        }).isVisible()),
+      { robots },
+    );
+
+    await visit(trustPage, "/accept-invitation");
+    const invitationRobots = await trustPage
+      .locator('meta[name="robots"]')
+      .getAttribute("content");
+    check(
+      "trust.invitation.private-missing-token-state",
+      (await trustPage.getByRole("heading", {
+        name: "Accept an invitation.",
+        exact: true,
+      }).isVisible()) &&
+        Boolean(invitationRobots?.includes("noindex")) &&
+        (await trustPage.getByRole("heading", {
+          name: "Secure organization invitation",
+          exact: true,
+        }).isVisible()) &&
+        (await trustPage.getByText(
+          "The invitation link is missing or its temporary browser copy has expired.",
+          { exact: true },
+        ).isVisible()) &&
+        (await trustPage.getByRole("link", {
+          name: "Return to account controls",
+          exact: true,
+        }).getAttribute("href")) === "/account" &&
+        (await trustPage.getByRole("button", {
+          name: "Accept invitation",
+          exact: true,
+        }).count()) === 0,
+      { robots: invitationRobots },
+    );
+  } finally {
+    await trustPage.close();
+  }
+}
+
 let browser;
 let context;
 let page;
@@ -1357,11 +1771,179 @@ function recordRuntimeChecks() {
   check("runtime.http-errors", runtime.httpErrors.length === 0, {
     errors: runtime.httpErrors,
   });
+  const expectedPaths = [
+    "/api/cloud/account",
+    "/api/cloud/organization",
+  ];
+  check(
+    "runtime.expected-cloud-probes-bounded",
+    READINESS_ONLY
+      ? runtime.expectedHttpStates.length === 0
+      : runtime.expectedHttpStates.every(
+          ({ method, status, path: responsePath }) =>
+            method === "GET" &&
+            status === 503 &&
+            (expectedPaths.includes(responsePath) ||
+              /^\/api\/cloud\/projects\/kx_[a-z][a-z0-9_]{0,23}_[0-9a-f]{16}\/evidence$/.test(
+                responsePath,
+              )),
+        ) &&
+          expectedPaths.every((expectedPath) =>
+            runtime.expectedHttpStates.some(
+              ({ path: responsePath }) => responsePath === expectedPath,
+            ),
+          ) &&
+          runtime.expectedHttpStates.some(({ path: responsePath }) =>
+            /^\/api\/cloud\/projects\/kx_[a-z][a-z0-9_]{0,23}_[0-9a-f]{16}\/evidence$/.test(
+              responsePath,
+            ),
+          ),
+    { expectedHttpStates: runtime.expectedHttpStates },
+  );
+  check(
+    "runtime.expected-cloud-console-states-bounded",
+    READINESS_ONLY
+      ? runtime.expectedCloudConsoleStates.length === 0
+      : runtime.expectedCloudConsoleStates.every(
+          ({ method, status, path: responsePath, text }) =>
+            method === "GET" &&
+            status === 503 &&
+            text ===
+              "Failed to load resource: the server responded with a status of 503 (Service Unavailable)" &&
+            (expectedPaths.includes(responsePath) ||
+              /^\/api\/cloud\/projects\/kx_[a-z][a-z0-9_]{0,23}_[0-9a-f]{16}\/evidence$/.test(
+                responsePath,
+              )),
+        ),
+    { expectedCloudConsoleStates: runtime.expectedCloudConsoleStates },
+  );
+  check(
+    "runtime.local-observability-probes-bounded",
+    runtime.expectedLocalObservabilityStates.every(
+      ({ kind, method, status, path: responsePath, errorText }) =>
+        ["console", "request-failure", "response"].includes(kind) &&
+        method === "GET" &&
+        (responsePath === "/_vercel/insights/script.js" ||
+          responsePath === "/_vercel/speed-insights/script.js") &&
+        (kind !== "response" || status === 404) &&
+        (kind !== "request-failure" || errorText === "net::ERR_ABORTED"),
+    ),
+    {
+      expectedLocalObservabilityStates:
+        runtime.expectedLocalObservabilityStates,
+    },
+  );
+}
+
+function localObservabilityScriptPath(value) {
+  try {
+    const base = new URL(BASE_URL);
+    const candidate = new URL(value, base);
+    if (
+      !["127.0.0.1", "localhost", "::1"].includes(base.hostname) ||
+      candidate.origin !== base.origin
+    ) {
+      return null;
+    }
+    return candidate.pathname === "/_vercel/insights/script.js" ||
+      candidate.pathname === "/_vercel/speed-insights/script.js"
+      ? candidate.pathname
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function expectedLocalObservabilityConsole(message) {
+  if (message.type() !== "error") return null;
+  const directPath = localObservabilityScriptPath(message.location().url);
+  if (
+    directPath &&
+    /^Failed to load resource: the server responded with a status of 404 \(Not Found\)$/.test(
+      message.text(),
+    )
+  ) {
+    return directPath;
+  }
+  if (
+    /^Refused to execute script from '.+' because its MIME type \('text\/plain'\) is not executable, and strict MIME type checking is enabled\.$/.test(
+      message.text(),
+    )
+  ) {
+    for (const pathname of [
+      "/_vercel/insights/script.js",
+      "/_vercel/speed-insights/script.js",
+    ]) {
+      if (
+        message.text().includes(`${new URL(BASE_URL).origin}${pathname}`) &&
+        localObservabilityScriptPath(`${new URL(BASE_URL).origin}${pathname}`)
+      ) {
+        return pathname;
+      }
+    }
+  }
+  return null;
+}
+
+function expectedUnconfiguredCloudProbePath(value) {
+  if (
+    EXPECTED_READINESS_STATE !== "local-fallback"
+  ) {
+    return null;
+  }
+  let candidate;
+  try {
+    candidate = new URL(value, BASE_URL);
+  } catch {
+    return null;
+  }
+  if (candidate.origin !== new URL(BASE_URL).origin) return null;
+  const { pathname } = candidate;
+  return (
+    pathname === "/api/cloud/account" ||
+    pathname === "/api/cloud/organization" ||
+    /^\/api\/cloud\/projects\/kx_[a-z][a-z0-9_]{0,23}_[0-9a-f]{16}\/evidence$/.test(
+      pathname,
+    )
+  ) ? pathname : null;
+}
+
+function isExpectedUnconfiguredCloudProbe(response) {
+  return (
+    response.status() === 503 &&
+    response.request().method() === "GET" &&
+    Boolean(expectedUnconfiguredCloudProbePath(response.url()))
+  );
 }
 
 function observeRuntime(observedPage) {
   observedPage.on("console", (message) => {
     if (message.type() !== "error") return;
+    const expectedCloudPath = expectedUnconfiguredCloudProbePath(
+      message.location().url,
+    );
+    if (
+      expectedCloudPath &&
+      message.text() ===
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    ) {
+      runtime.expectedCloudConsoleStates.push({
+        method: "GET",
+        status: 503,
+        path: expectedCloudPath,
+        text: message.text(),
+      });
+      return;
+    }
+    const expectedPath = expectedLocalObservabilityConsole(message);
+    if (expectedPath) {
+      runtime.expectedLocalObservabilityStates.push({
+        kind: "console",
+        method: "GET",
+        path: expectedPath,
+      });
+      return;
+    }
     runtime.consoleErrors.push({
       url: observedPage.url(),
       text: message.text(),
@@ -1376,6 +1958,21 @@ function observeRuntime(observedPage) {
   });
   observedPage.on("requestfailed", (request) => {
     const errorText = request.failure()?.errorText ?? "Unknown request failure";
+    const expectedPath = localObservabilityScriptPath(request.url());
+    if (
+      expectedPath &&
+      request.method() === "GET" &&
+      request.resourceType() === "script" &&
+      errorText === "net::ERR_ABORTED"
+    ) {
+      runtime.expectedLocalObservabilityStates.push({
+        kind: "request-failure",
+        method: request.method(),
+        path: expectedPath,
+        errorText,
+      });
+      return;
+    }
     if (
       request.method() === "GET" &&
       request.resourceType() === "fetch" &&
@@ -1395,6 +1992,30 @@ function observeRuntime(observedPage) {
   });
   observedPage.on("response", (response) => {
     if (response.status() < 400) return;
+    const localObservabilityPath = localObservabilityScriptPath(response.url());
+    if (
+      localObservabilityPath &&
+      response.status() === 404 &&
+      response.request().method() === "GET" &&
+      response.request().resourceType() === "script"
+    ) {
+      runtime.expectedLocalObservabilityStates.push({
+        kind: "response",
+        method: response.request().method(),
+        path: localObservabilityPath,
+        status: response.status(),
+      });
+      return;
+    }
+    if (isExpectedUnconfiguredCloudProbe(response)) {
+      runtime.expectedHttpStates.push({
+        method: response.request().method(),
+        resourceType: response.request().resourceType(),
+        status: response.status(),
+        path: new URL(response.url()).pathname,
+      });
+      return;
+    }
     runtime.httpErrors.push({
       method: response.request().method(),
       resourceType: response.request().resourceType(),
@@ -1445,6 +2066,8 @@ try {
   await verifyLiveAiReadiness(page, EXPECTED_READINESS_STATE);
 
   if (!READINESS_ONLY) {
+  await verifyFoundationDiagnostics(context);
+  await verifyTrustSurfaces(context);
   await verifySharedNavigation(page, "home");
   const createNavigationPage = await context.newPage();
   observeRuntime(createNavigationPage);
@@ -1626,6 +2249,80 @@ try {
   await projectLibrary.getByRole("button", { name: "Close project library" }).click();
   await projectLibrary.waitFor({ state: "hidden" });
 
+  const cloudLocalState = await poll(
+    "the optional cloud panel to resolve its local-only state",
+    () =>
+      page.evaluate(() => {
+        const panel = document.querySelector(
+          'section[aria-labelledby="cloud-projects-title"]',
+        );
+        return panel
+          ? {
+              heading:
+                panel
+                  .querySelector("#cloud-projects-title")
+                  ?.textContent?.replace(/\s+/g, " ")
+                  .trim() ?? "",
+              text: panel.textContent?.replace(/\s+/g, " ").trim() ?? "",
+              uploadControls: panel.querySelectorAll(
+                'button, a[href^="/api/cloud"]',
+              ).length,
+            }
+          : null;
+      }),
+    (value) => Boolean(value?.heading),
+  );
+  check(
+    "cloud.canvas.explicit-local-only-state",
+    cloudLocalState.heading === "Cloud projects are not configured" &&
+      cloudLocalState.text.includes(
+        "Local Canvas and Atlas projects remain available on this device.",
+      ) &&
+      cloudLocalState.uploadControls === 0,
+    { cloudLocalState },
+  );
+
+  const cloudEvidenceState = await poll(
+    "private cloud evidence to resolve its explicit unavailable state",
+    () =>
+      page.evaluate(() => {
+        const panel = document.querySelector("[data-cloud-evidence]");
+        return panel
+          ? {
+              heading:
+                panel
+                  .querySelector("h2, h3")
+                  ?.textContent?.replace(/\s+/g, " ")
+                  .trim() ?? "",
+              text: panel.textContent?.replace(/\s+/g, " ").trim() ?? "",
+              retryCount: [...panel.querySelectorAll("button")].filter(
+                (button) =>
+                  button.textContent?.replace(/\s+/g, " ").trim() === "Retry",
+              ).length,
+              fileInputCount: panel.querySelectorAll('input[type="file"]').length,
+              retainControlCount: [...panel.querySelectorAll("button")].filter(
+                (button) => /retain original/i.test(button.textContent ?? ""),
+              ).length,
+            }
+          : null;
+      }),
+    (value) => Boolean(value?.text.includes("Cloud projects are not configured")),
+  );
+  check(
+    "cloud.evidence.private-storage-fails-closed",
+    cloudEvidenceState.heading === "Retain source files deliberately." &&
+      cloudEvidenceState.text.includes(
+        "Nothing is uploaded when you record local evidence; select and retain each file explicitly.",
+      ) &&
+      cloudEvidenceState.text.includes(
+        "Cloud projects are not configured on this deployment. Local Canvas and Atlas projects remain available.",
+      ) &&
+      cloudEvidenceState.retryCount === 1 &&
+      cloudEvidenceState.fileInputCount === 0 &&
+      cloudEvidenceState.retainControlCount === 0,
+    { cloudEvidenceState },
+  );
+
   const conductorResultTab = page.locator("#workspace-result-tab-intelligence");
   check(
     "conductor.result-tab.available",
@@ -1634,6 +2331,48 @@ try {
       (await conductorResultTab.getAttribute("aria-controls")) ===
         "workspace-intelligence-panel" &&
       (await conductorResultTab.textContent())?.trim() === "Conductor",
+  );
+
+  await conductorResultTab.click();
+  const executionPanel = page.locator("#workspace-intelligence-panel");
+  await executionPanel.waitFor({ state: "visible" });
+  const currentSessionMode = executionPanel.getByRole("radio", {
+    name: /^Current session/,
+  });
+  const durableCloudMode = executionPanel.getByRole("radio", {
+    name: /^Cloud/,
+  });
+  const executionState = {
+    currentVisible: await currentSessionMode.isVisible(),
+    currentChecked: await currentSessionMode.isChecked(),
+    cloudVisible: await durableCloudMode.isVisible(),
+    cloudChecked: await durableCloudMode.isChecked(),
+  };
+  await durableCloudMode.check();
+  const durableRunLabelVisible = await executionPanel
+    .getByRole("button", { name: "Run durable review", exact: true })
+    .isVisible();
+  await currentSessionMode.check();
+  const immediateRunLabelVisible = await executionPanel
+    .getByRole("button", { name: "Run project review", exact: true })
+    .isVisible();
+  check(
+    "conductor.execution.current-session-and-durable-cloud-modes",
+    executionState.currentVisible &&
+      executionState.currentChecked &&
+      executionState.cloudVisible &&
+      !executionState.cloudChecked &&
+      durableRunLabelVisible &&
+      immediateRunLabelVisible &&
+      (await currentSessionMode.isChecked()),
+    {
+      initial: executionState,
+      durableRunLabelVisible,
+      immediateRunLabelVisible,
+      restoredMode: (await currentSessionMode.isChecked())
+        ? "current-session"
+        : "unexpected",
+    },
   );
 
   await verifyAtlasDesktop(page);

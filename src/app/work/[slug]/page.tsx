@@ -25,7 +25,9 @@ const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   "https://kingxford.co";
 
-export const dynamicParams = false;
+// Known case studies are prerendered; unknown slugs reach the explicit
+// notFound() boundary without being logged as internal fallback failures.
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return projects.map((project) => ({ slug: project.slug }));

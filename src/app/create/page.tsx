@@ -20,6 +20,7 @@ import {
   websiteShowcases,
   type CreationCategory,
 } from "@/data/creations";
+import { workflowTemplateById } from "@/lib/workspace/workflow-templates";
 
 import styles from "./CreatePage.module.css";
 
@@ -54,8 +55,6 @@ const categoryIcons: Record<CreationCategory, typeof MonitorSmartphone> = {
 };
 
 export default function CreatePage() {
-  const entrepreneurshipUrl =
-    process.env.NEXT_PUBLIC_AI_ENTREPRENEURSHIP_URL?.trim() || null;
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -139,7 +138,7 @@ export default function CreatePage() {
       <nav className={styles.pageRouter} aria-label="Create sections">
         <a href="#websites"><span>01</span> Interactive demonstrations</a>
         <a href="#capabilities"><span>02</span> Creation categories</a>
-        <a href="#studio"><span>03</span> Canvas + Project Atlas</a>
+        <a href="#studio"><span>03</span> Workflows + Project Atlas</a>
         <a href="#catalogue"><span>04</span> Complete catalogue</a>
         <Link href="/create/workspace"><span>↗</span> Open full workspace</Link>
       </nav>
@@ -184,6 +183,7 @@ export default function CreatePage() {
         <nav className={styles.capabilityGrid} aria-label="Seven creation directions">
           {creationCatalogue.map((item) => {
             const Icon = categoryIcons[item.slug];
+            const workflow = workflowTemplateById(item.slug);
             return (
               <a href={`#capability-${item.slug}`} key={item.slug}>
                 <span className={styles.capabilityMark}>
@@ -196,7 +196,7 @@ export default function CreatePage() {
                   <span>{item.thesis}</span>
                 </span>
                 <span className={styles.capabilitySignal}>
-                  {item.capabilities.length} capabilities · {item.exampleNeeds.length} examples
+                  {workflow.phases.length} connected phases · {workflow.phases.length} human gates
                   <ArrowDownRight aria-hidden="true" />
                 </span>
               </a>
@@ -230,7 +230,6 @@ export default function CreatePage() {
         <div className={styles.studioFrame}>
           <CreativeWorkspace
             embedded
-            entrepreneurshipUrl={entrepreneurshipUrl}
             initialMode={null}
           />
         </div>
@@ -252,6 +251,7 @@ export default function CreatePage() {
         <div className={styles.catalogueList}>
           {creationCatalogue.map((item) => {
             const Icon = categoryIcons[item.slug];
+            const workflow = workflowTemplateById(item.slug);
             const legacyAnchor =
               item.slug === "websites" ? "websites-capability" : item.slug;
             return (
@@ -294,6 +294,21 @@ export default function CreatePage() {
                         ))}
                       </ul>
                     </div>
+                  </div>
+                  <div className={styles.workflowSummary}>
+                    <div>
+                      <span>Connected Atlas workflow</span>
+                      <strong>{workflow.phases.length} phases · evidence threshold and human gate in every phase</strong>
+                    </div>
+                    <ol aria-label={`${item.name} workflow phases`}>
+                      {workflow.phases.map((phase, index) => (
+                        <li key={phase.phase}>
+                          <span>{String(index + 1).padStart(2, "0")}</span>
+                          {phase.phase}
+                          <small>{phase.evidence.minimumItems} evidence</small>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
                   <Link className="text-link" href={item.cta.href}>
                     <span>{item.cta.label}</span>

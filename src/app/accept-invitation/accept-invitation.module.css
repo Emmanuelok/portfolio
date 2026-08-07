@@ -1,0 +1,100 @@
+.page {
+  width: min(100%, 92rem);
+  min-height: 100svh;
+  margin-inline: auto;
+  padding: clamp(8rem, 13vw, 12rem) var(--page-gutter) 6rem;
+}
+
+.header {
+  max-width: 70rem;
+  padding-bottom: clamp(2.5rem, 6vw, 5rem);
+  border-bottom: 1px solid var(--border);
+}
+
+.header > p:first-child,
+.kicker {
+  margin: 0;
+  color: var(--text-faint);
+  font: 600 0.66rem/1.4 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  max-width: 12ch;
+  margin: 1rem 0;
+  font-size: clamp(3.5rem, 8vw, 8rem);
+  font-weight: 460;
+  letter-spacing: -0.07em;
+  line-height: 0.9;
+}
+
+.header > p:last-child {
+  max-width: 48rem;
+  color: var(--text-soft);
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  line-height: 1.6;
+}
+
+.panel {
+  max-width: 56rem;
+  margin-top: clamp(2rem, 5vw, 4rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+}
+
+.panel h2 {
+  margin: 0.75rem 0 1rem;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  letter-spacing: -0.04em;
+}
+
+.message,
+.note {
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.5rem;
+}
+
+.actions a,
+.actions button {
+  display: inline-flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.actions button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.note {
+  margin: 2rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.74rem;
+}
+
+@media (forced-colors: active) {
+  .panel,
+  .actions a,
+  .actions button {
+    border-color: CanvasText;
+  }
+}

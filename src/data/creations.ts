@@ -106,7 +106,10 @@ export const creationCatalogue: readonly CreationCatalogueItem[] = [
       "Publication or knowledge hub",
       "Campaign or initiative microsite",
     ],
-    cta: { label: "Explore website concepts", href: "/create#websites" },
+    cta: {
+      label: "Start the website workflow",
+      href: "/create/workspace#workflow-websites",
+    },
   },
   {
     slug: "digital-tools",
@@ -137,7 +140,10 @@ export const creationCatalogue: readonly CreationCatalogueItem[] = [
       "Data collection workspace",
       "Self-service assessment",
     ],
-    cta: { label: "Discuss a digital tool", href: "/contact?brief=digital-tool" },
+    cta: {
+      label: "Start the digital tool workflow",
+      href: "/create/workspace#workflow-digital-tools",
+    },
   },
   {
     slug: "institutional-systems",
@@ -169,8 +175,8 @@ export const creationCatalogue: readonly CreationCatalogueItem[] = [
       "Evidence and reporting environment",
     ],
     cta: {
-      label: "Map an institutional system",
-      href: "/contact?brief=institutional-system",
+      label: "Start the institutional workflow",
+      href: "/create/workspace#workflow-institutional-systems",
     },
   },
   {
@@ -202,7 +208,10 @@ export const creationCatalogue: readonly CreationCatalogueItem[] = [
       "Ontology or knowledge-graph interface",
       "Evaluation and monitoring system",
     ],
-    cta: { label: "Frame a research tool", href: "/contact?brief=research-ai" },
+    cta: {
+      label: "Start the research workflow",
+      href: "/create/workspace#workflow-research-ai-tools",
+    },
   },
   {
     slug: "operational-tools",
@@ -233,7 +242,10 @@ export const creationCatalogue: readonly CreationCatalogueItem[] = [
       "Request and case queue",
       "Project delivery workspace",
     ],
-    cta: { label: "Improve an operation", href: "/contact?brief=operations" },
+    cta: {
+      label: "Start the operations workflow",
+      href: "/create/workspace#workflow-operational-tools",
+    },
   },
   {
     slug: "education-tools",
@@ -263,7 +275,10 @@ export const creationCatalogue: readonly CreationCatalogueItem[] = [
       "Programme application portal",
       "Learner project workspace",
     ],
-    cta: { label: "Design a learning tool", href: "/contact?brief=education" },
+    cta: {
+      label: "Start the education workflow",
+      href: "/create/workspace#workflow-education-tools",
+    },
   },
   {
     slug: "personal-tools",
@@ -289,7 +304,10 @@ export const creationCatalogue: readonly CreationCatalogueItem[] = [
       "Decision comparison tool",
       "Community resource guide",
     ],
-    cta: { label: "Propose an everyday tool", href: "/contact?brief=personal-tool" },
+    cta: {
+      label: "Start the personal tool workflow",
+      href: "/create/workspace#workflow-personal-tools",
+    },
   },
 ] as const;
 

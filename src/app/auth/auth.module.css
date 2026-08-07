@@ -1,0 +1,202 @@
+.page {
+  width: min(100%, 92rem);
+  min-height: 100svh;
+  margin-inline: auto;
+  padding: clamp(8rem, 13vw, 12rem) var(--page-gutter) 6rem;
+}
+
+.introduction {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.55fr);
+  align-items: end;
+  gap: clamp(2rem, 7vw, 8rem);
+  padding-bottom: clamp(3rem, 7vw, 6rem);
+  border-bottom: 1px solid var(--border);
+}
+
+.introduction > p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--text-faint);
+  font: 600 0.66rem/1.4 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.introduction h1 {
+  max-width: 11ch;
+  margin: 0;
+  font-size: clamp(3.7rem, 8vw, 8.4rem);
+  font-weight: 460;
+  letter-spacing: -0.075em;
+  line-height: 0.88;
+}
+
+.introduction > div {
+  color: var(--text-soft);
+}
+
+.introduction a,
+.localNotice a {
+  display: inline-flex;
+  min-height: 2.8rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr);
+  margin-top: clamp(2rem, 5vw, 4rem);
+  border: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.status {
+  grid-column: 1 / -1;
+  display: flex;
+  min-height: 3.2rem;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-soft);
+  font: 600 0.58rem/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status span {
+  width: 0.48rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.status[data-configured="true"] span {
+  background: var(--success);
+  box-shadow: 0 0 0 0.28rem color-mix(in srgb, var(--success) 15%, transparent);
+}
+
+.form,
+.localNotice,
+.assurances {
+  padding: clamp(1.5rem, 4vw, 3.4rem);
+}
+
+.form {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  border-right: 1px solid var(--border);
+}
+
+.form label {
+  color: var(--text-faint);
+  font: 600 0.62rem/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.form input {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--canvas);
+}
+
+.form button {
+  min-height: 3.5rem;
+  padding: 0.8rem 1rem;
+  background: var(--paper);
+  color: var(--canvas);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.form button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.formNote,
+.message,
+.localNotice p {
+  color: var(--text-faint);
+  font-size: 0.72rem;
+}
+
+.message {
+  margin: 0.5rem 0 0;
+  padding: 0.85rem;
+  border-left: 2px solid var(--success);
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+}
+
+.message[data-error="true"] {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.localNotice {
+  border-right: 1px solid var(--border);
+}
+
+.localNotice h2 {
+  max-width: 16ch;
+  margin-bottom: 1rem;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-weight: 480;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.assurances {
+  display: grid;
+  margin: 0;
+  gap: 0;
+  list-style: none;
+}
+
+.assurances li {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.assurances li:first-child {
+  padding-top: 0;
+}
+
+.assurances strong {
+  font-size: 0.78rem;
+}
+
+.assurances span {
+  color: var(--text-faint);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 760px) {
+  .introduction,
+  .panel {
+    grid-template-columns: 1fr;
+  }
+
+  .introduction h1 {
+    font-size: clamp(3.2rem, 16vw, 5.6rem);
+  }
+
+  .form,
+  .localNotice {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+}

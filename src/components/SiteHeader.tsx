@@ -21,6 +21,7 @@ import {
 } from "react";
 
 import { CommandPalette } from "@/components/CommandPalette";
+import { AccountControl } from "@/components/AccountControl";
 import { KingxfordLogo } from "@/components/KingxfordLogo";
 import { ThemeControls } from "@/components/ThemeControls";
 import {
@@ -447,6 +448,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="site-header__actions">
+            <AccountControl />
             <ThemeControls className="site-header__theme" />
             <CommandPalette className="site-header__command" />
           </div>

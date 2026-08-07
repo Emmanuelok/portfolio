@@ -1,0 +1,312 @@
+.library {
+  width: min(100% - (var(--page-gutter) * 2), var(--content-max));
+  margin: 0 auto clamp(1rem, 3vw, 2rem);
+  border: 1px solid color-mix(in srgb, var(--text) 17%, transparent);
+  border-radius: var(--radius-m);
+  background:
+    radial-gradient(circle at 88% 8%, rgba(123, 131, 255, 0.15), transparent 24rem),
+    color-mix(in srgb, var(--surface) 82%, var(--canvas-deep));
+  overflow: clip;
+}
+
+.heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.55fr);
+  align-items: end;
+  gap: clamp(1.5rem, 5vw, 5rem);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+}
+
+.heading > div {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.heading span,
+.detailLead > span,
+.startPanel label > span {
+  color: #a6abff;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.heading h2,
+.heading h3 {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 4.6rem);
+  font-weight: 420;
+  letter-spacing: -0.06em;
+  line-height: 0.96;
+}
+
+.heading > p,
+.detailLead > p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.37fr) minmax(0, 1fr);
+}
+
+.templateList {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+}
+
+.templateList button {
+  display: grid;
+  min-height: 4.6rem;
+  grid-template-columns: 1.6rem 1.2rem minmax(0, 1fr) 1rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 13%, transparent);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  text-align: left;
+}
+
+.templateList button:last-child {
+  border-bottom: 0;
+}
+
+.templateList button:hover,
+.templateList button:focus-visible,
+.templateList button[aria-pressed="true"] {
+  background: color-mix(in srgb, #7b83ff 12%, transparent);
+  color: var(--text);
+}
+
+.templateList button[aria-pressed="true"] {
+  box-shadow: inset 2px 0 #7b83ff;
+}
+
+.templateList button > span {
+  color: #7b83ff;
+  font: 0.54rem var(--font-mono);
+}
+
+.templateList button > svg {
+  width: 1rem;
+}
+
+.templateList button > svg:last-child {
+  color: #62d8ad;
+}
+
+.templateList button strong {
+  font-size: 0.69rem;
+  line-height: 1.35;
+}
+
+.detail {
+  display: grid;
+  min-width: 0;
+  gap: 1.25rem;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.detailLead {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.detailLead h3 {
+  max-width: 28ch;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 3vw, 3.25rem);
+  font-weight: 420;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+}
+
+.metrics > div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem;
+  border-right: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+}
+
+.metrics strong {
+  color: #a6abff;
+  font: 1.05rem var(--font-mono);
+}
+
+.metrics span {
+  color: var(--text-faint);
+  font-size: 0.52rem;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.phaseList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+  list-style: none;
+}
+
+.phaseList li {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+.phaseList li > span,
+.phaseList strong {
+  font: 0.58rem var(--font-mono);
+  text-transform: uppercase;
+}
+
+.phaseList li > span {
+  color: #7b83ff;
+}
+
+.phaseList li > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.phaseList small {
+  color: var(--text-faint);
+  font-size: 0.55rem;
+}
+
+.phaseList li > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.phaseList svg {
+  width: 0.8rem;
+  color: #62d8ad;
+}
+
+.startPanel {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto;
+  gap: 0.7rem;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+}
+
+.startPanel label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.startPanel input {
+  min-height: 3rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--text) 24%, transparent);
+  border-radius: var(--radius-s);
+  background: var(--canvas-deep);
+  color: var(--text);
+}
+
+.startPanel > button {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  align-self: end;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-s);
+  background: #7b83ff;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 720;
+}
+
+.startPanel > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.startPanel > button svg {
+  width: 0.9rem;
+}
+
+.startPanel > p {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.55rem;
+}
+
+.startPanel > p svg {
+  width: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .heading,
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .templateList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
+  }
+
+  .templateList button {
+    border-right: 1px solid color-mix(in srgb, var(--text) 13%, transparent);
+  }
+}
+
+@media (max-width: 620px) {
+  .library {
+    width: calc(100% - 1rem);
+  }
+
+  .templateList,
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .templateList button {
+    border-right: 0;
+  }
+
+  .phaseList li,
+  .startPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .phaseList li > div:last-child,
+  .startPanel > button {
+    justify-self: stretch;
+  }
+}

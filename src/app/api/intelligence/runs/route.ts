@@ -15,6 +15,7 @@ import {
   supportedIntelligenceCapabilities,
 } from "@/lib/intelligence/contracts";
 import { buildAiReadiness } from "@/lib/intelligence/readiness";
+import { logOperationalEvent } from "@/lib/observability/structured-log";
 import {
   PHASE_OPERATING_PLANS,
   selectSpecialistRoles,
@@ -37,6 +38,7 @@ import {
   consumeWorkspaceCredits,
   finishWorkspaceRequest,
   getWorkspaceUsage,
+  workspaceUsageBackend,
   workspaceUsagePolicy,
   type WorkspaceUsageSnapshot,
 } from "@/lib/workspace/usage-policy";
@@ -141,17 +143,14 @@ function usageHashSecret() {
 function clientKey(request: NextRequest, salt: string) {
   const address = (
     firstForwardedValue(request.headers.get("x-forwarded-for")) ||
-    request.headers.get("x-real-ip") ||
-    "local"
-  ).slice(0, 256);
+    request.headers.get("x-real-ip")
+  )?.slice(0, 256);
   const userAgent = (request.headers.get("user-agent") || "unknown").slice(
     0,
     256,
   );
   const requestFingerprint = createHash("sha256")
-    .update(address)
-    .update("\0")
-    .update(userAgent)
+    .update(address ? `network\0${address}` : `fallback\0${userAgent}`)
     .digest("hex");
 
   // This is the server-owned pseudonym. agents.ts hashes it again before the
@@ -203,7 +202,7 @@ function reportRuntimeFailure(error: unknown, requestId: string) {
     error && typeof error === "object"
       ? (error as { name?: unknown; statusCode?: unknown })
       : undefined;
-  console.error("[intelligence-runtime] run_failed", {
+  logOperationalEvent("error", "intelligence.run.failed", {
     requestId,
     name:
       typeof candidate?.name === "string"
@@ -220,9 +219,10 @@ export async function GET() {
   const requestId = randomUUID();
   const standard = getIntelligenceModelRoute("standard");
   const deep = getIntelligenceModelRoute("deep");
+  const usageBackend = workspaceUsageBackend();
   const readiness = buildAiReadiness({
     routes: { standard, deep },
-    usageProtectionReady: Boolean(usageHashSecret()),
+    usageProtectionReady: Boolean(usageHashSecret()) && usageBackend.ready,
     toolsEnabled: false,
     automaticApplyEnabled: false,
     gateApprovalMode: "human-only",
@@ -265,6 +265,8 @@ export async function GET() {
       },
       limits: {
         ...workspaceUsagePolicy,
+        usageBackend: usageBackend.kind,
+        durableAcrossInstances: usageBackend.durable,
         specialistPasses: 2,
         providerCalls: MAX_PROVIDER_CALLS,
         requestBytes: MAX_REQUEST_BYTES,
@@ -322,15 +324,26 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const usageBackend = workspaceUsageBackend();
+  if (!usageBackend.ready) {
+    return errorResponse(
+      "Distributed AI usage protection is not configured for this deployment.",
+      503,
+      requestId,
+    );
+  }
+
   const visitorKey = clientKey(request, usageSecret);
   let usageKey = visitorKey;
-  const admission = beginWorkspaceRequest(usageKey);
+  const admission = await beginWorkspaceRequest(usageKey);
   if (!admission.allowed) {
     const message =
-      admission.reason === "concurrency"
+      admission.reason === "unavailable"
+        ? "Project review capacity is temporarily unavailable. No content was sent to a model."
+        : admission.reason === "concurrency"
         ? "Two project reviews are already running. Wait for one to finish before starting another."
         : "Project review limit reached. Continue working locally and try again shortly.";
-    return errorResponse(message, 429, requestId, {
+    return errorResponse(message, admission.reason === "unavailable" ? 503 : 429, requestId, {
       headers: {
         "Retry-After": String(admission.retryAfter),
         "X-RateLimit-Remaining": "0",
@@ -340,6 +353,7 @@ export async function POST(request: NextRequest) {
   }
 
   usageKey = admission.usageKey;
+  const usageLeaseId = admission.leaseId;
   try {
     let rawBody: string;
     try {
@@ -394,7 +408,7 @@ export async function POST(request: NextRequest) {
       binding = validateIntelligenceProjectBinding(input);
     } catch (error) {
       return errorResponse(boundedProjectError(error), 422, requestId, {
-        limits: getWorkspaceUsage(usageKey, input.depth, reservedCalls),
+        limits: await getWorkspaceUsage(usageKey, input.depth, reservedCalls),
       });
     }
 
@@ -405,13 +419,13 @@ export async function POST(request: NextRequest) {
         "The active artifact revision changed before this run could begin.",
         409,
         requestId,
-        { limits: getWorkspaceUsage(usageKey, input.depth, reservedCalls) },
+        { limits: await getWorkspaceUsage(usageKey, input.depth, reservedCalls) },
       );
     }
 
     if (!canUseIntelligenceRuntime()) {
       const usage = {
-        ...getWorkspaceUsage(usageKey, input.depth, reservedCalls),
+        ...(await getWorkspaceUsage(usageKey, input.depth, reservedCalls)),
         creditCost: 0,
       };
       const result = executeLocalIntelligenceRun(input, { runId: requestId });
@@ -420,15 +434,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const credits = consumeWorkspaceCredits(
+    const credits = await consumeWorkspaceCredits(
       usageKey,
       input.depth,
       reservedCalls,
     );
     if (!credits.allowed) {
       return errorResponse(
-        "Today’s anonymous AI review allowance has been used. You can continue working locally.",
-        429,
+        credits.reason === "unavailable"
+          ? "Distributed AI usage accounting is temporarily unavailable. No content was sent to a model."
+          : "Today’s anonymous AI review allowance has been used. You can continue working locally.",
+        credits.reason === "unavailable" ? 503 : 429,
         requestId,
         {
           headers: {
@@ -445,6 +461,19 @@ export async function POST(request: NextRequest) {
         requestSignal: request.signal,
         safetyIdentifier: visitorKey,
         runId: requestId,
+      });
+      logOperationalEvent("info", "intelligence.run.completed", {
+        requestId,
+        source: result.source,
+        model: result.model,
+        status: result.status,
+        phase: result.phase,
+        depth: input.depth,
+        providerCalls: result.provenance.providerCalls.length,
+        totalTokens: result.provenance.usage.totalTokens,
+        durationMs:
+          new Date(result.completedAt).getTime() -
+          new Date(result.startedAt).getTime(),
       });
       return NextResponse.json(intelligenceRunResponseSchema.parse(result), {
         headers: responseHeaders(requestId, usageHeaders(credits.usage)),
@@ -473,6 +502,6 @@ export async function POST(request: NextRequest) {
       });
     }
   } finally {
-    finishWorkspaceRequest(usageKey);
+    await finishWorkspaceRequest(usageKey, usageLeaseId);
   }
 }

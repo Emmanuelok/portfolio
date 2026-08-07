@@ -48,8 +48,6 @@ export default async function CreativeWorkspacePage({
   const initialMode = resolveWorkspaceMode(query.mode);
   const initialPhase = resolvePlatformPhase(query.phase);
   const startFromSeed = (Array.isArray(query.start) ? query.start[0] : query.start) === "seed";
-  const entrepreneurshipUrl =
-    process.env.NEXT_PUBLIC_AI_ENTREPRENEURSHIP_URL?.trim() || null;
 
   const softwareSchema = {
     "@context": "https://schema.org",
@@ -84,7 +82,6 @@ export default async function CreativeWorkspacePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
       />
       <CreativeWorkspace
-        entrepreneurshipUrl={entrepreneurshipUrl}
         initialMode={initialMode}
         initialPhase={initialPhase}
         startFromSeed={startFromSeed}

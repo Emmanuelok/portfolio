@@ -9,7 +9,10 @@ type ShowcasePageProps = Readonly<{
   params: Promise<{ slug: string }>;
 }>;
 
-export const dynamicParams = false;
+// Known demonstrations are prerendered, while unknown slugs reach the explicit
+// notFound() boundary below. This avoids Next treating an ordinary 404 as an
+// internal no-fallback error in production logs.
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return websiteShowcases.map((showcase) => ({ slug: showcase.slug }));

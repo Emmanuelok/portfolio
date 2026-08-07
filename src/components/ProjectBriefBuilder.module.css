@@ -1,8 +1,10 @@
 .builder {
   display: grid;
+  width: min(100%, var(--content-max));
+  margin-inline: auto;
   gap: clamp(1.5rem, 3vw, 2.5rem);
-  padding: clamp(1.4rem, 3.5vw, 3rem);
-  border: 1px solid var(--border);
+  padding: clamp(4rem, 8vw, 8rem) var(--page-gutter);
+  border-block: 1px solid var(--border);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--blue) 9%, transparent), transparent 44%),
     var(--surface);
@@ -45,14 +47,16 @@
   background: color-mix(in srgb, var(--gold) 8%, var(--canvas));
 }
 
-.handoffNotice strong {
+.handoffNotice strong,
+.availability strong {
   color: var(--text);
   font-size: 0.8rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.handoffNotice p {
+.handoffNotice p,
+.availability p {
   margin: 0;
   color: var(--text-soft);
   font-size: 0.84rem;
@@ -60,20 +64,46 @@
 }
 
 .form {
+  position: relative;
   display: grid;
   gap: 1px;
   border: 1px solid var(--border);
   background: var(--border);
 }
 
+.formIntro {
+  display: grid;
+  gap: 0.6rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: color-mix(in srgb, var(--blue) 7%, var(--canvas));
+}
+
+.formIntro h3 {
+  max-width: 29ch;
+  margin: 0;
+  font-size: clamp(1.45rem, 2.8vw, 2.35rem);
+  font-weight: 520;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.formIntro > p:last-child {
+  max-width: 72ch;
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
 .field {
   display: grid;
+  align-content: start;
   gap: 0.72rem;
   padding: clamp(1.1rem, 2.5vw, 1.8rem);
   background: var(--canvas);
 }
 
-.field span {
+.field > span {
   color: var(--text);
   font-size: 0.78rem;
   font-weight: 760;
@@ -86,6 +116,7 @@
   line-height: 1.5;
 }
 
+.field input,
 .field textarea,
 .field select {
   width: 100%;
@@ -99,19 +130,76 @@
   line-height: 1.6;
 }
 
+.field input,
+.field select {
+  min-height: 3rem;
+}
+
 .field textarea {
   min-height: 7rem;
   resize: vertical;
 }
 
-.field select {
-  min-height: 3rem;
-}
-
+.field input:focus-visible,
 .field textarea:focus-visible,
 .field select:focus-visible {
   border-color: var(--blue-bright);
   box-shadow: 0 2px 0 var(--blue-bright);
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.consent,
+.availability,
+.actions,
+.privacy {
+  padding: clamp(1rem, 2.5vw, 1.55rem) clamp(1.1rem, 2.5vw, 1.8rem);
+  background: var(--canvas);
+}
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.consent input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.18rem;
+  flex: 0 0 auto;
+  accent-color: var(--blue-bright);
+}
+
+.consent a,
+.privacy a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.2em;
+}
+
+.availability {
+  display: grid;
+  gap: 0.4rem;
+  border-left: 3px solid var(--success);
+  background: color-mix(in srgb, var(--success) 7%, var(--canvas));
+}
+
+.availability[data-state="unavailable"] {
+  border-left-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 7%, var(--canvas));
 }
 
 .actions {
@@ -119,7 +207,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.8rem;
-  padding-top: 0.5rem;
 }
 
 .actions button,
@@ -135,21 +222,29 @@
   color: var(--canvas);
   cursor: pointer;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 720;
   text-decoration: none;
 }
 
-.actions button:last-of-type {
+.actions [data-kind="secondary"] {
   background: transparent;
   color: var(--text);
 }
 
-.actions button:hover,
+.actions button:hover:not(:disabled),
 .emailAction:hover {
   border-color: var(--blue-bright);
   background: var(--blue-bright);
   color: #fff;
+}
+
+.actions button:focus-visible,
+.emailAction:focus-visible,
+.consent a:focus-visible,
+.privacy a:focus-visible {
+  outline: 2px solid var(--blue-bright);
+  outline-offset: 3px;
 }
 
 .actions button:disabled {
@@ -159,17 +254,35 @@
   cursor: not-allowed;
 }
 
+.actions svg,
+.emailAction svg {
+  width: 1rem;
+  height: 1rem;
+}
+
 .status {
+  width: 100%;
   min-height: 1.5rem;
+  margin: 0.2rem 0 0;
   color: var(--text-soft);
   font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.status[data-state="success"] {
+  color: var(--success);
+}
+
+.status[data-state="error"] {
+  color: var(--danger, #b84b3e);
 }
 
 .privacy {
-  max-width: 68ch;
+  max-width: none;
+  margin: 0;
   color: var(--text-soft);
-  font-size: 0.82rem;
-  line-height: 1.6;
+  font-size: 0.78rem;
+  line-height: 1.65;
 }
 
 @media (min-width: 760px) {
@@ -177,17 +290,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .field:first-child,
-  .field:nth-child(4),
+  .formIntro,
+  .fieldWide,
+  .consent,
+  .availability,
   .actions,
   .privacy {
     grid-column: 1 / -1;
   }
+}
 
-  .actions,
-  .privacy {
-    padding-inline: clamp(1.1rem, 2.5vw, 1.8rem);
-    padding-block: 1rem;
-    background: var(--canvas);
+@media (max-width: 560px) {
+  .actions button,
+  .emailAction {
+    width: 100%;
   }
 }

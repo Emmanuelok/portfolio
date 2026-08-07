@@ -48,6 +48,7 @@ import styles from "./ProjectIntelligencePanel.module.css";
 const tabs = ["project", "conductor", "provenance"] as const;
 type IntelligenceTab = (typeof tabs)[number];
 type IntelligenceDepth = IntelligenceRunRequest["depth"];
+export type IntelligenceExecutionMode = "immediate" | "durable";
 
 export type ManualEvidenceSubmission = Readonly<{
   title: string;
@@ -61,9 +62,11 @@ export type ProjectIntelligencePanelProps = Readonly<{
   project: KingxfordProject;
   response: IntelligenceRunResponse | null;
   depth: IntelligenceDepth;
+  executionMode: IntelligenceExecutionMode;
   running: boolean;
   bindingIsCurrent: boolean;
   onDepthChange: (depth: IntelligenceDepth) => void;
+  onExecutionModeChange: (mode: IntelligenceExecutionMode) => void;
   onRun: (depth: IntelligenceDepth) => void;
   onStop: () => void;
   onAddEvidence: (
@@ -163,9 +166,11 @@ export function ProjectIntelligencePanel({
   project,
   response,
   depth,
+  executionMode,
   running,
   bindingIsCurrent,
   onDepthChange,
+  onExecutionModeChange,
   onRun,
   onStop,
   onAddEvidence,
@@ -275,24 +280,44 @@ export function ProjectIntelligencePanel({
           <h3 id={`${instanceId}-conductor-control`}>Review the current project revision.</h3>
           <p>The review returns a phase plan, up to two specialist reviews, a summary, and an audit trail. You decide whether to accept it.</p>
         </div>
-        <fieldset className={styles.depthControl} disabled={running}>
-          <legend>Reasoning depth</legend>
-          {(["standard", "deep"] as const).map((value) => (
-            <label key={value}>
-              <input
-                type="radio"
-                name={`${instanceId}-depth`}
-                value={value}
-                checked={depth === value}
-                onChange={() => onDepthChange(value)}
-              />
-              <span>
-                <strong>{titleCase(value)}</strong>
-                <small>{value === "deep" ? "Extended review" : "Focused review"}</small>
-              </span>
-            </label>
-          ))}
-        </fieldset>
+        <div className={styles.controlOptions}>
+          <fieldset className={styles.depthControl} disabled={running}>
+            <legend>Reasoning depth</legend>
+            {(["standard", "deep"] as const).map((value) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name={`${instanceId}-depth`}
+                  value={value}
+                  checked={depth === value}
+                  onChange={() => onDepthChange(value)}
+                />
+                <span>
+                  <strong>{titleCase(value)}</strong>
+                  <small>{value === "deep" ? "Extended review" : "Focused review"}</small>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+          <fieldset className={styles.depthControl} disabled={running}>
+            <legend>Review continuity</legend>
+            {(["immediate", "durable"] as const).map((value) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name={`${instanceId}-execution`}
+                  value={value}
+                  checked={executionMode === value}
+                  onChange={() => onExecutionModeChange(value)}
+                />
+                <span>
+                  <strong>{value === "durable" ? "Cloud" : "Current session"}</strong>
+                  <small>{value === "durable" ? "Saved, retryable run" : "Keep this page open"}</small>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+        </div>
         {running ? (
           <button className={styles.stopButton} type="button" onClick={onStop}>
             <CircleStop aria-hidden="true" /> Stop review
@@ -304,7 +329,7 @@ export function ProjectIntelligencePanel({
             disabled={runDisabled}
             onClick={() => onRun(depth)}
           >
-            <Play aria-hidden="true" /> Run project review
+            <Play aria-hidden="true" /> {executionMode === "durable" ? "Run durable review" : "Run project review"}
           </button>
         )}
         <div className={styles.runState} data-running={running ? "true" : "false"} aria-live="polite">

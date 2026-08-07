@@ -997,6 +997,60 @@
   font-size: 0.78rem;
 }
 
+.workflowSummary {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0 0 2rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--blue-bright) 25%, transparent);
+  background: color-mix(in srgb, var(--blue) 7%, transparent);
+}
+
+.workflowSummary > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.workflowSummary > div > span {
+  color: var(--blue-bright);
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workflowSummary > div > strong {
+  font-size: 0.7rem;
+}
+
+.workflowSummary ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--create-rule);
+  border-left: 1px solid var(--create-rule);
+  list-style: none;
+}
+
+.workflowSummary li {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.65rem;
+  border-right: 1px solid var(--create-rule);
+  border-bottom: 1px solid var(--create-rule);
+  color: var(--text-soft);
+  font-size: 0.6rem;
+  text-transform: capitalize;
+}
+
+.workflowSummary li > span,
+.workflowSummary li > small {
+  color: var(--text-faint);
+  font: 0.48rem var(--font-mono);
+  text-transform: uppercase;
+}
+
 .close {
   display: flex;
   min-height: min(48rem, 86svh);
@@ -1199,6 +1253,10 @@
 
   .catalogueColumns {
     grid-template-columns: 1fr;
+  }
+
+  .workflowSummary ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

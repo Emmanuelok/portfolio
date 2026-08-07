@@ -20,12 +20,55 @@ const PATHS = {
   platform: "src/lib/platform.ts",
   ui: "src/components/workspace/CreativeWorkspace.tsx",
   continuum: "src/components/workspace/ProjectContinuum.tsx",
+  cloudPanel: "src/components/workspace/CloudProjectPanel.tsx",
+  cloudEvidencePanel: "src/components/workspace/CloudEvidencePanel.tsx",
+  intelligencePanel: "src/components/workspace/ProjectIntelligencePanel.tsx",
   contact: "src/app/contact/page.tsx",
+  contactHandler: "src/lib/contact/handler.ts",
+  contactDelivery: "src/lib/contact/delivery.ts",
+  contactConfig: "src/lib/contact/configuration.ts",
+  contactRateLimit: "src/lib/contact/rate-limit.ts",
+  cloudAuth: "src/lib/cloud/auth.ts",
+  cloudContracts: "src/lib/cloud/contracts.ts",
+  cloudEvidenceContracts: "src/lib/cloud/evidence-contracts.ts",
+  cloudEvidenceValidation: "src/lib/cloud/evidence-validation.ts",
+  cloudEvidenceRepository: "src/lib/cloud/evidence-repository.ts",
+  cloudProjectRoute: "src/app/api/cloud/projects/[projectId]/route.ts",
+  cloudEvidenceRoute: "src/app/api/cloud/projects/[projectId]/evidence/route.ts",
+  cloudEvidenceObjectRoute: "src/app/api/cloud/projects/[projectId]/evidence/[evidenceId]/route.ts",
+  cloudAccountRoute: "src/app/api/cloud/account/route.ts",
+  cloudExportRoute: "src/app/api/cloud/export/route.ts",
+  organizationContracts: "src/lib/cloud/organization-contracts.ts",
+  organizationRepository: "src/lib/cloud/organization-repository.ts",
+  organizationSelection: "src/lib/cloud/organization-selection.ts",
+  organizationRoute: "src/app/api/cloud/organization/route.ts",
+  organizationInvitationRoute: "src/app/api/cloud/organization/invitations/route.ts",
+  organizationInvitationRevokeRoute: "src/app/api/cloud/organization/invitations/[invitationId]/route.ts",
+  organizationInvitationAcceptRoute: "src/app/api/cloud/organization/invitations/accept/route.ts",
+  organizationMemberRoute: "src/app/api/cloud/organization/members/[userId]/route.ts",
+  organizationPanel: "src/app/account/OrganizationAccessPanel.tsx",
+  accountPage: "src/app/account/page.tsx",
+  invitationClient: "src/app/accept-invitation/AcceptInvitationClient.tsx",
+  cloudClientSync: "src/lib/cloud/client-sync.ts",
+  cloudEvidenceClient: "src/lib/cloud/evidence-client.ts",
+  cloudMigration: "supabase/migrations/202608060001_cloud_foundation.sql",
+  cloudCollaborationMigration: "supabase/migrations/202608060003_organization_collaboration.sql",
+  cloudHardeningMigration: "supabase/migrations/202608060004_server_owned_records.sql",
+  durableRoute: "src/app/api/intelligence/workflows/route.ts",
+  durableWorkflow: "src/workflows/intelligence-review.ts",
+  workflowTemplates: "src/lib/workspace/workflow-templates.ts",
+  evidenceIngestion: "src/lib/workspace/evidence-ingestion.ts",
+  proxy: "src/proxy.ts",
+  layout: "src/app/layout.tsx",
+  health: "src/app/api/health/route.ts",
+  operationalLog: "src/lib/observability/structured-log.ts",
   siteConfig: "next.config.ts",
   corpus: "evals/creative-agent/corpus.json",
   workflow: ".github/workflows/ci.yml",
   dailyWorkflow: ".github/workflows/creative-agent-daily.yml",
   environment: ".env.example",
+  packageManifest: "package.json",
+  organizationCollaborationTest: "tests/organization-collaboration.test.ts",
 };
 const CATALOG_URL = "https://ai-gateway.vercel.sh/v1/models";
 
@@ -97,6 +140,18 @@ function validateCorpus(corpus, checks) {
     "project-graph",
     "snapshot-integrity",
     "human-approval",
+    "distributed-usage",
+    "retry-idempotency",
+    "durable-workflow",
+    "authentication",
+    "evidence-ingestion",
+    "no-network",
+    "cloud-evidence",
+    "tombstone-delete",
+    "contact-rate-limit",
+    "distributed-contact",
+    "organization-collaboration",
+    "invitation-security",
   ];
 
   checks.push(
@@ -116,15 +171,15 @@ function validateCorpus(corpus, checks) {
     passOrFail(
       "corpus.corpus-version",
       "corpus",
-      corpus.corpusVersion === "kxci-governance-2026-08-05.2",
+      corpus.corpusVersion === "kxci-governance-2026-08-06.3",
       "The fixed fixtures pin the reviewed governance corpus release.",
       corpus.corpusVersion,
     ),
     passOrFail(
       "corpus.case-count",
       "corpus",
-      corpus.cases.length >= 11,
-      "The corpus contains at least eleven distinct governance cases.",
+      corpus.cases.length >= 16,
+      "The corpus contains at least sixteen distinct governance cases.",
       `${corpus.cases.length} cases`,
     ),
     passOrFail(
@@ -471,8 +526,8 @@ function validateRoute(corpus, sources, checks) {
     ));
   }
 
-  const beginIndex = route.indexOf("beginWorkspaceRequest(key)");
-  const consumeIndex = route.indexOf("consumeWorkspaceCredits(key, input.depth)");
+  const beginIndex = route.indexOf("await beginWorkspaceRequest(key)");
+  const consumeIndex = route.indexOf("await consumeWorkspaceCredits(key, input.depth)");
   const generateIndex = route.indexOf("agent.generate(");
   checks.push(
     passOrFail(
@@ -497,13 +552,13 @@ function validateRoute(corpus, sources, checks) {
       "route.usage-order",
       "usage",
       beginIndex >= 0 && consumeIndex > beginIndex && generateIndex > consumeIndex,
-      "Admission begins before one credit consumption and model generation.",
+      "Admission is awaited before credit consumption and model generation.",
     ),
     passOrFail(
       "route.finally-release",
       "usage",
-      /finally\s*\{\s*finishWorkspaceRequest\(key\);\s*\}/.test(route),
-      "Concurrency is released through `finally` on every admitted path.",
+      /const usageLeaseId = admission\.leaseId[\s\S]*?finally\s*\{\s*await finishWorkspaceRequest\(key, usageLeaseId\);\s*\}/.test(route),
+      "The exact concurrency lease is awaited through `finally` on every admitted path.",
     ),
     passOrFail(
       "route.request-identity",
@@ -516,10 +571,10 @@ function validateRoute(corpus, sources, checks) {
     passOrFail(
       "route.pseudonymous-hmac",
       "privacy",
-      /createHash\("sha256"\)[\s\S]*?\.update\(address\)[\s\S]*?\.update\("\\0"\)[\s\S]*?\.update\(userAgent\)[\s\S]*?\.digest\("hex"\)/.test(route) &&
+      /createHash\("sha256"\)[\s\S]*?\.update\(address \? `network\\0\$\{address\}` : `fallback\\0\$\{userAgent\}`\)[\s\S]*?\.digest\("hex"\)/.test(route) &&
         /createHmac\("sha256", salt\)[\s\S]*?\.update\(requestFingerprint\)[\s\S]*?\.digest\("hex"\)/.test(route) &&
         /gatewayUserId[\s\S]*?createHash\("sha256"\)/.test(sources.agent),
-      "Raw visitor fields are compressed, HMAC-pseudonymized with a server secret, then rehashed for Gateway identity.",
+      "A bounded network identity or fallback agent is compressed, HMAC-pseudonymized, then rehashed for Gateway identity.",
     ),
     passOrFail(
       "route.production-hmac-secret",
@@ -568,10 +623,11 @@ function validateRoute(corpus, sources, checks) {
     passOrFail(
       "route.safe-failure-log",
       "privacy",
-      route.includes("[workspace-agent] AI review failed") &&
-        route.includes("[redacted]") &&
+      /logOperationalEvent\("error", "workspace\.review\.failed"/.test(route) &&
+        /sensitiveFieldPattern\s*=\s*\n?\s*\/secret\|token\|authorization\|cookie\|email\|prompt\|content\|body\|draft\|document\|password\|key\/i/.test(sources.operationalLog) &&
+        /Object\.entries\(fields\)[\s\S]*?\.filter\(\(\[key\]\) => !sensitiveFieldPattern\.test\(key\)\)/.test(sources.operationalLog) &&
         !/console\.(?:log|error)\([^)]*(?:serialized|prompt|input\.text|raw)/.test(route),
-      "Failure logs redact credentials and do not log workspace content.",
+      "Failure events use the privacy-bounded structured logger and do not log workspace content.",
     ),
   );
 }
@@ -586,21 +642,21 @@ function validateUsage(corpus, sources, checks) {
       "usage",
       usage.includes(`DEFAULT_REQUESTS_PER_MINUTE = ${gates.maximumRequestsPerMinute}`) &&
         usage.includes("KINGXFORD_AGENT_REQUESTS_PER_MINUTE"),
-      "The process-local minute allowance matches policy and is configurable.",
+      "The cross-instance minute allowance matches policy and is configurable.",
     ),
     passOrFail(
       "usage.daily-default",
       "usage",
       usage.includes(`DEFAULT_DAILY_CREDITS = ${gates.maximumDailyCredits}`) &&
         usage.includes("KINGXFORD_AGENT_DAILY_CREDITS"),
-      "The process-local daily credit allowance matches policy and is configurable.",
+      "The cross-instance daily credit allowance matches policy and is configurable.",
     ),
     passOrFail(
       "usage.concurrency-default",
       "usage",
       usage.includes(`DEFAULT_MAX_CONCURRENT = ${gates.maximumConcurrentRequests}`) &&
         usage.includes("KINGXFORD_AGENT_MAX_CONCURRENT"),
-      "The process-local concurrency allowance matches policy and is configurable.",
+      "The cross-instance concurrency allowance matches policy and is configurable.",
     ),
     passOrFail(
       "usage.credit-costs",
@@ -609,10 +665,17 @@ function validateUsage(corpus, sources, checks) {
       "Standard and Deep consume one and three credits respectively.",
     ),
     passOrFail(
+      "usage.credit-unit-bound",
+      "usage",
+      usage.includes(`MAX_CREDIT_UNITS_PER_REQUEST = ${gates.maximumCreditUnitsPerRequest}`) &&
+        /Math\.min\(units, MAX_CREDIT_UNITS_PER_REQUEST\)/.test(usage),
+      "A coordinated request cannot reserve more than four provider-call units.",
+    ),
+    passOrFail(
       "usage.utc-reset",
       "usage",
       /function nextUtcDay/.test(usage) && /Date\.UTC\(/.test(usage),
-      "Daily process-local buckets reset at a deterministic UTC boundary.",
+      "Daily distributed and local buckets reset at a deterministic UTC boundary.",
     ),
     passOrFail(
       "usage.no-negative-counters",
@@ -622,11 +685,57 @@ function validateUsage(corpus, sources, checks) {
       "Concurrency and displayed allowances cannot become negative.",
     ),
     passOrFail(
-      "usage.process-local-store",
+      "usage.production-backend",
       "usage",
-      /globalThis/.test(usage) && /new Map<string, UsageBucket>\(\)/.test(usage) &&
-        !/redis|database|stripe/i.test(usage),
-      "The implementation remains honestly process-local and has no implied billing store.",
+      /kind: "upstash-redis" \| "process-memory" \| "missing"/.test(usage) &&
+        usage.includes("UPSTASH_REDIS_REST_URL") &&
+        usage.includes("UPSTASH_REDIS_REST_TOKEN") &&
+        /kind:\s*"upstash-redis"[\s\S]*?durable:\s*true[\s\S]*?ready:\s*true/.test(usage) &&
+        gates.productionUsageBackend === "upstash-redis",
+      "Upstash Redis is the named durable production usage backend.",
+    ),
+    passOrFail(
+      "usage.ephemeral-hatch",
+      "usage",
+      /KINGXFORD_ALLOW_EPHEMERAL_USAGE === "1"[\s\S]*?environment\.VERCEL !== "1"/.test(usage) &&
+        /environment\.NODE_ENV === "production"[\s\S]*?kind:\s*"missing"[\s\S]*?ready:\s*false/.test(usage),
+      "Process memory requires an explicit non-Vercel hatch and production otherwise fails closed.",
+    ),
+    passOrFail(
+      "usage.atomic-admission",
+      "usage",
+      [
+        'redis.call("ZREMRANGEBYSCORE"',
+        'redis.call("ZCARD"',
+        'redis.call("INCR", KEYS[1])',
+        'redis.call("ZADD", KEYS[2], leaseExpiresAt, leaseId)',
+        'redis.call("PEXPIREAT", KEYS[2]',
+      ].every((token) => usage.includes(token)) &&
+        usage.includes(`DISTRIBUTED_LEASE_TTL_MS = 5 * 60_000`) &&
+        gates.distributedLeaseTtlMilliseconds === 5 * 60_000,
+      "One Lua admission operation cleans expired leases, checks both limits, counts the request, and records a bounded lease.",
+    ),
+    passOrFail(
+      "usage.idempotent-charge",
+      "usage",
+      [
+        'redis.call("HEXISTS", KEYS[2], reservationId)',
+        'redis.call("INCRBY", KEYS[1], cost)',
+        'redis.call("HSET", KEYS[2], reservationId, cost)',
+      ].every((token) => usage.includes(token)) &&
+        /reservationId:\s*string = randomUUID\(\)/.test(usage) &&
+        /consumeDurableWorkspaceCredits\([\s\S]*?reservationId/.test(usage),
+      "Daily credits are atomically charged once for each stable reservation identifier.",
+    ),
+    passOrFail(
+      "usage.async-fail-closed-api",
+      "usage",
+      /export async function beginWorkspaceRequest/.test(usage) &&
+        /export async function finishWorkspaceRequest/.test(usage) &&
+        /export async function getWorkspaceUsage/.test(usage) &&
+        (usage.match(/reason:\s*"unavailable" as const/g) || []).length >= 3 &&
+        /await redis\.zrem\(keys\.leases, leaseId\)/.test(usage),
+      "The async usage API fails closed on backend errors and releases only the matching distributed lease.",
     ),
     passOrFail(
       "usage.clamped-environment-ceilings",
@@ -643,14 +752,14 @@ function validateUsage(corpus, sources, checks) {
         normalizedUsage.includes(`MAXUSAGEBUCKETS = ${corpus.hardGates.maximumUsageBuckets}`) &&
         normalizedUsage.includes(`OVERFLOWBUCKETCOUNT = ${corpus.hardGates.overflowUsageBuckets}`) &&
         normalizedUsage.includes(`MAXCLEANUPSCAN = ${corpus.hardGates.maximumUsageCleanupScan}`),
-      "The process-local usage store pins reviewed TTL, cardinality, overflow, and cleanup bounds.",
+      "The local fallback pins reviewed TTL, cardinality, overflow, and cleanup bounds.",
     ),
     passOrFail(
       "usage.ttl-and-lru-cleanup",
       "usage",
       /function cleanupUsageStore[\s\S]*?scanned >= MAX_CLEANUP_SCAN[\s\S]*?!isOverflowKey\(key\)[\s\S]*?bucket\.inFlight === 0[\s\S]*?now - bucket\.lastSeenAt >= USAGE_BUCKET_TTL_MS[\s\S]*?store\.delete\(key\)/.test(usage) &&
         /function touchBucket[\s\S]*?store\.delete\(key\);[\s\S]*?store\.set\(key, bucket\)/.test(usage),
-      "Idle visitor buckets expire through a bounded scan and active buckets are touched in LRU order.",
+      "Idle local buckets expire through a bounded scan and active buckets are touched in LRU order.",
     ),
     passOrFail(
       "usage.stable-overflow-lease",
@@ -659,8 +768,9 @@ function validateUsage(corpus, sources, checks) {
         /overflowKey\(stableOverflowIndex\(requestedKey\)\)/.test(usage) &&
         /return \{ usageKey, bucket \}/.test(usage) &&
         sources.route.includes("key = admission.usageKey") &&
-        sources.route.includes("finishWorkspaceRequest(key)"),
-      "A full store assigns stable shared overflow leases and releases the same resolved bucket.",
+        sources.route.includes("const usageLeaseId = admission.leaseId") &&
+        sources.route.includes("await finishWorkspaceRequest(key, usageLeaseId)"),
+      "A full local store assigns stable shared overflow buckets and routes release the resolved lease.",
     ),
   );
 }
@@ -892,6 +1002,570 @@ function validateInterface(sources, checks) {
   );
 }
 
+function validateProductionFoundation(corpus, sources, checks) {
+  const migration = sources.cloudMigration;
+  const collaborationMigration = sources.cloudCollaborationMigration;
+  const hardeningMigration = sources.cloudHardeningMigration;
+  const cloudTables = [
+    "organizations",
+    "organization_members",
+    "projects",
+    "project_revisions",
+    "intelligence_runs",
+    "audit_events",
+    "usage_records",
+    "evidence_objects",
+    "idempotency_keys",
+  ];
+  const implementationRoles = [
+    ...extract(
+      migration,
+      /create type public\.organization_role as enum \(([\s\S]*?)\);/,
+      "Supabase organization roles",
+    ).matchAll(/'([^']+)'/g),
+  ].map((match) => match[1]);
+  const implementationTemplateIds = quotedArray(
+    sources.workflowTemplates,
+    /workflowTemplateIds\s*=\s*\[([\s\S]*?)\]\s*as const/,
+    "Create workflow template identifiers",
+  );
+  const implementationEvidenceExtensions = quotedArray(
+    sources.evidenceIngestion,
+    /supportedEvidenceExtensions\s*=\s*\[([\s\S]*?)\]\s*as const/,
+    "evidence file extensions",
+  );
+  const implementationInvitationRoles = quotedArray(
+    sources.organizationContracts,
+    /invitationRoles\s*=\s*\[([\s\S]*?)\]\s*as const/,
+    "organization invitation roles",
+  );
+  const evidenceDeletePrepareIndex =
+    sources.cloudEvidenceObjectRoute.indexOf("deleteCloudEvidenceRecord(context");
+  const evidenceStorageDeleteIndex =
+    sources.cloudEvidenceObjectRoute.indexOf("removeCloudEvidenceObject(prepared.storagePath)");
+  const evidenceDeleteCompleteIndex =
+    sources.cloudEvidenceObjectRoute.indexOf("completeCloudEvidenceDeletion(context");
+  const evidenceUploadObjectIndex =
+    sources.cloudEvidenceRoute.indexOf("uploadCloudEvidenceObject({");
+  const evidenceRegisterIndex =
+    sources.cloudEvidenceRoute.indexOf("registerCloudEvidence(context");
+  const deletionReceiptDefinition = collaborationMigration.match(
+    /create table if not exists public\.cloud_account_deletion_receipts\s*\([\s\S]*?\n\);/,
+  )?.[0] || "";
+  const accountDeleteRoute = sources.cloudAccountRoute.slice(
+    sources.cloudAccountRoute.indexOf("export async function DELETE"),
+  );
+  const normalizedContactRateLimit = sources.contactRateLimit.replaceAll("_", "");
+
+  checks.push(
+    passOrFail(
+      "cloud.roles-and-rls",
+      "cloud",
+      exactArray(implementationRoles, corpus.hardGates.cloudRoles) &&
+        cloudTables.every((table) =>
+          migration.includes(`alter table public.${table} enable row level security`)) &&
+        migration.includes("public.is_organization_member") &&
+        migration.includes("public.has_organization_role"),
+      "Supabase pins the five reviewed roles and enables RLS on every application table.",
+    ),
+    passOrFail(
+      "cloud.private-evidence-storage",
+      "cloud",
+      corpus.hardGates.cloudEvidenceFileBytes === 5 * 1024 * 1024 &&
+        exactArray(
+          implementationEvidenceExtensions,
+          corpus.hardGates.cloudEvidenceExtensions,
+        ) &&
+        migration.includes(
+          `values ('kingxford-private', 'kingxford-private', false, ${corpus.hardGates.cloudEvidenceFileBytes})`,
+        ) &&
+        ["select", "insert", "update", "delete"].every((operation) =>
+          migration.includes(
+            `drop policy if exists kingxford_private_${operation} on storage.objects`,
+          )) &&
+        !migration.includes("create policy kingxford_private_") &&
+        migration.includes("public.can_access_kingxford_storage") &&
+        migration.includes(
+          "/evidence/[0-9a-f]{32}-[0-9a-f]{32}\\.(txt|md|markdown|csv|json|pdf)$",
+        ) &&
+        migration.includes(
+          "Evidence paths must remain inside their organization and project.",
+        ),
+      "Private evidence storage is 5 MB, path-isolated, non-public, and has no authenticated browser-object policy.",
+    ),
+    passOrFail(
+      "cloud.server-owned-record-boundary",
+      "cloud",
+      ["select", "insert", "update", "delete"].every((operation) =>
+        hardeningMigration.includes(
+          `drop policy if exists kingxford_private_${operation} on storage.objects`,
+        )) &&
+        /revoke select, insert, update, delete on storage\.objects from authenticated/.test(hardeningMigration) &&
+        /revoke insert, update on public\.intelligence_runs from authenticated/.test(hardeningMigration) &&
+        /revoke insert on public\.audit_events from authenticated/.test(hardeningMigration) &&
+        /revoke insert on public\.usage_records from authenticated/.test(hardeningMigration) &&
+        /revoke usage, select on sequence public\.usage_records_id_seq from authenticated/.test(hardeningMigration) &&
+        ["intelligence_runs", "audit_events", "usage_records"].every((table) =>
+          migration.includes(`grant select on public.${table} to authenticated`)) &&
+        !/grant (?:select,\s*)?insert[^;]* on public\.(?:intelligence_runs|audit_events|usage_records) to authenticated/.test(migration),
+      "Browser sessions keep RLS-bound reads but cannot forge private objects, run outcomes, usage, or audit records.",
+    ),
+    passOrFail(
+      "cloud.evidence-validated-contract",
+      "cloud",
+      /fileBytes:\s*5 \* 1024 \* 1024/.test(sources.evidenceIngestion) &&
+        /validateCloudEvidenceMediaType\(extension, value\.type\)/.test(sources.cloudEvidenceValidation) &&
+        /new TextDecoder\("utf-8", \{ fatal: true \}\)/.test(sources.cloudEvidenceValidation) &&
+        /JSON\.parse\(cleaned\)/.test(sources.cloudEvidenceValidation) &&
+        /signature !== "%PDF-"/.test(sources.cloudEvidenceValidation) &&
+        /document\.numPages > EVIDENCE_INGESTION_LIMITS\.pdfPages/.test(sources.cloudEvidenceValidation) &&
+        /idempotencyDigest\.slice\(0, 32\)/.test(sources.cloudEvidenceContracts) &&
+        /sha256\.slice\(0, 32\)/.test(sources.cloudEvidenceContracts) &&
+        /verifyDownloadedEvidence/.test(sources.cloudEvidenceValidation),
+      "Cloud originals require the reviewed extension, MIME, UTF-8/JSON/PDF, size, deterministic-path, and digest checks.",
+    ),
+    passOrFail(
+      "cloud.evidence-transactional-lifecycle",
+      "cloud",
+      [
+        "public.register_kingxford_evidence",
+        "public.delete_kingxford_evidence",
+        "public.complete_kingxford_evidence_deletion",
+        "'evidence.uploaded'",
+        "'evidence.deleted'",
+      ].every((token) => migration.includes(token)) &&
+        /set deletion_requested_at = coalesce\(deletion_requested_at, v_now\),[\s\S]*?deletion_request_key = coalesce\(deletion_request_key, p_idempotency_key\)/.test(migration) &&
+        /if v_evidence\.deletion_requested_at is null then[\s\S]*?delete from public\.evidence_objects/.test(migration) &&
+        /revoke all on public\.evidence_objects from authenticated/.test(migration) &&
+        /grant select on public\.evidence_objects to authenticated/.test(migration) &&
+        !/grant (?:select,\s*)?insert(?:,\s*update)?(?:,\s*delete)? on public\.evidence_objects to authenticated/.test(migration),
+      "Evidence RPCs lock and audit idempotent upload plus tombstone-first, completion-second deletion without broad table writes.",
+    ),
+    passOrFail(
+      "cloud.evidence-route-boundary",
+      "cloud",
+      /requireCloudMutationRequest\(request\)/.test(sources.cloudEvidenceRoute) &&
+        /requireBoundedMultipartRequest\(request\)/.test(sources.cloudEvidenceRoute) &&
+        /requireCloudEvidenceWriteRole\(context\)/.test(sources.cloudEvidenceRoute) &&
+        /parseIdempotencyKey/.test(sources.cloudEvidenceRoute) &&
+        /key !== "file" && key !== "artifactId"/.test(sources.cloudEvidenceRoute) &&
+        /artifact\.kind === "evidence"/.test(sources.cloudEvidenceRoute) &&
+        evidenceUploadObjectIndex >= 0 &&
+        evidenceUploadObjectIndex < evidenceRegisterIndex &&
+        /export async function POST[\s\S]*?requireCloudMutationRequest\(request\)[\s\S]*?requireCloudContext\(request\)[\s\S]*?uploadCloudEvidenceObject\(\{/.test(sources.cloudEvidenceRoute) &&
+        !/createServiceCloudClient|SUPABASE_SERVICE_ROLE_KEY/.test(sources.cloudEvidenceRoute) &&
+        /createServiceCloudClient\(\)/.test(sources.cloudEvidenceRepository) &&
+        /client\.storage\.from\(CLOUD_EVIDENCE_BUCKET\)/.test(sources.cloudEvidenceRepository) &&
+        !/context\.client\.storage/.test(sources.cloudEvidenceRepository) &&
+        /downloadCloudEvidenceObject\(record\)/.test(sources.cloudEvidenceObjectRoute) &&
+        /verifyDownloadedEvidence\(bytes, record\.evidence\)/.test(sources.cloudEvidenceRepository) &&
+        [
+          '"Cache-Control": "private, no-store"',
+          '"Content-Disposition"',
+          '"Content-Length"',
+          '"Content-Security-Policy": "sandbox"',
+          '"X-Content-Type-Options": "nosniff"',
+        ].every((token) => sources.cloudEvidenceObjectRoute.includes(token)) &&
+        evidenceDeletePrepareIndex >= 0 &&
+        evidenceDeletePrepareIndex < evidenceStorageDeleteIndex &&
+        evidenceStorageDeleteIndex < evidenceDeleteCompleteIndex &&
+        !/createSignedUrl|publicUrl|serviceRole/i.test(sources.cloudEvidenceObjectRoute) &&
+        !/createServiceCloudClient/.test(sources.cloudEvidenceObjectRoute),
+      "Evidence routes authorize with the user session, isolate service-role object I/O behind the server repository, verify downloads, and order tombstone deletion.",
+    ),
+    passOrFail(
+      "interface.cloud-evidence-controls",
+      "interface",
+      /!embedded && activeProject \? \([\s\S]*?<CloudEvidencePanel[\s\S]*?project=\{activeProject\}[\s\S]*?disabled=\{projectMutationLocked\}/.test(sources.ui) &&
+        /Nothing is uploaded when you record local evidence/.test(sources.cloudEvidencePanel) &&
+        /Retain original in cloud/.test(sources.cloudEvidencePanel) &&
+        /!view\.index\.canWrite/.test(sources.cloudEvidencePanel) &&
+        /review and download retained files but cannot change them/.test(sources.cloudEvidencePanel) &&
+        /Confirm removal/.test(sources.cloudEvidencePanel) &&
+        /evidence\.deletionPending \? "Retry removal"/.test(sources.cloudEvidencePanel) &&
+        /SHA-256/.test(sources.cloudEvidencePanel) &&
+        /cloudEvidenceDownloadPath/.test(sources.cloudEvidencePanel),
+      "Canvas exposes deliberate, role-aware retain/download/remove controls and keeps pending removal visible for retry.",
+    ),
+    passOrFail(
+      "cloud.transactional-project-mutations",
+      "cloud",
+      migration.includes("public.upsert_kingxford_project") &&
+        migration.includes("public.delete_kingxford_project") &&
+        migration.includes("pg_catalog.pg_advisory_xact_lock") &&
+        migration.includes("Idempotency key conflict") &&
+        migration.includes("insert into public.project_revisions") &&
+        migration.includes("insert into public.audit_events"),
+      "Cloud project mutations use locks, request idempotency, immutable revisions, and audit events.",
+    ),
+    passOrFail(
+      "cloud.auth-and-membership",
+      "cloud",
+      /client\.auth\.getUser\(\)/.test(sources.cloudAuth) &&
+        /organization_members/.test(sources.cloudAuth) &&
+        /organization_access_denied/.test(sources.cloudAuth) &&
+        /ensure_personal_organization/.test(sources.cloudAuth),
+      "Cloud requests require a verified Supabase user and organization membership.",
+    ),
+    passOrFail(
+      "cloud.organization-collaboration-contract",
+      "cloud",
+      exactArray(
+        implementationInvitationRoles,
+        corpus.hardGates.organizationInvitationRoles,
+      ) &&
+        corpus.hardGates.organizationInvitationLimit === 50 &&
+        corpus.hardGates.organizationInvitationMinimumHours === 1 &&
+        corpus.hardGates.organizationInvitationMaximumHours === 168 &&
+        corpus.hardGates.organizationInvitationDefaultHours === 72 &&
+        /ORGANIZATION_INVITATION_LIMIT\s*=\s*50/.test(sources.organizationContracts) &&
+        /ORGANIZATION_INVITATION_MIN_HOURS\s*=\s*1/.test(sources.organizationContracts) &&
+        /ORGANIZATION_INVITATION_MAX_HOURS\s*=\s*168/.test(sources.organizationContracts) &&
+        /ORGANIZATION_INVITATION_DEFAULT_HOURS\s*=\s*72/.test(sources.organizationContracts) &&
+        /randomBytes\(32\)\.toString\("base64url"\)/.test(sources.organizationContracts) &&
+        /createHash\("sha256"\)\.update\(parsed, "utf8"\)\.digest\("hex"\)/.test(sources.organizationContracts) &&
+        /create table if not exists public\.organization_invitations/.test(collaborationMigration) &&
+        /role public\.organization_role not null check \(role in \('editor', 'reviewer', 'viewer'\)\)/.test(collaborationMigration) &&
+        /token_hash text not null unique check \(token_hash ~ '\^\[0-9a-f\]\{64\}\$'\)/.test(collaborationMigration) &&
+        !/\btoken\s+text\b/.test(collaborationMigration) &&
+        /expires_at > created_at and expires_at <= created_at \+ interval '7 days'/.test(collaborationMigration) &&
+        /alter table public\.organization_invitations enable row level security/.test(collaborationMigration) &&
+        /revoke all on public\.organization_invitations from authenticated/.test(collaborationMigration),
+      "Collaboration pins digest-only, single-use invitation contracts to the reviewed roles, limits, and expiry window.",
+    ),
+    passOrFail(
+      "cloud.organization-transactional-authority",
+      "cloud",
+      [
+        "list_kingxford_organizations",
+        "get_kingxford_organization_access",
+        "create_kingxford_organization_invitation",
+        "revoke_kingxford_organization_invitation",
+        "manage_kingxford_organization_member",
+        "accept_kingxford_organization_invitation",
+      ].every((name) =>
+        collaborationMigration.includes(`create or replace function public.${name}`) &&
+        collaborationMigration.includes(`revoke all on function public.${name}`) &&
+        collaborationMigration.includes(`grant execute on function public.${name}`) &&
+        sources.organizationRepository.includes(`"${name}"`)) &&
+        /array\['owner', 'admin'\]::public\.organization_role\[\]/.test(collaborationMigration) &&
+        /p_role not in \('editor', 'reviewer', 'viewer'\)/.test(collaborationMigration) &&
+        /if v_active_count >= 50/.test(collaborationMigration) &&
+        /pg_catalog\.pg_advisory_xact_lock/.test(collaborationMigration) &&
+        /public\.idempotency_keys/.test(collaborationMigration) &&
+        /Idempotency key conflict/.test(collaborationMigration) &&
+        /v_invitation\.email <> v_user_email/.test(collaborationMigration) &&
+        [
+          "organization.invitation.created",
+          "organization.invitation.revoked",
+          "organization.invitation.accepted",
+          "organization.member.removed",
+          "organization.member.role_updated",
+        ].every((event) => collaborationMigration.includes(event)) &&
+        /p_target_user_id = v_user_id/.test(collaborationMigration) &&
+        /v_actor_role = 'admin' and \(v_target_role = 'owner' or p_role = 'owner'\)/.test(collaborationMigration) &&
+        /v_owner_count <= 1/.test(collaborationMigration) &&
+        /organization\.owner_user_id = p_target_user_id/.test(collaborationMigration),
+      "Organization invitations and membership changes are authenticated, locked, idempotent, audited, and preserve the owner boundary.",
+    ),
+    passOrFail(
+      "cloud.organization-route-and-selection-boundary",
+      "cloud",
+      /requireCloudContext\(request\)/.test(sources.organizationRoute) &&
+        /listOrganizations\(context\.client\)/.test(sources.organizationRoute) &&
+        /getOrganizationAccess\(context\)/.test(sources.organizationRoute) &&
+        /requireCloudMutationRequest\(request, \{ json: true \}\)/.test(sources.organizationInvitationRoute) &&
+        /parseBoundedJsonRequest\(request, 2_048\)/.test(sources.organizationInvitationRoute) &&
+        /parseIdempotencyKey/.test(sources.organizationInvitationRoute) &&
+        /tokenHash: hashOrganizationInvitationToken\(token\)/.test(sources.organizationInvitationRoute) &&
+        /result\.replayed[\s\S]*?\? null[\s\S]*?accept-invitation#token=\$\{token\}/.test(sources.organizationInvitationRoute) &&
+        /linkAvailableOnce: true/.test(sources.organizationInvitationRoute) &&
+        /requireCloudUser\(\)/.test(sources.organizationInvitationAcceptRoute) &&
+        /parseBoundedJsonRequest\(request, 1_024\)/.test(sources.organizationInvitationAcceptRoute) &&
+        /hashOrganizationInvitationToken\(body\.token\)/.test(sources.organizationInvitationAcceptRoute) &&
+        [sources.organizationInvitationRevokeRoute, sources.organizationMemberRoute]
+          .every((route) =>
+            /requireCloudMutationRequest\(request/.test(route) &&
+            /requireCloudContext\(request\)/.test(route) &&
+            /parseIdempotencyKey/.test(route) &&
+            /requestFingerprint/.test(route)) &&
+        /parseOrganizationId\(value\)/.test(sources.organizationSelection) &&
+        /parseOrganizationId\(organizationId\)/.test(sources.organizationSelection) &&
+        /headers\.set\("X-Kingxford-Organization-Id", organizationId\)/.test(sources.organizationSelection) &&
+        /requestUrl\.searchParams\.get\("organization"\)/.test(sources.cloudAuth) &&
+        /request\.headers\.get\("x-kingxford-organization-id"\) \?\? queryOrganizationId/.test(sources.cloudAuth) &&
+        /findMembership\(client, user\.id, requestedOrganizationId\)/.test(sources.cloudAuth) &&
+        /withActiveCloudOrganization\(init\.headers\)/.test(sources.cloudClientSync) &&
+        /withActiveCloudOrganization\(init\.headers\)/.test(sources.cloudEvidenceClient) &&
+        (sources.ui.match(/withActiveCloudOrganization\(/g) || []).length >= 3,
+      "A validated organization selection propagates through cloud clients while every route still verifies current membership.",
+    ),
+    passOrFail(
+      "interface.organization-collaboration",
+      "interface",
+      /<OrganizationAccessPanel \/>/.test(sources.accountPage) &&
+        sources.organizationPanel.includes("Members and invitations") &&
+        sources.organizationPanel.includes("Selected organization") &&
+        /access\.canManage/.test(sources.organizationPanel) &&
+        /\["owner", "admin", "editor", "reviewer", "viewer"\]/.test(sources.organizationPanel) &&
+        /\["editor", "reviewer", "viewer"\]/.test(sources.organizationPanel) &&
+        sources.organizationPanel.includes("One-time invitation link") &&
+        [24, 72, 168].every((hours) =>
+          sources.organizationPanel.includes(`<option value={${hours}}>`)) &&
+        sources.organizationPanel.includes("cannot change membership") &&
+        /window\.confirm\("Remove this member from the organization\?"\)/.test(sources.organizationPanel) &&
+        corpus.hardGates.organizationInvitationBrowserTokenMilliseconds === 30 * 60 * 1_000 &&
+        /tokenLifetimeMs\s*=\s*30 \* 60 \* 1_000/.test(sources.invitationClient) &&
+        /window\.location\.hash\.slice\(1\)/.test(sources.invitationClient) &&
+        /history\.replaceState\(null, "", "\/accept-invitation"\)/.test(sources.invitationClient) &&
+        sources.invitationClient.includes("/auth?next=%2Faccept-invitation") &&
+        sources.invitationClient.includes("Organization access added. No local project was uploaded.") &&
+        /setActiveCloudOrganization\(organizationId\)/.test(sources.invitationClient),
+      "Account and invitation interfaces expose permitted collaboration controls and keep the one-use token out of URLs after initial load.",
+    ),
+    passOrFail(
+      "cloud.replayable-exact-organization-deletion",
+      "cloud",
+      /primary key \(user_id, idempotency_key\)/.test(deletionReceiptDefinition) &&
+        /organization_id uuid not null/.test(deletionReceiptDefinition) &&
+        !/organization_id uuid[^\n]*references public\.organizations/.test(deletionReceiptDefinition) &&
+        /alter table public\.cloud_account_deletion_receipts enable row level security/.test(collaborationMigration) &&
+        /revoke all on public\.cloud_account_deletion_receipts from authenticated/.test(collaborationMigration) &&
+        /Transfer organization ownership before deleting personal cloud access/.test(collaborationMigration) &&
+        /request\.headers\.get\("x-kingxford-organization-id"\) !== organizationId/.test(sources.cloudAccountRoute) &&
+        /organization_binding_required/.test(sources.cloudAccountRoute) &&
+        accountDeleteRoute.indexOf("replay_kingxford_cloud_data_deletion") <
+          accountDeleteRoute.indexOf("const context = await requireCloudContext(request)") &&
+        accountDeleteRoute.indexOf("delete_my_kingxford_cloud_data") <
+          accountDeleteRoute.lastIndexOf("completeEvidenceCleanup(data)") &&
+        /completeEvidenceCleanup\(replay\)/.test(sources.cloudAccountRoute) &&
+        sources.packageManifest.includes("tests/organization-collaboration.test.ts") &&
+        /account deletion is organization-pinned, replayable/.test(sources.organizationCollaborationTest) &&
+        /assert\.doesNotMatch\(receiptDefinition, \/organization_id/.test(sources.organizationCollaborationTest),
+      "Account deletion is bound to one organization, replayable after deletion, owner-safe, and retries private-object cleanup.",
+    ),
+    passOrFail(
+      "cloud.optimistic-idempotent-api",
+      "cloud",
+      sources.cloudProjectRoute.includes('request.headers.get("idempotency-key")') &&
+        sources.cloudProjectRoute.includes('request.headers.get("if-match")') &&
+        sources.cloudProjectRoute.includes('request.headers.get("if-none-match")') &&
+        sources.cloudProjectRoute.includes("project_version_conflict") &&
+        sources.cloudProjectRoute.includes('"Idempotency-Replayed"') &&
+        /ETag:\s*record\.summary\.etag/.test(sources.cloudProjectRoute),
+      "Project APIs require idempotency and ETag/version preconditions instead of overwriting newer work.",
+    ),
+    passOrFail(
+      "cloud.export-and-delete",
+      "cloud",
+      /requireCloudContext\(request\)/.test(sources.cloudExportRoute) &&
+        /kingxford-cloud-export/.test(sources.cloudExportRoute) &&
+        /maximumRecords = 50_000/.test(sources.cloudExportRoute) &&
+        /createServiceCloudClient\(\)/.test(sources.cloudExportRoute) &&
+        /DELETE MY CLOUD DATA/.test(sources.cloudAccountRoute) &&
+        /requireCloudMutationRequest\(request, \{ json: true \}\)/.test(sources.cloudAccountRoute) &&
+        /replay_kingxford_cloud_data_deletion/.test(sources.cloudAccountRoute) &&
+        /delete_my_kingxford_cloud_data/.test(sources.cloudAccountRoute) &&
+        /completeEvidenceCleanup/.test(sources.cloudAccountRoute) &&
+        /removeCloudEvidenceObjects\(paths\.slice\(index, index \+ 100\)\)/.test(sources.cloudAccountRoute) &&
+        /delete result\.storagePaths/.test(sources.cloudAccountRoute),
+      "Organization export and explicit replayable cloud-data deletion remain authenticated, bounded, audited, and private-object aware.",
+    ),
+    passOrFail(
+      "durable.route-authorization-and-binding",
+      "durable-workflow",
+      /sameOrigin\(request\)/.test(sources.durableRoute) &&
+        /requireCloudContext\(request\)/.test(sources.durableRoute) &&
+        /context\.role === "viewer"/.test(sources.durableRoute) &&
+        /parseIdempotencyKey/.test(sources.durableRoute) &&
+        /currentSnapshot\.hash !== input\.projectGraphSnapshot\.hash/.test(sources.durableRoute) &&
+        /!secret \|\| !usageBackend\.durable/.test(sources.durableRoute) &&
+        /const serviceClient = createServiceCloudClient\(\);[\s\S]*?if \(!serviceClient\)/.test(sources.durableRoute) &&
+        /serviceClient[\s\S]*?from\("intelligence_runs"\)[\s\S]*?insert/.test(sources.durableRoute),
+      "Durable review authorizes and validates the live snapshot before requiring durable services and server-owned persistence.",
+    ),
+    passOrFail(
+      "durable.retry-safe-workflow",
+      "durable-workflow",
+      sources.durableWorkflow.includes('"use workflow"') &&
+        (sources.durableWorkflow.match(/"use step"/g) || []).length >= 5 &&
+        /createHook\([\s\S]*?getConflict\(\)/.test(sources.durableWorkflow) &&
+        /getStepMetadata\(\)/.test(sources.durableWorkflow) &&
+        /beginWorkspaceRequest\(input\.usageKey, stepId\)/.test(sources.durableWorkflow) &&
+        /`\$\{stepId\}:credits`/.test(sources.durableWorkflow) &&
+        /finally\s*\{\s*await releaseRunUsage\(reservation\.usageKey, reservation\.leaseId\);\s*\}/.test(sources.durableWorkflow) &&
+        /await finalizeRun\(input, workflowRunId, outcome\)/.test(sources.durableWorkflow),
+      "Workflow retries replay stable usage reservations, release the exact lease, and persist a terminal outcome.",
+    ),
+    passOrFail(
+      "interface.cloud-project-controls",
+      "interface",
+      /<CloudProjectPanel[\s\S]*?currentProject=\{activeProject\}[\s\S]*?projects=\{projectRepository\.projects\}[\s\S]*?onReceiveCloudProject=\{receiveCloudProject\}/.test(sources.ui) &&
+        /fetchCloudStatus\(\)/.test(sources.cloudPanel) &&
+        /writableRoles\s*=\s*new Set<CloudRole>\(\["owner", "admin", "editor"\]\)/.test(sources.cloudPanel) &&
+        /cloudProjectRelationship/.test(sources.cloudPanel) &&
+        /DELETE MY CLOUD DATA/.test(sources.cloudPanel) &&
+        /No local version was overwritten by cloud sync/.test(sources.cloudPanel),
+      "Canvas exposes role-aware cloud status, sync/import comparison, and explicit cloud-data deletion without silently replacing local work.",
+    ),
+    passOrFail(
+      "interface.durable-review-lifecycle",
+      "interface",
+      /IntelligenceExecutionMode = "immediate" \| "durable"/.test(sources.intelligencePanel) &&
+        /\(\["immediate", "durable"\] as const\)/.test(sources.intelligencePanel) &&
+        /intelligenceExecution === "durable"/.test(sources.ui) &&
+        /fetch\("\/api\/intelligence\/workflows",\s*\{[\s\S]*?method:\s*"POST"[\s\S]*?"Idempotency-Key": `kx\.durable\.\$\{makeId\(\)\}`/.test(sources.ui) &&
+        /for \(let attempt = 0; attempt < 96; attempt \+= 1\)/.test(sources.ui) &&
+        /fetch\(statusUrl,[\s\S]*?cache:\s*"no-store"/.test(sources.ui) &&
+        /fetch\(`\/api\/intelligence\/workflows\?runId=\$\{encodeURIComponent\(workflowRunId\)\}`,[\s\S]*?method:\s*"DELETE"/.test(sources.ui),
+      "The visible project-review panel selects immediate or durable execution, starts with idempotency, polls no-store status, and requests cancellation.",
+    ),
+    passOrFail(
+      "interface.durable-review-binding-and-acceptance",
+      "interface",
+      [
+        "echoed.projectId !== binding.projectId",
+        "echoed.snapshotId !== binding.snapshotId",
+        "echoed.snapshotHash !== binding.snapshotHash",
+        "echoed.artifactId !== binding.artifactId",
+        "echoed.artifactRevisionId !== binding.artifactRevisionId",
+        "echoed.draftHash !== binding.draftHash",
+      ].every((token) => sources.ui.includes(token)) &&
+        /const acceptDisabled = !response \|\| running \|\| accepting \|\| !bindingIsCurrent/.test(sources.intelligencePanel) &&
+        sources.intelligencePanel.includes("It will not be applied automatically") &&
+        /onAcceptAsRevision=\{acceptConductorRevision\}/.test(sources.ui) &&
+        /!intelligenceBindingIsCurrent[\s\S]*?response\.runId !== intelligenceBinding\.runId/.test(sources.ui) &&
+        /appendDeliberatelyAcceptedDraft/.test(sources.ui),
+      "Durable results are admitted only after exact Atlas echo validation and require a current-bound deliberate revision acceptance.",
+    ),
+    passOrFail(
+      "contact.secure-intake",
+      "contact",
+      /isSameOriginRequest\(request\)/.test(sources.contactHandler) &&
+        /mediaType !== "application\/json"/.test(sources.contactHandler) &&
+        /CONTACT_LIMITS\.requestBytes/.test(sources.contactHandler) &&
+        /containsLikelySecret\(rawBody\)/.test(sources.contactHandler) &&
+        /projectEnquirySchema\.safeParse/.test(sources.contactHandler) &&
+        /parsed\.data\.website/.test(sources.contactHandler) &&
+        /deriveDeliveryIdempotencyKey/.test(sources.contactHandler) &&
+        /Cache-Control": "no-store/.test(sources.contactHandler),
+      "Project enquiry intake validates origin, type, size, secrets, consent schema, honeypot, and delivery identity.",
+    ),
+    passOrFail(
+      "contact.lazy-idempotent-delivery",
+      "contact",
+      /function resendClient\(apiKey/.test(sources.contactDelivery) &&
+        /new Resend\(apiKey\)/.test(sources.contactDelivery) &&
+        /emails\.send\([\s\S]*?\{ idempotencyKey \}/.test(sources.contactDelivery) &&
+        /getContactDeliveryReadiness\(\)/.test(sources.contact) &&
+        /getContactDeliveryConfiguration/.test(sources.contactConfig),
+      "Resend is lazy and configured server-side, with provider idempotency and an honest unavailable UI state.",
+    ),
+    passOrFail(
+      "contact.distributed-abuse-protection",
+      "contact",
+      corpus.hardGates.contactSubmissionsPerTenMinutes === 3 &&
+        corpus.hardGates.contactSubmissionsPerDay === 8 &&
+        corpus.hardGates.contactPendingReservationMilliseconds === 60_000 &&
+        /submissionsPerTenMinutes:\s*3/.test(sources.contactRateLimit) &&
+        /submissionsPerDay:\s*8/.test(sources.contactRateLimit) &&
+        normalizedContactRateLimit.includes("PENDINGRESERVATIONMS = 60 * 1000") &&
+        normalizedContactRateLimit.includes(
+          `MAXLOCALBUCKETS = ${corpus.hardGates.maximumContactLocalBuckets}`,
+        ) &&
+        normalizedContactRateLimit.includes(
+          `LOCALOVERFLOWBUCKETS = ${corpus.hardGates.contactLocalOverflowBuckets}`,
+        ) &&
+        normalizedContactRateLimit.includes(
+          `MAXLOCALRESERVATIONSPERBUCKET = ${corpus.hardGates.maximumContactReservationsPerBucket}`,
+        ) &&
+        normalizedContactRateLimit.includes(
+          `MAXLOCALCLEANUPSCAN = ${corpus.hardGates.maximumContactCleanupScan}`,
+        ) &&
+        (sources.contactRateLimit.match(/createHmac\("sha256", salt\)/g) || []).length === 2 &&
+        sources.contactRateLimit.includes('const namespace = `kx:contact:v1:{${visitorKey}}`') &&
+        [
+          'redis.call("HGET", KEYS[3], reservationKey)',
+          'redis.call("INCR", KEYS[1])',
+          'redis.call("INCR", KEYS[2])',
+          'redis.call("HSET", KEYS[3], reservationKey',
+          'if current ~= expected then',
+        ].every((token) => sources.contactRateLimit.includes(token)) &&
+        /redis\.eval\(\s*beginDistributedScript/.test(sources.contactRateLimit) &&
+        /redis\.eval\(\s*completeDistributedScript/.test(sources.contactRateLimit),
+      "Contact intake HMAC-pseudonymizes identity and atomically maintains independent allowances plus exact delivery reservations in Upstash.",
+    ),
+    passOrFail(
+      "contact.fail-closed-readiness-and-replay",
+      "contact",
+      /sharedDeployment\s*=\s*\n?\s*environment\.VERCEL === "1" \|\| environment\.NODE_ENV === "production"/.test(sources.contactRateLimit) &&
+        /!sharedDeployment\s*&&\s*salt\s*&&\s*environment\.KINGXFORD_ALLOW_EPHEMERAL_CONTACT === "1"/.test(sources.contactRateLimit) &&
+        /kind:\s*"missing"[\s\S]*?durable:\s*false[\s\S]*?ready:\s*false/.test(sources.contactRateLimit) &&
+        /configured:\s*deliveryConfigured && abuseProtection\.ready/.test(sources.contactConfig) &&
+        /deriveContactReservationKey\(/.test(sources.contactHandler) &&
+        /deriveContactVisitorKey\(/.test(sources.contactHandler) &&
+        /await beginRateLimit\(/.test(sources.contactHandler) &&
+        /status:\s*"already-accepted"/.test(sources.contactHandler) &&
+        /\{ "Retry-After": retryAfter \}/.test(sources.contactHandler) &&
+        /completeRateLimit\(lease, "failed"/.test(sources.contactHandler) &&
+        /completeRateLimit\(lease, "delivered"/.test(sources.contactHandler) &&
+        ["distributed", "local-bounded", "unavailable"].every((mode) =>
+          sources.contactHandler.includes(`"${mode}"`)) &&
+        /getContactDeliveryReadiness\(\)\.configured/.test(sources.health),
+      "Shared contact delivery fails closed, local fallback is explicit, retries are reserved, and diagnostics expose capability without secrets.",
+    ),
+    passOrFail(
+      "create.exact-workflow-library",
+      "create",
+      exactArray(implementationTemplateIds, corpus.hardGates.workflowTemplateIds) &&
+        /workflowTemplates:\s*readonly WorkflowTemplate\[\]/.test(sources.workflowTemplates) &&
+        (sources.workflowTemplates.match(/\bid:\s*"(?:websites|digital-tools|institutional-systems|research-ai-tools|operational-tools|education-tools|personal-tools)"/g) || []).length === 7,
+      "Create exposes the seven reviewed domain workflows on the same six-phase Atlas model.",
+    ),
+    passOrFail(
+      "create.bounded-local-evidence",
+      "create",
+      /fileBytes:\s*5 \* 1024 \* 1024/.test(sources.evidenceIngestion) &&
+        /pdfPages:\s*24/.test(sources.evidenceIngestion) &&
+        /textCharacters:\s*45_000/.test(sources.evidenceIngestion) &&
+        /networkAccess:\s*"none"/.test(sources.evidenceIngestion) &&
+        /URL recorded for manual examination/.test(sources.evidenceIngestion) &&
+        /addGovernedEvidenceToProject/.test(sources.evidenceIngestion) &&
+        !/\bfetch\s*\(/.test(sources.evidenceIngestion),
+      "Evidence intake is bounded, records no-network provenance, and never retrieves a submitted URL.",
+    ),
+    passOrFail(
+      "platform.workflow-routing-boundary",
+      "platform",
+      /withWorkflow\(nextConfig\)/.test(sources.siteConfig) &&
+        /connect-src 'self' https:\/\/\*\.supabase\.co wss:\/\/\*\.supabase\.co/.test(sources.siteConfig) &&
+        /pathname\.startsWith\("\/\.well-known\/workflow\/"\)/.test(sources.proxy) &&
+        /\.well-known\/workflow\//.test(sources.proxy),
+      "Workflow routing bypasses session refresh while the browser connection policy remains limited to Supabase.",
+    ),
+    passOrFail(
+      "observability.analytics-and-health",
+      "observability",
+      (sources.layout.match(/<Analytics \/>/g) || []).length === 1 &&
+      (sources.layout.match(/<SpeedInsights \/>/g) || []).length === 1 &&
+        /"Cache-Control": "no-store, max-age=0"/.test(sources.health) &&
+        /distributedUsageConfigured:\s*usage\.durable/.test(sources.health) &&
+        /durableReviewWorkflowConfigured:\s*workflowPersistence/.test(sources.health) &&
+        /enquiryDeliveryConfigured:\s*enquiry/.test(sources.health),
+      "Analytics and Speed Insights mount once and the no-store health route reports bounded capability booleans.",
+    ),
+    passOrFail(
+      "observability.sensitive-field-filter",
+      "observability",
+      /sensitiveFieldPattern/.test(sources.operationalLog) &&
+        /\.filter\(\(\[key\]\) => !sensitiveFieldPattern\.test\(key\)\)/.test(sources.operationalLog) &&
+        /\.slice\(0, 32\)/.test(sources.operationalLog) &&
+        /event:\s*event\.slice\(0, 120\)/.test(sources.operationalLog),
+      "Operational events are bounded and discard sensitive field names before logging.",
+    ),
+  );
+}
+
 function validateEnvironmentAndWorkflow(corpus, sources, checks) {
   const env = sources.environment;
   const workflow = sources.workflow;
@@ -900,6 +1574,10 @@ function validateEnvironmentAndWorkflow(corpus, sources, checks) {
     "npm ci",
     "npm run typecheck",
     "npm run lint -- --max-warnings=0",
+    "npm run test:intelligence",
+    "npm run test:platform",
+    "npm run test:foundation",
+    "npm run verify:editorial-voice",
     "npm run verify:creative-agent",
     "npm audit --omit=dev --audit-level=high",
     "npm run build",
@@ -920,16 +1598,30 @@ function validateEnvironmentAndWorkflow(corpus, sources, checks) {
       [
         "NEXT_PUBLIC_SITE_URL",
         "NEXT_PUBLIC_CONTACT_EMAIL",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "KINGXFORD_ALLOW_EPHEMERAL_USAGE",
+        "KINGXFORD_ALLOW_EPHEMERAL_CONTACT",
+        "RESEND_API_KEY",
+        "CONTACT_FROM_EMAIL",
+        "CONTACT_INBOX_EMAIL",
         "AI_GATEWAY_API_KEY",
         "KINGXFORD_CREATIVE_STANDARD_MODEL",
         "KINGXFORD_CREATIVE_STANDARD_FALLBACK_MODELS",
         "KINGXFORD_CREATIVE_DEEP_MODEL",
         "KINGXFORD_CREATIVE_DEEP_FALLBACK_MODELS",
+        "KINGXFORD_INTELLIGENCE_STANDARD_MODEL",
+        "KINGXFORD_INTELLIGENCE_STANDARD_FALLBACK_MODELS",
+        "KINGXFORD_INTELLIGENCE_DEEP_MODEL",
+        "KINGXFORD_INTELLIGENCE_DEEP_FALLBACK_MODELS",
         "KINGXFORD_AGENT_REQUESTS_PER_MINUTE",
         "KINGXFORD_AGENT_DAILY_CREDITS",
         "KINGXFORD_AGENT_MAX_CONCURRENT",
         "KINGXFORD_USAGE_HASH_SALT",
-        "NEXT_PUBLIC_AI_ENTREPRENEURSHIP_URL",
       ].every((name) => env.includes(`${name}=`)),
       "The owner template lists every deployment and routing variable.",
     ),
@@ -937,14 +1629,18 @@ function validateEnvironmentAndWorkflow(corpus, sources, checks) {
       "environment.contact-address",
       "environment",
       /NEXT_PUBLIC_CONTACT_EMAIL=\S+@\S+/.test(env) &&
-        /validatedContactEmail\(process\.env\.NEXT_PUBLIC_CONTACT_EMAIL\)/.test(sources.contact),
-      "The public contact handoff uses an owner-configurable, server-rendered, validated email address.",
+        /validatedContactEmail\([\s\S]*?environment\.NEXT_PUBLIC_CONTACT_EMAIL/.test(sources.contactConfig) &&
+        /getContactDeliveryReadiness\(\)/.test(sources.contact),
+      "The public contact handoff uses an owner-configurable, validated address and honest delivery readiness.",
     ),
     passOrFail(
       "environment.no-public-secret",
       "environment",
-      !/^NEXT_PUBLIC_.*(?:KEY|TOKEN|SECRET|SALT)=/m.test(env),
-      "The template exposes no credential through a public browser variable.",
+      !/^NEXT_PUBLIC_.*(?:TOKEN|SECRET|SALT)=/m.test(env) &&
+        !/^NEXT_PUBLIC_(?:SUPABASE_SERVICE_ROLE_KEY|AI_GATEWAY_API_KEY|RESEND_API_KEY|UPSTASH_REDIS_REST_TOKEN)=/m.test(env) &&
+        env.includes("intentionally public") &&
+        env.includes("service-role key is server-only"),
+      "The template distinguishes the Supabase publishable browser key from all server-only credentials.",
     ),
     passOrFail(
       "workflow.read-only",
@@ -954,17 +1650,17 @@ function validateEnvironmentAndWorkflow(corpus, sources, checks) {
       "CI has read-only repository permissions and no write command path.",
     ),
     passOrFail(
-      "workflow.node-22",
+      "workflow.node-24",
       "workflow",
-      /node-version:\s*22/.test(workflow),
-      "CI uses the supported Node.js 22 runtime.",
+      /node-version:\s*24/.test(workflow),
+      "CI uses the supported Node.js 24 runtime.",
     ),
     passOrFail(
       "workflow.ordered-gates",
       "workflow",
       sequence.every((index) => index >= 0) &&
         sequence.every((index, position) => position === 0 || index > sequence[position - 1]),
-      "CI runs install, type-check, zero-warning lint, governance, production audit, and build in reviewed order.",
+      "CI runs install, type-check, lint, intelligence/platform/foundation tests, editorial/governance checks, audit, and build in reviewed order.",
     ),
     passOrFail(
       "security.site-headers",
@@ -1145,6 +1841,7 @@ async function main() {
   validateUsage(corpus, sources, checks);
   validateProjectAtlas(corpus, sources, checks);
   validateInterface(sources, checks);
+  validateProductionFoundation(corpus, sources, checks);
   validateEnvironmentAndWorkflow(corpus, sources, checks);
   const catalog = await verifyCatalog(config.modelRoutes, checks);
 

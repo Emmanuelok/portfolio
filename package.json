@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "next dev",
@@ -13,19 +13,29 @@
     "typecheck": "tsc --noEmit",
     "verify:creative-agent": "node scripts/verify-creative-agent.mjs",
     "verify:editorial-voice": "node scripts/verify-editorial-voice.mjs",
+    "verify:ai-live": "node scripts/verify-ai-live.mjs",
     "verify:platform-journey": "bash scripts/run-platform-journey.sh",
     "test:intelligence": "node --import tsx --test tests/intelligence-runtime.test.ts tests/ai-readiness.test.ts",
-    "test:platform": "node --import tsx --test tests/platform-project-bundle.test.ts tests/unified-project-migration.test.ts"
+    "test:platform": "node --import tsx --test tests/platform-project-bundle.test.ts tests/unified-project-migration.test.ts",
+    "test:foundation": "node --import tsx --test tests/distributed-usage-policy.test.ts tests/durable-workflow-contract.test.ts tests/cloud-foundation.test.ts tests/cloud-workspace-ui.test.ts tests/cloud-evidence.test.ts tests/contact-intake.test.ts tests/create-workflows.test.ts tests/organization-collaboration.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
     "@fontsource-variable/newsreader": "^5.2.8",
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.2",
+    "@upstash/redis": "^1.38.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "ai": "^7.0.52",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.26",
     "next": "16.3.0",
+    "pdfjs-dist": "^6.2.108",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "resend": "^6.18.1",
+    "workflow": "^4.8.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -38,5 +48,13 @@
     "playwright-core": "^1.62.0",
     "tsx": "4.23.5",
     "typescript": "^5.9.0"
+  },
+  "overrides": {
+    "@workflow/world-local": {
+      "undici": "7.29.0"
+    },
+    "@workflow/world-vercel": {
+      "undici": "7.29.0"
+    }
   }
 }

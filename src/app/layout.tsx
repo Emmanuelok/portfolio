@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { MotionProvider } from "@/components/MotionProvider";
 import { PlatformContinuityDock } from "@/components/platform/PlatformContinuityDock";
@@ -191,6 +193,8 @@ export default function RootLayout({
           </div>
           <SiteFooter />
           <PlatformContinuityDock />
+          <Analytics />
+          <SpeedInsights />
         </MotionProvider>
       </body>
     </html>

@@ -251,7 +251,7 @@ export function buildAiReadiness({
     blockers.push({
       code: "usage-protection-missing",
       message:
-        "Configure the server-only KINGXFORD_USAGE_HASH_SALT with at least 32 characters for production requests.",
+        "Configure the server-only usage identity secret and distributed usage store required for production requests.",
     });
   }
 

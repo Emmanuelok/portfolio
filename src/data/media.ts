@@ -76,7 +76,7 @@ export const mediaPosts: readonly MediaPost[] = [
     slug: "sustainable-abundance-for-all",
     title:
       "Sustainable Abundance for All: Designing a Future Where Intelligence Expands Human Capability",
-    eyebrow: "Evidence briefing · Abundant futures",
+    eyebrow: "Evidence briefing · Capability and sustainability",
     description:
       "An evidence-led kingXford & Co briefing on expanding human capability while respecting ecological limits, distribution, resilience, and the resource demands of intelligence itself.",
     standfirst:

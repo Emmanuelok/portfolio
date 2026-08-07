@@ -1,8 +1,16 @@
 "use client";
 
-import { Check, Copy, Download, Mail } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, Copy, Download, Mail, Send } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
+import {
+  CONTACT_LIMITS,
+  CONTACT_RETENTION_TARGET_DAYS,
+  contactHorizons,
+  validatedContactEmail,
+  type ContactHorizon,
+} from "@/lib/contact/contracts";
 import { parseConcept } from "@/lib/workspace/local-analysis";
 import { transformLabels } from "@/lib/workspace/presets";
 import type { WorkspaceDraft, WorkspaceMode } from "@/lib/workspace/types";
@@ -17,7 +25,20 @@ type BriefState = Readonly<{
   future: string;
   constraints: string;
   investment: string;
-  horizon: string;
+  horizon: "" | ContactHorizon;
+}>;
+
+type ContactState = Readonly<{
+  name: string;
+  email: string;
+  organization: string;
+  consent: boolean;
+  website: string;
+}>;
+
+type FormStatus = Readonly<{
+  state: "idle" | "working" | "success" | "error" | "notice";
+  message: string;
 }>;
 
 type HandoffNotice = Readonly<{
@@ -44,6 +65,16 @@ const initialBrief: BriefState = {
   investment: "",
   horizon: "",
 };
+
+const initialContact: ContactState = {
+  name: "",
+  email: "",
+  organization: "",
+  consent: false,
+  website: "",
+};
+
+const idleStatus: FormStatus = { state: "idle", message: "" };
 
 const queryPresets: Readonly<Record<string, Partial<BriefState>>> = {
   create: {
@@ -320,10 +351,17 @@ function loadCanvasHandoff(): Readonly<{
   }
 }
 
-function buildBrief(value: BriefState) {
+function buildBrief(value: BriefState, contact: ContactState) {
+  const contactLines = [
+    contact.name ? `Name: ${contact.name}` : "",
+    contact.email ? `Email: ${contact.email}` : "",
+    contact.organization ? `Organization: ${contact.organization}` : "",
+  ].filter(Boolean);
+
   return [
     "COMPLEX PROBLEM BRIEF",
     "Prepared with kingXford & Co",
+    contactLines.length ? `\nCONTACT\n${contactLines.join("\n")}` : "",
     "",
     `1. Problem or opportunity\n${value.problem || "Not yet defined"}`,
     `2. People and institutions affected\n${value.affected || "Not yet defined"}`,
@@ -349,11 +387,22 @@ function buildMailtoUrl(email: string, brief: string) {
   return url;
 }
 
-export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: string | null }>) {
+export function ProjectBriefBuilder({
+  contactEmail,
+  onlineSubmissionAvailable,
+  onlineSubmissionDurable,
+}: Readonly<{
+  contactEmail: string | null;
+  onlineSubmissionAvailable: boolean;
+  onlineSubmissionDurable: boolean;
+}>) {
   const [brief, setBrief] = useState<BriefState>(initialBrief);
-  const [status, setStatus] = useState("");
+  const [contact, setContact] = useState<ContactState>(initialContact);
+  const [status, setStatus] = useState<FormStatus>(idleStatus);
+  const [submitting, setSubmitting] = useState(false);
   const [handoffNotice, setHandoffNotice] = useState<HandoffNotice | null>(null);
-  const output = buildBrief(brief);
+  const idempotencyKey = useRef("");
+  const output = buildBrief(brief, contact);
   const emailDraftUrl = contactEmail ? buildMailtoUrl(contactEmail, output) : null;
 
   useEffect(() => {
@@ -373,16 +422,31 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
   }, []);
 
   const update = (field: keyof BriefState, value: string) => {
-    setBrief((current) => ({ ...current, [field]: value }));
-    setStatus("");
+    setBrief((current) => ({ ...current, [field]: value } as BriefState));
+    setStatus(idleStatus);
+  };
+
+  const updateContact = (
+    field: keyof ContactState,
+    value: string | boolean,
+  ) => {
+    setContact((current) => ({ ...current, [field]: value } as ContactState));
+    setStatus(idleStatus);
   };
 
   const copyBrief = async () => {
     try {
       await navigator.clipboard.writeText(output);
-      setStatus("Brief copied. You can now share it through your chosen institutional channel.");
+      setStatus({
+        state: "notice",
+        message:
+          "Brief copied. You can now share it through your chosen institutional channel.",
+      });
     } catch {
-      setStatus("Copy was unavailable in this browser. Download the brief instead.");
+      setStatus({
+        state: "error",
+        message: "Copy was unavailable in this browser. Download the brief instead.",
+      });
     }
   };
 
@@ -394,7 +458,114 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
     anchor.download = "kingxford-complex-problem-brief.txt";
     anchor.click();
     URL.revokeObjectURL(url);
-    setStatus("Brief downloaded to your device.");
+    setStatus({ state: "notice", message: "Brief downloaded to your device." });
+  };
+
+  const submitEnquiry = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!onlineSubmissionAvailable) {
+      setStatus({
+        state: "error",
+        message:
+          "Online delivery is not configured on this deployment. Nothing was submitted. Use the email, copy, or download option instead.",
+      });
+      return;
+    }
+
+    const requiredTextIsValid =
+      contact.name.trim().length >= 2 &&
+      validatedContactEmail(contact.email.trim()) !== null &&
+      brief.problem.trim().length >= 30 &&
+      brief.affected.trim().length >= 10 &&
+      brief.future.trim().length >= 10 &&
+      brief.horizon !== "" &&
+      contact.consent;
+    const fieldsWithinLimits =
+      contact.name.length <= CONTACT_LIMITS.name &&
+      contact.email.length <= CONTACT_LIMITS.email &&
+      contact.organization.length <= CONTACT_LIMITS.organization &&
+      brief.problem.length <= CONTACT_LIMITS.problem &&
+      brief.affected.length <= CONTACT_LIMITS.affected &&
+      brief.evidence.length <= CONTACT_LIMITS.evidence &&
+      brief.future.length <= CONTACT_LIMITS.future &&
+      brief.constraints.length <= CONTACT_LIMITS.constraints &&
+      brief.investment.length <= CONTACT_LIMITS.investment;
+
+    if (!requiredTextIsValid || !fieldsWithinLimits) {
+      setStatus({
+        state: "error",
+        message:
+          "Complete the required contact and brief fields, choose a time horizon, and confirm consent. The problem needs at least 30 characters; the affected group and desired future need at least 10 each.",
+      });
+      return;
+    }
+
+    if (!idempotencyKey.current) {
+      idempotencyKey.current = globalThis.crypto.randomUUID();
+    }
+
+    setSubmitting(true);
+    setStatus({
+      state: "working",
+      message: "Requesting secure delivery…",
+    });
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15_000);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idempotencyKey: idempotencyKey.current,
+          name: contact.name,
+          email: contact.email,
+          organization: contact.organization,
+          brief,
+          consent: contact.consent,
+          website: contact.website,
+        }),
+        signal: controller.signal,
+      });
+      const result = (await response.json().catch(() => null)) as {
+        submitted?: unknown;
+        message?: unknown;
+        error?: unknown;
+        requestId?: unknown;
+      } | null;
+
+      if (response.ok && result?.submitted === true) {
+        const reference =
+          typeof result.requestId === "string" ? ` Reference: ${result.requestId}.` : "";
+        setStatus({
+          state: "success",
+          message: `Your enquiry was accepted for delivery.${reference}`,
+        });
+        return;
+      }
+
+      setStatus({
+        state: "error",
+        message:
+          typeof result?.error === "string"
+            ? result.error
+            : "The enquiry was not accepted. Your browser copy is unchanged; use email, copy, or download instead.",
+      });
+    } catch (error) {
+      setStatus({
+        state: "error",
+        message:
+          error instanceof DOMException && error.name === "AbortError"
+            ? "Delivery timed out. No successful submission was confirmed. Retry once or use email, copy, or download."
+            : "Delivery could not be confirmed. Your browser copy is unchanged; retry once or use email, copy, or download.",
+      });
+    } finally {
+      window.clearTimeout(timeout);
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -403,9 +574,9 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
         <p className="eyebrow">Start with the brief</p>
         <h2 id="problem-brief-title">Define the problem before choosing the solution.</h2>
         <p>
-          Use this private, browser-only worksheet to turn an ambitious idea or
-          institutional challenge into a clearer starting point for research,
-          development, and responsible delivery.
+          Use this browser-first worksheet to turn an ambitious idea or
+          institutional challenge into a clearer starting point. Nothing leaves
+          the page until you deliberately submit it or open an email draft.
         </p>
       </header>
 
@@ -420,13 +591,74 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
         </aside>
       )}
 
-      <form className={styles.form} onSubmit={(event) => event.preventDefault()}>
+      <form
+        className={styles.form}
+        onSubmit={submitEnquiry}
+        aria-busy={submitting}
+        noValidate
+      >
+        <div className={styles.formIntro}>
+          <p className="eyebrow">Contact record</p>
+          <h3>Identify who should receive the response.</h3>
+          <p>
+            Only the details you deliberately submit are delivered. Credentials,
+            private keys, and unnecessary personal information should never be
+            included.
+          </p>
+        </div>
+
         <label className={styles.field}>
+          <span>Your name *</span>
+          <small>The person responsible for this enquiry.</small>
+          <input
+            type="text"
+            autoComplete="name"
+            value={contact.name}
+            maxLength={CONTACT_LIMITS.name}
+            onChange={(event) => updateContact("name", event.target.value)}
+            required
+          />
+        </label>
+
+        <label className={styles.field}>
+          <span>Email *</span>
+          <small>A working address for a considered response.</small>
+          <input
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={contact.email}
+            maxLength={CONTACT_LIMITS.email}
+            onChange={(event) => updateContact("email", event.target.value)}
+            required
+          />
+        </label>
+
+        <label className={`${styles.field} ${styles.fieldWide}`}>
+          <span>Organization</span>
+          <small>Institution, company, research group, or independent practice.</small>
+          <input
+            type="text"
+            autoComplete="organization"
+            value={contact.organization}
+            maxLength={CONTACT_LIMITS.organization}
+            onChange={(event) => updateContact("organization", event.target.value)}
+          />
+        </label>
+
+        <div className={styles.formIntro}>
+          <p className="eyebrow">Project record</p>
+          <h3>Describe the work before prescribing the technology.</h3>
+        </div>
+
+        <label className={`${styles.field} ${styles.fieldWide}`}>
           <span>Problem or opportunity</span>
           <small>What is happening, and why does it matter now?</small>
           <textarea
             value={brief.problem}
+            maxLength={CONTACT_LIMITS.problem}
             onChange={(event) => update("problem", event.target.value)}
+            required
           />
         </label>
 
@@ -435,7 +667,9 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
           <small>Who experiences the problem, carries the risk, or enables change?</small>
           <textarea
             value={brief.affected}
+            maxLength={CONTACT_LIMITS.affected}
             onChange={(event) => update("affected", event.target.value)}
+            required
           />
         </label>
 
@@ -444,16 +678,19 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
           <small>What is known, measured, assumed, or still disputed?</small>
           <textarea
             value={brief.evidence}
+            maxLength={CONTACT_LIMITS.evidence}
             onChange={(event) => update("evidence", event.target.value)}
           />
         </label>
 
-        <label className={styles.field}>
+        <label className={`${styles.field} ${styles.fieldWide}`}>
           <span>Desired future</span>
           <small>What should become more capable, equitable, resilient, or abundant?</small>
           <textarea
             value={brief.future}
+            maxLength={CONTACT_LIMITS.future}
             onChange={(event) => update("future", event.target.value)}
+            required
           />
         </label>
 
@@ -462,6 +699,7 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
           <small>Consider time, policy, data, trust, finance, infrastructure, and risk.</small>
           <textarea
             value={brief.constraints}
+            maxLength={CONTACT_LIMITS.constraints}
             onChange={(event) => update("constraints", event.target.value)}
           />
         </label>
@@ -471,6 +709,7 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
           <small>Budget, expertise, research, time, infrastructure, networks, or trust.</small>
           <textarea
             value={brief.investment}
+            maxLength={CONTACT_LIMITS.investment}
             onChange={(event) => update("investment", event.target.value)}
           />
         </label>
@@ -481,48 +720,130 @@ export function ProjectBriefBuilder({ contactEmail }: Readonly<{ contactEmail: s
           <select
             value={brief.horizon}
             onChange={(event) => update("horizon", event.target.value)}
+            required
           >
             <option value="">Choose a horizon</option>
-            <option>Immediate response · 0–90 days</option>
-            <option>Pilot and evidence · 3–12 months</option>
-            <option>Institutional development · 1–3 years</option>
-            <option>Long-horizon transformation · 3+ years</option>
+            {contactHorizons.map((horizon) => (
+              <option key={horizon}>{horizon}</option>
+            ))}
           </select>
         </label>
 
+        <div className={styles.honeypot} aria-hidden="true">
+          <label>
+            Leave this field empty
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={contact.website}
+              onChange={(event) => updateContact("website", event.target.value)}
+            />
+          </label>
+        </div>
+
+        <label className={styles.consent}>
+          <input
+            type="checkbox"
+            checked={contact.consent}
+            onChange={(event) => updateContact("consent", event.target.checked)}
+            aria-describedby="project-enquiry-privacy"
+            required
+          />
+          <span>
+            I authorize kingXford &amp; Co to use the information in this enquiry
+            to assess the project and respond. I have read the{" "}
+            <Link href="/privacy">Privacy Statement</Link>.
+          </span>
+        </label>
+
+        <div
+          className={styles.availability}
+          data-state={onlineSubmissionAvailable ? "available" : "unavailable"}
+          role="status"
+        >
+          <strong>
+            {onlineSubmissionAvailable
+              ? onlineSubmissionDurable
+                ? "Protected online delivery is available."
+                : "Online delivery is available for local testing."
+              : "Online delivery is not ready on this deployment."}
+          </strong>
+          <p>
+            {onlineSubmissionAvailable
+              ? onlineSubmissionDurable
+                ? "Submissions are protected by a distributed low-volume allowance. A successful response means the delivery provider accepted the enquiry; it does not promise a project engagement or immediate reply."
+                : "This non-durable mode is intended only for local development and must not be used on a shared deployment."
+              : contactEmail
+                ? "Nothing entered here will be submitted online. Use the email draft, copy, or download option when you are ready."
+                : "Nothing entered here will be submitted online. Copy or download the brief and share it through a channel you trust."}
+          </p>
+        </div>
+
         <div className={styles.actions}>
+          <button
+            type="submit"
+            disabled={submitting || !onlineSubmissionAvailable}
+            title={
+              onlineSubmissionAvailable
+                ? undefined
+                : "Online delivery has not been configured."
+            }
+          >
+            {status.state === "success" ? (
+              <Check aria-hidden="true" />
+            ) : (
+              <Send aria-hidden="true" />
+            )}
+            {submitting
+              ? "Submitting…"
+              : onlineSubmissionAvailable
+                ? "Submit project enquiry"
+                : "Online submission unavailable"}
+          </button>
           {emailDraftUrl ? (
-            <a className={styles.emailAction} href={emailDraftUrl}>
+            <a className={styles.emailAction} data-kind="secondary" href={emailDraftUrl}>
               <Mail aria-hidden="true" />
               Open email draft
             </a>
           ) : (
-            <button type="button" disabled title="The project inbox has not been configured.">
+            <button
+              type="button"
+              data-kind="secondary"
+              disabled
+              title="A public project email has not been configured."
+            >
               <Mail aria-hidden="true" />
-              Email unavailable
+              Email fallback unavailable
             </button>
           )}
-          <button type="button" onClick={copyBrief}>
-            {status.startsWith("Brief copied") ? (
-              <Check aria-hidden="true" />
-            ) : (
-              <Copy aria-hidden="true" />
-            )}
+          <button type="button" data-kind="secondary" onClick={copyBrief}>
+            <Copy aria-hidden="true" />
             Copy structured brief
           </button>
-          <button type="button" onClick={downloadBrief}>
+          <button type="button" data-kind="secondary" onClick={downloadBrief}>
             <Download aria-hidden="true" />
             Download .txt
           </button>
-          <p className={styles.status} aria-live="polite">{status}</p>
+          <p
+            className={styles.status}
+            data-state={status.state}
+            role={status.state === "error" ? "alert" : "status"}
+            aria-live={status.state === "error" ? "assertive" : "polite"}
+          >
+            {status.message}
+          </p>
         </div>
 
-        <p className={styles.privacy}>
-          Privacy: this worksheet runs locally in your browser. It does not
-          submit or transmit the information you enter, and changes made here
-          are not saved automatically. Opening an email draft, copying, or
-          downloading happens only when you choose that action; an email is
-          never sent automatically.
+        <p className={styles.privacy} id="project-enquiry-privacy">
+          Until you deliberately submit or open an email draft, this worksheet
+          remains in your browser and is not saved automatically. Submitted
+          enquiries are delivered to the project inbox and retained only as
+          described in the <Link href="/privacy">Privacy Statement</Link>, with a
+          target of deleting inactive enquiry material within{" "}
+          {CONTACT_RETENTION_TARGET_DAYS} days. Copy and download remain available
+          even if online delivery is interrupted.
         </p>
       </form>
     </section>

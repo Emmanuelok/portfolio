@@ -57,10 +57,18 @@ import {
 } from "@/lib/workspace/lenses";
 import { ProjectContinuum } from "@/components/workspace/ProjectContinuum";
 import {
+  CloudProjectPanel,
+  type CloudProjectTransfer,
+} from "@/components/workspace/CloudProjectPanel";
+import { CloudEvidencePanel } from "@/components/workspace/CloudEvidencePanel";
+import { EvidenceIntake } from "@/components/workspace/EvidenceIntake";
+import {
   ProjectIntelligencePanel,
+  type IntelligenceExecutionMode,
   type ManualEvidenceSubmission,
 } from "@/components/workspace/ProjectIntelligencePanel";
 import { ProjectLibraryDialog } from "@/components/workspace/ProjectLibraryDialog";
+import { WorkflowLibrary } from "@/components/workspace/WorkflowLibrary";
 import {
   intelligenceCapabilities,
   intelligenceRunRequestSchema,
@@ -68,7 +76,12 @@ import {
   type IntelligenceRunRequest,
   type IntelligenceRunResponse,
 } from "@/lib/intelligence/contracts";
+import {
+  aiReadinessSchema,
+  type AiReadiness,
+} from "@/lib/intelligence/readiness";
 import type { PlatformPhaseId } from "@/lib/platform";
+import { withActiveCloudOrganization } from "@/lib/cloud/organization-selection";
 import {
   safeParseCanvasV1,
   type CanvasV1StoredWorkspace,
@@ -95,6 +108,7 @@ import {
   createEmptyProjectRepository,
   duplicateRepositoryProject,
   exportProjectJson,
+  importProject,
   importProjectJson,
   loadProjectRepository,
   removeRepositoryProject,
@@ -109,6 +123,16 @@ import {
   readProjectSeed,
   type ProjectSeed,
 } from "@/lib/workspace/project-seed";
+import {
+  addGovernedEvidenceToProject,
+  type GovernedEvidence,
+} from "@/lib/workspace/evidence-ingestion";
+import {
+  createWorkflowProject,
+  workflowPhaseReadiness,
+  workflowTemplateForProject,
+  type WorkflowTemplateId,
+} from "@/lib/workspace/workflow-templates";
 import type {
   AgentReviewRecord,
   AgentReviewResponse,
@@ -140,7 +164,6 @@ type StoredWorkspace = Readonly<{
 }>;
 
 type CreativeWorkspaceProps = Readonly<{
-  entrepreneurshipUrl: string | null;
   embedded?: boolean;
   initialMode?: WorkspaceMode | null;
   initialPhase?: PlatformPhaseId | null;
@@ -203,6 +226,35 @@ function makeId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function apiErrorMessage(value: unknown, fallback: string) {
+  if (!value || typeof value !== "object") return fallback;
+  const error = (value as { error?: unknown }).error;
+  if (typeof error === "string" && error.trim()) return error;
+  if (error && typeof error === "object") {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  return fallback;
+}
+
+function waitForReviewPoll(milliseconds: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Review stopped", "AbortError"));
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener("abort", stop);
+      resolve();
+    }, milliseconds);
+    const stop = () => {
+      window.clearTimeout(timer);
+      reject(new DOMException("Review stopped", "AbortError"));
+    };
+    signal.addEventListener("abort", stop, { once: true });
+  });
 }
 
 function cloneDraft(draft: WorkspaceDraft): WorkspaceDraft {
@@ -1038,7 +1090,6 @@ function VersionPanel({
 }
 
 export function CreativeWorkspace({
-  entrepreneurshipUrl,
   embedded = false,
   initialMode = null,
   initialPhase = null,
@@ -1049,6 +1100,7 @@ export function CreativeWorkspace({
   const importRef = useRef<HTMLInputElement>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const intelligenceControllerRef = useRef<AbortController | null>(null);
+  const durableWorkflowRunRef = useRef<string | null>(null);
   const reviewBindingRef = useRef<ReviewBinding | null>(null);
   const intelligenceBindingRef = useRef<IntelligenceBinding | null>(null);
   const editorHashRef = useRef("");
@@ -1103,16 +1155,71 @@ export function CreativeWorkspace({
   const [intelligenceResponse, setIntelligenceResponse] = useState<IntelligenceRunResponse | null>(null);
   const [intelligenceBinding, setIntelligenceBinding] = useState<IntelligenceBinding | null>(null);
   const [intelligenceDepth, setIntelligenceDepth] = useState<"standard" | "deep">("standard");
+  const [intelligenceExecution, setIntelligenceExecution] = useState<IntelligenceExecutionMode>("immediate");
   const [intelligenceRunning, setIntelligenceRunning] = useState(false);
   const [intelligenceAccepting, setIntelligenceAccepting] = useState(false);
   const [intelligenceError, setIntelligenceError] = useState("");
   const [projectLibraryOpen, setProjectLibraryOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [aiReadiness, setAiReadiness] = useState<AiReadiness | null>(null);
+  const [aiReadinessChecked, setAiReadinessChecked] = useState(false);
   const [handoffAgent, setHandoffAgent] = useState(true);
   const [handoffVersions, setHandoffVersions] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   const projectMutationLocked = reviewRunning || intelligenceRunning;
+
+  const refreshAiReadiness = useCallback(async (signal?: AbortSignal) => {
+    const response = await fetch("/api/intelligence/runs", {
+      method: "GET",
+      cache: "no-store",
+      signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) throw new Error("Review readiness could not be confirmed.");
+    const payload = await response.json() as unknown;
+    const readinessValue = payload && typeof payload === "object" && "readiness" in payload
+      ? (payload as { readiness?: unknown }).readiness
+      : undefined;
+    const readiness = aiReadinessSchema.parse(readinessValue);
+    setAiReadiness(readiness);
+    setAiReadinessChecked(true);
+    return readiness;
+  }, []);
+
+  const reviewAvailability = useMemo(() => {
+    if (!aiReadinessChecked) {
+      return {
+        ready: false,
+        state: "checking" as const,
+        label: "Checking review availability",
+        detail: "No project content is included in this configuration check.",
+      };
+    }
+    if (aiReadiness?.deploymentReady && aiReadiness.providerReady) {
+      return {
+        ready: true,
+        state: "ai" as const,
+        label: "AI-assisted review available",
+        detail: "Provider routing is configured. A live connection is attempted only when you start a review.",
+      };
+    }
+    if (aiReadiness?.localFallbackReady) {
+      return {
+        ready: true,
+        state: "local" as const,
+        label: "Local review available",
+        detail: "Reviews use local rules without provider transmission.",
+      };
+    }
+    return {
+      ready: false,
+      state: "blocked" as const,
+      label: "Configuration required",
+      detail: aiReadiness?.blockers[0]?.message
+        ?? "Review configuration is unavailable. Local editing, evidence intake, and export remain available.",
+    };
+  }, [aiReadiness, aiReadinessChecked]);
 
   const currentText = mode === "code" ? "" : textByMode[mode];
   const draft = useMemo<WorkspaceDraft>(
@@ -1133,6 +1240,10 @@ export function CreativeWorkspace({
       (artifact) => artifact.kind === descriptor.kind && artifact.phase === descriptor.phase,
     );
   }, [activeProject, mode]);
+  const activeWorkflowTemplate = useMemo(
+    () => activeProject ? workflowTemplateForProject(activeProject) : null,
+    [activeProject],
+  );
   const intelligenceBindingIsCurrent = useMemo(() => {
     if (!activeProject || !intelligenceBinding || !intelligenceResponse) return false;
     const artifact = activeProject.artifacts.find(
@@ -1177,6 +1288,19 @@ export function CreativeWorkspace({
     controllerRef.current?.abort();
     intelligenceControllerRef.current?.abort();
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    queueMicrotask(() => {
+      if (controller.signal.aborted) return;
+      void refreshAiReadiness(controller.signal).catch(() => {
+        if (controller.signal.aborted) return;
+        setAiReadiness(null);
+        setAiReadinessChecked(true);
+      });
+    });
+    return () => controller.abort();
+  }, [refreshAiReadiness]);
 
   useEffect(() => {
     const online = () => setIsOnline(true);
@@ -1525,6 +1649,30 @@ export function CreativeWorkspace({
     }
   };
 
+  const startWorkflow = (templateId: WorkflowTemplateId, projectTitle: string) => {
+    if (projectMutationLocked) return;
+    if (projectRepository.projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS) {
+      setStatus(`The local library is full. Export or delete a project before starting another workflow.`);
+      return;
+    }
+    try {
+      let repository = preserveCurrentProject();
+      const project = createWorkflowProject(templateId, {
+        title: projectTitle,
+        idSeed: `workflow:${templateId}:${makeId()}`,
+      });
+      repository = upsertRepositoryProject(repository, project);
+      saveProjectRepository(repository);
+      setProjectRepository(repository);
+      openProjectInCanvas(project);
+      setStatus(`${workflowTemplateForProject(project)?.name ?? "Atlas"} workflow started as a new local project`);
+    } catch (error) {
+      setStatus(error instanceof Error
+        ? `Workflow could not be started · ${error.message}`
+        : "Workflow could not be started. The current project remains unchanged.");
+    }
+  };
+
   const exportProjectPackage = (projectId = activeProject?.id) => {
     if (!projectId) return;
     try {
@@ -1564,6 +1712,38 @@ export function CreativeWorkspace({
         : "The project file did not pass validation.");
     } finally {
       if (importRef.current) importRef.current.value = "";
+    }
+  };
+
+  const receiveCloudProject = async (transfer: CloudProjectTransfer) => {
+    if (projectMutationLocked) {
+      throw new Error("Wait for the current review to finish before opening a cloud project.");
+    }
+    try {
+      const preserved = preserveCurrentProject();
+      if (transfer.intent === "inspect-current-copy") {
+        const local = preserved.projects.find(({ id }) => id === transfer.project.id);
+        if (!local) throw new Error("The matching local project is no longer available.");
+        const repository = selectRepositoryProject(preserved, local.id);
+        saveProjectRepository(repository);
+        setProjectRepository(repository);
+        openProjectInCanvas(local);
+        setStatus("Verified cloud and local versions match");
+        return;
+      }
+
+      const result = importProject(preserved, transfer.project);
+      saveProjectRepository(result.state);
+      setProjectRepository(result.state);
+      openProjectInCanvas(result.project);
+      setStatus(result.cloned
+        ? "Cloud version opened as a protected local copy for comparison"
+        : "Cloud project added to this device and opened");
+    } catch (error) {
+      setStatus(error instanceof Error
+        ? `Cloud project could not be opened · ${error.message}`
+        : "The cloud project could not be opened. Local work remains unchanged.");
+      throw error;
     }
   };
 
@@ -1757,7 +1937,7 @@ export function CreativeWorkspace({
   };
 
   const requestReview = async (quickInstruction?: string) => {
-    if (!canReview || projectMutationLocked) return;
+    if (!canReview || projectMutationLocked || !isOnline) return;
     const controller = new AbortController();
     controllerRef.current = controller;
     setReviewRunning(true);
@@ -1769,6 +1949,10 @@ export function CreativeWorkspace({
     const objective = quickInstruction || reviewInstruction || "Review this version rigorously and propose the next useful improvement.";
 
     try {
+      const readiness = await refreshAiReadiness(controller.signal);
+      if (!readiness.deploymentReady && !readiness.localFallbackReady) {
+        throw new Error(readiness.blockers[0]?.message ?? "Review configuration is required before any project content can be transmitted.");
+      }
       const project = commitDraftToProject(draft, "human");
       if (!project) throw new Error("The current draft could not be bound to a project revision.");
       const artifact = artifactForProjectMode(project, mode);
@@ -1919,6 +2103,10 @@ export function CreativeWorkspace({
     setMobilePane("intelligence");
 
     try {
+      const readiness = await refreshAiReadiness(controller.signal);
+      if (!readiness.deploymentReady && !readiness.localFallbackReady) {
+        throw new Error(readiness.blockers[0]?.message ?? "Review configuration is required before any project content can be transmitted.");
+      }
       const project = commitDraftToProject(draft, "human");
       if (!project) throw new Error("The current draft could not be saved before the project review.");
       const artifact = artifactForProjectMode(project, mode);
@@ -1973,21 +2161,79 @@ export function CreativeWorkspace({
         artifactRevisionId: revision.id,
       });
 
-      const response = await fetch("/api/intelligence/runs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify(request),
-      });
-      const raw = await response.json().catch(() => null) as null | { error?: unknown };
-      if (!response.ok) {
-        throw new Error(
-          typeof raw?.error === "string"
-            ? raw.error
-            : "The project review did not complete.",
+      let payload: IntelligenceRunResponse;
+      if (intelligenceExecution === "durable") {
+        if (!readiness.deploymentReady || !readiness.providerReady) {
+          throw new Error("Durable review requires configured provider routing, distributed usage protection, cloud sign-in, and a current cloud project version.");
+        }
+        const startResponse = await fetch("/api/intelligence/workflows", {
+          method: "POST",
+          headers: withActiveCloudOrganization({
+            "Content-Type": "application/json",
+            "Idempotency-Key": `kx.durable.${makeId()}`,
+          }),
+          signal: controller.signal,
+          body: JSON.stringify(request),
+        });
+        const started = await startResponse.json().catch(() => null) as unknown;
+        if (!startResponse.ok || !started || typeof started !== "object") {
+          throw new Error(apiErrorMessage(
+            started,
+            "The durable review could not be started. Confirm cloud sign-in and synchronize this project first.",
+          ));
+        }
+        const runId = (started as { runId?: unknown }).runId;
+        const statusUrl = (started as { statusUrl?: unknown }).statusUrl;
+        if (typeof runId !== "string" || typeof statusUrl !== "string") {
+          throw new Error("The durable review service returned an invalid run reference.");
+        }
+        durableWorkflowRunRef.current = runId;
+        setStatus(`Durable project review queued · ${runId}`);
+
+        let completed: unknown = null;
+        for (let attempt = 0; attempt < 96; attempt += 1) {
+          await waitForReviewPoll(attempt === 0 ? 250 : 1_250, controller.signal);
+          const statusResponse = await fetch(statusUrl, {
+            cache: "no-store",
+            headers: withActiveCloudOrganization({ Accept: "application/json" }),
+            signal: controller.signal,
+          });
+          const statusBody = await statusResponse.json().catch(() => null) as unknown;
+          if (!statusResponse.ok || !statusBody || typeof statusBody !== "object") {
+            throw new Error(apiErrorMessage(statusBody, "The durable review status could not be read."));
+          }
+          const workflowStatus = (statusBody as { status?: unknown }).status;
+          if (workflowStatus === "completed") {
+            completed = (statusBody as { outcome?: unknown }).outcome;
+            break;
+          }
+          if (workflowStatus === "failed" || workflowStatus === "cancelled") {
+            throw new Error(`The durable review ${workflowStatus}. The project remains unchanged.`);
+          }
+          setStatus(`Durable project review ${typeof workflowStatus === "string" ? workflowStatus : "in progress"} · ${runId}`);
+        }
+        if (!completed || typeof completed !== "object") {
+          throw new Error("The durable review is still running. Its cloud audit record remains available for recovery.");
+        }
+        if ((completed as { ok?: unknown }).ok !== true) {
+          throw new Error(apiErrorMessage(completed, "The durable review did not complete. The project remains unchanged."));
+        }
+        payload = intelligenceRunResponseSchema.parse(
+          (completed as { result?: unknown }).result,
         );
+      } else {
+        const response = await fetch("/api/intelligence/runs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify(request),
+        });
+        const raw = await response.json().catch(() => null) as unknown;
+        if (!response.ok) {
+          throw new Error(apiErrorMessage(raw, "The project review did not complete."));
+        }
+        payload = intelligenceRunResponseSchema.parse(raw);
       }
-      const payload = intelligenceRunResponseSchema.parse(raw);
       const liveBinding = intelligenceBindingRef.current;
       const liveProject = activeProjectRef.current;
       if (
@@ -2057,6 +2303,19 @@ export function CreativeWorkspace({
     } finally {
       setIntelligenceRunning(false);
       intelligenceControllerRef.current = null;
+      durableWorkflowRunRef.current = null;
+    }
+  };
+
+  const stopConductor = () => {
+    const workflowRunId = durableWorkflowRunRef.current;
+    intelligenceControllerRef.current?.abort();
+    if (workflowRunId) {
+      void fetch(`/api/intelligence/workflows?runId=${encodeURIComponent(workflowRunId)}`, {
+        method: "DELETE",
+        headers: withActiveCloudOrganization({ Accept: "application/json" }),
+      }).catch(() => undefined);
+      setStatus(`Durable review cancellation requested · ${workflowRunId}`);
     }
   };
 
@@ -2095,6 +2354,24 @@ export function CreativeWorkspace({
       setIntelligenceBinding(null);
       intelligenceBindingRef.current = null;
       setStatus(`Evidence added to ${submission.phase} · human-authored`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Evidence could not be recorded.");
+      throw error;
+    }
+  };
+
+  const addGovernedEvidence = async (evidence: GovernedEvidence) => {
+    if (!activeProject || projectMutationLocked) {
+      throw new Error("The project is currently locked by an active review.");
+    }
+    try {
+      const next = addGovernedEvidenceToProject(activeProject, evidence);
+      persistProject(next);
+      setIntelligenceBinding(null);
+      intelligenceBindingRef.current = null;
+      setReviewBinding(null);
+      reviewBindingRef.current = null;
+      setStatus(`Evidence recorded in ${evidence.phase} · ${evidence.provenance.captureMethod} · no network intake`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Evidence could not be recorded.");
       throw error;
@@ -2305,6 +2582,13 @@ export function CreativeWorkspace({
 
   const approveAtlasGate = (phase: PlatformPhaseId) => {
     if (!activeProject || projectMutationLocked) return;
+    const workflowReadiness = workflowPhaseReadiness(activeProject, phase);
+    if (workflowReadiness && !workflowReadiness.evidenceThresholdMet) {
+      setStatus(
+        `${workflowReadiness.gateTitle} requires ${workflowReadiness.minimumEvidence} evidence items; ${workflowReadiness.evidenceCount} recorded`,
+      );
+      return;
+    }
     const evidenceArtifactIds = activeProject.artifacts
       .filter((artifact) => artifact.phase === phase && artifact.kind === "evidence")
       .map(({ id }) => id);
@@ -2337,6 +2621,7 @@ export function CreativeWorkspace({
   const shellStyle = { "--workspace-left": `${paneWidth}%` } as CSSProperties;
 
   const WorkspaceRoot = embedded ? "section" : "main";
+  const CanvasHeading = embedded ? "h3" : "h1";
 
   return (
     <WorkspaceRoot
@@ -2347,7 +2632,7 @@ export function CreativeWorkspace({
       <section className={styles.intro} aria-labelledby="canvas-title">
         <div>
           <p>Kingxford Canvas · Project workspace</p>
-          <h1 id="canvas-title">Develop an idea into a testable prototype.</h1>
+          <CanvasHeading id="canvas-title">Develop an idea into a testable prototype.</CanvasHeading>
         </div>
         <p>
           Develop an idea, run front-end code, map a system, test a prompt, or
@@ -2416,6 +2701,40 @@ export function CreativeWorkspace({
         </div>
       </section>
 
+      {!embedded && hydrated ? (
+        <CloudProjectPanel
+          className={styles.cloudProjects}
+          currentProject={activeProject}
+          projects={projectRepository.projects}
+          onReceiveCloudProject={receiveCloudProject}
+        />
+      ) : null}
+
+      <WorkflowLibrary
+        disabled={projectMutationLocked || projectRepository.projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS}
+        currentTemplateId={activeWorkflowTemplate?.id ?? null}
+        headingLevel={embedded ? "h3" : "h2"}
+        onStart={startWorkflow}
+      />
+
+      {activeProject ? (
+        <EvidenceIntake
+          key={activeProject.id}
+          project={activeProject}
+          disabled={projectMutationLocked}
+          headingLevel={embedded ? "h3" : "h2"}
+          onAdd={addGovernedEvidence}
+        />
+      ) : null}
+
+      {!embedded && activeProject ? (
+        <CloudEvidencePanel
+          key={`cloud-evidence:${activeProject.id}`}
+          project={activeProject}
+          disabled={projectMutationLocked}
+        />
+      ) : null}
+
       <div className={styles.atlasShell}>
         <ProjectContinuum
           activePhase={activeProject?.activePhase}
@@ -2451,7 +2770,13 @@ export function CreativeWorkspace({
         </div>
         <div className={styles.topbarStatus} aria-live="polite">
           <span>{isOnline ? status : "Offline · Local previews still work"}</span>
-          <small>Stored locally until you start a review</small>
+          <small
+            className={styles.aiReadiness}
+            data-state={reviewAvailability.state}
+            title={reviewAvailability.detail}
+          >
+            {reviewAvailability.label}
+          </small>
         </div>
         <div className={styles.topbarActions}>
           <button type="button" onClick={() => saveVersion()}>
@@ -2704,15 +3029,17 @@ export function CreativeWorkspace({
                 project={activeProject}
                 response={intelligenceResponse}
                 depth={intelligenceDepth}
+                executionMode={intelligenceExecution}
                 running={intelligenceRunning}
                 bindingIsCurrent={intelligenceBindingIsCurrent}
                 accepting={intelligenceAccepting}
-                runDisabled={!canReview || !isOnline || reviewRunning}
-                statusMessage="Ready to review the current Atlas revision."
+                runDisabled={!canReview || !isOnline || !reviewAvailability.ready || reviewRunning}
+                statusMessage={`${reviewAvailability.label}. ${reviewAvailability.detail}`}
                 errorMessage={intelligenceError}
                 onDepthChange={setIntelligenceDepth}
+                onExecutionModeChange={setIntelligenceExecution}
                 onRun={runConductor}
-                onStop={() => intelligenceControllerRef.current?.abort()}
+                onStop={stopConductor}
                 onAddEvidence={addManualEvidence}
                 onAcceptAsRevision={acceptConductorRevision}
               />
@@ -2732,7 +3059,7 @@ export function CreativeWorkspace({
               instruction={reviewInstruction}
               depth={reviewDepth}
               lens={reviewLens}
-              canReview={canReview && isOnline}
+              canReview={canReview && isOnline && reviewAvailability.ready}
               includeLogs={includeLogs}
               includeVersions={includeVersions}
               includeKnowledge={includeKnowledge}
@@ -2789,7 +3116,7 @@ export function CreativeWorkspace({
         </button>
         <button
           type="button"
-          disabled={!canReview || projectMutationLocked || !isOnline}
+          disabled={!canReview || projectMutationLocked || !isOnline || !reviewAvailability.ready}
           onClick={() => {
             setRightTab("intelligence");
             setMobilePane("intelligence");
@@ -2800,7 +3127,7 @@ export function CreativeWorkspace({
         </button>
         <button
           type="button"
-          disabled={!canReview || projectMutationLocked || !isOnline}
+          disabled={!canReview || projectMutationLocked || !isOnline || !reviewAvailability.ready}
           onClick={() => requestReview()}
         >
           <Sparkles aria-hidden="true" />
@@ -2894,17 +3221,6 @@ export function CreativeWorkspace({
             Request a scoped build plan
             <ArrowRight aria-hidden="true" />
           </button>
-          {entrepreneurshipUrl ? (
-            <a className={styles.entrepreneurshipLink} href={entrepreneurshipUrl}>
-              Open the Entrepreneurship workspace
-              <ArrowRight aria-hidden="true" />
-            </a>
-          ) : (
-            <button className={styles.entrepreneurshipLink} type="button" disabled title="This workspace is not available yet.">
-              Open the Entrepreneurship workspace
-              <span>Not yet available</span>
-            </button>
-          )}
         </div>
       </dialog>
     </WorkspaceRoot>

@@ -10,7 +10,7 @@ const baseUrl = (
 ).replace(/\/$/, "");
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-08-02T00:00:00.000Z");
+  const lastModified = new Date("2026-08-06T00:00:00.000Z");
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -58,8 +58,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/contact`,
       lastModified,
-      changeFrequency: "yearly",
+      changeFrequency: "monthly",
       priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.45,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.45,
+    },
+    {
+      url: `${baseUrl}/accessibility`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.45,
+    },
+    {
+      url: `${baseUrl}/ai-transparency`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.55,
     },
   ];
 

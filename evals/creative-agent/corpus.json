@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "corpusVersion": "kxci-governance-2026-08-05.2",
+  "corpusVersion": "kxci-governance-2026-08-06.3",
   "protocolVersion": "kxci-2026-08-05.2",
   "modelRoutes": {
     "standard": {
@@ -91,11 +91,46 @@
     "maximumConcurrentRequests": 2,
     "maximumStandardCreditCost": 1,
     "maximumDeepCreditCost": 3,
+    "maximumCreditUnitsPerRequest": 4,
     "minimumProductionUsageSecretCharacters": 32,
+    "distributedLeaseTtlMilliseconds": 300000,
+    "productionUsageBackend": "upstash-redis",
     "usageBucketTtlMilliseconds": 90000000,
     "maximumUsageBuckets": 5000,
     "overflowUsageBuckets": 64,
     "maximumUsageCleanupScan": 512,
+    "cloudRoles": ["owner", "admin", "editor", "reviewer", "viewer"],
+    "workflowTemplateIds": [
+      "websites",
+      "digital-tools",
+      "institutional-systems",
+      "research-ai-tools",
+      "operational-tools",
+      "education-tools",
+      "personal-tools"
+    ],
+    "cloudEvidenceFileBytes": 5242880,
+    "cloudEvidenceExtensions": [
+      ".txt",
+      ".md",
+      ".markdown",
+      ".csv",
+      ".json",
+      ".pdf"
+    ],
+    "contactSubmissionsPerTenMinutes": 3,
+    "contactSubmissionsPerDay": 8,
+    "contactPendingReservationMilliseconds": 60000,
+    "maximumContactLocalBuckets": 2048,
+    "contactLocalOverflowBuckets": 64,
+    "maximumContactReservationsPerBucket": 32,
+    "maximumContactCleanupScan": 256,
+    "organizationInvitationRoles": ["editor", "reviewer", "viewer"],
+    "organizationInvitationLimit": 50,
+    "organizationInvitationMinimumHours": 1,
+    "organizationInvitationMaximumHours": 168,
+    "organizationInvitationDefaultHours": 72,
+    "organizationInvitationBrowserTokenMilliseconds": 1800000,
     "projectSnapshotSchemaVersion": 1,
     "projectSnapshotBounds": {
       "nodes": 18,
@@ -205,15 +240,15 @@
       }
     },
     {
-      "id": "systems-anonymous-usage-controls",
+      "id": "systems-distributed-usage-controls",
       "mode": "mindmap",
       "lens": "systems",
-      "tags": ["usage-accounting", "privacy"],
-      "objective": "Preserve bounded anonymous usage without treating it as durable billing.",
-      "workspace": "A public review request consumes process-local allowance and must release concurrency after success, failure, or cancellation.",
+      "tags": ["usage-accounting", "distributed-usage", "retry-idempotency", "privacy"],
+      "objective": "Preserve bounded cross-instance usage without treating operational allowance as billing.",
+      "workspace": "A public review uses an atomic minute counter, a stable expiring concurrency lease, and an idempotent daily-credit reservation. The exact lease must be released after success, failure, or cancellation.",
       "expect": {
-        "mustAddress": ["minute allowance", "daily credits", "finally release"],
-        "mustNotClaim": ["durable balance", "authenticated identity", "subscription entitlement"]
+        "mustAddress": ["atomic minute allowance", "idempotent daily credits", "stable lease", "finally release"],
+        "mustNotClaim": ["billing balance", "authenticated visitor", "subscription entitlement"]
       }
     },
     {
@@ -238,6 +273,66 @@
       "expect": {
         "mustAddress": ["bounded snapshot", "integrity validation", "untrusted graph values", "active revision binding"],
         "mustNotClaim": ["gate automatically approved", "missing evidence exists", "snapshot stored on the server"]
+      }
+    },
+    {
+      "id": "delivery-authenticated-durable-review",
+      "mode": "brief",
+      "lens": "delivery",
+      "tags": ["durable-workflow", "authentication", "retry-idempotency", "human-approval"],
+      "objective": "Start a retry-safe organization review without increasing the reviewer’s authority.",
+      "workspace": "A signed-in editor selects the Cloud review mode and submits the current cloud Atlas snapshot with an idempotency key. Canvas polls the authenticated run, permits cancellation, and offers acceptance only while the exact project and revision binding remains current.",
+      "expect": {
+        "mustAddress": ["membership", "current snapshot", "idempotent start", "retry-safe charge", "status polling", "cancellation", "exact binding", "human-only gate"],
+        "mustNotClaim": ["project automatically changed", "gate automatically approved", "review started anonymously"]
+      }
+    },
+    {
+      "id": "evidence-local-ingestion-provenance",
+      "mode": "brief",
+      "lens": "evidence",
+      "tags": ["evidence-ingestion", "privacy", "no-network"],
+      "objective": "Capture bounded evidence locally without claiming that a referenced page was retrieved or verified.",
+      "workspace": "A user records a URL and notes, then selects a small local PDF. The browser stores source and capture provenance, but URL content is not fetched and a file is not automatically uploaded.",
+      "expect": {
+        "mustAddress": ["bounded local parsing", "source provenance", "no URL retrieval", "manual acceptance"],
+        "mustNotClaim": ["page fetched", "source verified", "file uploaded", "claim proven"]
+      }
+    },
+    {
+      "id": "evidence-cloud-retention-tombstone",
+      "mode": "brief",
+      "lens": "evidence",
+      "tags": ["cloud-evidence", "tombstone-delete", "privacy", "human-approval"],
+      "objective": "Retain and remove an original evidence file without weakening organization boundaries or concealing partial deletion.",
+      "workspace": "A signed-in editor deliberately retains one bounded original in a saved project, optionally links it to an Atlas evidence artifact, and later requests removal. Storage deletion fails once after the database marks the file as pending.",
+      "expect": {
+        "mustAddress": ["explicit retention", "organization/project path", "content digest", "writer role", "pending deletion", "safe retry"],
+        "mustNotClaim": ["local capture uploaded automatically", "file publicly accessible", "deletion completed before storage removal", "gate approved"]
+      }
+    },
+    {
+      "id": "delivery-distributed-contact-intake",
+      "mode": "brief",
+      "lens": "delivery",
+      "tags": ["contact-rate-limit", "distributed-contact", "retry-idempotency", "privacy"],
+      "objective": "Accept a project enquiry once across server instances while preserving a useful fallback when delivery is unavailable.",
+      "workspace": "Two concurrent requests carry the same valid enquiry. A server-keyed visitor pseudonym is subject to the independent three-per-ten-minute and eight-per-day allowance; a delivery reservation is pending until Resend accepts it.",
+      "expect": {
+        "mustAddress": ["HMAC pseudonym", "atomic allowance", "in-flight duplicate", "delivery reservation", "Retry-After", "fail-closed shared deployment"],
+        "mustNotClaim": ["raw IP persisted", "AI credits consumed", "duplicate email delivered", "unconfigured delivery succeeded"]
+      }
+    },
+    {
+      "id": "delivery-organization-collaboration-boundary",
+      "mode": "brief",
+      "lens": "delivery",
+      "tags": ["organization-collaboration", "invitation-security", "retry-idempotency", "human-approval", "privacy"],
+      "objective": "Invite a collaborator and change access without weakening organization isolation or owner accountability.",
+      "workspace": "An organization admin creates an expiring reviewer invitation. The recipient signs in with the invited email, accepts the one-use fragment link, and later an owner changes the member to editor. A retry repeats the same mutation key, and the sole owner must remain protected.",
+      "expect": {
+        "mustAddress": ["digest-only invitation token", "exact email", "expiry", "membership check", "idempotent mutation", "audit event", "sole-owner safeguard"],
+        "mustNotClaim": ["raw token stored", "admin can manage an owner", "local project uploaded", "membership bypassed", "gate approved"]
       }
     }
   ]

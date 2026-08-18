@@ -164,6 +164,37 @@ const contextArtifactSchema = z
   })
   .strict();
 
+export const intelligenceProjectContextSchema = z
+  .object({
+    projectId: identifierSchema,
+    objective: z.string().max(600),
+    phase: z.enum(platformPhases),
+    evidence: z.array(evidenceSchema).max(24),
+    decisions: z.array(decisionSchema).max(24),
+    acceptedRuns: z.array(acceptedRunSchema).max(24),
+    artifacts: z.array(contextArtifactSchema).max(32),
+    artifactRelationships: z
+      .array(
+        z
+          .object({
+            id: identifierSchema,
+            fromArtifactId: identifierSchema,
+            toArtifactId: identifierSchema,
+            relation: z.enum(platformArtifactRelations),
+            label: z.string().max(300),
+            createdAt: timestampSchema,
+          })
+          .strict(),
+      )
+      .max(48)
+      .default([]),
+  })
+  .strict();
+
+export type IntelligenceProjectContext = z.infer<
+  typeof intelligenceProjectContextSchema
+>;
+
 export const intelligenceRunRequestSchema = z
   .object({
     mode: z.enum(workspaceModes),
@@ -172,32 +203,7 @@ export const intelligenceRunRequestSchema = z
     code: intelligenceCodeSchema,
     objective: z.string().min(1).max(600),
     depth: z.enum(["standard", "deep"]),
-    projectContext: z
-      .object({
-        projectId: identifierSchema,
-        objective: z.string().max(600),
-        phase: z.enum(platformPhases),
-        evidence: z.array(evidenceSchema).max(24),
-        decisions: z.array(decisionSchema).max(24),
-        acceptedRuns: z.array(acceptedRunSchema).max(24),
-        artifacts: z.array(contextArtifactSchema).max(32),
-        artifactRelationships: z
-          .array(
-            z
-              .object({
-                id: identifierSchema,
-                fromArtifactId: identifierSchema,
-                toArtifactId: identifierSchema,
-                relation: z.enum(platformArtifactRelations),
-                label: z.string().max(300),
-                createdAt: timestampSchema,
-              })
-              .strict(),
-          )
-          .max(48)
-          .default([]),
-      })
-      .strict(),
+    projectContext: intelligenceProjectContextSchema,
     context: z
       .object({
         codeLogs: z.array(z.string().max(1_000)).max(12),

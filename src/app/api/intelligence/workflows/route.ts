@@ -376,6 +376,7 @@ export async function POST(request: Request) {
       safetyIdentifier: authenticatedUsageKey(context.user.id, secret),
       usageKey: authenticatedUsageKey(context.user.id, secret),
       reservedProviderCalls: providerCallBudget(input),
+      actorUserId: context.user.id,
     };
     const run = await start(runDurableIntelligenceReview, [workflowInput]);
     const { error: attachmentError } = await serviceClient

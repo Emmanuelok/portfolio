@@ -77,6 +77,7 @@ export type DurableIntelligenceWorkflowInput = Readonly<{
   safetyIdentifier: string;
   usageKey: string;
   reservedProviderCalls: number;
+  actorUserId?: string;
 }>;
 
 type UsageReservation =
@@ -224,6 +225,7 @@ async function finalizeRun(
     const { error: usageError } = await client.from("usage_records").upsert(
       {
         organization_id: input.organizationId,
+        user_id: input.actorUserId ?? null,
         run_id: input.databaseRunId,
         feature: "durable-intelligence-review",
         provider: result.source,
@@ -239,6 +241,7 @@ async function finalizeRun(
 
   const { error: auditError } = await client.from("audit_events").insert({
     organization_id: input.organizationId,
+    actor_user_id: input.actorUserId ?? null,
     action: outcome.ok ? "intelligence.run.completed" : "intelligence.run.failed",
     target_type: "intelligence-run",
     target_id: input.databaseRunId,

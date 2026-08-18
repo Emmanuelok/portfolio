@@ -27,6 +27,7 @@ import {
   serializeIntelligenceInput,
   type CanonicalIntelligenceInput,
 } from "@/lib/intelligence/prompt";
+import { logOperationalEvent } from "@/lib/observability/structured-log";
 import { buildLocalReview } from "@/lib/workspace/local-analysis";
 import { hashRevisionBody } from "@/lib/workspace/project-graph";
 import { parseProjectSnapshot } from "@/lib/workspace/project-snapshot-schema";
@@ -450,9 +451,13 @@ class ProviderCallLedger {
           failureCode,
         },
       });
-      console.error("[intelligence-runtime] provider_call_failed", {
+      // A provider failure means this run silently degrades to local review.
+      // It is logged at warn so a drain can alert on a misconfigured model
+      // route rather than the fallback passing unnoticed.
+      logOperationalEvent("warn", "intelligence.provider.call_failed", {
         stage: options.stage,
         role: options.role,
+        model: normalizeModel(options.model),
         failureCode,
       });
       return null;

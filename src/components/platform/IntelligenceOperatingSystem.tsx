@@ -23,7 +23,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
 
 import { Reveal } from "@/components/Reveal";
 import {
@@ -99,8 +100,56 @@ const governanceSignals = [
 ] as const;
 
 export function IntelligenceOperatingSystem() {
+  const shouldReduceMotion = useReducedMotion();
   const [activePhase, setActivePhase] =
     useState<PlatformPhase>("discovery");
+  const [phaseHeld, setPhaseHeld] = useState(false);
+  const [lifecycleEngaged, setLifecycleEngaged] = useState(false);
+  const [lifecycleVisible, setLifecycleVisible] = useState(false);
+  const lifecycleTrackRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const node = lifecycleTrackRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setLifecycleVisible(entry.isIntersecting),
+      { threshold: 0.4 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  // The lifecycle demonstrates itself until the visitor takes over: it
+  // pauses while hovered, focused, offscreen, or hidden, and stops for
+  // good once a phase is chosen by hand or motion is reduced.
+  useEffect(() => {
+    if (
+      shouldReduceMotion ||
+      phaseHeld ||
+      lifecycleEngaged ||
+      !lifecycleVisible
+    ) {
+      return;
+    }
+    const advance = window.setInterval(() => {
+      if (document.hidden) return;
+      setActivePhase((current) => {
+        const index = PLATFORM_LIFECYCLE.findIndex(
+          (item) => item.id === current,
+        );
+        return PLATFORM_LIFECYCLE[(index + 1) % PLATFORM_LIFECYCLE.length].id;
+      });
+    }, 5200);
+    return () => window.clearInterval(advance);
+  }, [lifecycleEngaged, lifecycleVisible, phaseHeld, shouldReduceMotion]);
+
+  const engageLifecycle = () => setLifecycleEngaged(true);
+  const releaseLifecycle = () => setLifecycleEngaged(false);
+  const selectPhase = (id: PlatformPhase) => {
+    setPhaseHeld(true);
+    setActivePhase(id);
+  };
+
   const phase =
     PLATFORM_LIFECYCLE.find((item) => item.id === activePhase) ??
     PLATFORM_LIFECYCLE[0];
@@ -240,14 +289,22 @@ export function IntelligenceOperatingSystem() {
             <span>{phase.description}</span>
           </p>
         </div>
-        <div className={styles.phaseTrack} aria-label="Six connected project phases">
+        <div
+          className={styles.phaseTrack}
+          aria-label="Six connected project phases"
+          ref={lifecycleTrackRef}
+          onPointerEnter={engageLifecycle}
+          onPointerLeave={releaseLifecycle}
+          onFocusCapture={engageLifecycle}
+          onBlurCapture={releaseLifecycle}
+        >
           {PLATFORM_LIFECYCLE.map((item) => (
             <button
               type="button"
               aria-pressed={item.id === phase.id}
               aria-describedby="lifecycle-phase-description"
               data-active={item.id === phase.id ? "true" : "false"}
-              onClick={() => setActivePhase(item.id)}
+              onClick={() => selectPhase(item.id)}
               key={item.id}
             >
               <small>{item.index}</small>
@@ -256,7 +313,13 @@ export function IntelligenceOperatingSystem() {
             </button>
           ))}
         </div>
-        <div className={styles.phaseAction}>
+        <div
+          className={styles.phaseAction}
+          onPointerEnter={engageLifecycle}
+          onPointerLeave={releaseLifecycle}
+          onFocusCapture={engageLifecycle}
+          onBlurCapture={releaseLifecycle}
+        >
           <span>
             <Sparkles aria-hidden="true" />
             {phase.agents.length} review perspectives available

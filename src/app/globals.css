@@ -7053,3 +7053,152 @@ a {
   background: var(--blue-bright);
   color: #fff;
 }
+
+/* Cross-page view transitions.
+   Case-study covers share a `work-cover-<slug>` name between the card and
+   the project hero, so navigation morphs one persistent image. */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: var(--ease-out);
+}
+
+::view-transition-image-pair(.morph) {
+  animation-name: kx-morph-blur;
+}
+
+@keyframes kx-morph-blur {
+  30% {
+    filter: blur(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* Tactile press states: hover lifts, press settles. */
+.button:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 90ms;
+}
+
+.circle-link:active {
+  transform: rotate(-8deg) scale(0.99);
+  transition-duration: 120ms;
+}
+
+/* Lab hero constellation: a slow research instrument behind the heading.
+   isolation keeps the negative-z layers above the body background. */
+.page-hero--lab {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.lab-constellation {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  right: clamp(-7rem, -2vw, -2rem);
+  width: clamp(22rem, 34vw, 34rem);
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.lab-constellation__ring {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.lab-constellation__ring--one {
+  inset: 0;
+  border: 1px solid color-mix(in srgb, var(--blue) 26%, transparent);
+  box-shadow: inset 0 0 4rem color-mix(in srgb, var(--blue) 6%, transparent);
+}
+
+.lab-constellation__ring--two {
+  inset: 19%;
+  border: 1px dashed color-mix(in srgb, var(--gold) 34%, transparent);
+  animation: labRingSpin 74s linear infinite;
+}
+
+.lab-constellation__core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 4.6rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface-raised) 86%, transparent);
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  transform: translate(-50%, -50%);
+}
+
+.lab-constellation__node {
+  position: absolute;
+  animation: labRingSpin 46s linear infinite;
+}
+
+.lab-constellation__node::before {
+  position: absolute;
+  top: -0.2rem;
+  left: 50%;
+  width: 0.42rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--blue-bright);
+  box-shadow: 0 0 1.1rem var(--blue-bright);
+  content: "";
+}
+
+.lab-constellation__node--one {
+  inset: 0;
+}
+
+.lab-constellation__node--two {
+  inset: 19%;
+  animation-duration: 58s;
+  animation-delay: -21s;
+  animation-direction: reverse;
+}
+
+.lab-constellation__node--two::before {
+  background: var(--gold);
+  box-shadow: 0 0 1rem var(--gold);
+}
+
+.lab-constellation__node--three {
+  inset: 0;
+  animation-duration: 66s;
+  animation-delay: -40s;
+}
+
+.lab-constellation__node--three::before {
+  width: 0.3rem;
+  background: var(--text-soft);
+  box-shadow: 0 0 0.8rem var(--text-soft);
+}
+
+@keyframes labRingSpin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (max-width: 900px) {
+  .lab-constellation {
+    display: none;
+  }
+}

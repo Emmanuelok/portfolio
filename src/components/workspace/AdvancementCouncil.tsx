@@ -24,12 +24,18 @@ import {
   type CouncilSessionResult,
   type CouncilSurvey,
 } from "@/lib/council/contracts";
+import { executeLocalCouncilSession } from "@/lib/council/local-council";
 
 import styles from "./AdvancementCouncil.module.css";
 
 export type AdvancementCouncilProps = Readonly<{
   buildRequest: () => CouncilSessionRequest | null;
-  available: boolean;
+  /**
+   * A provider-backed session needs a saved cloud project and a write role.
+   * Without one the council still convenes locally over the record on this
+   * device, so the structure is never hidden behind configuration.
+   */
+  cloudSessionAvailable: boolean;
   unavailableReason?: string;
 }>;
 
@@ -75,7 +81,7 @@ const gateLabels: Readonly<
 
 export function AdvancementCouncil({
   buildRequest,
-  available,
+  cloudSessionAvailable,
   unavailableReason,
 }: AdvancementCouncilProps) {
   const [selectedLenses, setSelectedLenses] = useState<readonly CouncilLens[]>([
@@ -108,7 +114,26 @@ export function AdvancementCouncil({
         ...initialState,
         status: "failed",
         message:
-          "Save this project to the cloud before starting a council session.",
+          "Add an objective and at least one artifact to this project before convening the council.",
+      });
+      return;
+    }
+
+    if (!cloudSessionAvailable) {
+      const local = executeLocalCouncilSession(
+        { ...request, lenses: [...selectedLenses] },
+        {
+          sessionId: `council_local_${request.projectContext.projectId}`,
+          inputDigest: "0".repeat(64),
+        },
+      );
+      setSession({
+        status: "complete",
+        source: "local",
+        survey: local.survey,
+        deliberations: local.deliberations,
+        result: local,
+        message: "",
       });
       return;
     }
@@ -226,7 +251,7 @@ export function AdvancementCouncil({
     } finally {
       abortRef.current = null;
     }
-  }, [buildRequest, selectedLenses]);
+  }, [buildRequest, cloudSessionAvailable, selectedLenses]);
 
   const ranked = useMemo(() => {
     if (!session.result) return [];
@@ -267,17 +292,19 @@ export function AdvancementCouncil({
               type="button"
               onClick={start}
               className={styles.start}
-              disabled={!available}
             >
-              <Play aria-hidden="true" /> Convene council
+              <Play aria-hidden="true" />{" "}
+              {cloudSessionAvailable ? "Convene council" : "Read record locally"}
             </button>
           )}
         </div>
       </header>
 
-      {!available && unavailableReason ? (
+      {!cloudSessionAvailable ? (
         <p className={styles.notice} role="status">
-          <CircleSlash aria-hidden="true" /> {unavailableReason}
+          <CircleSlash aria-hidden="true" />{" "}
+          {unavailableReason ||
+            "A reviewed session needs a saved cloud project. The council reads this device's record instead."}
         </p>
       ) : null}
 

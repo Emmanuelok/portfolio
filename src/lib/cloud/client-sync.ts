@@ -24,10 +24,23 @@ export type CloudStatus = Readonly<{
   message: string;
 }>;
 
+/**
+ * A row the server could not parse. It carries only the identity needed to
+ * show it and remove it, so one damaged project cannot hide the rest.
+ */
+export type CloudUnreadableProject = Readonly<{
+  id: string | null;
+  version: number | null;
+  updatedAt: string | null;
+  etag: string | null;
+  reason: string;
+}>;
+
 export type CloudProjectIndex = Readonly<{
   organizationId: string;
   role: CloudRole;
   projects: readonly CloudProjectSummary[];
+  unreadableProjects: readonly CloudUnreadableProject[];
 }>;
 
 export type CloudProjectRecord = Readonly<{
@@ -123,6 +136,25 @@ async function readCloudResponse(response: Response) {
     );
   }
   return record;
+}
+
+function parseCloudUnreadableProject(
+  value: unknown,
+): CloudUnreadableProject | null {
+  const record = asRecord(value);
+  if (!record || record.readable !== false) return null;
+  return {
+    // A row can be damaged past the point of carrying its own identity; it is
+    // still reported so the listing never hides it.
+    id: typeof record.id === "string" ? record.id : null,
+    version:
+      typeof record.version === "number" && Number.isSafeInteger(record.version)
+        ? record.version
+        : null,
+    updatedAt: typeof record.updatedAt === "string" ? record.updatedAt : null,
+    etag: typeof record.etag === "string" ? record.etag : null,
+    reason: typeof record.reason === "string" ? record.reason : "unreadable",
+  };
 }
 
 function parseCloudProjectSummary(value: unknown): CloudProjectSummary {
@@ -331,10 +363,22 @@ export async function fetchCloudProjectIndex(
   ) {
     invalidResponse("The cloud project index failed validation.");
   }
+  const readable: CloudProjectSummary[] = [];
+  const unreadable: CloudUnreadableProject[] = [];
+  for (const entry of record.projects) {
+    const parsed = parseCloudUnreadableProject(entry);
+    if (parsed) {
+      unreadable.push(parsed);
+      continue;
+    }
+    readable.push(parseCloudProjectSummary(entry));
+  }
+
   const result = {
     organizationId: record.organizationId,
     role: record.role,
-    projects: record.projects.map(parseCloudProjectSummary),
+    projects: readable,
+    unreadableProjects: unreadable,
   };
   setActiveCloudOrganization(result.organizationId);
   return result;

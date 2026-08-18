@@ -1,7 +1,4 @@
-import { createHash } from "node:crypto";
-
 import {
-  councilLensLabels,
   COUNCIL_BOUNDARIES,
   COUNCIL_PROTOCOL_VERSION,
   type CouncilChallenge,
@@ -378,13 +375,3 @@ export function executeLocalCouncilSession(
   };
 }
 
-export function councilSessionId(seed: string, salt: string) {
-  return `council_${createHash("sha256")
-    .update(`${salt}:${seed}`)
-    .digest("hex")
-    .slice(0, 32)}`;
-}
-
-export function councilLensLabel(lens: CouncilLens) {
-  return councilLensLabels[lens];
-}

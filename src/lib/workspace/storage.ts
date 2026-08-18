@@ -9,12 +9,15 @@ import type {
   WorkspaceProjectBundle,
   WorkspaceProjectContent,
   WorkspaceVersion,
+  WorkspaceVersionHistory,
 } from "@/lib/workspace/types";
 import { workspaceModes } from "@/lib/workspace/types";
 
 export const LEGACY_WORKSPACE_STORAGE_KEY = "kingxford:canvas:v1";
 export const WORKSPACE_STORAGE_KEY = "kingxford:canvas:v2";
+export const WORKSPACE_VERSION_HISTORY_STORAGE_KEY = "kingxford:canvas:versions:v1";
 export const WORKSPACE_SCHEMA_VERSION = 2 as const;
+export const WORKSPACE_VERSION_HISTORY_SCHEMA_VERSION = 1 as const;
 export const WORKSPACE_BUNDLE_FORMAT = "kingxford-canvas-project" as const;
 export const WORKSPACE_BUNDLE_SCHEMA_VERSION = 1 as const;
 
@@ -25,6 +28,9 @@ export const WORKSPACE_TEXT_LIMIT = 250_000;
 export const WORKSPACE_CODE_FILE_LIMIT = 500_000;
 export const WORKSPACE_LIBRARY_CHARACTER_LIMIT = 4_000_000;
 export const WORKSPACE_BUNDLE_CHARACTER_LIMIT = 4_000_000;
+export const WORKSPACE_VERSION_HISTORY_LIMIT =
+  WORKSPACE_PROJECT_LIMIT * WORKSPACE_VERSION_LIMIT;
+export const WORKSPACE_VERSION_HISTORY_CHARACTER_LIMIT = 4_000_000;
 
 export type WorkspaceStorageErrorCode =
   | "invalid-json"
@@ -64,6 +70,11 @@ export type WorkspaceLoadResult =
       error: WorkspaceStorageError;
     }>;
 
+export type WorkspaceVersionHistoryLoadResult =
+  | Readonly<{ status: "ready"; history: WorkspaceVersionHistory }>
+  | Readonly<{ status: "empty" }>
+  | Readonly<{ status: "error"; error: WorkspaceStorageError }>;
+
 export type WorkspaceSaveResult =
   | Readonly<{ ok: true; serializedCharacters: number }>
   | Readonly<{ ok: false; error: WorkspaceStorageError }>;
@@ -100,7 +111,13 @@ const workspaceVersionSchema = z.object({
   name: z.string().max(240),
   createdAt: isoTimestampSchema,
   source: z.enum(["manual", "run", "agent", "restored"]),
+  projectId: identifierSchema.optional(),
   draft: workspaceDraftSchema,
+}).strict();
+
+const workspaceVersionHistorySchema = z.object({
+  schemaVersion: z.literal(WORKSPACE_VERSION_HISTORY_SCHEMA_VERSION),
+  versions: z.array(workspaceVersionSchema).max(WORKSPACE_VERSION_HISTORY_LIMIT),
 }).strict();
 
 const workspaceProjectContentSchema = z.object({
@@ -275,8 +292,53 @@ export function cloneWorkspaceVersion(version: WorkspaceVersion): WorkspaceVersi
     name: version.name,
     createdAt: version.createdAt,
     source: version.source,
+    ...(version.projectId ? { projectId: version.projectId } : {}),
     draft: cloneWorkspaceDraft(version.draft),
   };
+}
+
+export function adoptWorkspaceVersions(
+  versions: readonly WorkspaceVersion[],
+  projectId: string,
+): readonly WorkspaceVersion[] {
+  return versions.map((version) => ({
+    ...cloneWorkspaceVersion(version),
+    projectId: version.projectId ?? projectId,
+  }));
+}
+
+export function workspaceVersionsForProject(
+  versions: readonly WorkspaceVersion[],
+  projectId: string,
+): readonly WorkspaceVersion[] {
+  return versions.filter((version) => version.projectId === projectId);
+}
+
+export function pruneWorkspaceVersions(
+  versions: readonly WorkspaceVersion[],
+  projectIds: Iterable<string>,
+): readonly WorkspaceVersion[] {
+  const retained = new Set(projectIds);
+  return versions.filter(
+    (version) => version.projectId !== undefined && retained.has(version.projectId),
+  );
+}
+
+export function recordWorkspaceVersion(
+  versions: readonly WorkspaceVersion[],
+  version: WorkspaceVersion,
+): readonly WorkspaceVersion[] {
+  const recorded: WorkspaceVersion[] = [cloneWorkspaceVersion(version)];
+  let slotsUsed = 1;
+  for (const candidate of versions) {
+    if (candidate.id === version.id) continue;
+    if (candidate.projectId === version.projectId) {
+      if (slotsUsed >= WORKSPACE_VERSION_LIMIT) continue;
+      slotsUsed += 1;
+    }
+    recorded.push(cloneWorkspaceVersion(candidate));
+  }
+  return recorded.slice(0, WORKSPACE_VERSION_HISTORY_LIMIT);
 }
 
 export function cloneTextByMode(textByMode: TextByMode): TextByMode {
@@ -298,7 +360,10 @@ export function cloneWorkspaceProject(project: WorkspaceProject): WorkspaceProje
     textByMode: cloneTextByMode(project.textByMode),
     code: cloneCodeFiles(project.code),
     committedCode: cloneCodeFiles(project.committedCode),
-    versions: project.versions.map(cloneWorkspaceVersion),
+    versions: project.versions.map((version) => ({
+      ...cloneWorkspaceVersion(version),
+      projectId: project.id,
+    })),
   };
 }
 
@@ -384,7 +449,7 @@ export function serializeWorkspaceLibrary(library: WorkspaceLibraryV2): string {
     library,
     "The Canvas project library",
   );
-  const serialized = JSON.stringify(validated);
+  const serialized = JSON.stringify(cloneWorkspaceLibrary(validated));
   if (serialized.length > WORKSPACE_LIBRARY_CHARACTER_LIMIT) {
     throw new WorkspaceStorageError(
       "too-large",
@@ -473,6 +538,85 @@ export function saveWorkspaceLibrary(
   try {
     const serialized = serializeWorkspaceLibrary(library);
     storage.setItem(WORKSPACE_STORAGE_KEY, serialized);
+    return { ok: true, serializedCharacters: serialized.length };
+  } catch (error) {
+    return { ok: false, error: asStorageError(error) };
+  }
+}
+
+export function createWorkspaceVersionHistory(
+  versions: readonly WorkspaceVersion[] = [],
+): WorkspaceVersionHistory {
+  return {
+    schemaVersion: WORKSPACE_VERSION_HISTORY_SCHEMA_VERSION,
+    versions: versions.map(cloneWorkspaceVersion),
+  };
+}
+
+export function parseWorkspaceVersionHistory(raw: string): WorkspaceVersionHistory {
+  const value = parseJson(
+    raw,
+    WORKSPACE_VERSION_HISTORY_CHARACTER_LIMIT,
+    "The Canvas version history",
+  );
+  const record = asRecord(value);
+  if (record && record.schemaVersion !== WORKSPACE_VERSION_HISTORY_SCHEMA_VERSION) {
+    throw new WorkspaceStorageError(
+      "unsupported-version",
+      "This Canvas version history was created by an unsupported format version.",
+    );
+  }
+  return createWorkspaceVersionHistory(
+    parseWithSchema(
+      workspaceVersionHistorySchema,
+      value,
+      "The Canvas version history",
+    ).versions,
+  );
+}
+
+export function serializeWorkspaceVersionHistory(
+  history: WorkspaceVersionHistory,
+): string {
+  const validated = parseWithSchema(
+    workspaceVersionHistorySchema,
+    history,
+    "The Canvas version history",
+  );
+  const serialized = JSON.stringify(validated);
+  if (serialized.length > WORKSPACE_VERSION_HISTORY_CHARACTER_LIMIT) {
+    throw new WorkspaceStorageError(
+      "too-large",
+      "The Canvas version history exceeds the supported local size limit.",
+    );
+  }
+  return serialized;
+}
+
+export function loadWorkspaceVersionHistory(
+  storage: WorkspaceStorageLike,
+): WorkspaceVersionHistoryLoadResult {
+  let current: string | null;
+  try {
+    current = storage.getItem(WORKSPACE_VERSION_HISTORY_STORAGE_KEY);
+  } catch (error) {
+    return { status: "error", error: asStorageError(error) };
+  }
+  if (current === null) return { status: "empty" };
+  try {
+    return { status: "ready", history: parseWorkspaceVersionHistory(current) };
+  } catch (error) {
+    return { status: "error", error: asStorageError(error) };
+  }
+}
+
+export function saveWorkspaceVersionHistory(
+  storage: WorkspaceStorageLike,
+  history: WorkspaceVersionHistory,
+): WorkspaceSaveResult {
+  try {
+    const serialized = serializeWorkspaceVersionHistory(history);
+    storage.setItem(WORKSPACE_VERSION_HISTORY_STORAGE_KEY, serialized);
     return { ok: true, serializedCharacters: serialized.length };
   } catch (error) {
     return { ok: false, error: asStorageError(error) };

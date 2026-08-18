@@ -9,6 +9,8 @@ import {
   invitationAcceptSchema,
   invitationCreateSchema,
   memberRoleUpdateSchema,
+  organizationCreateSchema,
+  organizationRenameSchema,
 } from "../src/lib/cloud/organization-contracts";
 import {
   getActiveCloudOrganization,
@@ -18,6 +20,10 @@ import {
 
 const migrationUrl = new URL(
   "../supabase/migrations/202608060003_organization_collaboration.sql",
+  import.meta.url,
+);
+const lifecycleMigrationUrl = new URL(
+  "../supabase/migrations/202608060005_retention_and_attribution.sql",
   import.meta.url,
 );
 
@@ -58,6 +64,38 @@ test("invitations normalize email and exclude administrative and owner roles", (
     expiresInHours: 169,
   }));
   assert.equal(memberRoleUpdateSchema.parse({ role: "owner" }).role, "owner");
+});
+
+test("organizations can be created and renamed through the same guarded surface", async () => {
+  assert.deepEqual(organizationCreateSchema.parse({ name: "  Studio North  " }), {
+    name: "Studio North",
+  });
+  assert.throws(() => organizationCreateSchema.parse({ name: "x" }));
+  assert.throws(() => organizationCreateSchema.parse({ name: "Studio North", slug: "studio" }));
+  assert.equal(organizationRenameSchema.parse({ name: "Studio South" }).name, "Studio South");
+  assert.throws(() => organizationRenameSchema.parse({ name: "" }));
+
+  const [migration, route] = await Promise.all([
+    readFile(lifecycleMigrationUrl, "utf8"),
+    readFile(new URL("../src/app/api/cloud/organization/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(migration, /create or replace function public\.create_kingxford_organization/i);
+  assert.match(migration, /create or replace function public\.rename_kingxford_organization/i);
+  assert.match(migration, /array\['owner'\]::public\.organization_role\[\][^]*owner can rename the organization/i);
+  assert.match(migration, /'organization\.created'/);
+  assert.match(migration, /'organization\.renamed'/);
+  assert.match(migration, /values \(v_organization_id, v_user_id, 'owner', v_now\)/i);
+  assert.match(
+    migration,
+    /grant execute on function public\.rename_kingxford_organization\(uuid, text, text, text\) to authenticated/i,
+  );
+  assert.match(route, /export async function POST/);
+  assert.match(route, /export async function PATCH/);
+  assert.equal(route.match(/requireCloudMutationRequest\(request, \{ json: true \}\)/g)?.length, 2);
+  assert.equal(
+    route.match(/parseIdempotencyKey\(request\.headers\.get\("idempotency-key"\)\)/g)?.length,
+    2,
+  );
 });
 
 test("the selected organization is validated before entering shared cloud headers", () => {

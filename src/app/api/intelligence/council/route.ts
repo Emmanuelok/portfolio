@@ -165,6 +165,7 @@ export async function POST(request: Request) {
     }
 
     const usageKey = accountUsageKey(context.user.id, secret);
+    const providerAvailable = canUseCouncilRuntime();
     const admission = await beginWorkspaceRequest(usageKey, requestId);
     if (!admission.allowed) {
       throw new CloudHttpError(
@@ -178,26 +179,33 @@ export async function POST(request: Request) {
       );
     }
 
-    const credits = await consumeWorkspaceCredits(
-      admission.usageKey,
-      input.depth,
-      providerCallBudget(input),
-      `${requestId}:credits`,
-    );
+    // A session with no provider makes no provider call, so it reserves no
+    // credits; it still holds the admission lease for concurrency control.
+    const credits = providerAvailable
+      ? await consumeWorkspaceCredits(
+          admission.usageKey,
+          input.depth,
+          providerCallBudget(input),
+          `${requestId}:credits`,
+        )
+      : ({ allowed: true } as const);
     if (!credits.allowed) {
       await finishWorkspaceRequest(admission.usageKey, admission.leaseId);
       throw new CloudHttpError(
         credits.reason === "unavailable" ? 503 : 429,
         credits.reason === "unavailable"
           ? "usage_service_unavailable"
-          : "daily_limit_reached",
+          : credits.reason === "global"
+            ? "deployment_limit_reached"
+            : "daily_limit_reached",
         credits.reason === "unavailable"
           ? "Council usage accounting is temporarily unavailable. No project content was sent to a model."
-          : "The daily council allowance has been reached. The local reading remains available in Canvas.",
+          : credits.reason === "global"
+            ? "This deployment has reached its daily provider allowance. The local reading remains available in Canvas."
+            : "The daily council allowance has been reached. The local reading remains available in Canvas.",
       );
     }
 
-    const providerAvailable = canUseCouncilRuntime();
     const encoder = new TextEncoder();
     const abortController = new AbortController();
     request.signal.addEventListener("abort", () => abortController.abort(), {

@@ -2,6 +2,7 @@ import { createHash, createHmac, randomUUID } from "node:crypto";
 
 import { NextRequest, NextResponse } from "next/server";
 
+import { isSameOriginRequest } from "@/lib/cloud/request-security";
 import {
   canUseIntelligenceRuntime,
   getIntelligenceModelRoute,
@@ -37,6 +38,7 @@ import {
   beginWorkspaceRequest,
   consumeWorkspaceCredits,
   finishWorkspaceRequest,
+  releaseWorkspaceCredits,
   getWorkspaceUsage,
   workspaceUsageBackend,
   workspaceUsagePolicy,
@@ -97,34 +99,6 @@ function errorResponse(
 
 function firstForwardedValue(value: string | null) {
   return value?.split(",")[0]?.trim() || undefined;
-}
-
-function sameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  const host =
-    firstForwardedValue(request.headers.get("x-forwarded-host")) ||
-    firstForwardedValue(request.headers.get("host"));
-  const fetchSite = request.headers.get("sec-fetch-site");
-  const isProduction = process.env.NODE_ENV === "production";
-
-  if (!origin || !host) return !isProduction;
-  if (fetchSite && fetchSite !== "same-origin") return false;
-  if (isProduction && fetchSite !== "same-origin") return false;
-
-  const expectedProtocol =
-    firstForwardedValue(request.headers.get("x-forwarded-proto")) ||
-    request.nextUrl.protocol.replace(":", "");
-
-  try {
-    const candidate = new URL(origin);
-    return (
-      candidate.host.toLocaleLowerCase("en") ===
-        host.toLocaleLowerCase("en") &&
-      candidate.protocol === `${expectedProtocol}:`
-    );
-  } catch {
-    return false;
-  }
 }
 
 function usageHashSecret() {
@@ -285,7 +259,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const requestId = randomUUID();
 
-  if (!sameOrigin(request)) {
+  if (!isSameOriginRequest(request)) {
     return errorResponse(
       "This project review endpoint accepts requests only from the Kingxford site.",
       403,
@@ -434,16 +408,20 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const creditReservationId = `${requestId}:credits`;
     const credits = await consumeWorkspaceCredits(
       usageKey,
       input.depth,
       reservedCalls,
+      creditReservationId,
     );
     if (!credits.allowed) {
       return errorResponse(
         credits.reason === "unavailable"
           ? "Distributed AI usage accounting is temporarily unavailable. No content was sent to a model."
-          : "Today’s anonymous AI review allowance has been used. You can continue working locally.",
+          : credits.reason === "global"
+            ? "This deployment has reached its daily AI review allowance. You can continue working locally."
+            : "Today’s anonymous AI review allowance has been used. You can continue working locally.",
         credits.reason === "unavailable" ? 503 : 429,
         requestId,
         {
@@ -462,6 +440,11 @@ export async function POST(request: NextRequest) {
         safetyIdentifier: visitorKey,
         runId: requestId,
       });
+      // A run that reached no provider is returned to the allowance, so a
+      // misconfigured model route cannot drain the day through fallbacks.
+      if (result.provenance.providerCalls.length === 0) {
+        await releaseWorkspaceCredits(usageKey, creditReservationId);
+      }
       logOperationalEvent("info", "intelligence.run.completed", {
         requestId,
         source: result.source,
@@ -492,6 +475,7 @@ export async function POST(request: NextRequest) {
       }
 
       reportRuntimeFailure(error, requestId);
+      await releaseWorkspaceCredits(usageKey, creditReservationId);
       const fallback = executeLocalIntelligenceRun(input, {
         runId: requestId,
         notice:

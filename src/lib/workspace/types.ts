@@ -37,7 +37,15 @@ export type WorkspaceVersion = Readonly<{
   name: string;
   createdAt: string;
   source: "manual" | "run" | "agent" | "restored";
+  // Absent only in records written before Canvas versions carried project
+  // identity. Such records are adopted into the project they are read under.
+  projectId?: string;
   draft: WorkspaceDraft;
+}>;
+
+export type WorkspaceVersionHistory = Readonly<{
+  schemaVersion: 1;
+  versions: readonly WorkspaceVersion[];
 }>;
 
 export type TextWorkspaceMode = Exclude<WorkspaceMode, "code">;

@@ -242,3 +242,57 @@ test("the cloud panel states its local-first and no-overwrite contract in the in
   assert.match(source, /DELETE MY CLOUD DATA/);
   assert.doesNotMatch(source, /setInterval\(|visibilitychange|beforeunload/);
 });
+
+test("the Canvas workspace keeps consequential decisions in the interface, not browser prompts", async () => {
+  const source = await readFile(
+    new URL("../src/components/workspace/CreativeWorkspace.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(source, /window\.(?:prompt|confirm)\(/);
+  assert.match(source, /aria-labelledby="gate-approval-title"/);
+  assert.match(source, /Only you can record this decision\./);
+  assert.match(source, /disabled=\{!gateReviewed \|\| !gateRationaleReady \|\| projectMutationLocked\}/);
+});
+
+test("workspace shortcuts stay inside the workspace root and never bind for the embedded instance", async () => {
+  const source = await readFile(
+    new URL("../src/components/workspace/CreativeWorkspace.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(source, /window\.addEventListener\("keydown"/);
+  assert.match(source, /if \(embedded \|\| !root\) return;/);
+  assert.match(source, /root\.addEventListener\("keydown", handleShortcut\)/);
+  assert.match(source, /root\.removeEventListener\("keydown", handleShortcut\)/);
+});
+
+test("version history is project scoped, and a preview run does not consume a version slot", async () => {
+  const source = await readFile(
+    new URL("../src/components/workspace/CreativeWorkspace.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /workspaceVersionsForProject\(versions, activeProject\.id\)/);
+  assert.match(source, /versions=\{projectVersions\}/);
+  assert.match(
+    source,
+    /if \(!activeProject \|\| version\.projectId !== activeProject\.id\) \{\s*setStatus\("Restore blocked/,
+  );
+  const runPreview = source.slice(
+    source.indexOf("const runPreview = useCallback("),
+    source.indexOf("const runPreview = useCallback(") + 400,
+  );
+  assert.doesNotMatch(runPreview, /saveVersion\(/);
+});
+
+test("a blocked readiness check can be retried without reloading the workspace", async () => {
+  const source = await readFile(
+    new URL("../src/components/workspace/CreativeWorkspace.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /onClick=\{checkAiReadiness\}/);
+  assert.match(source, /document\.addEventListener\("visibilitychange", recheckWhenVisible\)/);
+  assert.match(source, /window\.addEventListener\("online", checkAiReadiness\)/);
+  assert.match(
+    source,
+    /reviewAvailability\.state === "blocked" \? \(\s*<button\s+className=\{styles\.readinessRetry\}/,
+  );
+});

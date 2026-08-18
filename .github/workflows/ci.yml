@@ -57,3 +57,44 @@ jobs:
 
       - name: Build production application
         run: npm run build
+
+  platform-journey:
+    name: Canvas journey on a production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # The journey drives the built application with the bundled headless
+    # Chromium and blanks every credential, so it exercises the local-fallback
+    # state only. Provider, Supabase, Upstash, and Resend paths need owner
+    # secrets and are verified against a deployment before launch, not here.
+    steps:
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Choose the journey report directory
+        run: echo "PLATFORM_JOURNEY_REPORT_DIR=$RUNNER_TEMP/platform-journey" >> "$GITHUB_ENV"
+
+      - name: Build the application the journey serves
+        run: npm run build
+
+      - name: Verify the Canvas platform journey
+        run: npm run verify:platform-journey
+
+      - name: Upload the journey report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-journey-${{ github.run_id }}
+          path: ${{ runner.temp }}/platform-journey
+          if-no-files-found: warn
+          retention-days: 14

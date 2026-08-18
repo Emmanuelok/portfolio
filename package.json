@@ -15,7 +15,7 @@
     "verify:editorial-voice": "node scripts/verify-editorial-voice.mjs",
     "verify:ai-live": "node scripts/verify-ai-live.mjs",
     "verify:platform-journey": "bash scripts/run-platform-journey.sh",
-    "test:intelligence": "node --import tsx --test tests/intelligence-runtime.test.ts tests/ai-readiness.test.ts",
+    "test:intelligence": "node --import tsx --test tests/intelligence-runtime.test.ts tests/ai-readiness.test.ts tests/advancement-council.test.ts",
     "test:platform": "node --import tsx --test tests/platform-project-bundle.test.ts tests/unified-project-migration.test.ts",
     "test:foundation": "node --import tsx --test tests/distributed-usage-policy.test.ts tests/durable-workflow-contract.test.ts tests/cloud-foundation.test.ts tests/cloud-workspace-ui.test.ts tests/cloud-evidence.test.ts tests/contact-intake.test.ts tests/create-workflows.test.ts tests/organization-collaboration.test.ts"
   },

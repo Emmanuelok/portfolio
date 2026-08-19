@@ -52,6 +52,9 @@ jobs:
       - name: Verify AI governance
         run: npm run verify:creative-agent
 
+      - name: Verify legible type
+        run: npm run verify:legible-type
+
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 

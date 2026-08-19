@@ -10,7 +10,7 @@
   background: #0a0a0c;
   color: #f3efe5;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -56,7 +56,7 @@
   display: block;
   margin-bottom: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -64,7 +64,7 @@
 .disclosure p {
   max-width: 72rem;
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -106,7 +106,7 @@
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
-  font-size: 0.72rem;
+  font-size: var(--type-s);
 }
 
 .sectorMain {
@@ -119,7 +119,7 @@
 .scienceMethods .sectorSectionHeading > p,
 .moduleSection .sectorSectionHeading > p {
   font-family: var(--font-mono);
-  font-size: 0.63rem;
+  font-size: var(--type-xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -142,7 +142,7 @@
   gap: 0.55rem;
   padding: 0.7rem 1rem;
   border: 1px solid currentColor;
-  font-size: 0.75rem;
+  font-size: var(--type-m);
   font-weight: 700;
 }
 
@@ -192,11 +192,11 @@
   border-radius: 50%;
   color: var(--science-accent);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--type-s);
 }
 
 .scienceIdentity strong {
-  font-size: 0.82rem;
+  font-size: var(--type-m);
   letter-spacing: 0.02em;
 }
 
@@ -311,7 +311,7 @@
   padding-top: 0.7rem;
   color: var(--science-muted);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -342,7 +342,7 @@
 .scienceProgrammeList small {
   color: var(--science-muted);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -357,7 +357,7 @@
 .scienceProgrammeList p {
   margin: 0;
   color: var(--science-muted);
-  font-size: 0.8rem;
+  font-size: var(--type-m);
 }
 
 .methodRail {
@@ -383,7 +383,7 @@
 .moduleGrid article > span {
   color: var(--science-accent);
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
 }
 
 .methodRail h3 {
@@ -394,7 +394,7 @@
 .methodRail p {
   margin: 0;
   color: var(--science-muted);
-  font-size: 0.76rem;
+  font-size: var(--type-m);
 }
 
 .scienceFacilities {
@@ -433,7 +433,7 @@
   padding-bottom: 0.8rem;
   color: var(--science-muted);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   text-align: left;
 }
 
@@ -441,7 +441,7 @@
 .facilitiesTable td {
   padding: 1rem;
   border-top: 1px solid var(--science-rule);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
 }
 
 .facilitiesTable th {
@@ -491,7 +491,7 @@
   padding-top: 0.8rem;
   border-top: 1px solid var(--science-rule);
   color: var(--science-muted);
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
 }
 
 .sectorCta {
@@ -560,7 +560,7 @@
 }
 
 .financeIdentity strong {
-  font-size: 0.8rem;
+  font-size: var(--type-m);
   line-height: 1.15;
 }
 
@@ -576,7 +576,7 @@
   border-top: 1px solid var(--finance-rule);
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   text-transform: uppercase;
 }
 
@@ -591,7 +591,7 @@
 .financeRail > small {
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   line-height: 1.6;
   text-transform: uppercase;
 }
@@ -623,7 +623,7 @@
   border-bottom: 1px solid var(--finance-rule);
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.57rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -666,7 +666,7 @@
   margin-bottom: 1rem;
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -708,13 +708,13 @@
 
 .mandateGrid h3 {
   margin-bottom: 3rem;
-  font-size: 0.9rem;
+  font-size: var(--type-l);
 }
 
 .mandateGrid p {
   margin: 0;
   color: var(--finance-muted);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
 }
 
 .capitalPath {
@@ -738,7 +738,7 @@
 .capitalPath span {
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
 }
 
 .capitalPath strong {
@@ -751,14 +751,14 @@
   grid-column: 3;
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
 }
 
 .riskTable th,
 .riskTable td {
   padding: 1rem;
   border-top: 1px solid var(--finance-rule);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
 }
 
 .riskTable caption {
@@ -799,7 +799,7 @@
 .financeResearch li small {
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   text-transform: uppercase;
 }
 
@@ -879,7 +879,7 @@
 .educationIdentity small {
   color: var(--education-brick);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -893,7 +893,7 @@
 .educationSectionHeading > p {
   color: var(--education-muted);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -931,7 +931,7 @@
   gap: 0.55rem;
   padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--education-ink);
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   font-weight: 700;
 }
 
@@ -954,13 +954,13 @@
   gap: 1rem;
   padding: 0.8rem 1rem;
   border-bottom: 1px solid var(--education-rule);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
 }
 
 .timetableHeading span {
   color: var(--education-muted);
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
@@ -996,7 +996,7 @@
 .timetable li span,
 .timetable li small {
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
@@ -1009,7 +1009,7 @@
   padding: 0.7rem 1rem;
   border-top: 1px solid var(--education-rule);
   color: var(--education-muted);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
 }
 
 .educationStudy,
@@ -1044,7 +1044,7 @@
 .programmeGrid article > span {
   color: var(--education-brick);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
 }
 
 .programmeGrid svg,
@@ -1069,7 +1069,7 @@
 .programmeGrid p,
 .educationModuleGrid p {
   color: var(--education-muted);
-  font-size: 0.82rem;
+  font-size: var(--type-m);
 }
 
 .programmeGrid small,
@@ -1079,7 +1079,7 @@
   padding-top: 0.7rem;
   border-top: 1px solid var(--education-rule);
   color: var(--education-muted);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
 }
 
 .learningPath {
@@ -1108,7 +1108,7 @@
 
 .learningPath span {
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
 }
 
 .learningPath strong {
@@ -1120,7 +1120,7 @@
 
 .learningPath p {
   color: var(--education-muted);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
 }
 
 .studentWorkList {
@@ -1141,7 +1141,7 @@
 .studentWorkList p {
   color: var(--education-muted);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   text-transform: uppercase;
 }
 

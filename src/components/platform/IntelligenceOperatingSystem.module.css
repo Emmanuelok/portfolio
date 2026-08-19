@@ -38,7 +38,7 @@
   border-bottom: 1px solid var(--border);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.63rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -55,7 +55,7 @@
   margin-bottom: 0.8rem;
   color: var(--blue-bright);
   font-family: var(--font-mono);
-  font-size: 0.63rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -119,7 +119,7 @@
   border-bottom: 1px solid var(--border);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -161,13 +161,13 @@
 .entryCopy i {
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   font-style: normal;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .entryCopy strong { margin: 0.25rem 0 0.18rem; font-size: 1.15rem; }
-.entryCopy > span { color: var(--text-soft); font-size: 0.72rem; line-height: 1.45; }
+.entryCopy > span { color: var(--text-soft); font-size: var(--type-s); line-height: 1.45; }
 .entryCopy i { margin-top: 0.6rem; color: var(--blue-bright); }
 
 .spine { position: relative; overflow: hidden; }
@@ -191,7 +191,7 @@
   border-bottom: 1px solid var(--border);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -242,12 +242,12 @@
 .conductor > div:last-child > span {
   color: var(--blue-bright);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 .conductor h3 { margin: 0.25rem 0; font-size: clamp(1.9rem, 3.8vw, 3.8rem); letter-spacing: -0.055em; }
-.conductor p { max-width: 52rem; margin: 0; color: var(--text-soft); font-size: 0.78rem; }
+.conductor p { max-width: 52rem; margin: 0; color: var(--text-soft); font-size: var(--type-m); }
 
 .memory {
   display: grid;
@@ -261,8 +261,8 @@
 .memory > div:first-child { display: flex; align-items: center; gap: 0.75rem; }
 .memory > div:first-child > svg { width: 1rem; color: var(--blue-bright); }
 .memory span { display: grid; }
-.memory small { color: var(--text-faint); font-family: var(--font-mono); font-size: 0.53rem; text-transform: uppercase; }
-.memory strong { font-size: 0.75rem; }
+.memory small { color: var(--text-faint); font-family: var(--font-mono); font-size: var(--type-2xs); text-transform: uppercase; }
+.memory strong { font-size: var(--type-m); }
 .memoryPulse { display: flex; align-items: end; gap: 0.2rem; height: 1.4rem; }
 .memoryPulse i { width: 0.16rem; height: 35%; background: var(--blue-bright); animation: memorySignal 1.8s ease-in-out infinite; }
 .memoryPulse i:nth-child(2) { height: 75%; animation-delay: -0.25s; }
@@ -272,8 +272,8 @@
 
 .specialists { padding: 1rem; }
 .specialistHeading { margin-bottom: 0.8rem; }
-.specialistHeading span { font-size: 0.75rem; font-weight: 720; }
-.specialistHeading small { color: var(--text-faint); font-family: var(--font-mono); font-size: 0.53rem; text-transform: uppercase; }
+.specialistHeading span { font-size: var(--type-m); font-weight: 720; }
+.specialistHeading small { color: var(--text-faint); font-family: var(--font-mono); font-size: var(--type-2xs); text-transform: uppercase; }
 .specialistGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
 .specialistGrid article {
   position: relative;
@@ -295,15 +295,15 @@
 }
 .specialistGrid article > svg { width: 0.9rem; color: var(--blue-bright); }
 .specialistGrid article > div { display: grid; align-content: start; }
-.specialistGrid strong { font-size: 0.73rem; }
-.specialistGrid span { margin-top: 0.2rem; color: var(--text-faint); font-size: 0.59rem; line-height: 1.35; }
+.specialistGrid strong { font-size: var(--type-s); }
+.specialistGrid span { margin-top: 0.2rem; color: var(--text-faint); font-size: var(--type-xs); line-height: 1.35; }
 .specialistGrid article > i {
   position: absolute;
   right: 0.55rem;
   bottom: 0.4rem;
   color: var(--gold);
   font-family: var(--font-mono);
-  font-size: 0.46rem;
+  font-size: var(--type-2xs);
   font-style: normal;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -311,11 +311,11 @@
 
 .lifecycle { margin-top: clamp(1rem, 2.2vw, 2.2rem); }
 .lifecycleTopline { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); }
-.lifecycleTopline > div { display: flex; align-items: center; gap: 0.55rem; color: var(--text-faint); font-family: var(--font-mono); font-size: 0.59rem; text-transform: uppercase; }
+.lifecycleTopline > div { display: flex; align-items: center; gap: 0.55rem; color: var(--text-faint); font-family: var(--font-mono); font-size: var(--type-xs); text-transform: uppercase; }
 .lifecycleTopline svg { width: 0.9rem; color: var(--blue-bright); }
 .lifecycleTopline p { display: grid; max-width: 45rem; margin: 0; text-align: right; }
-.lifecycleTopline p strong { font-size: 0.72rem; }
-.lifecycleTopline p span { color: var(--text-faint); font-size: 0.62rem; }
+.lifecycleTopline p strong { font-size: var(--type-s); }
+.lifecycleTopline p span { color: var(--text-faint); font-size: var(--type-xs); }
 .phaseTrack { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .phaseTrack button {
   position: relative;
@@ -346,12 +346,12 @@
 .phaseTrack button:hover,
 .phaseTrack button[data-active="true"] { background: color-mix(in srgb, var(--blue) 8%, transparent); }
 .phaseTrack button[data-active="true"]::after { transform: scaleX(1); }
-.phaseTrack small { color: var(--blue-bright); font-family: var(--font-mono); font-size: 0.55rem; }
+.phaseTrack small { color: var(--blue-bright); font-family: var(--font-mono); font-size: var(--type-xs); }
 .phaseTrack strong { font-size: clamp(0.85rem, 1.25vw, 1.1rem); }
-.phaseTrack span { color: var(--text-faint); font-size: 0.62rem; line-height: 1.35; }
+.phaseTrack span { color: var(--text-faint); font-size: var(--type-xs); line-height: 1.35; }
 .phaseAction { padding: 0.8rem 1rem; border-top: 1px solid var(--border); }
 .phaseAction > span,
-.phaseAction > a { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.68rem; }
+.phaseAction > a { display: inline-flex; align-items: center; gap: 0.45rem; font-size: var(--type-s); }
 .phaseAction > span { color: var(--text-faint); }
 .phaseAction svg { width: 0.82rem; }
 .phaseAction > a { color: var(--blue-bright); font-weight: 700; }
@@ -370,7 +370,7 @@
   border-right: 1px solid var(--border);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }

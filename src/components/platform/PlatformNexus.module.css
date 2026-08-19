@@ -90,7 +90,7 @@
   border-bottom: 1px solid var(--border);
   color: var(--text-soft);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   font-weight: 650;
   letter-spacing: 0.12em;
   line-height: 1.4;
@@ -143,7 +143,7 @@
   margin-bottom: 1rem;
   color: var(--blue-bright);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -184,7 +184,7 @@
 .startForm > label {
   display: block;
   margin-bottom: 0.6rem;
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -229,7 +229,7 @@
   border-top: 1px solid var(--border);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.04em;
 }
 
@@ -253,7 +253,7 @@
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -279,7 +279,7 @@
   padding: 0.7rem 0.9rem;
   border-radius: 0.7rem;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: var(--type-m);
   font-weight: 700;
 }
 
@@ -291,7 +291,7 @@
 
 .formActions > button:disabled { cursor: not-allowed; opacity: 0.42; }
 .formActions > button span { display: grid; text-align: left; }
-.formActions > button small { font-size: 0.58rem; font-weight: 600; opacity: 0.58; }
+.formActions > button small { font-size: var(--type-xs); font-weight: 600; opacity: 0.58; }
 .formActions svg { width: 1rem; transition: transform 180ms ease; }
 .formActions > button:not(:disabled):hover svg,
 .formActions > a:hover svg { transform: translate(0.12rem, -0.12rem); }
@@ -307,7 +307,7 @@
 .status {
   margin: 0.62rem 0 0;
   color: var(--text-faint);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   line-height: 1.5;
 }
 
@@ -350,7 +350,7 @@
   display: block;
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -359,7 +359,7 @@
 .systemHeader h2 {
   max-width: 47ch;
   margin: 0.16rem 0 0;
-  font-size: 0.88rem;
+  font-size: var(--type-l);
   font-weight: 630;
   letter-spacing: -0.02em;
   line-height: 1.35;
@@ -445,8 +445,8 @@
 }
 
 .phaseNode svg { width: 0.78rem; height: 0.78rem; }
-.phaseTrack button small { margin-top: 0.2rem; font-family: var(--font-mono); font-size: 0.52rem; }
-.phaseTrack button strong { color: var(--text-soft); font-size: 0.65rem; }
+.phaseTrack button small { margin-top: 0.2rem; font-family: var(--font-mono); font-size: var(--type-2xs); }
+.phaseTrack button strong { color: var(--text-soft); font-size: var(--type-s); }
 
 .phaseTrack button:hover .phaseNode,
 .phaseTrack button[data-active="true"] .phaseNode {
@@ -474,7 +474,7 @@
   border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
   color: var(--gold);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -488,7 +488,7 @@
   line-height: 1;
 }
 
-.phaseLead p { max-width: 52ch; margin: 0; color: var(--text-soft); font-size: 0.76rem; }
+.phaseLead p { max-width: 52ch; margin: 0; color: var(--text-soft); font-size: var(--type-m); }
 
 .agentStack {
   display: grid;
@@ -518,8 +518,8 @@
 .agentStack > div[data-conductor="true"] > i { border-color: var(--blue); color: var(--blue-bright); }
 .agentStack svg { width: 0.65rem; height: 0.65rem; }
 .agentStack p { display: grid; margin: 0; }
-.agentStack strong { font-size: 0.7rem; }
-.agentStack small { color: var(--text-faint); font-size: 0.62rem; line-height: 1.45; }
+.agentStack strong { font-size: var(--type-s); }
+.agentStack small { color: var(--text-faint); font-size: var(--type-xs); line-height: 1.45; }
 
 .systemFooter {
   display: flex;
@@ -529,7 +529,7 @@
   border-top: 1px solid var(--border);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -544,7 +544,7 @@
   align-self: center;
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -641,7 +641,7 @@
   .topline > div { width: 100%; justify-content: space-between; }
   .mainGrid { align-items: start; padding-top: 2rem; }
   .proposition h1 { max-width: 10ch; }
-  .lede { font-size: 0.9rem; }
+  .lede { font-size: var(--type-l); }
   .formActions { display: grid; }
   .formActions > button,
   .formActions > a { width: 100%; }
@@ -650,7 +650,7 @@
   .operatingSystem { margin-top: 0.75rem; }
   .systemHeader { grid-template-columns: auto 1fr; }
   .systemHeader > svg { display: none; }
-  .systemHeader h2 { font-size: 0.78rem; }
+  .systemHeader h2 { font-size: var(--type-m); }
   .phaseTrack { padding-inline: 0.35rem; }
   .phaseDetail { min-height: 0; }
   .systemFooter { overflow-x: auto; justify-content: flex-start; white-space: nowrap; }

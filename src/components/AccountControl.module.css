@@ -13,7 +13,7 @@
   background: var(--surface);
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   font-weight: 650;
   list-style: none;
   white-space: nowrap;
@@ -56,21 +56,21 @@
 .menu p {
   margin: 0 0 0.55rem;
   color: var(--success);
-  font: 600 0.56rem/1.4 var(--font-mono);
+  font: 600 var(--type-xs)/1.4 var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .menu strong {
   overflow: hidden;
-  font-size: 0.76rem;
+  font-size: var(--type-m);
   text-overflow: ellipsis;
 }
 
 .menu > span {
   margin-top: 0.75rem;
   color: var(--text-faint);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -90,7 +90,7 @@
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   text-align: left;
 }
 

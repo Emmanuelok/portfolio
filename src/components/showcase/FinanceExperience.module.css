@@ -56,7 +56,7 @@
   background: #0b0e10;
   color: #f2ede2;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -130,7 +130,7 @@
 .identity small {
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -147,7 +147,7 @@
   align-items: center;
   border-bottom: 1px solid transparent;
   color: var(--finance-muted);
-  font-size: 0.7rem;
+  font-size: var(--type-s);
   font-weight: 650;
 }
 
@@ -219,7 +219,7 @@
   max-width: 25rem;
   color: rgba(251, 247, 238, 0.68);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.06em;
   text-align: right;
   text-transform: uppercase;
@@ -239,7 +239,7 @@
   margin: 0;
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.61rem;
+  font-size: var(--type-xs);
   font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -272,7 +272,7 @@
   border-top: 1px solid rgba(251, 247, 238, 0.24);
   border-bottom: 1px solid rgba(251, 247, 238, 0.24);
   color: rgba(251, 247, 238, 0.72);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -314,7 +314,7 @@
   border-bottom: 1px solid var(--finance-rule);
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -324,7 +324,7 @@
   margin: clamp(5rem, 11vw, 9rem) 0 1rem;
   color: var(--finance-brass);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   letter-spacing: 0.08em;
 }
 
@@ -369,7 +369,7 @@
 
 .folioScenarioSwitch span {
   font-family: var(--font-mono);
-  font-size: 0.48rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -401,14 +401,14 @@
   margin-bottom: 0.6rem;
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .folioMetadata dd {
   margin: 0;
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   line-height: 1.45;
 }
 
@@ -430,7 +430,7 @@
   padding: 0;
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -479,7 +479,7 @@
 .caseOptionBody > span {
   color: var(--finance-brass);
   font-family: var(--font-mono);
-  font-size: 0.57rem;
+  font-size: var(--type-xs);
 }
 
 .caseOptionBody strong {
@@ -491,7 +491,7 @@
 
 .caseOptionBody small {
   color: rgba(251, 247, 238, 0.7);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   line-height: 1.5;
 }
 
@@ -536,7 +536,7 @@
   padding-top: 1rem;
   border-top: 2px solid var(--finance-brass);
   color: var(--finance-muted);
-  font-size: 0.82rem;
+  font-size: var(--type-m);
   line-height: 1.6;
 }
 
@@ -591,7 +591,7 @@
 .scenarioOptionBody > small {
   grid-column: 1 / -1;
   color: var(--finance-muted);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
   line-height: 1.45;
   text-transform: uppercase;
 }
@@ -621,15 +621,16 @@
   border-bottom: 1px solid var(--finance-rule);
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
 .scenarioChart {
   display: block;
   width: 100%;
+  max-width: 30rem;
   min-height: 19rem;
-  margin: 1rem 0;
+  margin: 1rem auto;
   overflow: visible;
 }
 
@@ -643,12 +644,12 @@
 .chartValue {
   fill: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .chartValue {
   fill: var(--finance-ink);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -681,7 +682,7 @@
   border-top: 1px solid var(--finance-rule);
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   line-height: 1.5;
   text-transform: uppercase;
 }
@@ -708,14 +709,14 @@
   margin-top: 0.8rem;
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
 .scenarioReadout > p:not(.eyebrow) {
   margin: 2.2rem 0;
   color: var(--finance-muted);
-  font-size: 0.75rem;
+  font-size: var(--type-m);
   line-height: 1.55;
 }
 
@@ -735,7 +736,7 @@
 
 .scenarioReadout dt,
 .scenarioReadout dd {
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
 }
 
 .scenarioReadout dt {
@@ -770,7 +771,7 @@
   padding: 0.9rem 0;
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
   text-align: left;
   text-transform: uppercase;
 }
@@ -781,7 +782,7 @@
 .evidenceTable td {
   padding: 1rem;
   border-top: 1px solid var(--finance-rule);
-  font-size: 0.69rem;
+  font-size: var(--type-s);
   vertical-align: top;
 }
 
@@ -789,7 +790,7 @@
 .evidenceTable thead th {
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -802,7 +803,7 @@
   display: block;
   margin-bottom: 0.35rem;
   color: var(--finance-muted);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
 }
 
 .governanceSection {
@@ -913,7 +914,7 @@
 .guardrailCopy small {
   max-width: 43rem;
   color: #bdb5a9;
-  font-size: 0.67rem;
+  font-size: var(--type-s);
   line-height: 1.5;
 }
 
@@ -962,7 +963,7 @@
 
 .readinessPanel > p:not(.eyebrow) {
   color: #c7c0b5;
-  font-size: 0.75rem;
+  font-size: var(--type-m);
   line-height: 1.55;
 }
 
@@ -986,7 +987,7 @@
   margin-top: 1rem;
   color: #a9a195;
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
@@ -1055,7 +1056,7 @@
 .ledgerList button > em {
   color: #afa79b;
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   font-style: normal;
   text-transform: uppercase;
 }
@@ -1068,7 +1069,7 @@
 
 .ledgerList button > small {
   color: #c3bbae;
-  font-size: 0.68rem;
+  font-size: var(--type-s);
 }
 
 .ledgerDetail {
@@ -1086,7 +1087,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.22);
   color: #dfd4c6;
   font-family: var(--font-mono);
-  font-size: 0.54rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
@@ -1108,14 +1109,14 @@
   margin-bottom: 0.5rem;
   color: #d5c8ba;
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
 .ledgerDetail dd {
   margin: 0;
   color: #f4ede2;
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -1151,13 +1152,13 @@
 }
 
 .filterBar button > span {
-  font-size: 0.67rem;
+  font-size: var(--type-s);
   font-weight: 700;
 }
 
 .filterBar button > small {
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
 }
 
 .evidenceLayout {
@@ -1185,7 +1186,7 @@
   background: transparent;
   color: var(--finance-ink);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -1203,7 +1204,7 @@
   border: 1px solid currentColor;
   color: var(--finance-green);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
@@ -1230,7 +1231,7 @@
   border-bottom: 1px solid var(--finance-rule);
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.57rem;
+  font-size: var(--type-xs);
 }
 
 .evidenceDetail h3 {
@@ -1251,13 +1252,13 @@
   margin-bottom: 0.45rem;
   color: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
 .evidenceDetail dd {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -1285,7 +1286,7 @@
   align-items: center;
   gap: 0.6rem;
   border: 1px solid var(--finance-ink);
-  font-size: 0.73rem;
+  font-size: var(--type-s);
   font-weight: 750;
 }
 
@@ -1312,7 +1313,7 @@
   display: block;
   margin-bottom: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1320,7 +1321,7 @@
 .disclosure p {
   max-width: 75rem;
   margin: 0;
-  font-size: 0.7rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -1582,5 +1583,30 @@
   .chartLine,
   .chartGuide {
     stroke: CanvasText;
+  }
+}
+
+/* Chart labels are drawn in viewBox units, so they shrink with the chart.
+   These two bands keep them at or above the 12px floor once the chart is
+   rendered narrower than its 360-unit viewBox. */
+@media (max-width: 560px) {
+  .chartAxisLabel,
+  .chartScenarioLabel {
+    font-size: 13px;
+  }
+
+  .chartValue {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 420px) {
+  .chartAxisLabel,
+  .chartScenarioLabel {
+    font-size: 17px;
+  }
+
+  .chartValue {
+    font-size: 19px;
   }
 }

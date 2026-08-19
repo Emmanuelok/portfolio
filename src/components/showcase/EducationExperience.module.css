@@ -77,7 +77,7 @@
   background: var(--edu-vermilion);
   color: #fff9ed;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   font-weight: 650;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -132,7 +132,7 @@
 }
 
 .identity strong {
-  font-size: 0.86rem;
+  font-size: var(--type-l);
   font-weight: 720;
   letter-spacing: -0.025em;
 }
@@ -140,7 +140,7 @@
 .identity small {
   color: rgba(255, 250, 240, 0.58);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -196,7 +196,7 @@
   min-height: 2.8rem;
   align-items: center;
   color: rgba(255, 250, 240, 0.72);
-  font-size: 0.7rem;
+  font-size: var(--type-s);
   font-weight: 650;
 }
 
@@ -248,7 +248,7 @@
   margin-bottom: 1.4rem;
   color: var(--edu-vermilion);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -286,7 +286,7 @@
   padding: 0.75rem 1.05rem;
   align-items: center;
   border: 1px solid var(--edu-ink);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   font-weight: 750;
 }
 
@@ -344,7 +344,7 @@
   background: rgba(24, 36, 51, 0.72);
   color: rgba(255, 250, 240, 0.78);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.06em;
   text-align: right;
   text-transform: uppercase;
@@ -373,7 +373,7 @@
   background: transparent;
   color: rgba(255, 250, 240, 0.78);
   cursor: pointer;
-  font-size: 0.65rem;
+  font-size: var(--type-s);
   font-weight: 680;
   text-align: left;
 }
@@ -389,7 +389,7 @@
 
 .heroQuestionSelector button > span {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   opacity: 0.72;
 }
 
@@ -528,7 +528,7 @@
   z-index: 2;
   color: rgba(255, 250, 240, 0.7);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -560,7 +560,7 @@
 .heroQuestion small {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -625,7 +625,7 @@
   padding-top: 1.2rem;
   border-top: 1px solid var(--edu-rule);
   color: var(--edu-muted);
-  font-size: 0.88rem;
+  font-size: var(--type-l);
   line-height: 1.65;
 }
 
@@ -663,7 +663,7 @@
   margin-bottom: 1rem;
   color: var(--edu-muted);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -717,7 +717,7 @@
 .rhythmChoices span {
   color: currentColor;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.06em;
   opacity: 0.68;
   text-transform: uppercase;
@@ -725,7 +725,7 @@
 
 .questionChoices strong,
 .rhythmChoices strong {
-  font-size: 0.78rem;
+  font-size: var(--type-m);
 }
 
 .rhythmChoices {
@@ -766,12 +766,12 @@
 
 .phaseChoices span {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   opacity: 0.7;
 }
 
 .phaseChoices strong {
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
 }
 
 .livePathway {
@@ -795,7 +795,7 @@
 .pathwayHeader span {
   color: rgba(255, 250, 240, 0.58);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -849,16 +849,16 @@
   border-radius: 50%;
   background: var(--edu-ink);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
 }
 
 .pathwayMap button strong {
-  font-size: 0.67rem;
+  font-size: var(--type-s);
 }
 
 .pathwayMap button small {
   max-width: 9ch;
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   line-height: 1.35;
   opacity: 0.65;
 }
@@ -889,7 +889,7 @@
   margin-bottom: 0.9rem;
   color: var(--edu-sun);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -909,7 +909,7 @@
   max-width: 43rem;
   margin: 0;
   color: rgba(255, 250, 240, 0.68);
-  font-size: 0.82rem;
+  font-size: var(--type-m);
   line-height: 1.6;
 }
 
@@ -923,7 +923,7 @@
   display: block;
   margin-top: 1.4rem;
   color: var(--edu-paper-light);
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   line-height: 1.5;
 }
 
@@ -989,7 +989,7 @@
 .weekSchedule button > span,
 .weekSchedule button > small {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -999,7 +999,7 @@
 }
 
 .weekSchedule button strong {
-  font-size: 0.78rem;
+  font-size: var(--type-m);
 }
 
 .dayDetail {
@@ -1015,7 +1015,7 @@
   align-items: center;
   gap: 0.65rem;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1052,7 +1052,7 @@
 .dayDetail dt {
   margin-bottom: 0.55rem;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1060,7 +1060,7 @@
 
 .dayDetail dd {
   margin: 0;
-  font-size: 0.71rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -1087,7 +1087,7 @@
   border-bottom: 1px solid var(--edu-rule);
   color: var(--edu-muted);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1102,7 +1102,7 @@
   margin-bottom: 1rem;
   color: var(--edu-vermilion);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1135,7 +1135,7 @@
   margin-bottom: 0.7rem;
   color: var(--edu-blue);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1144,7 +1144,7 @@
 .briefGrid p {
   margin: 0;
   color: var(--edu-muted);
-  font-size: 0.83rem;
+  font-size: var(--type-m);
   line-height: 1.65;
 }
 
@@ -1157,7 +1157,7 @@
   padding: 1rem;
   border: 1px solid var(--edu-rule);
   color: var(--edu-muted);
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -1180,7 +1180,7 @@
   gap: 0.7rem;
   color: var(--edu-sun);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1216,7 +1216,7 @@
 
 .methodKit li span {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-style: normal;
   opacity: 0.56;
 }
@@ -1238,7 +1238,7 @@
   border: 1px solid var(--edu-rule);
   background: transparent;
   color: var(--edu-ink);
-  font-size: 0.67rem;
+  font-size: var(--type-s);
   font-weight: 700;
 }
 
@@ -1280,7 +1280,7 @@
   gap: 0.6rem;
   color: var(--edu-vermilion);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -1304,7 +1304,7 @@
 .shelfGrid p {
   margin-bottom: 1.6rem;
   color: var(--edu-muted);
-  font-size: 0.74rem;
+  font-size: var(--type-m);
   line-height: 1.55;
 }
 
@@ -1313,7 +1313,7 @@
   border-top: 1px solid var(--edu-rule);
   color: var(--edu-blue);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1338,7 +1338,7 @@
   margin-bottom: 1.3rem;
   color: var(--edu-sun);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1362,7 +1362,7 @@
   align-items: center;
   gap: 0.65rem;
   border: 1px solid var(--edu-paper-light);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   font-weight: 750;
 }
 
@@ -1391,7 +1391,7 @@
 
 .disclosure span {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1400,7 +1400,7 @@
 .disclosure p {
   max-width: 72rem;
   margin: 0;
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   line-height: 1.6;
 }
 
@@ -1466,7 +1466,7 @@
   .conceptBar p {
     display: block;
     grid-column: 1 / -1;
-    font-size: 0.5rem;
+    font-size: var(--type-2xs);
     text-align: left;
   }
 

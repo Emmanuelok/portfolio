@@ -69,6 +69,10 @@ import {
   type IntelligenceExecutionMode,
   type ManualEvidenceSubmission,
 } from "@/components/workspace/ProjectIntelligencePanel";
+import {
+  NewProjectDialog,
+  type NewProjectDetails,
+} from "@/components/workspace/NewProjectDialog";
 import { ProjectLibraryDialog } from "@/components/workspace/ProjectLibraryDialog";
 import { WorkflowLibrary } from "@/components/workspace/WorkflowLibrary";
 import {
@@ -96,6 +100,7 @@ import {
   createKingxfordProject,
   hashRevisionBody,
   parseKingxfordProject,
+  PROJECT_GRAPH_LIMITS,
   recordHumanGateDecision,
   stableHash,
   textRevisionBody,
@@ -410,6 +415,17 @@ function appendDeliberatelyAcceptedDraft(
   return revised.activePhase === activePhase
     ? revised
     : parseKingxfordProject({ ...revised, activePhase });
+}
+
+function summaryForDraft(
+  project: KingxfordProject,
+  mode: WorkspaceMode,
+  text: string,
+) {
+  if (mode !== "idea" || workflowTemplateForProject(project)) {
+    return project.summary;
+  }
+  return text.slice(0, PROJECT_GRAPH_LIMITS.summaryCharacters);
 }
 
 function revisionSummary(project: KingxfordProject, artifactId: string) {
@@ -1208,6 +1224,9 @@ export function CreativeWorkspace({
   const [intelligenceAccepting, setIntelligenceAccepting] = useState(false);
   const [intelligenceError, setIntelligenceError] = useState("");
   const [projectLibraryOpen, setProjectLibraryOpen] = useState(false);
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newProjectSession, setNewProjectSession] = useState(0);
+  const [newProjectError, setNewProjectError] = useState("");
   const [isOnline, setIsOnline] = useState(true);
   const [aiReadiness, setAiReadiness] = useState<AiReadiness | null>(null);
   const [aiReadinessChecked, setAiReadinessChecked] = useState(false);
@@ -1585,15 +1604,14 @@ export function CreativeWorkspace({
         : null;
 
       try {
+        const nextSummary = summaryForDraft(activeProject, mode, currentText);
         const titled = activeProject.title === (title.trim() || activeProject.title)
-          && (mode !== "idea" || activeProject.summary === currentText.slice(0, 1200))
+          && activeProject.summary === nextSummary
           ? activeProject
           : parseKingxfordProject({
               ...activeProject,
               title: (title.trim() || activeProject.title).slice(0, 160),
-              summary: mode === "idea"
-                ? currentText.slice(0, 1200)
-                : activeProject.summary,
+              summary: nextSummary,
               updatedAt: new Date().toISOString(),
             });
         const project = appendDraftToProject(titled, draft, "human");
@@ -1691,9 +1709,7 @@ export function CreativeWorkspace({
       const titled = parseKingxfordProject({
         ...base,
         title: (nextDraft.title.trim() || base.title).slice(0, 160),
-        summary: nextDraft.mode === "idea"
-          ? nextDraft.text.slice(0, 1200)
-          : base.summary,
+        summary: summaryForDraft(base, nextDraft.mode, nextDraft.text),
         updatedAt: new Date().toISOString(),
       });
       const next = appendDraftToProject(titled, nextDraft, source);
@@ -1733,7 +1749,7 @@ export function CreativeWorkspace({
     const titled = parseKingxfordProject({
       ...activeProject,
       title: (title.trim() || activeProject.title).slice(0, 160),
-      summary: mode === "idea" ? currentText.slice(0, 1200) : activeProject.summary,
+      summary: summaryForDraft(activeProject, mode, currentText),
       updatedAt: new Date().toISOString(),
     });
     const project = appendDraftToProject(titled, draft, "human");
@@ -1762,28 +1778,71 @@ export function CreativeWorkspace({
     }
   };
 
-  const createLocalProject = () => {
+  const openNewProject = () => {
     if (projectMutationLocked) return;
-    try {
-      let repository = preserveCurrentProject();
-      const project = createProjectFromDrafts(
-        "New Kingxford project",
-        {
-          idea: starterText.idea,
-          mindmap: starterText.mindmap,
-          prompt: starterText.prompt,
-          brief: starterText.brief,
-        },
-        initialDraft.code,
-        "idea",
+    if (projectRepository.projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS) {
+      setStatus(
+        `The local library holds ${PROJECT_REPOSITORY_MAX_PROJECTS} projects. Export or delete one before starting another.`,
       );
+      return;
+    }
+    setNewProjectError("");
+    setNewProjectSession((session) => session + 1);
+    setNewProjectOpen(true);
+  };
+
+  const createLocalProject = (details: NewProjectDetails) => {
+    if (projectMutationLocked) return false;
+    try {
+      const objective = details.objective.trim();
+      let repository = preserveCurrentProject();
+      let project: KingxfordProject;
+
+      if (details.startingPoint.kind === "workflow") {
+        const { templateId } = details.startingPoint;
+        project = createWorkflowProject(templateId, {
+          title: details.title,
+          idSeed: `workflow:${templateId}:${makeId()}`,
+        });
+        if (objective) {
+          // Only the summary is replaced. Every template's discovery artifact
+          // is kind "idea", so appending here would overwrite the template's
+          // authored brief and its artifact title.
+          project = parseKingxfordProject({
+            ...project,
+            summary: objective.slice(0, PROJECT_GRAPH_LIMITS.summaryCharacters),
+          });
+        }
+      } else {
+        // The stated objective seeds the idea artifact as well as the summary.
+        // The other modes stay empty: starterText and initialDraft hold the
+        // sample project, and inheriting it would leave work nobody wrote.
+        project = createProjectFromDrafts(
+          details.title,
+          { idea: objective, mindmap: "", prompt: "", brief: "" },
+          { html: "", css: "", javascript: "" },
+          details.startingPoint.mode,
+        );
+      }
+
       repository = upsertRepositoryProject(repository, project);
       saveProjectRepository(repository);
       setProjectRepository(repository);
       openProjectInCanvas(project);
-      setStatus("New local project created");
+      setNewProjectOpen(false);
+      setStatus(
+        details.startingPoint.kind === "workflow"
+          ? `“${project.title}” created from the ${workflowTemplateForProject(project)?.name ?? "Atlas"} workflow and opened`
+          : `“${project.title}” created and opened`,
+      );
+      return true;
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "A new project could not be created.");
+      const message = error instanceof Error
+        ? error.message
+        : "A new project could not be created.";
+      setStatus(message);
+      setNewProjectError(message);
+      return false;
     }
   };
 
@@ -2858,7 +2917,7 @@ export function CreativeWorkspace({
           <button
             type="button"
             disabled={projectMutationLocked || projectRepository.projects.length >= PROJECT_REPOSITORY_MAX_PROJECTS}
-            onClick={createLocalProject}
+            onClick={openNewProject}
           >
             <Plus aria-hidden="true" /> New project
           </button>
@@ -3379,14 +3438,24 @@ export function CreativeWorkspace({
         </button>
       </section>
 
+      <NewProjectDialog
+        key={newProjectSession}
+        open={newProjectOpen}
+        projectCount={projectRepository.projects.length}
+        maxProjects={PROJECT_REPOSITORY_MAX_PROJECTS}
+        submitError={newProjectError}
+        onClose={() => setNewProjectOpen(false)}
+        onCreate={createLocalProject}
+      />
+
       <ProjectLibraryDialog
         open={projectLibraryOpen}
         projects={projectRepository.projects}
         activeProjectId={activeProject?.id ?? null}
         onClose={() => setProjectLibraryOpen(false)}
         onCreate={() => {
-          createLocalProject();
           setProjectLibraryOpen(false);
+          openNewProject();
         }}
         onSelect={(projectId) => {
           switchProject(projectId);

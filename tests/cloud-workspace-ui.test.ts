@@ -296,3 +296,86 @@ test("a blocked readiness check can be retried without reloading the workspace",
     /reviewAvailability\.state === "blocked" \? \(\s*<button\s+className=\{styles\.readinessRetry\}/,
   );
 });
+
+test("creating a project collects its details instead of making an unnamed one", async () => {
+  const workspace = await readFile(
+    new URL("../src/components/workspace/CreativeWorkspace.tsx", import.meta.url),
+    "utf8",
+  );
+  const dialog = await readFile(
+    new URL("../src/components/workspace/NewProjectDialog.tsx", import.meta.url),
+    "utf8",
+  );
+
+  // Every "New project" affordance opens the dialog; none creates silently.
+  assert.match(workspace, /onClick=\{openNewProject\}/);
+  assert.match(
+    workspace,
+    /onCreate=\{\(\) => \{\s*setProjectLibraryOpen\(false\);\s*openNewProject\(\);\s*\}\}/,
+  );
+  assert.doesNotMatch(workspace, /onClick=\{createLocalProject\}/);
+  assert.doesNotMatch(workspace, /createLocalProject\(\);/);
+  assert.doesNotMatch(workspace, /"New Kingxford project"/);
+
+  // The collected details reach the created project rather than a fixed title.
+  assert.match(workspace, /const createLocalProject = \(details: NewProjectDetails\) =>/);
+  assert.match(workspace, /createWorkflowProject\(templateId, \{\s*title: details\.title,/);
+  // A user-named project must not inherit the sample project's content.
+  assert.match(workspace, /\{ idea: objective, mindmap: "", prompt: "", brief: "" \}/);
+  assert.match(workspace, /\{ html: "", css: "", javascript: "" \},\s*details\.startingPoint\.mode,/);
+  // The objective survives the first commit, which rewrites summary from the
+  // idea artifact, so a workflow project carries it in both places.
+  // A guided project keeps the objective it was given: its discovery artifact
+  // holds the template's authored brief, so summary must not track that text.
+  assert.match(workspace, /function summaryForDraft\(/);
+  assert.match(
+    workspace,
+    /if \(mode !== "idea" \|\| workflowTemplateForProject\(project\)\) \{\s*return project\.summary;/,
+  );
+  // All three derivation sites go through the shared rule. The fallback that
+  // mints a project when none is active still derives it, which is correct:
+  // a project created there has no template.
+  assert.match(workspace, /summary: summaryForDraft\(base, nextDraft\.mode, nextDraft\.text\)/);
+  assert.match(workspace, /summary: summaryForDraft\(activeProject, mode, currentText\)/);
+  assert.match(workspace, /const nextSummary = summaryForDraft\(activeProject, mode, currentText\)/);
+  // The template's own artifacts survive creation untouched.
+  assert.doesNotMatch(workspace, /project = appendDraftToProject\(project, \{\s*mode: "idea",/);
+  assert.match(workspace, /setStatus\(\s*details\.startingPoint\.kind === "workflow"/);
+
+  // A fresh form on every opening, without resetting state from an effect.
+  assert.match(workspace, /key=\{newProjectSession\}/);
+  assert.match(workspace, /setNewProjectSession\(\(session\) => session \+ 1\)/);
+
+  // Both answers are required, so a project is never created unidentifiable.
+  assert.match(dialog, /if \(!trimmedTitle\) \{[\s\S]*?setError\(/);
+  assert.match(dialog, /if \(!trimmedObjective\) \{[\s\S]*?setError\(/);
+  // Escape, backdrop, and the close control all route through one handler.
+  assert.match(dialog, /onCancel=\{\(event\) => \{\s*event\.preventDefault\(\);\s*onClose\(\);/);
+  assert.match(
+    dialog,
+    /if \(event\.target === event\.currentTarget && !pointerDownInside\.current\) \{/,
+  );
+  // The starting-point control is not described as tabs it does not have.
+  assert.doesNotMatch(dialog, /role="tab"/);
+  assert.match(dialog, /aria-pressed=\{origin === "blank"\}/);
+  // required is for assistive technology; validation reports through one
+  // styled message, so native constraint UI must not preempt the handler.
+  assert.match(dialog, /noValidate/);
+  assert.match(dialog, /aria-invalid=\{error\?\.field === "objective" \? true : undefined\}/);
+  // Selecting the guided tab applies the highlighted template, so the form is
+  // never submitted looking filled while empty.
+  assert.match(dialog, /onClick=\{\(\) => chooseTemplate\(templateId\)\}/);
+  // A drag-select that ends over the backdrop must not discard the form.
+  assert.match(dialog, /pointerDownInside\.current = event\.target !== event\.currentTarget/);
+  // Arrow keys move within each radiogroup the roles claim.
+  assert.match(dialog, /const moveWithinGroup = \(/);
+  assert.match(dialog, /tabIndex=\{mode === start\.mode \? 0 : -1\}/);
+  // A creation failure is reported inside the modal, not behind its backdrop.
+  assert.match(dialog, /\{error\?\.message \|\| submitError\}/);
+  // Choosing another template refreshes only the field nobody has written in.
+  assert.match(dialog, /if \(!titleTouched\) setTitle\(template\.projectTitle\);/);
+  assert.match(dialog, /if \(!objectiveTouched\) setObjective\(template\.projectSummary\);/);
+  // Focus is claimed a frame after opening, outside the showModal branch, so a
+  // second effect pass still lands it on the name field.
+  assert.match(dialog, /const frame = window\.requestAnimationFrame\(\(\) => titleRef\.current\?\.focus\(\)\);/);
+});

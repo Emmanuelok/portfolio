@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 
 import { ProjectCaptureAction } from "@/components/platform/ProjectCaptureAction";
 import { Reveal } from "@/components/Reveal";
+import { WorkCoverTransition } from "@/components/WorkCoverTransition";
 import type { Project } from "@/data/projects";
 
 type SelectedWorkRunwayProps = Readonly<{
@@ -48,14 +49,16 @@ export function SelectedWorkRunway({
               aria-label={`View ${project.title} case study`}
             >
               <div className="work-runway__media">
-                <Image
-                  src={project.cover}
-                  alt={project.coverAlt}
-                  fill
-                  quality={94}
-                  priority={index === 0}
-                  sizes="(max-width: 760px) 100vw, 86vw"
-                />
+                <WorkCoverTransition slug={project.slug}>
+                  <Image
+                    src={project.cover}
+                    alt={project.coverAlt}
+                    fill
+                    quality={94}
+                    priority={index === 0}
+                    sizes="(max-width: 760px) 100vw, 86vw"
+                  />
+                </WorkCoverTransition>
                 <span aria-hidden="true" />
               </div>
               <div className="work-runway__copy">

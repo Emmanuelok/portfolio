@@ -49,8 +49,9 @@ jobs:
     name: Verify deterministic configuration and safety gates
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # The `runner` context is not available in job-level env, so the report
+    # directory is exported from a step below instead.
     env:
-      CREATIVE_AGENT_REPORT_DIR: ${{ runner.temp }}/creative-agent-evaluation
       VERIFY_GATEWAY_MODEL_CATALOG: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.verify_gateway_catalog) }}
 
     steps:
@@ -59,11 +60,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
+
+      - name: Choose the report directory
+        run: echo "CREATIVE_AGENT_REPORT_DIR=$RUNNER_TEMP/creative-agent-evaluation" >> "$GITHUB_ENV"
 
       - name: Install the locked dependency graph
         run: npm ci --ignore-scripts

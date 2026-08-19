@@ -9,9 +9,15 @@ type UsageBucket = {
   dailyResetsAt: number;
   inFlight: number;
   inFlightLeaseIds: Set<string>;
-  creditReservationIds: Set<string>;
+  creditReservations: Map<string, number>;
   lastSeenAt: number;
   overflow: boolean;
+};
+
+type GlobalUsageBucket = {
+  dailyCreditsUsed: number;
+  dailyResetsAt: number;
+  creditReservations: Map<string, number>;
 };
 
 type UsageStore = Map<string, UsageBucket>;
@@ -25,10 +31,13 @@ const DEFAULT_REQUESTS_PER_MINUTE = 6;
 const DEFAULT_DAILY_CREDITS = 30;
 const DEFAULT_MAX_CONCURRENT = 2;
 const MAX_CREDIT_UNITS_PER_REQUEST = 4;
+const GLOBAL_DAILY_CREDIT_CEILING = 600;
+const MAX_GLOBAL_CREDIT_RESERVATIONS = 20_000;
 const DISTRIBUTED_LEASE_TTL_MS = 5 * 60_000;
 const DISTRIBUTED_KEY_TTL_GRACE_MS = 60 * 60_000;
 
 const storeSymbol = Symbol.for("kingxford.workspace.usage-store.v2");
+const globalStoreSymbol = Symbol.for("kingxford.workspace.global-usage.v1");
 const overflowPrefix = "__kingxford-overflow-";
 
 function nextUtcDay(now: number) {
@@ -48,7 +57,7 @@ function freshBucket(now: number, overflow = false): UsageBucket {
     dailyResetsAt: nextUtcDay(now),
     inFlight: 0,
     inFlightLeaseIds: new Set<string>(),
-    creditReservationIds: new Set<string>(),
+    creditReservations: new Map<string, number>(),
     lastSeenAt: now,
     overflow,
   };
@@ -101,17 +110,34 @@ function boundedPositiveInteger(
 
 function normalizeBucket(bucket: UsageBucket, now: number) {
   bucket.inFlightLeaseIds ??= new Set<string>();
-  bucket.creditReservationIds ??= new Set<string>();
+  bucket.creditReservations ??= new Map<string, number>();
   if (bucket.minuteResetsAt <= now) {
     bucket.minuteCount = 0;
     bucket.minuteResetsAt = now + MINUTE_WINDOW_MS;
   }
   if (bucket.dailyResetsAt <= now) {
     bucket.dailyCreditsUsed = 0;
-    bucket.creditReservationIds.clear();
+    bucket.creditReservations.clear();
     bucket.dailyResetsAt = nextUtcDay(now);
   }
   bucket.lastSeenAt = now;
+  return bucket;
+}
+
+function globalUsageBucket(now: number): GlobalUsageBucket {
+  const root = globalThis as typeof globalThis & {
+    [globalStoreSymbol]?: GlobalUsageBucket;
+  };
+  const bucket = (root[globalStoreSymbol] ??= {
+    dailyCreditsUsed: 0,
+    dailyResetsAt: nextUtcDay(now),
+    creditReservations: new Map<string, number>(),
+  });
+  if (bucket.dailyResetsAt <= now) {
+    bucket.dailyCreditsUsed = 0;
+    bucket.creditReservations.clear();
+    bucket.dailyResetsAt = nextUtcDay(now);
+  }
   return bucket;
 }
 
@@ -199,6 +225,23 @@ export const workspaceUsagePolicy = {
     deep: 3,
   },
 } as const;
+
+export const workspaceGlobalUsagePolicy = {
+  dailyCredits: boundedPositiveInteger(
+    process.env.KINGXFORD_AGENT_GLOBAL_DAILY_CREDITS,
+    GLOBAL_DAILY_CREDIT_CEILING,
+    GLOBAL_DAILY_CREDIT_CEILING,
+  ),
+} as const;
+
+export function trustsForwardedClientAddress(
+  environment: NodeJS.ProcessEnv = process.env,
+) {
+  return (
+    environment.VERCEL === "1" ||
+    environment.KINGXFORD_TRUSTED_FORWARDED_PROXY === "1"
+  );
+}
 
 export type WorkspaceUsageSnapshot = Readonly<{
   minuteRemaining: number;
@@ -352,6 +395,36 @@ export function consumeWorkspaceCredits(
   );
 }
 
+function chargeProcessLocalGlobalCredits(
+  reservationId: string,
+  creditCost: number,
+  now: number,
+) {
+  const bucket = globalUsageBucket(now);
+  if (bucket.creditReservations.has(reservationId)) return true;
+  if (
+    bucket.dailyCreditsUsed + creditCost >
+    workspaceGlobalUsagePolicy.dailyCredits
+  ) {
+    return false;
+  }
+  if (bucket.creditReservations.size >= MAX_GLOBAL_CREDIT_RESERVATIONS) {
+    return false;
+  }
+  bucket.dailyCreditsUsed += creditCost;
+  bucket.creditReservations.set(reservationId, creditCost);
+  return true;
+}
+
+function releaseProcessLocalGlobalCredits(reservationId: string, now: number) {
+  const bucket = globalUsageBucket(now);
+  const recorded = bucket.creditReservations.get(reservationId);
+  if (recorded === undefined) return 0;
+  bucket.creditReservations.delete(reservationId);
+  bucket.dailyCreditsUsed = Math.max(0, bucket.dailyCreditsUsed - recorded);
+  return recorded;
+}
+
 function consumeProcessLocalWorkspaceCredits(
   usageKey: string,
   depth: "standard" | "deep",
@@ -365,7 +438,7 @@ function consumeProcessLocalWorkspaceCredits(
   const creditCost = workspaceCreditCost(depth, units);
   const remaining = workspaceUsagePolicy.dailyCredits - bucket.dailyCreditsUsed;
 
-  if (bucket.creditReservationIds.has(reservationId)) {
+  if (bucket.creditReservations.has(reservationId)) {
     return {
       allowed: true as const,
       usage: snapshot(bucket, creditCost),
@@ -375,18 +448,44 @@ function consumeProcessLocalWorkspaceCredits(
   if (remaining < creditCost) {
     return {
       allowed: false as const,
+      reason: "daily" as const,
+      retryAfter: Math.max(1, Math.ceil((bucket.dailyResetsAt - now) / 1_000)),
+      usage: snapshot(bucket, creditCost),
+    };
+  }
+
+  if (!chargeProcessLocalGlobalCredits(reservationId, creditCost, now)) {
+    return {
+      allowed: false as const,
+      reason: "global" as const,
       retryAfter: Math.max(1, Math.ceil((bucket.dailyResetsAt - now) / 1_000)),
       usage: snapshot(bucket, creditCost),
     };
   }
 
   bucket.dailyCreditsUsed += creditCost;
-  bucket.creditReservationIds.add(reservationId);
+  bucket.creditReservations.set(reservationId, creditCost);
   touchBucket(store, resolved.usageKey, bucket);
   return {
     allowed: true as const,
     usage: snapshot(bucket, creditCost),
   };
+}
+
+function releaseProcessLocalWorkspaceCredits(
+  usageKey: string,
+  reservationId: string,
+) {
+  const now = Date.now();
+  const store = usageStore();
+  const bucket = store.get(usageKey);
+  const recorded = bucket?.creditReservations?.get(reservationId);
+  releaseProcessLocalGlobalCredits(reservationId, now);
+  if (!bucket || recorded === undefined) return 0;
+  bucket.creditReservations.delete(reservationId);
+  bucket.dailyCreditsUsed = Math.max(0, bucket.dailyCreditsUsed - recorded);
+  touchBucket(store, usageKey, bucket);
+  return recorded;
 }
 
 function finishProcessLocalWorkspaceRequest(
@@ -445,6 +544,15 @@ function distributedKeys(key: string, now: number) {
     daily: `${namespace}:daily:${date}`,
     charges: `${namespace}:charges:${date}`,
     leases: `${namespace}:leases`,
+  };
+}
+
+function globalDistributedKeys(now: number) {
+  const date = new Date(now).toISOString().slice(0, 10);
+  const namespace = "kx:ai:global:v1:{deployment}";
+  return {
+    daily: `${namespace}:daily:${date}`,
+    charges: `${namespace}:charges:${date}`,
   };
 }
 
@@ -525,6 +633,23 @@ redis.call("PEXPIREAT", KEYS[1], resetAt + ttlGrace)
 redis.call("HSET", KEYS[2], reservationId, cost)
 redis.call("PEXPIREAT", KEYS[2], resetAt + ttlGrace)
 return {1, updated}
+`;
+
+const releaseDistributedScript = `
+local reservationId = ARGV[1]
+local recorded = redis.call("HGET", KEYS[2], reservationId)
+if not recorded then
+  return {0, tonumber(redis.call("GET", KEYS[1]) or "0")}
+end
+
+redis.call("HDEL", KEYS[2], reservationId)
+local cost = tonumber(recorded)
+local updated = tonumber(redis.call("DECRBY", KEYS[1], cost))
+if updated < 0 then
+  redis.call("SET", KEYS[1], "0", "KEEPTTL")
+  updated = 0
+end
+return {cost, updated}
 `;
 
 const readDistributedScript = `
@@ -637,9 +762,7 @@ async function consumeDurableWorkspaceCredits(
       units,
       reservationId,
     );
-    return result.allowed
-      ? result
-      : { ...result, reason: "daily" as const };
+    return { ...result, reservationId };
   }
 
   const now = Date.now();
@@ -651,10 +774,12 @@ async function consumeDurableWorkspaceCredits(
       reason: "unavailable" as const,
       retryAfter: 15,
       usage: unavailableUsage(now, creditCost),
+      reservationId,
     };
   }
 
   const keys = distributedKeys(usageKey, now);
+  const globalKeys = globalDistributedKeys(now);
   const resetAt = nextUtcDay(now);
   try {
     const result = (await redis.eval(consumeDistributedScript, [
@@ -670,21 +795,85 @@ async function consumeDurableWorkspaceCredits(
     const allowed = numericResult(result[0]) >= 1;
     const used = numericResult(result[1]);
     const usage = distributedSnapshot(0, used, now, creditCost);
-    return allowed
-      ? { allowed: true as const, usage }
-      : {
-          allowed: false as const,
-          reason: "daily" as const,
-          retryAfter: Math.max(1, Math.ceil((resetAt - now) / 1_000)),
-          usage,
-        };
+    if (!allowed) {
+      return {
+        allowed: false as const,
+        reason: "daily" as const,
+        retryAfter: Math.max(1, Math.ceil((resetAt - now) / 1_000)),
+        usage,
+        reservationId,
+      };
+    }
+
+    const globalResult = (await redis.eval(consumeDistributedScript, [
+      globalKeys.daily,
+      globalKeys.charges,
+    ], [
+      String(creditCost),
+      String(workspaceGlobalUsagePolicy.dailyCredits),
+      String(resetAt),
+      String(DISTRIBUTED_KEY_TTL_GRACE_MS),
+      reservationId,
+    ])) as unknown[];
+    if (numericResult(globalResult[0]) < 1) {
+      await releaseWorkspaceCredits(usageKey, reservationId);
+      return {
+        allowed: false as const,
+        reason: "global" as const,
+        retryAfter: Math.max(1, Math.ceil((resetAt - now) / 1_000)),
+        usage: distributedSnapshot(
+          0,
+          Math.max(0, used - creditCost),
+          now,
+          creditCost,
+        ),
+        reservationId,
+      };
+    }
+
+    return { allowed: true as const, usage, reservationId };
   } catch {
     return {
       allowed: false as const,
       reason: "unavailable" as const,
       retryAfter: 15,
       usage: unavailableUsage(now, creditCost),
+      reservationId,
     };
+  }
+}
+
+export async function releaseWorkspaceCredits(
+  usageKey: string,
+  reservationId: string,
+) {
+  const backend = workspaceUsageBackend();
+  if (backend.kind === "process-memory") {
+    return releaseProcessLocalWorkspaceCredits(usageKey, reservationId);
+  }
+
+  const now = Date.now();
+  const redis = redisClient();
+  if (!redis || !backend.ready) return 0;
+
+  const keys = distributedKeys(usageKey, now);
+  const globalKeys = globalDistributedKeys(now);
+  try {
+    const [visitor] = await Promise.all([
+      redis.eval(
+        releaseDistributedScript,
+        [keys.daily, keys.charges],
+        [reservationId],
+      ) as Promise<unknown[]>,
+      redis.eval(
+        releaseDistributedScript,
+        [globalKeys.daily, globalKeys.charges],
+        [reservationId],
+      ) as Promise<unknown[]>,
+    ]);
+    return numericResult(visitor[0]);
+  } catch {
+    return 0;
   }
 }
 

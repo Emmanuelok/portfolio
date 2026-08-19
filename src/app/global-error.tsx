@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 
+// Global errors replace the root layout, so this boundary must load the
+// stylesheet itself or the recovery screen renders unstyled.
+import "./globals.css";
+
 export default function GlobalError({ reset }: Readonly<{ reset: () => void }>) {
   return (
     <html lang="en">

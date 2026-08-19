@@ -162,6 +162,45 @@ function parseMutation(value: unknown): OrganizationMutation {
   return record as OrganizationMutation;
 }
 
+export async function createOrganization(
+  client: RpcClient,
+  input: Readonly<{
+    name: string;
+    idempotencyKey: string;
+    requestHash: string;
+  }>,
+) {
+  const { data, error } = await client.rpc("create_kingxford_organization", {
+    p_name: input.name,
+    p_idempotency_key: input.idempotencyKey,
+    p_request_hash: input.requestHash,
+  });
+  if (error) {
+    mapRpcError(error, "organization_create_failed", "The organization could not be created.");
+  }
+  return parseMutation(data);
+}
+
+export async function renameOrganization(
+  context: CloudRequestContext,
+  input: Readonly<{
+    name: string;
+    idempotencyKey: string;
+    requestHash: string;
+  }>,
+) {
+  const { data, error } = await context.client.rpc("rename_kingxford_organization", {
+    p_organization_id: context.organizationId,
+    p_name: input.name,
+    p_idempotency_key: input.idempotencyKey,
+    p_request_hash: input.requestHash,
+  });
+  if (error) {
+    mapRpcError(error, "organization_rename_failed", "The organization could not be renamed.");
+  }
+  return parseMutation(data);
+}
+
 export async function createInvitation(
   context: CloudRequestContext,
   input: Readonly<{

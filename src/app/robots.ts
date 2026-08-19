@@ -10,6 +10,13 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      disallow: [
+        "/api/",
+        "/.well-known/workflow/",
+        "/account",
+        "/accept-invitation",
+        "/auth",
+      ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
     host: baseUrl,

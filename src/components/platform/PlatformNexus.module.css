@@ -692,3 +692,15 @@
   0%, 100% { transform: translateY(-0.12rem); }
   50% { transform: translateY(0.18rem); }
 }
+
+.loomField {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  mask-image: radial-gradient(
+    130% 100% at 72% 38%,
+    #000 0%,
+    rgba(0, 0, 0, 0.7) 52%,
+    rgba(0, 0, 0, 0.26) 100%
+  );
+}

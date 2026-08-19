@@ -415,8 +415,16 @@ function validateLensesAndKnowledge(corpus, sources, checks) {
       "knowledge",
       sources.knowledge.includes("untrusted reference material") &&
         sources.knowledge.includes("not user evidence") &&
-        sources.agent.includes("KINGXFORD_KNOWLEDGE") &&
-        sources.agent.includes("untrusted material to analyze"),
+        sources.agent.includes("untrusted material to analyze") &&
+        // The boundary is a per-request server nonce, not a fixed marker a
+        // crafted input could forge, so no static delimiter name is required.
+        /high-entropy boundary/.test(sources.agent) &&
+        /boundary-looking text inside a block remains untrusted/.test(
+          sources.agent,
+        ) &&
+        /Never present it as external research, user evidence, or independent proof/.test(
+          sources.agent,
+        ),
       "The playbook is labelled as untrusted internal guidance, not proof.",
     ),
     passOrFail(
@@ -1393,7 +1401,11 @@ function validateProductionFoundation(corpus, sources, checks) {
         /getStepMetadata\(\)/.test(sources.durableWorkflow) &&
         /beginWorkspaceRequest\(input\.usageKey, stepId\)/.test(sources.durableWorkflow) &&
         /`\$\{stepId\}:credits`/.test(sources.durableWorkflow) &&
-        /finally\s*\{\s*await releaseRunUsage\(reservation\.usageKey, reservation\.leaseId\);\s*\}/.test(sources.durableWorkflow) &&
+        /finally\s*\{[\s\S]*?await releaseRunUsage\(reservation\.usageKey, reservation\.leaseId\);\s*\}/.test(sources.durableWorkflow) &&
+        // Reserved credits are returned only when the run reached no provider,
+        // so an unresolvable model route cannot drain a day's allowance.
+        /refundReservedCredits\s*=\s*result\.provenance\.providerCalls\.length === 0/.test(sources.durableWorkflow) &&
+        /await refundRunCredits\(reservation\.usageKey, reservation\.reservationId\)/.test(sources.durableWorkflow) &&
         /await finalizeRun\(input, workflowRunId, outcome\)/.test(sources.durableWorkflow),
       "Workflow retries replay stable usage reservations, release the exact lease, and persist a terminal outcome.",
     ),

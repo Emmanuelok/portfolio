@@ -17,8 +17,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
+import {
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 
+import { LoomCanvas } from "@/components/LoomCanvas";
+import { Reveal } from "@/components/Reveal";
 import {
   PLATFORM_AGENTS,
   PLATFORM_LIFECYCLE,
@@ -28,8 +35,42 @@ import {
   writePlatformSeed,
 } from "@/lib/platform/seed";
 import type { PlatformPhase } from "@/lib/platform/types";
+import {
+  PROJECT_REPOSITORY_CHANGE_EVENT,
+  PROJECT_REPOSITORY_STORAGE_KEY,
+  activeRepositoryProject,
+  loadProjectRepository,
+} from "@/lib/workspace/project-repository";
 
 import styles from "./PlatformNexus.module.css";
+
+const REPOSITORY_SERVER_SNAPSHOT = "server";
+
+function subscribeToRepository(onStoreChange: () => void) {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === null || event.key === PROJECT_REPOSITORY_STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(PROJECT_REPOSITORY_CHANGE_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(PROJECT_REPOSITORY_CHANGE_EVENT, onStoreChange);
+  };
+}
+
+function getRepositorySnapshot() {
+  try {
+    return window.localStorage.getItem(PROJECT_REPOSITORY_STORAGE_KEY) ?? "";
+  } catch {
+    return "unavailable";
+  }
+}
+
+function getRepositoryServerSnapshot() {
+  return REPOSITORY_SERVER_SNAPSHOT;
+}
 
 const HOME_SEED_INPUT_LIMIT = 1_200;
 
@@ -67,6 +108,33 @@ export function PlatformNexus() {
   const normalizedInput = input.trim();
   const canStart = normalizedInput.length >= 3;
 
+  const repositorySnapshot = useSyncExternalStore(
+    subscribeToRepository,
+    getRepositorySnapshot,
+    getRepositoryServerSnapshot,
+  );
+  const continuingPhase = useMemo(() => {
+    if (
+      repositorySnapshot === REPOSITORY_SERVER_SNAPSHOT ||
+      repositorySnapshot === "unavailable" ||
+      repositorySnapshot === ""
+    ) {
+      return null;
+    }
+    try {
+      const project = activeRepositoryProject(
+        loadProjectRepository(window.localStorage),
+      );
+      if (!project) return null;
+      return (
+        PLATFORM_LIFECYCLE.find((phase) => phase.id === project.activePhase) ??
+        null
+      );
+    } catch {
+      return null;
+    }
+  }, [repositorySnapshot]);
+
   const startProject = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canStart) {
@@ -102,6 +170,9 @@ export function PlatformNexus() {
   return (
     <section className={styles.nexus} aria-labelledby="platform-nexus-title">
       <div className={styles.atmosphere} aria-hidden="true">
+        <div className={styles.loomField}>
+          <LoomCanvas />
+        </div>
         <span />
         <span />
         <span />
@@ -113,7 +184,12 @@ export function PlatformNexus() {
       <div className={styles.frame}>
         <header className={styles.topline}>
           <div>
-            <span className={styles.signal}><i /> Workspace ready</span>
+            <span className={styles.signal}>
+              <i />{" "}
+              {continuingPhase
+                ? `Active project · ${continuingPhase.label}`
+                : "Workspace ready"}
+            </span>
             <span>Kingxford Project Platform</span>
           </div>
           <p>One project record · Six phases · Structured review</p>
@@ -121,19 +197,26 @@ export function PlatformNexus() {
 
         <div className={styles.mainGrid}>
           <div className={styles.proposition}>
-            <p className={styles.eyebrow}>
-              <Sparkles aria-hidden="true" /> Research, design, and delivery in one workspace
-            </p>
-            <h1 id="platform-nexus-title">
-              Develop complex work.
-              <em>Keep the record intact.</em>
-            </h1>
-            <p className={styles.lede}>
-              Start with an idea, question, code fragment, map, prompt, or
-              brief. Kingxford keeps the source, evidence, decisions, and
-              revisions together from initial inquiry through delivery.
-            </p>
+            <Reveal distance={16} amount={0}>
+              <p className={styles.eyebrow}>
+                <Sparkles aria-hidden="true" /> Research, design, and delivery in one workspace
+              </p>
+            </Reveal>
+            <Reveal delay={0.05} distance={30} amount={0}>
+              <h1 id="platform-nexus-title">
+                Develop complex work.
+                <em>Keep the record intact.</em>
+              </h1>
+            </Reveal>
+            <Reveal delay={0.12} distance={18} amount={0}>
+              <p className={styles.lede}>
+                Start with an idea, question, code fragment, map, prompt, or
+                brief. Kingxford keeps the source, evidence, decisions, and
+                revisions together from initial inquiry through delivery.
+              </p>
+            </Reveal>
 
+            <Reveal delay={0.18} distance={14} amount={0}>
             <form className={styles.startForm} onSubmit={startProject}>
               <label htmlFor="platform-project-start">
                 Describe the project or problem.
@@ -191,9 +274,15 @@ export function PlatformNexus() {
                 {status}
               </p>
             </form>
+            </Reveal>
           </div>
 
-          <div className={styles.operatingSystem}>
+          <Reveal
+            className={styles.operatingSystem}
+            delay={0.1}
+            distance={34}
+            amount={0}
+          >
             <header className={styles.systemHeader}>
               <div className={styles.conductorMark} aria-hidden="true">
                 <Orbit />
@@ -258,7 +347,7 @@ export function PlatformNexus() {
               <span><i /> Evidence traceable</span>
               <span><i /> Changes versioned</span>
             </footer>
-          </div>
+          </Reveal>
         </div>
 
         <a className={styles.continue} href="#mission">

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  cloudProjectContentHash,
   formatCloudProjectEtag,
   matchesIfMatch,
   parseCloudProjectEtag,
@@ -11,6 +12,7 @@ import {
   parseIdempotencyKey,
   requestFingerprint,
 } from "../src/lib/cloud/contracts";
+import { readCloudProjectListEntry } from "../src/lib/cloud/repository";
 import { requireCloudMutationRequest } from "../src/lib/cloud/request-security";
 import { getCloudAvailability, getCloudConfiguration } from "../src/lib/cloud/config";
 import { safeCloudReturnPath } from "../src/lib/cloud/navigation";
@@ -135,6 +137,81 @@ test("the database migration enables tenant RLS and private evidence storage", a
   assert.match(migration, /create or replace function public\.upsert_kingxford_project/i);
   assert.match(migration, /p_expected_content_hash text/i);
   assert.match(migration, /unique index if not exists usage_records_run_feature_idx\s+on public\.usage_records\(run_id, feature\)/i);
+});
+
+test("an unreadable cloud row stays listable and carries the ETag needed to delete it", () => {
+  const contentHash = cloudProjectContentHash(project);
+  const row = {
+    id: project.id,
+    title: project.title,
+    summary: project.summary,
+    active_phase: project.activePhase,
+    document: project,
+    version: 3,
+    content_hash: contentHash,
+    created_at: "2026-08-06T12:00:00.000Z",
+    updated_at: "2026-08-06T12:30:00.000Z",
+  };
+
+  const healthy = readCloudProjectListEntry(row);
+  if (!healthy.readable) throw new Error("A valid row must stay fully typed.");
+  assert.equal(healthy.id, project.id);
+  assert.equal(healthy.etag, formatCloudProjectEtag(3, contentHash));
+
+  const unparsable = readCloudProjectListEntry({ ...row, document: { broken: true } });
+  if (unparsable.readable) throw new Error("A corrupt document must not be reported as readable.");
+  assert.equal(unparsable.reason, "unreadable_document");
+  assert.equal(unparsable.id, project.id);
+  assert.equal(unparsable.updatedAt, row.updated_at);
+  assert.equal(unparsable.etag, formatCloudProjectEtag(3, contentHash));
+
+  const mismatched = readCloudProjectListEntry({ ...row, title: "Renamed outside the contract" });
+  if (mismatched.readable) throw new Error("An integrity mismatch must not be reported as readable.");
+  assert.equal(mismatched.reason, "integrity_mismatch");
+  assert.equal(mismatched.etag, formatCloudProjectEtag(3, contentHash));
+
+  const invalid = readCloudProjectListEntry({ ...row, version: 0 });
+  if (invalid.readable) throw new Error("An invalid record must not be reported as readable.");
+  assert.equal(invalid.reason, "invalid_record");
+  assert.equal(invalid.version, null);
+  assert.equal(invalid.etag, null);
+  assert.equal(invalid.id, project.id);
+
+  const listing = [row, { ...row, document: null }].map(readCloudProjectListEntry);
+  assert.deepEqual(listing.map((entry) => entry.readable), [true, false]);
+});
+
+test("retention purges are bounded, repeatable, and reserved for scheduled service-role work", async () => {
+  const migration = await readFile(
+    new URL("../supabase/migrations/202608060005_retention_and_attribution.sql", import.meta.url),
+    "utf8",
+  );
+  const purges = [
+    "purge_kingxford_idempotency_keys",
+    "purge_kingxford_deletion_receipts",
+    "purge_kingxford_audit_events",
+    "purge_kingxford_usage_records",
+    "purge_kingxford_project_revisions",
+    "purge_kingxford_intelligence_runs",
+  ];
+  for (const purge of purges) {
+    assert.match(migration, new RegExp(`create or replace function public\\.${purge}`, "i"));
+    assert.match(
+      migration,
+      new RegExp(`grant execute on function public\\.${purge}\\(interval, integer\\) to service_role`, "i"),
+    );
+    assert.doesNotMatch(
+      migration,
+      new RegExp(`grant execute on function public\\.${purge}[^;]*to authenticated`, "i"),
+    );
+  }
+  assert.match(migration, /v_limit integer := least\(greatest\(coalesce\(p_limit, 1000\), 1\), 5000\)/i);
+  assert.match(migration, /newer\.project_version > expired\.project_version/i);
+  assert.match(migration, /expired\.status in \('completed', 'failed', 'cancelled'\)/i);
+  assert.match(migration, /create index if not exists usage_records_user_idx/i);
+  assert.match(migration, /create index if not exists audit_events_actor_idx/i);
+  assert.doesNotMatch(migration, /cron\.schedule/i);
+  assert.doesNotMatch(migration, /create policy/i);
 });
 
 test("server-owned records remain read-only to authenticated browser sessions", async () => {

@@ -25,13 +25,50 @@ import {
   cloudErrorResponse,
   cloudJson,
 } from "@/lib/cloud/http";
-import { requireCloudMutationRequest } from "@/lib/cloud/request-security";
+import {
+  requireCloudMutationRequest,
+  requireCloudRequestAllowance,
+} from "@/lib/cloud/request-security";
 
 export const runtime = "nodejs";
+
+const EVIDENCE_UPLOAD_ALLOWANCE = {
+  limit: 12,
+  windowSeconds: 300,
+} as const;
+
+const EVIDENCE_VALIDATION_TIMEOUT_MS = 15_000;
 
 type RouteContext = Readonly<{
   params: Promise<{ projectId: string }>;
 }>;
+
+// The signal stops the page loop inside the validator; the race bounds the
+// response even if the work is wedged before the next checkpoint.
+async function withValidationTimeout<T>(
+  run: (signal: AbortSignal) => Promise<T>,
+) {
+  const timeout = AbortSignal.timeout(EVIDENCE_VALIDATION_TIMEOUT_MS);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      run(timeout),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(
+            new CloudHttpError(
+              504,
+              "evidence_validation_timeout",
+              "The evidence file took too long to validate and was not retained.",
+            ),
+          );
+        }, EVIDENCE_VALIDATION_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 async function projectIdFrom(context: RouteContext) {
   const { projectId } = await context.params;
@@ -112,6 +149,20 @@ export async function POST(request: Request, routeContext: RouteContext) {
       projectIdFrom(routeContext),
     ]);
     requireCloudEvidenceWriteRole(context);
+    await requireCloudRequestAllowance(
+      {
+        scope: "cloud-evidence-upload",
+        identity: context.user.id,
+        limit: EVIDENCE_UPLOAD_ALLOWANCE.limit,
+        windowSeconds: EVIDENCE_UPLOAD_ALLOWANCE.windowSeconds,
+      },
+      {
+        rateLimited:
+          "This account has started too many evidence uploads. Wait for the retry interval before uploading again.",
+        unavailable:
+          "Evidence upload protection is not available on this deployment, so the file was not retained.",
+      },
+    );
     const projectRecord = await requireCloudEvidenceProject(context, projectId);
     const idempotencyKey = parseIdempotencyKey(
       request.headers.get("idempotency-key"),
@@ -135,7 +186,9 @@ export async function POST(request: Request, routeContext: RouteContext) {
         "The selected evidence artifact does not belong to this project.",
       );
     }
-    const file = await validateCloudEvidenceFile(form.get("file"));
+    const file = await withValidationTimeout((signal) =>
+      validateCloudEvidenceFile(form.get("file"), signal),
+    );
     const storagePath = buildCloudEvidencePath({
       organizationId: context.organizationId,
       projectId,

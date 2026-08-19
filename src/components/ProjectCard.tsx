@@ -6,6 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 import { m, useReducedMotion } from "motion/react";
 
 import { ProjectCaptureAction } from "@/components/platform/ProjectCaptureAction";
+import { WorkCoverTransition } from "@/components/WorkCoverTransition";
 import type { Project } from "@/data/projects";
 
 type ProjectCardProps = Readonly<{
@@ -40,20 +41,22 @@ export function ProjectCard({
         aria-label={`View ${project.title} case study`}
       >
         <div className="project-card__media">
-          <Image
-            className="project-card__image"
-            src={project.cover}
-            alt={project.coverAlt}
-            width={2400}
-            height={1600}
-            quality={90}
-            priority={priority}
-            sizes={
-              featured
-                ? "(max-width: 760px) 94vw, 88vw"
-                : "(max-width: 760px) 94vw, (max-width: 1200px) 47vw, 42vw"
-            }
-          />
+          <WorkCoverTransition slug={project.slug}>
+            <Image
+              className="project-card__image"
+              src={project.cover}
+              alt={project.coverAlt}
+              width={2400}
+              height={1600}
+              quality={90}
+              priority={priority}
+              sizes={
+                featured
+                  ? "(max-width: 760px) 94vw, 88vw"
+                  : "(max-width: 760px) 94vw, (max-width: 1200px) 47vw, 42vw"
+              }
+            />
+          </WorkCoverTransition>
           <span className="project-card__scrim" aria-hidden="true" />
           <span className="project-card__index" aria-hidden="true">
             {cardNumber}

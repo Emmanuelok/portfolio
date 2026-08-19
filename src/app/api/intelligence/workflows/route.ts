@@ -376,6 +376,7 @@ export async function POST(request: Request) {
       safetyIdentifier: authenticatedUsageKey(context.user.id, secret),
       usageKey: authenticatedUsageKey(context.user.id, secret),
       reservedProviderCalls: providerCallBudget(input),
+      actorUserId: context.user.id,
     };
     const run = await start(runDurableIntelligenceReview, [workflowInput]);
     const { error: attachmentError } = await serviceClient
@@ -405,10 +406,71 @@ export async function POST(request: Request) {
   }
 }
 
+async function listRecentRuns(
+  context: Awaited<ReturnType<typeof requireCloudContext>>,
+  projectId: string | null,
+) {
+  let query = context.client
+    .from("intelligence_runs")
+    .select(
+      "workflow_run_id, project_id, status, provider, model, error_code, created_at, completed_at",
+    )
+    .eq("organization_id", context.organizationId)
+    .not("workflow_run_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (projectId) query = query.eq("project_id", projectId);
+
+  const { data, error } = await query;
+  if (error) {
+    throw new CloudHttpError(
+      503,
+      "run_registry_unavailable",
+      "The durable review registry is temporarily unavailable.",
+    );
+  }
+
+  return (data ?? []).flatMap((row) => {
+    const record = row as Record<string, unknown>;
+    const workflowRunId = record.workflow_run_id;
+    if (typeof workflowRunId !== "string") return [];
+    return [
+      {
+        runId: workflowRunId,
+        projectId:
+          typeof record.project_id === "string" ? record.project_id : null,
+        status: typeof record.status === "string" ? record.status : "unknown",
+        provider:
+          typeof record.provider === "string" ? record.provider : null,
+        model: typeof record.model === "string" ? record.model : null,
+        errorCode:
+          typeof record.error_code === "string" ? record.error_code : null,
+        createdAt:
+          typeof record.created_at === "string" ? record.created_at : null,
+        completedAt:
+          typeof record.completed_at === "string" ? record.completed_at : null,
+      },
+    ];
+  });
+}
+
 export async function GET(request: Request) {
   try {
     const context = await requireCloudContext(request);
-    const runId = runIdSchema.parse(new URL(request.url).searchParams.get("runId"));
+    const url = new URL(request.url);
+    const requestedRunId = url.searchParams.get("runId");
+
+    // Without a runId this lists recent runs, so a review that outlived its
+    // original poll window can still be found and reopened.
+    if (!requestedRunId) {
+      const projectId = url.searchParams.get("projectId");
+      return cloudJson({
+        organizationId: context.organizationId,
+        runs: await listRecentRuns(context, projectId),
+      });
+    }
+
+    const runId = runIdSchema.parse(requestedRunId);
     const stored = await findStoredRun(
       context,
       "workflow_run_id",

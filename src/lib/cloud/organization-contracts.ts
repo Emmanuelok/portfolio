@@ -7,6 +7,8 @@ import { cloudRoles, type CloudRole } from "./contracts";
 export const invitationRoles = ["editor", "reviewer", "viewer"] as const;
 export type InvitationRole = (typeof invitationRoles)[number];
 
+export const ORGANIZATION_NAME_MIN_LENGTH = 2;
+export const ORGANIZATION_NAME_LIMIT = 160;
 export const ORGANIZATION_INVITATION_LIMIT = 50;
 export const ORGANIZATION_INVITATION_MIN_HOURS = 1;
 export const ORGANIZATION_INVITATION_MAX_HOURS = 168;
@@ -19,6 +21,20 @@ const emailSchema = z
   .toLowerCase()
   .email()
   .max(254);
+
+const organizationNameSchema = z
+  .string()
+  .trim()
+  .min(ORGANIZATION_NAME_MIN_LENGTH)
+  .max(ORGANIZATION_NAME_LIMIT);
+
+export const organizationCreateSchema = z.object({
+  name: organizationNameSchema,
+}).strict();
+
+export const organizationRenameSchema = z.object({
+  name: organizationNameSchema,
+}).strict();
 
 export const invitationCreateSchema = z.object({
   email: emailSchema,

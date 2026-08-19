@@ -22,6 +22,7 @@ import {
   beginWorkspaceRequest,
   consumeWorkspaceCredits,
   finishWorkspaceRequest,
+  releaseWorkspaceCredits,
   type WorkspaceUsageSnapshot,
 } from "@/lib/workspace/usage-policy";
 
@@ -77,6 +78,7 @@ export type DurableIntelligenceWorkflowInput = Readonly<{
   safetyIdentifier: string;
   usageKey: string;
   reservedProviderCalls: number;
+  actorUserId?: string;
 }>;
 
 type UsageReservation =
@@ -84,6 +86,7 @@ type UsageReservation =
       allowed: true;
       usageKey: string;
       leaseId: string;
+      reservationId: string;
       usage: WorkspaceUsageSnapshot;
     }>
   | Readonly<{
@@ -172,6 +175,7 @@ async function reserveRunUsage(
     allowed: true,
     usageKey: admission.usageKey,
     leaseId: admission.leaseId,
+    reservationId: `${stepId}:credits`,
     usage: credits.usage,
   };
 }
@@ -191,6 +195,11 @@ async function executeDurableReview(input: DurableIntelligenceWorkflowInput) {
 async function releaseRunUsage(usageKey: string, leaseId: string) {
   "use step";
   await finishWorkspaceRequest(usageKey, leaseId);
+}
+
+async function refundRunCredits(usageKey: string, reservationId: string) {
+  "use step";
+  await releaseWorkspaceCredits(usageKey, reservationId);
 }
 
 async function finalizeRun(
@@ -224,6 +233,7 @@ async function finalizeRun(
     const { error: usageError } = await client.from("usage_records").upsert(
       {
         organization_id: input.organizationId,
+        user_id: input.actorUserId ?? null,
         run_id: input.databaseRunId,
         feature: "durable-intelligence-review",
         provider: result.source,
@@ -239,6 +249,7 @@ async function finalizeRun(
 
   const { error: auditError } = await client.from("audit_events").insert({
     organization_id: input.organizationId,
+    actor_user_id: input.actorUserId ?? null,
     action: outcome.ok ? "intelligence.run.completed" : "intelligence.run.failed",
     target_type: "intelligence-run",
     target_id: input.databaseRunId,
@@ -288,12 +299,18 @@ export async function runDurableIntelligenceReview(
   }
 
   let outcome: DurableIntelligenceOutcome;
+  // Credits are reserved before the run; they are returned only when the run
+  // reached no provider at all, so a misconfigured model route cannot drain a
+  // day's allowance through repeated immediate failures.
+  let refundReservedCredits = false;
   try {
     const result = intelligenceRunResponseSchema.parse(
       await executeDurableReview(input),
     );
+    refundReservedCredits = result.provenance.providerCalls.length === 0;
     outcome = { ok: true, result, usage: reservation.usage };
   } catch {
+    refundReservedCredits = true;
     outcome = {
       ok: false,
       error: {
@@ -304,6 +321,9 @@ export async function runDurableIntelligenceReview(
       usage: reservation.usage,
     };
   } finally {
+    if (refundReservedCredits) {
+      await refundRunCredits(reservation.usageKey, reservation.reservationId);
+    }
     await releaseRunUsage(reservation.usageKey, reservation.leaseId);
   }
 

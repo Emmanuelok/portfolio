@@ -11,6 +11,7 @@ import {
 
 import { ProjectSeedAction } from "@/components/ProjectSeedAction";
 import { Reveal } from "@/components/Reveal";
+import { WorkCoverTransition } from "@/components/WorkCoverTransition";
 import {
   getProjectBySlug,
   projects,
@@ -165,21 +166,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </div>
           </Reveal>
 
-          <Reveal className="project-hero__media" amount={0.08}>
-            <Image
-              src={project.cover}
-              alt={project.coverAlt}
-              width={2400}
-              height={1600}
-              quality={94}
-              sizes="100vw"
-              priority
-              className="project-hero__image"
-            />
+          <div className="project-hero__media">
+            <WorkCoverTransition slug={project.slug}>
+              <Image
+                src={project.cover}
+                alt={project.coverAlt}
+                width={2400}
+                height={1600}
+                quality={94}
+                sizes="100vw"
+                priority
+                className="project-hero__image"
+              />
+            </WorkCoverTransition>
             <span className="project-hero__media-index" aria-hidden="true">
               KX / {String(projectIndex + 1).padStart(2, "0")}
             </span>
-          </Reveal>
+          </div>
         </header>
 
         <section className="project-brief" aria-labelledby="project-brief-title">

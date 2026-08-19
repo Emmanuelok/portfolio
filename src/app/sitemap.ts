@@ -11,6 +11,10 @@ const baseUrl = (
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date("2026-08-06T00:00:00.000Z");
+  const mediaUpdates = mediaPosts.map((post) => Date.parse(post.updatedAt));
+  const mediaLastModified = mediaUpdates.length
+    ? new Date(Math.max(...mediaUpdates))
+    : lastModified;
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -39,7 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/media`,
-      lastModified,
+      lastModified: mediaLastModified,
       changeFrequency: "weekly",
       priority: 0.85,
     },

@@ -50,7 +50,8 @@ the local-first public experience:
   privacy-bounded logs, and email/copy/download fallbacks;
 - public Privacy, Terms, Accessibility, and AI Transparency statements; and
 - Vercel Analytics, Speed Insights, structured operational events, a no-store
-  `/api/health` configuration diagnostic, and production security headers.
+  `/api/health` configuration diagnostic whose `?strict=1` form returns 503
+  while a core capability is missing, and production security headers.
 
 These capabilities are implemented in source but depend on owner-controlled
 services and secrets. A deployment is not production-ready until the setup
@@ -82,8 +83,10 @@ its full Atlas project, snapshot, artifact, revision, and draft binding remains
 current.
 
 See [docs/intelligence-layer.md](docs/intelligence-layer.md) for the full
-architecture and [docs/creative-agent-evaluation-policy.md](docs/creative-agent-evaluation-policy.md)
-for the deterministic release gates.
+architecture, [docs/creative-agent-evaluation-policy.md](docs/creative-agent-evaluation-policy.md)
+for the deterministic release gates, and
+[docs/operations-runbook.md](docs/operations-runbook.md) for domains, email
+deliverability, monitoring, provider budget, and backup and restore.
 
 ## Owner deployment checklist
 
@@ -93,12 +96,15 @@ for the deterministic release gates.
    migration workflow, in filename order:
    `202608060001_cloud_foundation.sql` →
    `202608060003_organization_collaboration.sql` →
-   `202608060004_server_owned_records.sql`. Add the site URL and
+   `202608060004_server_owned_records.sql` →
+   `202608060005_retention_and_attribution.sql`. Add the site URL and
    `/auth/callback` URL to the approved Supabase authentication redirects.
 3. Create an Upstash Redis database and add its REST URL and token to Vercel
    Preview and Production.
 4. Create or select a Resend account, verify the sending domain, and configure a
-   receiving inbox for project enquiries.
+   receiving inbox for project enquiries. Publish the SPF, DKIM, and DMARC
+   records described in the operations runbook; enquiry mail from an
+   unauthenticated domain is filtered before it reaches the inbox.
 5. Copy `.env.example` into the Vercel environment settings. Fill in Supabase,
    Upstash, Resend, contact, and Gateway values. Generate a unique server-only
    `KINGXFORD_USAGE_HASH_SALT` of at least 32 characters. Never expose the
@@ -106,7 +112,9 @@ for the deterministic release gates.
    a `NEXT_PUBLIC_*` variable.
 6. Set a conservative AI Gateway project budget, provider/model access, and
    spend alerts. Application limits supplement provider budgets; they do not
-   replace them.
+   replace them. Verify every configured model slug against the live Gateway
+   catalog before launch; an unresolved slug routes review to the deterministic
+   local reviewer without a visible failure.
 7. Deploy Preview and verify `/api/health`, `/api/contact`,
    `/api/workspace/agent`, and `/api/intelligence/runs`. Diagnostics report
    configuration only; complete one non-sensitive focused review and one
@@ -119,6 +127,12 @@ for the deterministic release gates.
    removal), enquiry delivery and idempotent replay, workflow cancellation,
    logs, analytics, mobile layout, keyboard operation, and a human-only gate
    decision. Confirm that no automated review can publish or approve work.
+9. Work through [docs/operations-runbook.md](docs/operations-runbook.md) before
+   the production domain is pointed at the deployment. It covers apex and `www`
+   DNS, enquiry deliverability including a manual send test, uptime monitoring
+   on `/api/health?strict=1`, log drains and alert filters, Gateway budget and
+   model-slug verification, Supabase point-in-time recovery, the retention
+   schedule, a tested restore path, and the ordered pre-launch checklist.
 
 Vercel Workflow is integrated through `withWorkflow` and does not require an
 application secret. Its durable review route remains unavailable until Supabase
@@ -166,7 +180,11 @@ npm run verify:platform-journey
 The project requires Node.js 24 or newer and uses the Next.js App Router.
 Production dependencies are lockfile-controlled. GitHub Actions runs the core
 quality, foundation, governance, audit, and build gates with read-only
-repository permissions.
+repository permissions, and runs the Canvas platform journey in a second job
+that builds the application and drives it with headless Chromium. That journey
+blanks every credential, so it covers the local-fallback state only; the
+provider, cloud, enquiry, and durable-workflow paths are verified against a
+deployment using the operations runbook.
 
 Public interface copy follows [docs/editorial-voice.md](docs/editorial-voice.md).
 The editorial verifier rejects unsubstantiated promotional language and

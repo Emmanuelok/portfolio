@@ -66,7 +66,19 @@ function validateTextEvidence(
   }
 }
 
-async function validatePdfEvidence(bytes: ArrayBuffer) {
+function assertNotTimedOut(signal: AbortSignal | undefined) {
+  if (!signal?.aborted) return;
+  throw new CloudHttpError(
+    504,
+    "evidence_validation_timeout",
+    "The evidence file took too long to validate and was not retained.",
+  );
+}
+
+async function validatePdfEvidence(
+  bytes: ArrayBuffer,
+  signal?: AbortSignal,
+) {
   const view = new Uint8Array(bytes);
   const signature = new TextDecoder("ascii").decode(view.slice(0, 5));
   if (signature !== "%PDF-") {
@@ -96,6 +108,9 @@ async function validatePdfEvidence(bytes: ArrayBuffer) {
       }
       let extractedCharacters = 0;
       for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+        // Checked per page so a slow document stops consuming the function
+        // instead of running on after the request has been answered.
+        assertNotTimedOut(signal);
         const page = await document.getPage(pageNumber);
         try {
           const content = await page.getTextContent();
@@ -140,6 +155,7 @@ export type ValidatedCloudEvidenceFile = Readonly<{
 
 export async function validateCloudEvidenceFile(
   value: FormDataEntryValue | null,
+  signal?: AbortSignal,
 ): Promise<ValidatedCloudEvidenceFile> {
   if (!(value instanceof File)) {
     throw new CloudHttpError(400, "evidence_file_required", "Choose one evidence file to retain.");
@@ -185,7 +201,7 @@ export async function validateCloudEvidenceFile(
     throw new CloudHttpError(400, "evidence_size_mismatch", "The evidence file size could not be verified.");
   }
   if (textExtensions.has(extension)) validateTextEvidence(bytes, extension);
-  else await validatePdfEvidence(bytes);
+  else await validatePdfEvidence(bytes, signal);
 
   return {
     filename,

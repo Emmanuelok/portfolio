@@ -38,6 +38,7 @@ import {
   synchronizeCloudProjects,
   uploadCloudProject,
   type CloudProjectRelationship,
+  type CloudUnreadableProject,
 } from "@/lib/cloud/client-sync";
 import type { KingxfordProject } from "@/lib/workspace/project-graph";
 
@@ -48,6 +49,7 @@ type ConnectedCloud = Readonly<{
   organizationId: string;
   role: CloudRole;
   projects: readonly CloudProjectSummary[];
+  unreadableProjects: readonly CloudUnreadableProject[];
 }>;
 
 type CloudViewState =
@@ -530,6 +532,34 @@ export function CloudProjectPanel({
           );
         })}
       </ol>
+
+      {view.unreadableProjects.length > 0 ? (
+        <div className={styles.unreadable}>
+          <strong>
+            {view.unreadableProjects.length}{" "}
+            {view.unreadableProjects.length === 1
+              ? "cloud project could not be read"
+              : "cloud projects could not be read"}
+          </strong>
+          <p>
+            These records are stored but failed their integrity or format check,
+            so they are not shown above and cannot be downloaded. The rest of the
+            index is unaffected. Export your cloud data to inspect them, or
+            contact the organization owner to have them removed.
+          </p>
+          <ul>
+            {view.unreadableProjects.map((entry, index) => (
+              <li key={entry.id ?? `unreadable-${index}`}>
+                <code>{entry.id ?? "identity unreadable"}</code>
+                <span>
+                  {entry.reason.replace(/_/g, " ")}
+                  {entry.version === null ? "" : ` · v${entry.version}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <details className={styles.dataControls}>
         <summary>Account and data controls</summary>

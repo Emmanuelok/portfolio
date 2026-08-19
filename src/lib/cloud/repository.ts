@@ -30,12 +30,60 @@ export type CloudMutationResult = Readonly<{
   storagePaths: readonly string[];
 }>;
 
+export type CloudProjectUnreadableReason =
+  | "invalid_record"
+  | "unreadable_document"
+  | "integrity_mismatch";
+
+export type CloudProjectUnreadableEntry = Readonly<{
+  readable: false;
+  id: string | null;
+  version: number | null;
+  contentHash: string | null;
+  updatedAt: string | null;
+  etag: string | null;
+  reason: CloudProjectUnreadableReason;
+}>;
+
+export type CloudProjectListEntry =
+  | (CloudProjectSummary & Readonly<{ readable: true }>)
+  | CloudProjectUnreadableEntry;
+
+type CloudProjectRowRead =
+  | Readonly<{ readable: true; row: CloudProjectRow }>
+  | Readonly<{ readable: false; entry: CloudProjectUnreadableEntry }>;
+
 function asRecord(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as Record<string, unknown>;
 }
 
-function parseCloudProjectRow(value: unknown): CloudProjectRow {
+function unreadableCloudProjectEntry(
+  value: unknown,
+  reason: CloudProjectUnreadableReason,
+): CloudProjectUnreadableEntry {
+  const row = asRecord(value);
+  const id = typeof row?.id === "string" ? row.id : null;
+  const version =
+    typeof row?.version === "number"
+    && Number.isSafeInteger(row.version)
+    && row.version >= 1
+      ? row.version
+      : null;
+  const contentHash = typeof row?.content_hash === "string" ? row.content_hash : null;
+  const updatedAt = typeof row?.updated_at === "string" ? row.updated_at : null;
+  let etag: string | null = null;
+  if (version !== null && contentHash !== null) {
+    try {
+      etag = formatCloudProjectEtag(version, contentHash);
+    } catch {
+      etag = null;
+    }
+  }
+  return { readable: false, id, version, contentHash, updatedAt, etag, reason };
+}
+
+function readCloudProjectRow(value: unknown): CloudProjectRowRead {
   const row = asRecord(value);
   if (
     !row
@@ -50,9 +98,14 @@ function parseCloudProjectRow(value: unknown): CloudProjectRow {
     || typeof row.created_at !== "string"
     || typeof row.updated_at !== "string"
   ) {
-    throw new CloudHttpError(502, "invalid_cloud_record", "A cloud project record is invalid.");
+    return { readable: false, entry: unreadableCloudProjectEntry(value, "invalid_record") };
   }
-  const document = parseKingxfordProject(row.document);
+  let document: KingxfordProject;
+  try {
+    document = parseKingxfordProject(row.document);
+  } catch {
+    return { readable: false, entry: unreadableCloudProjectEntry(value, "unreadable_document") };
+  }
   if (
     document.id !== row.id
     || document.title !== row.title
@@ -60,19 +113,32 @@ function parseCloudProjectRow(value: unknown): CloudProjectRow {
     || document.activePhase !== row.active_phase
     || cloudProjectContentHash(document) !== row.content_hash
   ) {
-    throw new CloudHttpError(502, "cloud_integrity_error", "A cloud project failed its integrity check.");
+    return { readable: false, entry: unreadableCloudProjectEntry(value, "integrity_mismatch") };
   }
   return {
-    id: row.id,
-    title: row.title,
-    summary: row.summary,
-    active_phase: document.activePhase,
-    document,
-    version: row.version,
-    content_hash: row.content_hash,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+    readable: true,
+    row: {
+      id: row.id,
+      title: row.title,
+      summary: row.summary,
+      active_phase: document.activePhase,
+      document,
+      version: row.version,
+      content_hash: row.content_hash,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    },
   };
+}
+
+export function readCloudProjectListEntry(value: unknown): CloudProjectListEntry {
+  const read = readCloudProjectRow(value);
+  if (!read.readable) return read.entry;
+  try {
+    return { ...summaryFromRow(read.row), readable: true };
+  } catch {
+    return unreadableCloudProjectEntry(value, "integrity_mismatch");
+  }
 }
 
 function summaryFromRow(row: CloudProjectRow): CloudProjectSummary {
@@ -130,7 +196,7 @@ export async function listCloudProjects(context: CloudRequestContext) {
   if (error) {
     throw new CloudHttpError(503, "cloud_projects_unavailable", "Cloud projects could not be loaded.");
   }
-  return (data ?? []).map((row) => summaryFromRow(parseCloudProjectRow(row)));
+  return (data ?? []).map(readCloudProjectListEntry);
 }
 
 export async function getCloudProject(
@@ -149,10 +215,26 @@ export async function getCloudProject(
     throw new CloudHttpError(503, "cloud_project_unavailable", "The cloud project could not be loaded.");
   }
   if (!data) return null;
-  const row = parseCloudProjectRow(data);
+  const read = readCloudProjectRow(data);
+  if (!read.readable) {
+    throw new CloudHttpError(
+      502,
+      "cloud_project_unreadable",
+      "This cloud project record failed validation and cannot be opened. Its identifiers are returned so it can be deleted.",
+      {
+        details: {
+          projectId,
+          reason: read.entry.reason,
+          version: read.entry.version,
+          etag: read.entry.etag,
+        },
+        headers: read.entry.etag ? { ETag: read.entry.etag } : undefined,
+      },
+    );
+  }
   return {
-    project: row.document as KingxfordProject,
-    summary: summaryFromRow(row),
+    project: read.row.document as KingxfordProject,
+    summary: summaryFromRow(read.row),
   } as const;
 }
 

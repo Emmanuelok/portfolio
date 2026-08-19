@@ -62,6 +62,8 @@ import {
 } from "@/components/workspace/CloudProjectPanel";
 import { CloudEvidencePanel } from "@/components/workspace/CloudEvidencePanel";
 import { EvidenceIntake } from "@/components/workspace/EvidenceIntake";
+import { AdvancementCouncil } from "@/components/workspace/AdvancementCouncil";
+import { councilSessionRequestSchema } from "@/lib/council/contracts";
 import {
   ProjectIntelligencePanel,
   type IntelligenceExecutionMode,
@@ -133,6 +135,16 @@ import {
   workflowTemplateForProject,
   type WorkflowTemplateId,
 } from "@/lib/workspace/workflow-templates";
+import {
+  WORKSPACE_VERSION_LIMIT,
+  adoptWorkspaceVersions,
+  createWorkspaceVersionHistory,
+  loadWorkspaceVersionHistory,
+  pruneWorkspaceVersions,
+  recordWorkspaceVersion,
+  saveWorkspaceVersionHistory,
+  workspaceVersionsForProject,
+} from "@/lib/workspace/storage";
 import type {
   AgentReviewRecord,
   AgentReviewResponse,
@@ -172,9 +184,9 @@ type CreativeWorkspaceProps = Readonly<{
 
 const STORAGE_KEY = "kingxford:canvas:v1";
 const HANDOFF_KEY = "kingxford:canvas-handoff:v1";
-const VERSION_LIMIT = 16;
 const REVIEW_HISTORY_LIMIT = 8;
 const DRAFT_AUTOSAVE_DELAY_MS = 900;
+const GATE_RATIONALE_MINIMUM = 12;
 
 const modeProjectDetails: Readonly<Record<WorkspaceMode, Readonly<{
   kind: ArtifactKind;
@@ -203,6 +215,13 @@ type ReviewBinding = Readonly<{
 type IntelligenceBinding = ReviewBinding & Readonly<{
   runId?: string;
   projectUpdatedAt?: string;
+}>;
+
+type GateApprovalRequest = Readonly<{
+  phase: PlatformPhaseId;
+  title: string;
+  criteria: readonly string[];
+  evidenceArtifactIds: readonly string[];
 }>;
 
 const modeIcons = {
@@ -554,6 +573,27 @@ function formatTime(value: string) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function formatClock(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function phaseLabel(phase: PlatformPhaseId) {
+  return phase[0].toLocaleUpperCase("en") + phase.slice(1);
+}
+
+function legacyVersionRecord(version: WorkspaceVersion) {
+  return {
+    id: version.id,
+    name: version.name,
+    createdAt: version.createdAt,
+    source: version.source,
+    draft: version.draft,
+  };
 }
 
 function fileExtension(mode: WorkspaceMode) {
@@ -1051,8 +1091,8 @@ function VersionPanel({
         </button>
       </header>
       <p className={styles.versionPrivacy}>
-        Saved on this device. Restoring creates a new branch so the current
-        version remains available.
+        Saved on this device and scoped to the current project. Restoring
+        creates a new branch so the current version remains available.
       </p>
       {versions.length ? (
         <ol className={styles.versionList}>
@@ -1077,7 +1117,9 @@ function VersionPanel({
         <div className={styles.versionEmpty}>
           <History aria-hidden="true" />
           <h3>No versions yet.</h3>
-          <p>Saved checkpoints and applied proposals appear here.</p>
+          <p>
+            Saved checkpoints and applied proposals for this project appear here.
+          </p>
         </div>
       )}
       {versions.length > 0 && (
@@ -1095,9 +1137,15 @@ export function CreativeWorkspace({
   initialPhase = null,
 }: CreativeWorkspaceProps) {
   const router = useRouter();
+  const rootRef = useRef<HTMLElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const handoffRef = useRef<HTMLDialogElement>(null);
+  const gateDialogRef = useRef<HTMLDialogElement>(null);
+  const gateRationaleRef = useRef<HTMLTextAreaElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
+  const readinessControllerRef = useRef<AbortController | null>(null);
+  const savedHashRef = useRef("");
+  const versionHistoryReadableRef = useRef(false);
   const controllerRef = useRef<AbortController | null>(null);
   const intelligenceControllerRef = useRef<AbortController | null>(null);
   const durableWorkflowRunRef = useRef<string | null>(null);
@@ -1163,9 +1211,16 @@ export function CreativeWorkspace({
   const [isOnline, setIsOnline] = useState(true);
   const [aiReadiness, setAiReadiness] = useState<AiReadiness | null>(null);
   const [aiReadinessChecked, setAiReadinessChecked] = useState(false);
+  const [aiReadinessChecking, setAiReadinessChecking] = useState(false);
   const [handoffAgent, setHandoffAgent] = useState(true);
   const [handoffVersions, setHandoffVersions] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [confirmProjectDelete, setConfirmProjectDelete] = useState(false);
+  const [gateApproval, setGateApproval] = useState<GateApprovalRequest | null>(null);
+  const [gateRationale, setGateRationale] = useState("");
+  const [gateReviewed, setGateReviewed] = useState(false);
 
   const projectMutationLocked = reviewRunning || intelligenceRunning;
 
@@ -1186,6 +1241,25 @@ export function CreativeWorkspace({
     setAiReadinessChecked(true);
     return readiness;
   }, []);
+
+  const checkAiReadiness = useCallback(() => {
+    readinessControllerRef.current?.abort();
+    const controller = new AbortController();
+    readinessControllerRef.current = controller;
+    setAiReadinessChecking(true);
+    void refreshAiReadiness(controller.signal)
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setAiReadiness(null);
+        setAiReadinessChecked(true);
+      })
+      .finally(() => {
+        if (readinessControllerRef.current === controller) {
+          readinessControllerRef.current = null;
+        }
+        if (!controller.signal.aborted) setAiReadinessChecking(false);
+      });
+  }, [refreshAiReadiness]);
 
   const reviewAvailability = useMemo(() => {
     if (!aiReadinessChecked) {
@@ -1215,11 +1289,11 @@ export function CreativeWorkspace({
     return {
       ready: false,
       state: "blocked" as const,
-      label: "Configuration required",
+      label: aiReadinessChecking ? "Rechecking review availability" : "Configuration required",
       detail: aiReadiness?.blockers[0]?.message
-        ?? "Review configuration is unavailable. Local editing, evidence intake, and export remain available.",
+        ?? "Review availability could not be confirmed. Local editing, evidence intake, and export remain available.",
     };
-  }, [aiReadiness, aiReadinessChecked]);
+  }, [aiReadiness, aiReadinessChecked, aiReadinessChecking]);
 
   const currentText = mode === "code" ? "" : textByMode[mode];
   const draft = useMemo<WorkspaceDraft>(
@@ -1244,6 +1318,31 @@ export function CreativeWorkspace({
     () => activeProject ? workflowTemplateForProject(activeProject) : null,
     [activeProject],
   );
+  const projectVersions = useMemo(
+    () => activeProject ? workspaceVersionsForProject(versions, activeProject.id) : [],
+    [activeProject, versions],
+  );
+  // A provider-backed council session needs configured cloud persistence; the
+  // council still convenes locally over the record on this device without it.
+  const councilCloudSessionAvailable = Boolean(
+    aiReadiness?.deploymentReady && aiReadiness.providerReady,
+  );
+  const buildCouncilRequest = useCallback(() => {
+    if (!activeProject) return null;
+    const snapshot = buildProjectSnapshot(activeProject, {});
+    const parsed = councilSessionRequestSchema.safeParse({
+      objective: (
+        activeProject.summary.trim() ||
+        activeProject.title.trim() ||
+        "Decide what must happen next to advance this project."
+      ).slice(0, 600),
+      depth: intelligenceDepth,
+      projectContext: intelligenceProjectContext(activeProject),
+      projectGraphSnapshot: snapshot,
+      lenses: ["evidence-gap", "smallest-test"],
+    });
+    return parsed.success ? parsed.data : null;
+  }, [activeProject, intelligenceDepth]);
   const intelligenceBindingIsCurrent = useMemo(() => {
     if (!activeProject || !intelligenceBinding || !intelligenceResponse) return false;
     const artifact = activeProject.artifacts.find(
@@ -1290,17 +1389,23 @@ export function CreativeWorkspace({
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
-    queueMicrotask(() => {
-      if (controller.signal.aborted) return;
-      void refreshAiReadiness(controller.signal).catch(() => {
-        if (controller.signal.aborted) return;
-        setAiReadiness(null);
-        setAiReadinessChecked(true);
-      });
-    });
-    return () => controller.abort();
-  }, [refreshAiReadiness]);
+    queueMicrotask(checkAiReadiness);
+    return () => readinessControllerRef.current?.abort();
+  }, [checkAiReadiness]);
+
+  useEffect(() => {
+    if (reviewAvailability.ready) return;
+    const recheckWhenVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      checkAiReadiness();
+    };
+    document.addEventListener("visibilitychange", recheckWhenVisible);
+    window.addEventListener("online", checkAiReadiness);
+    return () => {
+      document.removeEventListener("visibilitychange", recheckWhenVisible);
+      window.removeEventListener("online", checkAiReadiness);
+    };
+  }, [checkAiReadiness, reviewAvailability.ready]);
 
   useEffect(() => {
     const online = () => setIsOnline(true);
@@ -1319,7 +1424,6 @@ export function CreativeWorkspace({
           if (result.success) {
             legacyWorkspace = result.data;
             const parsed = result.data;
-            setVersions(parsed.versions.slice(0, VERSION_LIMIT));
             if (parsed.reviewHistory) {
               setReviewHistory(
                 parsed.reviewHistory
@@ -1371,6 +1475,20 @@ export function CreativeWorkspace({
           repository = upsertRepositoryProject(repository, project);
           saveProjectRepository(repository);
         }
+        const storedHistory = loadWorkspaceVersionHistory(window.localStorage);
+        versionHistoryReadableRef.current = storedHistory.status !== "error";
+        if (storedHistory.status === "error") {
+          setStatus("Local version history could not be read · it was left unchanged");
+        }
+        setVersions(
+          storedHistory.status === "ready"
+            ? storedHistory.history.versions
+            : adoptWorkspaceVersions(
+                (legacyWorkspace?.versions ?? []).slice(0, WORKSPACE_VERSION_LIMIT),
+                project.id,
+              ),
+        );
+
         const canvas = canvasValuesForProject(project);
         setMode(canvas.mode);
         setTitle(canvas.title);
@@ -1436,6 +1554,7 @@ export function CreativeWorkspace({
 
   useEffect(() => {
     if (!hydrated || !activeProject) return;
+    if (editorHash !== savedHashRef.current) setSaveState("saving");
     const saveTimer = window.setTimeout(() => {
       const payload: StoredWorkspace = {
         mode,
@@ -1443,7 +1562,9 @@ export function CreativeWorkspace({
         textByMode,
         code,
         committedCode,
-        versions,
+        // The legacy compatibility copy has no project identity, so it carries
+        // only the active project's checkpoints.
+        versions: projectVersions.map(legacyVersionRecord),
         reviewHistory,
         reviewLens,
         includeKnowledge,
@@ -1456,6 +1577,12 @@ export function CreativeWorkspace({
         // The canonical Atlas write below can still succeed when the legacy
         // compatibility copy cannot be retained.
       }
+      const historySaved = versionHistoryReadableRef.current
+        ? saveWorkspaceVersionHistory(
+            window.localStorage,
+            createWorkspaceVersionHistory(versions),
+          )
+        : null;
 
       try {
         const titled = activeProject.title === (title.trim() || activeProject.title)
@@ -1478,7 +1605,14 @@ export function CreativeWorkspace({
           setProjectRepository(repository);
           setStatus("Saved to Project Atlas · recovery copy retained on this device");
         }
+        if (historySaved && !historySaved.ok) {
+          setStatus(`Version history not saved · ${historySaved.error.message}`);
+        }
+        savedHashRef.current = editorHash;
+        setSavedAt(new Date().toISOString());
+        setSaveState("saved");
       } catch (error) {
+        setSaveState("idle");
         setStatus(
           recoverySaved
             ? `Atlas save blocked · recovery copy retained · ${error instanceof Error ? error.message : "export the project now"}`
@@ -1493,9 +1627,11 @@ export function CreativeWorkspace({
     committedCode,
     currentText,
     draft,
+    editorHash,
     hydrated,
     includeKnowledge,
     mode,
+    projectVersions,
     reviewHistory,
     reviewLens,
     projectRepository,
@@ -1586,6 +1722,8 @@ export function CreativeWorkspace({
     setIntelligenceBinding(null);
     setIntelligenceError("");
     intelligenceBindingRef.current = null;
+    setConfirmProjectDelete(false);
+    setGateApproval(null);
     setRightTab("preview");
     setMobilePane("input");
   }, []);
@@ -1749,13 +1887,22 @@ export function CreativeWorkspace({
 
   const deleteCurrentProject = () => {
     if (!activeProject || projectMutationLocked || projectRepository.projects.length < 2) return;
-    if (!window.confirm(`Delete the local project “${activeProject.title}”? Export it first if you may need it later.`)) return;
+    if (!confirmProjectDelete) {
+      setConfirmProjectDelete(true);
+      setStatus(`Select Delete again to remove “${activeProject.title}” and its local versions from this device`);
+      return;
+    }
+    setConfirmProjectDelete(false);
     try {
       const repository = removeRepositoryProject(projectRepository, activeProject.id);
       const next = activeRepositoryProject(repository);
       if (!next) throw new Error("At least one project must remain in Canvas.");
       saveProjectRepository(repository);
       setProjectRepository(repository);
+      setVersions((current) => pruneWorkspaceVersions(
+        current,
+        repository.projects.map(({ id }) => id),
+      ));
       openProjectInCanvas(next);
       setStatus("Local project deleted");
     } catch (error) {
@@ -1785,6 +1932,10 @@ export function CreativeWorkspace({
       if (!next) throw new Error("At least one project must remain in Canvas.");
       saveProjectRepository(repository);
       setProjectRepository(repository);
+      setVersions((current) => pruneWorkspaceVersions(
+        current,
+        repository.projects.map(({ id }) => id),
+      ));
       if (projectId === activeProject?.id) openProjectInCanvas(next);
       setStatus("Project deleted from this device");
     } catch (error) {
@@ -1794,14 +1945,20 @@ export function CreativeWorkspace({
 
   const saveVersion = useCallback(
     (source: WorkspaceVersion["source"] = "manual", name?: string) => {
+      const projectId = activeProjectRef.current?.id;
+      if (!projectId) {
+        setStatus("Version not saved · open a project first");
+        return null;
+      }
       const version: WorkspaceVersion = {
         id: makeId(),
         name: name || title || "Untitled version",
         createdAt: new Date().toISOString(),
         source,
+        projectId,
         draft: cloneDraft(draft),
       };
-      setVersions((current) => [version, ...current].slice(0, VERSION_LIMIT));
+      setVersions((current) => recordWorkspaceVersion(current, version));
       commitDraftToProject(draft, source === "restored" ? "restored" : "human");
       setStatus(`Version saved · ${version.name}`);
       return version;
@@ -1813,16 +1970,22 @@ export function CreativeWorkspace({
     if (mode === "code") setCommittedCode(code);
     setCodeLogs([]);
     setRunId((value) => value + 1);
-    saveVersion("run", `${title || "Untitled"} · run`);
     setRightTab("preview");
     setMobilePane("preview");
     setStatus("Preview current · Local");
-  }, [code, mode, saveVersion, title]);
+  }, [code, mode]);
 
   useEffect(() => {
+    const root = rootRef.current;
+    // The embedded instance shares the page with other content, so it never
+    // claims document-level shortcuts.
+    if (embedded || !root) return;
     const handleShortcut = (event: globalThis.KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      const isTyping = target?.matches("input,textarea,select,[contenteditable='true']");
+      if (target?.closest("dialog")) return;
+      const isTyping = Boolean(
+        target?.closest("input,textarea,select,[contenteditable='true']"),
+      );
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
         event.preventDefault();
         runPreview();
@@ -1840,9 +2003,9 @@ export function CreativeWorkspace({
         setMobilePane((current) => current === "input" ? "preview" : current === "preview" ? "agent" : "input");
       }
     };
-    window.addEventListener("keydown", handleShortcut);
-    return () => window.removeEventListener("keydown", handleShortcut);
-  }, [runPreview, saveVersion]);
+    root.addEventListener("keydown", handleShortcut);
+    return () => root.removeEventListener("keydown", handleShortcut);
+  }, [embedded, runPreview, saveVersion]);
 
   const updateCurrentText = (value: string) => {
     if (mode === "code") return;
@@ -1905,6 +2068,10 @@ export function CreativeWorkspace({
   };
 
   const restoreVersion = (version: WorkspaceVersion) => {
+    if (!activeProject || version.projectId !== activeProject.id) {
+      setStatus("Restore blocked · this version belongs to a different project");
+      return;
+    }
     saveVersion("restored", `${title || "Untitled"} · before restore`);
     commitDraftToProject(version.draft, "restored");
     setMode(version.draft.mode);
@@ -1998,7 +2165,7 @@ export function CreativeWorkspace({
           context: {
             codeLogs: includeLogs ? codeLogs : [],
             versions: includeVersions
-              ? versions.slice(0, 3).map((version) => ({
+              ? projectVersions.slice(0, 3).map((version) => ({
                   name: version.name,
                   mode: version.draft.mode,
                   text: version.draft.text.slice(0, 1800),
@@ -2143,7 +2310,7 @@ export function CreativeWorkspace({
         projectContext: intelligenceProjectContext(project),
         context: {
           codeLogs: codeLogs.slice(-12),
-          versions: versions.slice(0, 3).map((version) => ({
+          versions: projectVersions.slice(0, 3).map((version) => ({
             id: version.id,
             name: version.name,
             mode: version.draft.mode,
@@ -2479,7 +2646,7 @@ export function CreativeWorkspace({
       generatedAt: new Date().toISOString(),
       current: draft,
       agentReview: handoffAgent ? selectedReview : null,
-      versions: handoffVersions ? versions.slice(0, 6) : [],
+      versions: handoffVersions ? projectVersions.slice(0, 6) : [],
     };
     window.sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(packageValue));
     handoffRef.current?.close();
@@ -2566,7 +2733,7 @@ export function CreativeWorkspace({
         (candidate) => modeProjectDetails[candidate].phase === phase,
       );
       if (matchingMode) switchMode(matchingMode);
-      setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} phase selected`);
+      setStatus(`${phaseLabel(phase)} phase selected`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "The phase could not be selected.");
     }
@@ -2577,7 +2744,7 @@ export function CreativeWorkspace({
     setReviewInstruction(`Review the current project revision from the ${phase} perspective. Identify the most important unresolved issue and propose one evidence-based next step.`);
     setRightTab("agent");
     setMobilePane("agent");
-    setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} specialist ready`);
+    setStatus(`${phaseLabel(phase)} specialist ready`);
   };
 
   const approveAtlasGate = (phase: PlatformPhaseId) => {
@@ -2596,27 +2763,55 @@ export function CreativeWorkspace({
       setStatus(`Approval requires evidence for the ${phase} phase`);
       return;
     }
-    const rationale = window.prompt(
-      `Explain why the ${phase} phase should be approved. Only you can record this approval; AI output cannot do so.`,
-    )?.trim();
-    if (!rationale) {
-      setStatus("Approval was not recorded because a rationale is required.");
-      return;
-    }
+    const gate = activeProject.gates.find((candidate) => candidate.phase === phase);
+    setGateRationale("");
+    setGateReviewed(false);
+    setGateApproval({
+      phase,
+      title: workflowReadiness?.gateTitle ?? gate?.title ?? `${phaseLabel(phase)} gate`,
+      criteria: workflowReadiness?.gateCriteria ?? [],
+      evidenceArtifactIds,
+    });
+  };
+
+  const closeGateApproval = () => {
+    setGateApproval(null);
+    setGateRationale("");
+    setGateReviewed(false);
+  };
+
+  const recordGateApproval = () => {
+    const approval = gateApproval;
+    if (!approval || !activeProject || projectMutationLocked) return;
+    const rationale = gateRationale.trim();
+    if (!gateReviewed || rationale.length < GATE_RATIONALE_MINIMUM) return;
     try {
       const next = recordHumanGateDecision(activeProject, {
-        phase,
+        phase: approval.phase,
         outcome: "approved",
         rationale,
-        evidenceArtifactIds,
+        evidenceArtifactIds: [...approval.evidenceArtifactIds],
         actorId: "local-project-owner",
       });
       persistProject(next);
-      setStatus(`${phase[0].toLocaleUpperCase("en") + phase.slice(1)} approval recorded`);
+      setStatus(`${phaseLabel(approval.phase)} approval recorded`);
+      closeGateApproval();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "The approval decision was not recorded.");
     }
   };
+
+  useEffect(() => {
+    const dialog = gateDialogRef.current;
+    if (!dialog) return;
+    if (gateApproval && !dialog.open) {
+      dialog.showModal();
+      gateRationaleRef.current?.focus();
+    }
+    if (!gateApproval && dialog.open) dialog.close();
+  }, [gateApproval]);
+
+  const gateRationaleReady = gateRationale.trim().length >= GATE_RATIONALE_MINIMUM;
 
   const shellStyle = { "--workspace-left": `${paneWidth}%` } as CSSProperties;
 
@@ -2625,6 +2820,7 @@ export function CreativeWorkspace({
 
   return (
     <WorkspaceRoot
+      ref={rootRef}
       className={styles.workspacePage}
       data-embedded={embedded ? "true" : "false"}
       data-mobile-pane={mobilePane}
@@ -2678,10 +2874,11 @@ export function CreativeWorkspace({
           </button>
           <button
             type="button"
+            className={confirmProjectDelete ? styles.confirmDelete : undefined}
             disabled={projectMutationLocked || projectRepository.projects.length < 2}
             onClick={deleteCurrentProject}
           >
-            <Trash2 aria-hidden="true" /> Delete
+            <Trash2 aria-hidden="true" /> {confirmProjectDelete ? "Confirm delete" : "Delete"}
           </button>
           <button
             type="button"
@@ -2768,15 +2965,37 @@ export function CreativeWorkspace({
             />
           </div>
         </div>
-        <div className={styles.topbarStatus} aria-live="polite">
-          <span>{isOnline ? status : "Offline · Local previews still work"}</span>
-          <small
-            className={styles.aiReadiness}
-            data-state={reviewAvailability.state}
-            title={reviewAvailability.detail}
-          >
-            {reviewAvailability.label}
-          </small>
+        <div className={styles.topbarStatus}>
+          <span aria-live="polite">
+            {isOnline ? status : "Offline · Local previews still work"}
+          </span>
+          <span className={styles.saveState} data-state={saveState}>
+            {saveState === "saving"
+              ? "Saving…"
+              : saveState === "saved" && savedAt
+                ? `Saved ${formatClock(savedAt)}`
+                : "Not saved yet"}
+          </span>
+          <span className={styles.readinessRow}>
+            <small
+              className={styles.aiReadiness}
+              data-state={reviewAvailability.state}
+              title={reviewAvailability.detail}
+            >
+              {reviewAvailability.label}
+            </small>
+            {reviewAvailability.state === "blocked" ? (
+              <button
+                className={styles.readinessRetry}
+                type="button"
+                disabled={aiReadinessChecking}
+                onClick={checkAiReadiness}
+              >
+                <RotateCcw aria-hidden="true" />
+                {aiReadinessChecking ? "Checking…" : "Check again"}
+              </button>
+            ) : null}
+          </span>
         </div>
         <div className={styles.topbarActions}>
           <button type="button" onClick={() => saveVersion()}>
@@ -2977,7 +3196,7 @@ export function CreativeWorkspace({
                 ["preview", PanelRight, "Live preview"],
                 ["intelligence", BrainCircuit, "Conductor"],
                 ["agent", Bot, "Agent review"],
-                ["versions", History, `Versions ${versions.length}`],
+                ["versions", History, `Versions ${projectVersions.length}`],
               ] as const
             ).map(([value, Icon, label]) => (
               <button
@@ -3044,6 +3263,12 @@ export function CreativeWorkspace({
                 onAcceptAsRevision={acceptConductorRevision}
               />
             ) : null}
+            {activeProject ? (
+              <AdvancementCouncil
+                buildRequest={buildCouncilRequest}
+                cloudSessionAvailable={councilCloudSessionAvailable}
+              />
+            ) : null}
           </div>
           <div
             id="workspace-agent-panel"
@@ -3097,12 +3322,16 @@ export function CreativeWorkspace({
             hidden={rightTab !== "versions"}
           >
             <VersionPanel
-              versions={versions}
+              versions={projectVersions}
               onSave={() => saveVersion()}
               onRestore={restoreVersion}
               onClear={() => {
-                setVersions([]);
-                setStatus("Local version history cleared");
+                const projectId = activeProject?.id;
+                if (!projectId) return;
+                setVersions((current) => current.filter(
+                  (version) => version.projectId !== projectId,
+                ));
+                setStatus("Local version history cleared for this project");
               }}
             />
           </div>
@@ -3170,6 +3399,104 @@ export function CreativeWorkspace({
       />
 
       <dialog
+        ref={gateDialogRef}
+        className={styles.gateDialog}
+        aria-labelledby="gate-approval-title"
+        aria-describedby="gate-approval-description"
+        onCancel={(event) => {
+          event.preventDefault();
+          closeGateApproval();
+        }}
+        onClose={closeGateApproval}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) closeGateApproval();
+        }}
+      >
+        {gateApproval ? (
+          <div className={styles.gateCard}>
+            <header>
+              <div>
+                <span>Phase gate · human decision</span>
+                <h2 id="gate-approval-title">
+                  Record the {phaseLabel(gateApproval.phase)} approval
+                </h2>
+                <p id="gate-approval-description">
+                  Only you can record this decision. Review output cannot approve
+                  a gate, and a recorded decision cannot be changed later.
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Close phase gate approval"
+                onClick={closeGateApproval}
+              >
+                <X aria-hidden="true" />
+              </button>
+            </header>
+
+            <section className={styles.gateCriteria} aria-label="Gate criteria">
+              <span>{gateApproval.title}</span>
+              {gateApproval.criteria.length ? (
+                <ul>
+                  {gateApproval.criteria.map((criterion) => (
+                    <li key={criterion}>{criterion}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  This project has no workflow template criteria for the phase.
+                  Record the reason the phase is complete.
+                </p>
+              )}
+              <small>
+                {gateApproval.evidenceArtifactIds.length} evidence{" "}
+                {gateApproval.evidenceArtifactIds.length === 1 ? "artifact" : "artifacts"}{" "}
+                in this phase will be attached to the decision.
+              </small>
+            </section>
+
+            <label className={styles.gateRationale} htmlFor="gate-approval-rationale">
+              <span>Why does this phase meet the criteria?</span>
+              <textarea
+                id="gate-approval-rationale"
+                ref={gateRationaleRef}
+                value={gateRationale}
+                rows={4}
+                maxLength={1600}
+                onChange={(event) => setGateRationale(event.target.value)}
+              />
+              <small>
+                {gateRationaleReady
+                  ? `${gateRationale.trim().length} characters recorded with the decision`
+                  : `At least ${GATE_RATIONALE_MINIMUM} characters are required`}
+              </small>
+            </label>
+
+            <label className={styles.gateConfirm}>
+              <input
+                type="checkbox"
+                checked={gateReviewed}
+                onChange={(event) => setGateReviewed(event.target.checked)}
+              />
+              I have read the criteria and the attached evidence.
+            </label>
+
+            <div className={styles.gateActions}>
+              <button type="button" onClick={closeGateApproval}>Cancel</button>
+              <button
+                className={styles.gatePrimary}
+                type="button"
+                disabled={!gateReviewed || !gateRationaleReady || projectMutationLocked}
+                onClick={recordGateApproval}
+              >
+                Record approval
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </dialog>
+
+      <dialog
         ref={handoffRef}
         className={styles.handoffDialog}
         aria-labelledby="handoff-title"
@@ -3206,7 +3533,7 @@ export function CreativeWorkspace({
               <input
                 type="checkbox"
                 checked={handoffVersions}
-                disabled={!versions.length}
+                disabled={!projectVersions.length}
                 onChange={(event) => setHandoffVersions(event.target.checked)}
               />
               Version history
@@ -3215,7 +3542,7 @@ export function CreativeWorkspace({
           <div className={styles.handoffSummary}>
             <span>{transformLabels[mode]}</span>
             <strong>{title || "Untitled concept"}</strong>
-            <small>{sourceLength.toLocaleString()} characters in current draft · {versions.length} saved versions</small>
+            <small>{sourceLength.toLocaleString()} characters in current draft · {projectVersions.length} saved versions</small>
           </div>
           <button className={styles.handoffPrimary} type="button" onClick={continueToContact}>
             Request a scoped build plan

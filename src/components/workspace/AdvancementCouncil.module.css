@@ -31,7 +31,7 @@
   gap: 0.45rem;
   margin: 0;
   color: var(--council-accent);
-  font: 650 0.62rem/1.2 var(--font-mono, monospace);
+  font: 650 var(--type-xs)/1.2 var(--font-mono, monospace);
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -54,7 +54,7 @@
   max-width: 46rem;
   margin: 0;
   color: var(--council-muted);
-  font-size: 0.86rem;
+  font-size: var(--type-l);
   line-height: 1.55;
 }
 
@@ -75,7 +75,7 @@
   background: rgba(169, 176, 255, 0.16);
   color: var(--council-ink);
   cursor: pointer;
-  font: 650 0.78rem/1 var(--font-sans, sans-serif);
+  font: 650 var(--type-m)/1 var(--font-sans, sans-serif);
   transition: background-color 200ms ease, border-color 200ms ease;
 }
 
@@ -115,7 +115,7 @@
   margin-bottom: 0.5rem;
   padding: 0;
   color: var(--council-muted);
-  font: 650 0.6rem/1.2 var(--font-mono, monospace);
+  font: 650 var(--type-xs)/1.2 var(--font-mono, monospace);
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -128,7 +128,7 @@
   border: 1px solid var(--council-line);
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   transition: border-color 180ms ease, background-color 180ms ease;
 }
 
@@ -163,7 +163,7 @@
   gap: 0.5rem;
   margin: 0;
   color: var(--council-muted);
-  font-size: 0.85rem;
+  font-size: var(--type-l);
 }
 
 .error {
@@ -186,7 +186,7 @@
   gap: 0.45rem;
   margin: 0 0 0.5rem;
   color: var(--council-accent);
-  font: 650 0.62rem/1.2 var(--font-mono, monospace);
+  font: 650 var(--type-xs)/1.2 var(--font-mono, monospace);
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -194,7 +194,7 @@
 .survey p,
 .synthesis > p {
   margin: 0 0 0.75rem;
-  font-size: 0.88rem;
+  font-size: var(--type-l);
   line-height: 1.55;
 }
 
@@ -207,7 +207,7 @@
 .surveyColumns p {
   margin: 0 0 0.3rem;
   color: var(--council-muted);
-  font: 650 0.58rem/1.2 var(--font-mono, monospace);
+  font: 650 var(--type-xs)/1.2 var(--font-mono, monospace);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -218,7 +218,7 @@
 .boundaries {
   margin: 0;
   padding-left: 1rem;
-  font-size: 0.8rem;
+  font-size: var(--type-m);
   line-height: 1.5;
 }
 
@@ -255,7 +255,7 @@
 
 .move > header strong {
   flex: 1 1 12rem;
-  font-size: 0.95rem;
+  font-size: var(--type-l);
 }
 
 .lensTag {
@@ -263,14 +263,14 @@
   border: 1px solid var(--council-line);
   border-radius: 999px;
   color: var(--council-accent);
-  font: 650 0.58rem/1.4 var(--font-mono, monospace);
+  font: 650 var(--type-xs)/1.4 var(--font-mono, monospace);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .verdict {
   color: var(--council-muted);
-  font: 650 0.62rem/1.2 var(--font-mono, monospace);
+  font: 650 var(--type-xs)/1.2 var(--font-mono, monospace);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -281,7 +281,7 @@
 
 .move > p {
   margin: 0 0 0.7rem;
-  font-size: 0.86rem;
+  font-size: var(--type-l);
   line-height: 1.55;
 }
 
@@ -295,14 +295,14 @@
 .moveMeta dt {
   margin-bottom: 0.2rem;
   color: var(--council-muted);
-  font: 650 0.56rem/1.2 var(--font-mono, monospace);
+  font: 650 var(--type-xs)/1.2 var(--font-mono, monospace);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .moveMeta dd {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--type-m);
   line-height: 1.45;
 }
 
@@ -316,7 +316,7 @@
   align-items: flex-start;
   gap: 0.45rem;
   margin: 0 0 0.4rem;
-  font-size: 0.82rem;
+  font-size: var(--type-m);
   line-height: 1.5;
 }
 
@@ -328,7 +328,7 @@
 .ranked {
   margin: 0 0 0.75rem;
   padding-left: 1.2rem;
-  font-size: 0.86rem;
+  font-size: var(--type-l);
 }
 
 .ranked li {
@@ -343,7 +343,7 @@
 .ranked span {
   margin-left: 0.5rem;
   color: var(--council-muted);
-  font: 650 0.58rem/1.2 var(--font-mono, monospace);
+  font: 650 var(--type-xs)/1.2 var(--font-mono, monospace);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -351,7 +351,7 @@
 .sequence {
   margin: 0 0 0.85rem;
   color: var(--council-muted);
-  font-size: 0.82rem;
+  font-size: var(--type-m);
   line-height: 1.5;
 }
 
@@ -370,12 +370,12 @@
 
 .gateHeading {
   margin: 0 0 0.35rem;
-  font-size: 0.85rem;
+  font-size: var(--type-l);
 }
 
 .gate p {
   margin: 0 0 0.5rem;
-  font-size: 0.82rem;
+  font-size: var(--type-m);
   line-height: 1.5;
 }
 
@@ -383,7 +383,7 @@
   margin-top: 0.85rem;
   padding-left: 1rem;
   color: var(--council-muted);
-  font-size: 0.76rem;
+  font-size: var(--type-m);
   line-height: 1.5;
 }
 

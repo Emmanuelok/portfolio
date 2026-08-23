@@ -21,7 +21,7 @@
   color: var(--text-soft);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.57rem;
+  font-size: var(--type-xs);
   font-weight: 720;
   letter-spacing: 0.055em;
   text-transform: uppercase;
@@ -52,7 +52,7 @@
 .message {
   max-width: 24rem;
   color: var(--text-faint);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   line-height: 1.35;
 }
 

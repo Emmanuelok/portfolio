@@ -69,7 +69,7 @@
   background: var(--deep-ink);
   color: rgba(238, 234, 222, 0.7);
   font-family: var(--font-mono);
-  font-size: 0.57rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -127,7 +127,7 @@
   border-radius: 50%;
   color: var(--mineral-bright);
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
 }
 
@@ -146,7 +146,7 @@
 .identity small {
   color: rgba(238, 234, 222, 0.56);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -162,7 +162,7 @@
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   font-weight: 650;
 }
 
@@ -220,7 +220,7 @@
   max-width: 26rem;
   color: rgba(238, 234, 222, 0.72);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.06em;
   text-align: right;
   text-transform: uppercase;
@@ -248,7 +248,7 @@
   color: var(--bone);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -338,7 +338,7 @@
   justify-content: space-between;
   color: rgba(238, 234, 222, 0.72);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
@@ -352,7 +352,7 @@
   margin: 0;
   color: var(--mineral-bright);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -390,7 +390,7 @@
   gap: 0.75rem;
   padding: 0.8rem 1rem;
   border: 1px solid rgba(238, 234, 222, 0.38);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   font-weight: 680;
 }
 
@@ -430,13 +430,13 @@
 .heroReadouts span {
   color: rgba(238, 234, 222, 0.68);
   font-family: var(--font-mono);
-  font-size: 0.53rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
 .heroReadouts strong {
-  font-size: 0.75rem;
+  font-size: var(--type-m);
   font-weight: 620;
 }
 
@@ -470,7 +470,7 @@
 .accessIntro > p {
   margin: 0;
   color: rgba(238, 234, 222, 0.66);
-  font-size: 0.92rem;
+  font-size: var(--type-l);
   line-height: 1.7;
 }
 
@@ -496,7 +496,7 @@
   border-bottom: 1px solid var(--rule);
   color: rgba(238, 234, 222, 0.68);
   font-family: var(--font-mono);
-  font-size: 0.53rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -540,7 +540,7 @@
 .sampleTab > span:first-child {
   color: rgba(238, 234, 222, 0.66);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
 }
 
@@ -568,7 +568,7 @@
   gap: 0.42rem;
   color: rgba(238, 234, 222, 0.58);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -618,7 +618,7 @@
   border-bottom: 1px solid var(--rule);
   color: rgba(238, 234, 222, 0.48);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -697,7 +697,7 @@
 .accessStepHeading > span {
   color: rgba(238, 234, 222, 0.64);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -740,7 +740,7 @@
   margin-bottom: 0.45rem;
   color: rgba(238, 234, 222, 0.64);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -749,7 +749,7 @@
 .lineageDetail dd,
 .summaryDetails dd {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   line-height: 1.45;
 }
 
@@ -780,7 +780,7 @@
 
 .traceHeading strong {
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   font-weight: 500;
 }
 
@@ -813,7 +813,7 @@
 .traceFigure figcaption {
   color: rgba(238, 234, 222, 0.64);
   font-family: var(--font-mono);
-  font-size: 0.48rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.04em;
 }
 
@@ -825,7 +825,7 @@
 .observationNotes p {
   margin: 0.55rem 0 0;
   color: rgba(238, 234, 222, 0.68);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   line-height: 1.62;
 }
 
@@ -900,7 +900,7 @@
 .lineageNode > span {
   color: rgba(238, 234, 222, 0.62);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-2xs);
 }
 
 .lineageNode svg {
@@ -917,7 +917,7 @@
 .lineageNode small {
   color: var(--mineral);
   font-family: var(--font-mono);
-  font-size: 0.46rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -958,7 +958,7 @@
   max-width: 48rem;
   margin: 0;
   color: rgba(238, 234, 222, 0.66);
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   line-height: 1.65;
 }
 
@@ -1013,7 +1013,7 @@
   border-top: 1px solid var(--dark-rule);
   color: rgba(12, 18, 16, 0.62);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -1034,7 +1034,7 @@
   place-items: center;
   border: 1px solid currentColor;
   border-radius: 50%;
-  font-size: 0.47rem;
+  font-size: var(--type-2xs);
 }
 
 .stepRail svg {
@@ -1072,7 +1072,7 @@
   max-width: 42rem;
   margin: 0;
   color: rgba(12, 18, 16, 0.62);
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   line-height: 1.6;
 }
 
@@ -1104,7 +1104,7 @@
 .instrumentOption > span,
 .instrumentOption small {
   font-family: var(--font-mono);
-  font-size: 0.49rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1130,7 +1130,7 @@
 .instrumentOption p {
   margin: 0;
   opacity: 0.68;
-  font-size: 0.69rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -1152,7 +1152,7 @@
   border: 1px solid var(--ink);
   background: var(--ink);
   color: var(--bone);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   font-weight: 680;
   cursor: pointer;
 }
@@ -1215,7 +1215,7 @@
   max-width: 38rem;
   margin: 0.45rem 0 0;
   color: rgba(12, 18, 16, 0.64);
-  font-size: 0.74rem;
+  font-size: var(--type-m);
   line-height: 1.55;
 }
 
@@ -1293,7 +1293,7 @@
 .moduleGrid article small {
   color: rgba(238, 234, 222, 0.44);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-2xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1319,7 +1319,7 @@
   max-width: 28rem;
   margin: 1rem 0 1.5rem;
   color: rgba(238, 234, 222, 0.68);
-  font-size: 0.76rem;
+  font-size: var(--type-m);
   line-height: 1.62;
 }
 
@@ -1355,7 +1355,7 @@
   gap: 0.7rem;
   padding: 0.8rem 1.1rem;
   border: 1px solid currentColor;
-  font-size: 0.75rem;
+  font-size: var(--type-m);
   font-weight: 700;
 }
 
@@ -1383,7 +1383,7 @@
   margin-bottom: 0.45rem;
   color: var(--bone);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1391,7 +1391,7 @@
 .disclosure p {
   max-width: 80rem;
   margin: 0.25rem 0 0;
-  font-size: 0.65rem;
+  font-size: var(--type-s);
   line-height: 1.58;
 }
 
@@ -1469,7 +1469,7 @@
   .conceptBar p {
     display: block;
     grid-column: 1 / -1;
-    font-size: 0.48rem;
+    font-size: var(--type-2xs);
     text-align: left;
   }
 
@@ -1480,7 +1480,7 @@
   .headerAction {
     min-height: 2.5rem;
     padding: 0 0.7rem;
-    font-size: 0.58rem;
+    font-size: var(--type-xs);
   }
 
   .identity small {

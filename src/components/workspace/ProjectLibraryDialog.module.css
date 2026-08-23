@@ -37,7 +37,7 @@
 .projectMeta small {
   color: #a6abff;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -92,7 +92,7 @@
 
 .limitStatus {
   color: var(--text-faint);
-  font-size: 0.68rem;
+  font-size: var(--type-s);
 }
 
 .limitStatus strong {
@@ -116,7 +116,7 @@
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   font-weight: 700;
 }
 
@@ -188,7 +188,7 @@
 }
 
 .projectMark span {
-  font: 0.48rem var(--font-mono);
+  font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -211,7 +211,7 @@
 .projectList h3 {
   overflow: hidden;
   margin: 0.35rem 0 0.25rem;
-  font-size: 0.92rem;
+  font-size: var(--type-l);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -219,7 +219,7 @@
 .projectList p {
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
 }
 
 .projectList .projectSummary {
@@ -234,7 +234,7 @@
 .projectSignals {
   margin-top: 0.55rem;
   color: var(--text-faint);
-  font: 0.53rem var(--font-mono);
+  font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.025em;
   text-transform: uppercase;
 }
@@ -261,7 +261,7 @@
 
 .emptyState p {
   max-width: 40rem;
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -275,7 +275,7 @@
   background: color-mix(in srgb, #7b83ff 13%, transparent);
   color: var(--text);
   cursor: pointer;
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   font-weight: 700;
 }
 
@@ -308,7 +308,7 @@
   padding: 0.85rem clamp(1rem, 3vw, 2rem);
   border-top: 1px solid color-mix(in srgb, var(--text) 13%, transparent);
   color: var(--text-faint);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
 }
 
 .card > footer p {

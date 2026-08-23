@@ -21,7 +21,7 @@
   margin: 0 0 0.75rem;
   color: var(--blue-bright);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -78,7 +78,7 @@
   gap: 1rem;
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -108,7 +108,7 @@
   max-width: 62ch;
   gap: 0.45rem;
   color: var(--text-faint);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -121,7 +121,7 @@
   gap: 0.3rem;
   color: var(--blue-bright);
   font-family: var(--font-mono);
-  font-size: 0.57rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -157,7 +157,7 @@
   border-bottom: 1px solid var(--border);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   line-height: 1.65;
 }
 
@@ -194,13 +194,13 @@
 
 .chartHeading span {
   color: var(--text-soft);
-  font-size: 0.76rem;
+  font-size: var(--type-m);
 }
 
 .chartHeading strong {
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   font-weight: 500;
   letter-spacing: 0.08em;
 }
@@ -219,13 +219,13 @@
 
 .barRow > span {
   color: var(--text-soft);
-  font-size: 0.67rem;
+  font-size: var(--type-s);
 }
 
 .barRow > strong {
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--type-s);
   font-weight: 500;
   text-align: right;
 }
@@ -262,7 +262,7 @@
   overflow: hidden;
   color: #fff;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.03em;
 }
 
@@ -305,7 +305,7 @@
 
 .capacityTotal span {
   color: var(--text-faint);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   line-height: 1.4;
 }
 
@@ -330,7 +330,7 @@
 
 .energyComparison > div > span {
   color: var(--text-soft);
-  font-size: 0.68rem;
+  font-size: var(--type-s);
 }
 
 .energyTrack {
@@ -345,7 +345,7 @@
   background: linear-gradient(90deg, var(--blue-deep), var(--blue-bright));
   color: #fff;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--type-s);
 }
 
 .energyNow {
@@ -378,7 +378,7 @@
   padding: 1rem;
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   text-align: left;
 }
 
@@ -387,7 +387,7 @@
   padding: 1rem;
   border-top: 1px solid var(--border);
   color: var(--text-soft);
-  font-size: 0.7rem;
+  font-size: var(--type-s);
   line-height: 1.55;
   text-align: left;
   vertical-align: top;
@@ -397,7 +397,7 @@
   background: var(--canvas);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   font-weight: 500;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -414,7 +414,7 @@
   border-bottom: 1px solid var(--border);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   line-height: 1.65;
 }
 
@@ -450,7 +450,7 @@
 .pressureNote > span {
   color: var(--blue-bright);
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -467,7 +467,7 @@
 .frameworkNode p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   line-height: 1.55;
 }
 
@@ -492,7 +492,7 @@
   border-top: 1px solid var(--blue);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-align: center;
   text-transform: uppercase;
@@ -524,7 +524,7 @@
   max-width: 62ch;
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.82rem;
+  font-size: var(--type-m);
   line-height: 1.7;
 }
 
@@ -599,6 +599,6 @@
 
   .stack > span {
     padding: 0.45rem;
-    font-size: 0.5rem;
+    font-size: var(--type-2xs);
   }
 }

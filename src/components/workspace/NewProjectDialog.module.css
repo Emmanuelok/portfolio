@@ -36,7 +36,7 @@
 .heading span {
   color: #a6abff;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -55,7 +55,7 @@
   max-width: 42rem;
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.85rem;
+  font-size: var(--type-l);
   line-height: 1.55;
 }
 
@@ -104,7 +104,7 @@
 .field label {
   color: var(--text-soft);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   font-weight: 650;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -119,7 +119,7 @@
   background: rgba(255, 255, 255, 0.03);
   color: var(--text);
   font: inherit;
-  font-size: 0.92rem;
+  font-size: var(--type-l);
   resize: vertical;
 }
 
@@ -141,14 +141,14 @@
   gap: 1rem;
   margin: 0.1rem 0 0;
   color: var(--text-faint);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   line-height: 1.5;
 }
 
 .hint small {
   flex: none;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
 }
 
 .origin {
@@ -162,7 +162,7 @@
   margin-bottom: 0.5rem;
   color: var(--text-soft);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-xs);
   font-weight: 650;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -184,7 +184,7 @@
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   font-weight: 650;
   transition: border-color 180ms var(--ease-standard), background-color 180ms var(--ease-standard), color 180ms var(--ease-standard);
 }
@@ -234,21 +234,21 @@
 
 .modes strong,
 .templates strong {
-  font-size: 0.85rem;
+  font-size: var(--type-l);
   font-weight: 700;
 }
 
 .modes span,
 .templates span {
   color: var(--text-faint);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   line-height: 1.45;
 }
 
 .templates small {
   color: #a6abff;
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.1em;
 }
 
@@ -258,7 +258,7 @@
   gap: 0.45rem;
   margin: 0.7rem 0 0;
   color: var(--text-faint);
-  font-size: 0.74rem;
+  font-size: var(--type-m);
   line-height: 1.5;
 }
 
@@ -283,7 +283,7 @@
 .status {
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.75rem;
+  font-size: var(--type-m);
   line-height: 1.45;
 }
 
@@ -306,7 +306,7 @@
   color: var(--text);
   cursor: pointer;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: var(--type-m);
   font-weight: 650;
   transition: background-color 180ms var(--ease-standard), border-color 180ms var(--ease-standard);
 }

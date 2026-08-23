@@ -20,7 +20,7 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--text-faint);
-  font: 650 0.6rem/1.4 var(--font-mono);
+  font: 650 var(--type-xs)/1.4 var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -42,7 +42,7 @@
   max-width: 52rem;
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.82rem;
+  font-size: var(--type-m);
   line-height: 1.6;
 }
 
@@ -57,7 +57,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.72rem;
+  font-size: var(--type-s);
   font-weight: 750;
 }
 
@@ -71,7 +71,7 @@
 
 .connection small {
   color: var(--text-faint);
-  font: 0.56rem var(--font-mono);
+  font: var(--type-xs) var(--font-mono);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -87,7 +87,7 @@
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
   font-weight: 700;
 }
 
@@ -124,12 +124,12 @@
 }
 
 .stateCard strong {
-  font-size: 0.84rem;
+  font-size: var(--type-l);
 }
 
 .stateCard span {
   color: var(--text-faint);
-  font-size: 0.7rem;
+  font-size: var(--type-s);
 }
 
 .notice {
@@ -140,7 +140,7 @@
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--blue) 7%, transparent);
   color: var(--text-soft);
-  font-size: 0.68rem;
+  font-size: var(--type-s);
 }
 
 .notice[data-tone="success"] {
@@ -188,7 +188,7 @@
 .actionCard span,
 .listHeading span {
   color: var(--text-faint);
-  font: 600 0.56rem/1.4 var(--font-mono);
+  font: 600 var(--type-xs)/1.4 var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -206,7 +206,7 @@
 .actionCard p {
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.65rem;
+  font-size: var(--type-s);
 }
 
 .primaryAction,
@@ -222,7 +222,7 @@
   background: transparent;
   color: var(--text);
   cursor: pointer;
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
   font-weight: 750;
 }
 
@@ -261,7 +261,7 @@
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--gold) 6%, transparent);
   color: var(--text-faint);
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
 }
 
 .listHeading {
@@ -279,14 +279,14 @@
 }
 
 .listHeading strong {
-  font-size: 0.84rem;
+  font-size: var(--type-l);
 }
 
 .listHeading p {
   max-width: 45rem;
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.65rem;
+  font-size: var(--type-s);
 }
 
 .projectList {
@@ -317,7 +317,7 @@
 
 .projectVersion span {
   color: var(--blue-bright);
-  font: 0.6rem var(--font-mono);
+  font: var(--type-xs) var(--font-mono);
 }
 
 .projectVersion svg {
@@ -332,7 +332,7 @@
   display: inline-flex;
   align-items: center;
   color: var(--text-faint);
-  font: 600 0.53rem var(--font-mono);
+  font: 600 var(--type-2xs) var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -361,7 +361,7 @@
 .projectDetails h3 {
   overflow: hidden;
   margin: 0.35rem 0 0.22rem;
-  font-size: 0.92rem;
+  font-size: var(--type-l);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -374,7 +374,7 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   color: var(--text-faint);
-  font-size: 0.63rem;
+  font-size: var(--type-xs);
   line-height: 1.45;
 }
 
@@ -382,7 +382,7 @@
   display: block;
   margin-top: 0.45rem;
   color: var(--text-faint);
-  font: 0.52rem var(--font-mono);
+  font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -402,19 +402,19 @@
 }
 
 .emptyState strong {
-  font-size: 0.8rem;
+  font-size: var(--type-m);
 }
 
 .emptyState span {
   color: var(--text-faint);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
 }
 
 .dataControls summary {
   padding: 1rem clamp(1.2rem, 3vw, 2rem);
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   font-weight: 700;
 }
 
@@ -446,7 +446,7 @@
   gap: 1rem;
   padding-bottom: 0.7rem;
   border-bottom: 1px solid var(--border);
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   font-weight: 700;
 }
 
@@ -460,19 +460,19 @@
 }
 
 .deletionControl strong {
-  font-size: 0.76rem;
+  font-size: var(--type-m);
 }
 
 .deletionControl p {
   max-width: 58rem;
   margin: 0.25rem 0 0;
   color: var(--text-faint);
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
 }
 
 .deletionControl label {
   color: var(--text-faint);
-  font: 0.56rem var(--font-mono);
+  font: var(--type-xs) var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -494,7 +494,7 @@
   border: 1px solid var(--border-strong);
   border-radius: 0;
   background: var(--canvas);
-  font: 0.65rem var(--font-mono);
+  font: var(--type-s) var(--font-mono);
 }
 
 .deletionControl button {
@@ -507,7 +507,7 @@
   background: transparent;
   color: var(--danger);
   cursor: pointer;
-  font-size: 0.63rem;
+  font-size: var(--type-xs);
   font-weight: 750;
 }
 
@@ -601,13 +601,13 @@
 }
 
 .unreadable strong {
-  font-size: 0.78rem;
+  font-size: var(--type-m);
 }
 
 .unreadable p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   line-height: 1.5;
 }
 
@@ -624,7 +624,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem;
-  font-size: 0.66rem;
+  font-size: var(--type-s);
 }
 
 .unreadable code {

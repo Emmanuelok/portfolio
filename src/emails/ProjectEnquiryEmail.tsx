@@ -14,7 +14,7 @@ const sectionStyle = {
 const labelStyle = {
   margin: "0 0 8px",
   color: "#66645f",
-  fontSize: "11px",
+  fontSize: "12px",
   fontWeight: 700,
   letterSpacing: "0.08em",
   textTransform: "uppercase" as const,
@@ -93,10 +93,10 @@ export function ProjectEnquiryEmail({
 
           <div style={sectionStyle}>
             <p style={labelStyle}>Submission record</p>
-            <p style={{ ...valueStyle, color: "#66645f", fontSize: "12px" }}>
+            <p style={{ ...valueStyle, color: "#57544f", fontSize: "13px" }}>
               Accepted {submittedAt} · Request {requestId}
             </p>
-            <p style={{ ...valueStyle, color: "#66645f", fontSize: "12px" }}>
+            <p style={{ ...valueStyle, color: "#57544f", fontSize: "13px" }}>
               The sender confirmed that kingXford &amp; Co may use this information
               to assess and respond to the enquiry.
             </p>

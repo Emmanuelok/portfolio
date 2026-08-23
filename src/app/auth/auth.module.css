@@ -18,7 +18,7 @@
   grid-column: 1 / -1;
   margin: 0;
   color: var(--text-faint);
-  font: 600 0.66rem/1.4 var(--font-mono);
+  font: 600 var(--type-s)/1.4 var(--font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -43,7 +43,7 @@
   align-items: center;
   border-bottom: 1px solid var(--border-strong);
   color: var(--text);
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   font-weight: 700;
 }
 
@@ -64,7 +64,7 @@
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
   color: var(--text-soft);
-  font: 600 0.58rem/1.4 var(--font-mono);
+  font: 600 var(--type-xs)/1.4 var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -96,7 +96,7 @@
 
 .form label {
   color: var(--text-faint);
-  font: 600 0.62rem/1.4 var(--font-mono);
+  font: 600 var(--type-xs)/1.4 var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -116,7 +116,7 @@
   background: var(--paper);
   color: var(--canvas);
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   font-weight: 750;
 }
 
@@ -129,7 +129,7 @@
 .message,
 .localNotice p {
   color: var(--text-faint);
-  font-size: 0.72rem;
+  font-size: var(--type-s);
 }
 
 .message {
@@ -176,12 +176,12 @@
 }
 
 .assurances strong {
-  font-size: 0.78rem;
+  font-size: var(--type-m);
 }
 
 .assurances span {
   color: var(--text-faint);
-  font-size: 0.7rem;
+  font-size: var(--type-s);
 }
 
 @media (max-width: 760px) {

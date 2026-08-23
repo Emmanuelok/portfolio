@@ -28,7 +28,7 @@
 .startPanel label > span {
   color: #a6abff;
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -48,7 +48,7 @@
 .detailLead > p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.78rem;
+  font-size: var(--type-m);
   line-height: 1.65;
 }
 
@@ -94,7 +94,7 @@
 
 .templateList button > span {
   color: #7b83ff;
-  font: 0.54rem var(--font-mono);
+  font: var(--type-2xs) var(--font-mono);
 }
 
 .templateList button > svg {
@@ -106,7 +106,7 @@
 }
 
 .templateList button strong {
-  font-size: 0.69rem;
+  font-size: var(--type-s);
   line-height: 1.35;
 }
 
@@ -154,7 +154,7 @@
 
 .metrics span {
   color: var(--text-faint);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
   line-height: 1.35;
   text-transform: uppercase;
 }
@@ -178,7 +178,7 @@
 
 .phaseList li > span,
 .phaseList strong {
-  font: 0.58rem var(--font-mono);
+  font: var(--type-xs) var(--font-mono);
   text-transform: uppercase;
 }
 
@@ -193,7 +193,7 @@
 
 .phaseList small {
   color: var(--text-faint);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
 }
 
 .phaseList li > div:last-child {
@@ -241,7 +241,7 @@
   background: #7b83ff;
   color: #fff;
   cursor: pointer;
-  font-size: 0.66rem;
+  font-size: var(--type-s);
   font-weight: 720;
 }
 
@@ -261,7 +261,7 @@
   gap: 0.45rem;
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.55rem;
+  font-size: var(--type-xs);
 }
 
 .startPanel > p svg {

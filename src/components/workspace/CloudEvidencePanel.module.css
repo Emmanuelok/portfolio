@@ -27,7 +27,7 @@
   gap: 0.4rem;
   color: #62d8ad;
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -56,7 +56,7 @@
 .header > p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.75rem;
+  font-size: var(--type-m);
   line-height: 1.65;
 }
 
@@ -71,7 +71,7 @@
   border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
   border-radius: var(--radius-s);
   color: var(--text-soft);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
 }
 
 .state[data-tone="warning"],
@@ -130,7 +130,7 @@
 
 .filePicker strong {
   overflow: hidden;
-  font-size: 0.68rem;
+  font-size: var(--type-s);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -140,7 +140,7 @@
 .library span,
 .library code {
   color: var(--text-faint);
-  font-size: 0.52rem;
+  font-size: var(--type-2xs);
 }
 
 .filePicker input {
@@ -157,7 +157,7 @@
   border-radius: var(--radius-s);
   background: var(--canvas-deep);
   color: var(--text);
-  font-size: 0.64rem;
+  font-size: var(--type-xs);
 }
 
 .retainForm > button {
@@ -170,7 +170,7 @@
   border-radius: var(--radius-s);
   background: #62d8ad;
   color: #07120f;
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
   font-weight: 740;
 }
 
@@ -196,14 +196,14 @@
 }
 
 .libraryHeading strong {
-  font-size: 0.68rem;
+  font-size: var(--type-s);
 }
 
 .empty {
   margin: 0;
   padding: 1rem 0;
   color: var(--text-faint);
-  font-size: 0.62rem;
+  font-size: var(--type-xs);
 }
 
 .library ul {
@@ -231,7 +231,7 @@
 
 .library li strong {
   overflow: hidden;
-  font-size: 0.65rem;
+  font-size: var(--type-s);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -257,7 +257,7 @@
   border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
   border-radius: var(--radius-s);
   color: var(--text-soft);
-  font-size: 0.56rem;
+  font-size: var(--type-xs);
 }
 
 .confirmDelete button:first-child {

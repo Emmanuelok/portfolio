@@ -5,7 +5,7 @@
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--text) 24%, transparent);
   border-radius: var(--radius-m);
-  background: #0b0b0f;
+  background: var(--surface);
   color: var(--text);
   box-shadow: 0 2rem 8rem rgba(0, 0, 0, 0.55);
 }
@@ -30,11 +30,11 @@
   border-bottom: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
   background:
     radial-gradient(circle at 88% 8%, rgba(123, 131, 255, 0.22), transparent 18rem),
-    #0d0d12;
+    var(--surface-raised);
 }
 
 .heading span {
-  color: #a6abff;
+  color: var(--blue-bright);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.09em;
@@ -67,13 +67,13 @@
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
   color: var(--text);
   cursor: pointer;
 }
 
 .heading > button:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: color-mix(in srgb, var(--text) 14%, transparent);
 }
 
 .heading > button svg {
@@ -87,8 +87,8 @@
   padding: clamp(1.1rem, 2.6vw, 1.7rem) clamp(1.3rem, 3vw, 2.1rem);
   overflow-y: auto;
   background:
-    linear-gradient(#0b0b0f 30%, rgba(11, 11, 15, 0)) center top,
-    linear-gradient(rgba(11, 11, 15, 0), #0b0b0f 70%) center bottom,
+    linear-gradient(var(--surface) 30%, transparent) center top,
+    linear-gradient(transparent, var(--surface) 70%) center bottom,
     radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)) center top,
     radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)) center bottom;
   background-repeat: no-repeat;
@@ -116,7 +116,7 @@
   padding: 0.7rem 0.85rem;
   border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
   border-radius: var(--radius-s);
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
   color: var(--text);
   font: inherit;
   font-size: var(--type-l);
@@ -214,7 +214,7 @@
   padding: 0.7rem 0.85rem;
   border: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
   border-radius: var(--radius-s);
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
   color: var(--text);
   cursor: pointer;
   text-align: left;
@@ -246,7 +246,7 @@
 }
 
 .templates small {
-  color: #a6abff;
+  color: var(--blue-bright);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.1em;
@@ -277,7 +277,7 @@
   gap: 1rem;
   padding: clamp(1rem, 2.5vw, 1.5rem) clamp(1.3rem, 3vw, 2.1rem);
   border-top: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
-  background: #0d0d12;
+  background: var(--surface-raised);
 }
 
 .status {
@@ -312,7 +312,7 @@
 }
 
 .footer button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.07);
+  background: color-mix(in srgb, var(--text) 11%, transparent);
 }
 
 .footer button[data-primary="true"] {

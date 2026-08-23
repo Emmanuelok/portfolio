@@ -26,7 +26,7 @@
 .heading span,
 .detailLead > span,
 .startPanel label > span {
-  color: #a6abff;
+  color: var(--focus);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.09em;
@@ -84,16 +84,16 @@
 .templateList button:hover,
 .templateList button:focus-visible,
 .templateList button[aria-pressed="true"] {
-  background: color-mix(in srgb, #7b83ff 12%, transparent);
+  background: color-mix(in srgb, var(--blue-bright) 12%, transparent);
   color: var(--text);
 }
 
 .templateList button[aria-pressed="true"] {
-  box-shadow: inset 2px 0 #7b83ff;
+  box-shadow: inset 2px 0 var(--blue-bright);
 }
 
 .templateList button > span {
-  color: #7b83ff;
+  color: var(--blue-bright);
   font: var(--type-2xs) var(--font-mono);
 }
 
@@ -102,7 +102,7 @@
 }
 
 .templateList button > svg:last-child {
-  color: #62d8ad;
+  color: var(--success);
 }
 
 .templateList button strong {
@@ -148,7 +148,7 @@
 }
 
 .metrics strong {
-  color: #a6abff;
+  color: var(--focus);
   font: 1.05rem var(--font-mono);
 }
 
@@ -183,7 +183,7 @@
 }
 
 .phaseList li > span {
-  color: #7b83ff;
+  color: var(--blue-bright);
 }
 
 .phaseList li > div {
@@ -204,7 +204,7 @@
 
 .phaseList svg {
   width: 0.8rem;
-  color: #62d8ad;
+  color: var(--success);
 }
 
 .startPanel {
@@ -238,7 +238,7 @@
   align-self: end;
   padding: 0.65rem 0.9rem;
   border-radius: var(--radius-s);
-  background: #7b83ff;
+  background: var(--blue);
   color: #fff;
   cursor: pointer;
   font-size: var(--type-s);

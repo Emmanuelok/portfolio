@@ -101,6 +101,7 @@
 .signals .artifact {
   overflow: hidden;
   font-size: var(--type-m);
+  line-height: 1.45;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -144,7 +145,7 @@
 }
 
 .tabNumber {
-  color: var(--text-faint);
+  color: var(--text-soft);
 }
 
 .tabTitle {
@@ -156,7 +157,7 @@
   display: flex;
   gap: 0.35rem;
   align-items: center;
-  color: var(--text-faint);
+  color: var(--text-soft);
   font-size: var(--type-xs);
   text-transform: uppercase;
 }

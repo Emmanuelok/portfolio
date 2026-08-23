@@ -616,7 +616,7 @@
   justify-content: space-between;
   gap: 1rem;
   border-bottom: 1px solid var(--rule);
-  color: rgba(238, 234, 222, 0.48);
+  color: rgba(238, 234, 222, 0.54);
   font-family: var(--font-mono);
   font-size: var(--type-2xs);
   letter-spacing: 0.07em;
@@ -910,7 +910,7 @@
 
 .lineageNode strong {
   font-family: var(--font-serif);
-  font-size: 0.96rem;
+  font-size: var(--type-s);
   font-weight: 540;
 }
 
@@ -1291,7 +1291,7 @@
 
 .moduleGrid article > span,
 .moduleGrid article small {
-  color: rgba(238, 234, 222, 0.44);
+  color: rgba(238, 234, 222, 0.53);
   font-family: var(--font-mono);
   font-size: var(--type-2xs);
   letter-spacing: 0.06em;
@@ -1341,7 +1341,7 @@
 }
 
 .finalCta .kicker {
-  color: rgba(23, 16, 13, 0.7);
+  color: rgba(23, 16, 13, 0.94);
 }
 
 .finalCta h2 {

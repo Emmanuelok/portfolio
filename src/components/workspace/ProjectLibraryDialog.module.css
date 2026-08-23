@@ -35,7 +35,7 @@
 .heading span,
 .projectMeta span,
 .projectMeta small {
-  color: #a6abff;
+  color: var(--focus);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.09em;
@@ -124,7 +124,7 @@
 .libraryToolbar button:focus-visible,
 .projectActions button:hover,
 .projectActions button:focus-visible {
-  border-color: #7b83ff;
+  border-color: var(--blue-bright);
   color: var(--text);
 }
 
@@ -168,8 +168,8 @@
 }
 
 .projectList > li[data-active="true"] {
-  background: color-mix(in srgb, #7b83ff 10%, transparent);
-  box-shadow: inset 3px 0 #7b83ff;
+  background: color-mix(in srgb, var(--blue-bright) 10%, transparent);
+  box-shadow: inset 3px 0 var(--blue-bright);
 }
 
 .projectMark {
@@ -180,7 +180,7 @@
   gap: 0.2rem;
   border: 1px solid color-mix(in srgb, var(--text) 15%, transparent);
   background: rgba(255, 255, 255, 0.025);
-  color: #a6abff;
+  color: var(--focus);
 }
 
 .projectMark svg {
@@ -252,7 +252,7 @@
 
 .emptyState > svg {
   width: 2rem;
-  color: #a6abff;
+  color: var(--focus);
 }
 
 .emptyState h3 {
@@ -271,8 +271,8 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.55rem 0.8rem;
-  border: 1px solid #7b83ff;
-  background: color-mix(in srgb, #7b83ff 13%, transparent);
+  border: 1px solid var(--blue-bright);
+  background: color-mix(in srgb, var(--blue-bright) 13%, transparent);
   color: var(--text);
   cursor: pointer;
   font-size: var(--type-s);
@@ -316,7 +316,7 @@
 }
 
 .card code {
-  color: #a6abff;
+  color: var(--focus);
 }
 
 @media (max-width: 760px) {

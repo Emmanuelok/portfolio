@@ -1,18 +1,19 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
-// Half of the platform's rendered words once sat between 7.4px and 11.7px.
-// This guard keeps them above the floor: every declared text size must resolve
-// to at least 12px at the 16px root, and the small end of the range must go
-// through the shared scale so the steps stay ordered.
+// Half of the platform's rendered words once sat between 7.4px and 11.7px, and
+// a 12px floor still read as small. This guard keeps every declared text size at
+// or above 14px at the 16px root, and routes the small end of the range through
+// the shared scale so the steps stay ordered.
 const repositoryRoot = process.cwd();
 const styleRoot = "src";
 const rootPixels = 16;
-const floorPixels = 12;
+const floorPixels = 14;
 const floorRem = floorPixels / rootPixels;
 
 // The scale itself, and the ceiling below which a raw value must use a token
-// rather than an inline number.
+// rather than an inline number. Above 1rem a bespoke size is legible on its own
+// and need not join the scale; below it the steps have to stay ordered.
 const scaleTokens = new Set([
   "--type-2xs",
   "--type-xs",
@@ -20,7 +21,7 @@ const scaleTokens = new Set([
   "--type-m",
   "--type-l",
 ]);
-const tokenCeilingRem = 0.95;
+const tokenCeilingRem = 1;
 
 // SVG text is drawn in viewBox units and scaled by the rendered width, so a
 // raw px size there is not a px size on screen. These files size chart labels
@@ -107,7 +108,7 @@ for (const file of files) {
       );
       return;
     }
-    if (size.unit === "rem" && size.number <= tokenCeilingRem) {
+    if (size.unit === "rem" && size.number < tokenCeilingRem) {
       failures.push(
         `${at} sets ${size.number}rem directly; use a --type-* token so the small end of the scale stays ordered`,
       );

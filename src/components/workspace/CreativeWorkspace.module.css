@@ -1,10 +1,10 @@
 .workspacePage {
   --workspace-rule: color-mix(in srgb, var(--text) 16%, transparent);
   --workspace-rule-strong: color-mix(in srgb, var(--text) 30%, transparent);
-  --workspace-blue: #7b83ff;
-  --workspace-blue-soft: #a6abff;
-  --workspace-amber: #e8b865;
-  --workspace-green: #62d8ad;
+  --workspace-blue: var(--blue-bright);
+  --workspace-blue-soft: var(--focus);
+  --workspace-amber: var(--gold);
+  --workspace-green: var(--success);
   --workspace-panel: color-mix(in srgb, var(--surface) 92%, #050506);
   width: 100%;
   background:
@@ -349,13 +349,13 @@
 
 .topbarActions .buildButton {
   min-width: 12rem;
-  background: var(--workspace-blue);
+  background: var(--blue);
   color: #fff;
 }
 
 .topbarActions .buildButton:hover,
 .topbarActions .buildButton:focus-visible {
-  background: var(--workspace-blue-soft);
+  background: var(--blue-bright);
   color: #09090b;
 }
 
@@ -414,7 +414,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 2px;
-  background: var(--workspace-blue);
+  background: var(--blue);
   content: "";
 }
 
@@ -502,7 +502,7 @@
   color: var(--text);
   caret-color: var(--workspace-blue-soft);
   font-family: var(--font-mono);
-  font-size: clamp(0.8rem, 0.8vw, 0.92rem);
+  font-size: clamp(var(--type-2xs), 0.8vw, var(--type-xs));
   line-height: 1.85;
   tab-size: 2;
 }
@@ -593,7 +593,7 @@
 
 .editorFooter > button:hover,
 .editorFooter > button:focus-visible {
-  background: var(--workspace-blue-soft);
+  background: var(--blue-bright);
 }
 
 .editorFooter button svg {
@@ -627,7 +627,7 @@
   width: 3px;
   height: 3.5rem;
   border-radius: 999px;
-  background: var(--workspace-blue-soft);
+  background: var(--blue-bright);
   box-shadow: 0 0 1.2rem rgba(123, 131, 255, 0.9);
 }
 
@@ -732,8 +732,8 @@
   padding: clamp(1.5rem, 4vw, 4rem);
   background:
     radial-gradient(circle at 80% 7%, rgba(88, 213, 167, 0.18), transparent 24rem),
-    #07100e;
-  color: #edf8f3;
+    color-mix(in srgb, var(--success) 8%, var(--surface-raised));
+  color: var(--text);
 }
 
 .conceptPreview > header,
@@ -744,7 +744,7 @@
   gap: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(237, 248, 243, 0.2);
-  color: #8ca99f;
+  color: var(--text-soft);
   font-family: var(--font-mono);
   font-size: var(--type-2xs);
   letter-spacing: 0.08em;
@@ -768,7 +768,7 @@
 .conceptHero span,
 .conceptGrid small,
 .conceptPreview > footer span {
-  color: #73dcb9;
+  color: var(--success);
   font-family: var(--font-mono);
   font-size: var(--type-2xs);
   letter-spacing: 0.08em;
@@ -787,7 +787,7 @@
 
 .conceptHero > p {
   margin: 0;
-  color: #b5c9c1;
+  color: var(--text-soft);
   font-size: var(--type-l);
 }
 
@@ -806,11 +806,11 @@
   padding: 1.25rem;
   border-right: 1px solid #31534a;
   border-bottom: 1px solid #31534a;
-  background: rgba(13, 29, 24, 0.6);
+  background: color-mix(in srgb, var(--success) 8%, var(--surface-raised));
 }
 
 .conceptGrid section > span {
-  color: #668077;
+  color: var(--text-soft);
   font-family: var(--font-mono);
   font-size: var(--type-2xs);
 }
@@ -818,7 +818,7 @@
 .conceptGrid p,
 .conceptPreview > footer p {
   margin: 0;
-  color: #dceae5;
+  color: var(--text);
   font-size: var(--type-m);
   line-height: 1.6;
 }
@@ -860,12 +860,12 @@
   height: 2.2rem;
   place-items: center;
   background: transparent;
-  color: #8f8f9b;
+  color: var(--text-soft);
   cursor: pointer;
 }
 
 .deviceBar button[aria-pressed="true"] {
-  background: #7b83ff;
+  background: var(--blue-bright);
   color: white;
 }
 
@@ -876,7 +876,7 @@
 
 .deviceBar > span {
   margin-left: auto;
-  color: #7f7f89;
+  color: var(--text-soft);
   font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -974,7 +974,7 @@
 }
 
 .mapPreview > header > div:first-child span {
-  color: #a6abff;
+  color: var(--focus);
   font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1008,7 +1008,7 @@
 .mapPreview > header > div:last-child > span {
   min-width: 2.8rem;
   text-align: center;
-  color: #8f8f9b;
+  color: var(--text-soft);
   font: var(--type-2xs) var(--font-mono);
 }
 
@@ -1024,7 +1024,7 @@
 }
 
 .mapViewport:focus-visible {
-  box-shadow: inset 0 0 0 2px #a6abff;
+  box-shadow: inset 0 0 0 2px var(--focus);
 }
 
 .mapViewport[data-dragging="true"] {
@@ -1076,7 +1076,7 @@
 
 .mapTree > li > .mapNode {
   max-width: 24rem;
-  border-color: #7b83ff;
+  border-color: var(--blue-bright);
   background: #222861;
 }
 
@@ -1152,7 +1152,7 @@
 .mapNode svg {
   width: 0.78rem;
   flex: 0 0 auto;
-  color: #a6abff;
+  color: var(--focus);
 }
 
 .promptPreview {
@@ -1180,7 +1180,7 @@
 .promptPreview > header span,
 .promptSignals small,
 .promptBlocks section > span {
-  color: #e8b865;
+  color: var(--gold);
   font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1202,7 +1202,7 @@
 }
 
 .signalTrack > span[data-present="true"] {
-  background: #e8b865;
+  background: var(--gold);
 }
 
 .promptSignals {
@@ -1232,7 +1232,7 @@
 .promptSignals svg {
   width: 0.8rem;
   grid-row: 1 / span 2;
-  color: #e8b865;
+  color: var(--gold);
 }
 
 .promptSignals span {
@@ -1362,7 +1362,7 @@
   place-items: center;
   border: 1px solid rgba(166, 171, 255, 0.34);
   background: rgba(123, 131, 255, 0.14);
-  color: #a6abff;
+  color: var(--focus);
 }
 
 .agentMark svg {
@@ -1389,7 +1389,7 @@
 .handoffStrip > div > span,
 .handoffCard > header span,
 .handoffSummary > span {
-  color: #a6abff;
+  color: var(--focus);
   font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1416,13 +1416,13 @@
   grid-template-columns: auto 1fr;
   gap: 0.75rem;
   padding: 0.9rem;
-  border-left: 2px solid #7b83ff;
+  border-left: 2px solid var(--blue-bright);
   background: rgba(123, 131, 255, 0.08);
 }
 
 .agentTruth svg {
   width: 0.9rem;
-  color: #a6abff;
+  color: var(--focus);
 }
 
 .agentTruth p {
@@ -1451,7 +1451,7 @@
 .reviewGrounding summary,
 .reviewRequestId,
 .reviewHistory summary > span {
-  color: #a6abff;
+  color: var(--focus);
   font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1469,7 +1469,7 @@
 }
 
 .lensSelector select:focus-visible {
-  border-color: #7b83ff;
+  border-color: var(--blue-bright);
 }
 
 .lensSelector select:disabled {
@@ -1563,7 +1563,7 @@
 
 .agentRunning > svg {
   width: 2rem;
-  color: #a6abff;
+  color: var(--focus);
   animation: workspace-spin 1s linear infinite;
 }
 
@@ -1624,15 +1624,15 @@
 .reviewSummary > div > span {
   justify-self: start;
   padding: 0.3rem 0.5rem;
-  border: 1px solid #e8b865;
-  color: #e8b865;
+  border: 1px solid var(--gold);
+  color: var(--gold);
   font: var(--type-2xs) var(--font-mono);
   text-transform: uppercase;
 }
 
 .reviewSummary > div > span[data-status="Strong"] {
-  border-color: #62d8ad;
-  color: #62d8ad;
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .reviewSummary > div > span[data-status="Unresolved"] {
@@ -1649,7 +1649,7 @@
 
 .reviewNotice {
   margin: 0;
-  border-color: #e8b865;
+  border-color: var(--gold);
   background: rgba(232, 184, 101, 0.07);
   color: #e8c98f;
 }
@@ -1823,7 +1823,7 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.75rem 0.9rem;
-  background: #7b83ff;
+  background: var(--blue-bright);
   color: white;
   cursor: pointer;
   font-size: var(--type-s);
@@ -1880,7 +1880,7 @@
 }
 
 .agentComposer textarea:focus-visible {
-  border-color: #7b83ff;
+  border-color: var(--blue-bright);
 }
 
 .agentContext {
@@ -2126,7 +2126,7 @@
 
 .versionEmpty > svg {
   width: 2rem;
-  color: #7b83ff;
+  color: var(--blue-bright);
 }
 
 .versionEmpty h3 {
@@ -2231,7 +2231,7 @@
 }
 
 .gateCard > header > div > span {
-  color: #a6abff;
+  color: var(--focus);
   font: var(--type-2xs) var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2272,7 +2272,7 @@
   display: grid;
   gap: 0.6rem;
   padding: 0.9rem;
-  border-left: 2px solid #7b83ff;
+  border-left: 2px solid var(--blue-bright);
   background: rgba(123, 131, 255, 0.08);
 }
 
@@ -2325,7 +2325,7 @@
 }
 
 .gateRationale textarea:focus-visible {
-  border-color: #7b83ff;
+  border-color: var(--blue-bright);
   outline: 0;
 }
 
@@ -2362,8 +2362,8 @@
 }
 
 .gateActions .gatePrimary {
-  border-color: #7b83ff;
-  background: #7b83ff;
+  border-color: var(--blue-bright);
+  background: var(--blue-bright);
   color: white;
 }
 
@@ -2705,7 +2705,7 @@
   }
 
   .mobileActionBar button:last-child {
-    background: var(--workspace-blue);
+    background: var(--blue);
     color: white;
   }
 

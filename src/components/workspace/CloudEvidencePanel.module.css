@@ -2,7 +2,7 @@
   width: min(100% - (var(--page-gutter) * 2), var(--content-max));
   margin: 0 auto clamp(1rem, 3vw, 2rem);
   overflow: clip;
-  border: 1px solid color-mix(in srgb, #62d8ad 24%, var(--text) 13%);
+  border: 1px solid color-mix(in srgb, var(--success) 24%, var(--text) 13%);
   border-radius: var(--radius-m);
   background: color-mix(in srgb, var(--surface) 78%, var(--canvas-deep));
 }
@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: #62d8ad;
+  color: var(--success);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.09em;
@@ -77,13 +77,13 @@
 .state[data-tone="warning"],
 .notice[data-tone="warning"],
 .notice[data-tone="error"] {
-  border-color: color-mix(in srgb, #ffbe72 42%, transparent);
-  color: #ffd2a0;
+  border-color: color-mix(in srgb, var(--gold) 42%, transparent);
+  color: var(--gold);
 }
 
 .notice[data-tone="success"] {
-  border-color: color-mix(in srgb, #62d8ad 42%, transparent);
-  color: #98edcf;
+  border-color: color-mix(in srgb, var(--success) 42%, transparent);
+  color: var(--success);
 }
 
 .state button {
@@ -95,7 +95,7 @@
   padding: 0.4rem 0.65rem;
   border: 1px solid currentColor;
   border-radius: var(--radius-s);
-  color: inherit;
+  color: var(--text);
 }
 
 .retainForm {
@@ -118,7 +118,7 @@
   grid-template-columns: 1.2rem minmax(0, 1fr);
   align-content: center;
   padding: 0.8rem;
-  border: 1px dashed color-mix(in srgb, #62d8ad 48%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--success) 48%, transparent);
   border-radius: var(--radius-s);
   cursor: pointer;
 }
@@ -168,7 +168,7 @@
   gap: 0.45rem;
   padding: 0.65rem 0.9rem;
   border-radius: var(--radius-s);
-  background: #62d8ad;
+  background: var(--success);
   color: #07120f;
   font-size: var(--type-xs);
   font-weight: 740;

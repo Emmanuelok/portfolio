@@ -7,11 +7,13 @@
   --finance-rule: rgba(16, 37, 50, 0.2);
   --finance-rule-dark: rgba(239, 233, 220, 0.22);
   --finance-brass: #81501f;
+  --finance-brass-on-dark: #af8152;
   --finance-burgundy: #71363a;
   --finance-green: #456d5b;
   min-width: 0;
   padding-top: var(--header-height);
   background: var(--finance-paper);
+  --finance-brass: #81501f;
   color: var(--finance-ink);
 }
 
@@ -98,6 +100,7 @@
   gap: 2rem;
   border-bottom: 1px solid var(--finance-rule);
   background: var(--finance-paper);
+  --finance-brass: #81501f;
 }
 
 .identity {
@@ -184,6 +187,7 @@
   gap: clamp(3rem, 8vw, 9rem);
   background: #0c1c26;
   color: var(--finance-paper-raised);
+  --finance-brass: var(--finance-brass-on-dark);
   isolation: isolate;
 }
 
@@ -283,6 +287,7 @@
 }
 
 .heroFolio {
+  --finance-brass: #81501f;
   position: relative;
   z-index: 1;
   min-height: 35rem;
@@ -364,6 +369,7 @@
 
 .folioScenarioSwitch button[aria-pressed="true"] {
   background: var(--finance-ink);
+  --finance-brass: var(--finance-brass-on-dark);
   color: var(--finance-paper-raised);
 }
 
@@ -497,6 +503,7 @@
 
 .optionInput:checked + .caseOptionBody {
   background: var(--finance-paper-raised);
+  --finance-brass: #81501f;
   color: var(--finance-ink);
 }
 
@@ -545,6 +552,7 @@
   grid-template-columns: minmax(12rem, 0.32fr) minmax(24rem, 0.95fr) minmax(17rem, 0.42fr);
   border: 1px solid var(--finance-rule);
   background: var(--finance-paper-raised);
+  --finance-brass: #81501f;
 }
 
 .scenarioControls {
@@ -598,6 +606,7 @@
 
 .optionInput:checked + .scenarioOptionBody {
   background: var(--finance-ink);
+  --finance-brass: var(--finance-brass-on-dark);
   color: var(--finance-paper);
 }
 
@@ -644,12 +653,12 @@
 .chartValue {
   fill: var(--finance-muted);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .chartValue {
   fill: var(--finance-ink);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -809,6 +818,7 @@
 .governanceSection {
   padding: clamp(7rem, 11vw, 12rem) max(var(--page-gutter), calc((100vw - var(--content-max)) / 2 + var(--page-gutter)));
   background: var(--finance-ink);
+  --finance-brass: var(--finance-brass-on-dark);
   color: var(--finance-paper);
 }
 
@@ -1148,6 +1158,7 @@
 
 .filterBar button[aria-pressed="true"] {
   background: var(--finance-ink);
+  --finance-brass: var(--finance-brass-on-dark);
   color: var(--finance-paper);
 }
 
@@ -1202,14 +1213,14 @@
   padding: 0.25rem 0.5rem;
   align-items: center;
   border: 1px solid currentColor;
-  color: var(--finance-green);
+  color: #32604b;
   font-family: var(--font-mono);
   font-size: var(--type-2xs);
   text-transform: uppercase;
 }
 
 .evidenceStatus[data-status="review-due"] {
-  color: var(--finance-brass);
+  color: #6d4319;
 }
 
 .evidenceStatus[data-status="challenged"] {
@@ -1220,6 +1231,7 @@
   min-width: 0;
   padding: 1.7rem;
   background: var(--finance-paper-raised);
+  --finance-brass: #81501f;
 }
 
 .evidenceDetailHeader {
@@ -1592,21 +1604,21 @@
 @media (max-width: 560px) {
   .chartAxisLabel,
   .chartScenarioLabel {
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .chartValue {
-    font-size: 15px;
+    font-size: 17px;
   }
 }
 
 @media (max-width: 420px) {
   .chartAxisLabel,
   .chartScenarioLabel {
-    font-size: 17px;
+    font-size: 20px;
   }
 
   .chartValue {
-    font-size: 19px;
+    font-size: 22px;
   }
 }

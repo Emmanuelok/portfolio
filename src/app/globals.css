@@ -9,7 +9,7 @@
   --paper: #f3efe5;
   --text: #f3efe5;
   --text-soft: #b6b1a8;
-  --text-faint: #8b8781;
+  --text-faint: #8e8a84;
   --border: rgba(243, 239, 229, 0.16);
   --border-strong: rgba(243, 239, 229, 0.34);
   --blue: #5961ff;
@@ -26,14 +26,14 @@
   --font-sans: "Manrope Variable", "Helvetica Neue", Arial, sans-serif;
   --font-serif: "Newsreader Variable", Georgia, serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  /* Type scale. 0.75rem (12px) is the floor for every word on the platform:
+  /* Type scale. 0.875rem (14px) is the floor for every word on the platform:
      no rule may set text smaller. Steps rise in even 0.05rem increments so a
      label that used to read smaller than its neighbour still does. */
-  --type-2xs: 0.75rem;
-  --type-xs: 0.8rem;
-  --type-s: 0.85rem;
-  --type-m: 0.9rem;
-  --type-l: 0.95rem;
+  --type-2xs: 0.875rem;
+  --type-xs: 0.9375rem;
+  --type-s: 1rem;
+  --type-m: 1.0625rem;
+  --type-l: 1.125rem;
   --page-gutter: clamp(1rem, 4vw, 4.5rem);
   --content-max: 1600px;
   --header-height: 5.25rem;
@@ -52,18 +52,20 @@ html[data-theme="light"] {
   --paper: #0b0b0d;
   --text: #101013;
   --text-soft: #514d47;
-  --text-faint: #6a645c;
+  --text-faint: #625a51;
   --border: rgba(11, 11, 13, 0.14);
   --border-strong: rgba(11, 11, 13, 0.32);
   --blue: #3e46ee;
   --blue-bright: #2f37d4;
   --blue-deep: #252bbb;
-  --gold: #826b3d;
+  --gold: #725723;
   --focus: #3038e6;
   --loom-thread-a: #3e46ee;
   --loom-thread-b: #0b0b0d;
   --loom-thread-c: #826b3d;
   --loom-mote: rgba(11, 11, 13, 0.55);
+  --danger: #a03646;
+  --success: #19684b;
   --shadow: 0 24px 70px rgba(28, 22, 14, 0.12);
 }
 
@@ -75,6 +77,12 @@ html[data-theme="light"] {
 
 small {
   font-size: max(var(--type-2xs), 0.875em);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--text) 62%, transparent);
+  opacity: 1;
 }
 
 html {
@@ -96,7 +104,7 @@ body {
     var(--canvas);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: clamp(0.98rem, 0.3vw + 0.92rem, 1.12rem);
+  font-size: clamp(1.0625rem, 0.3vw + 1rem, 1.2rem);
   font-weight: 450;
   line-height: 1.6;
   text-rendering: optimizeLegibility;
@@ -616,7 +624,7 @@ a {
   width: 0.42rem;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: #62d8ad;
+  background: var(--success);
   box-shadow: 0 0 0 0.3rem rgba(98, 216, 173, 0.12);
 }
 
@@ -640,7 +648,7 @@ a {
 
 .site-header__create-kicker,
 .site-header__create-start > div:first-child > span {
-  color: #a6abff;
+  color: var(--focus);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.1em;
@@ -702,7 +710,7 @@ a {
 }
 
 .site-header__create-catalogue small {
-  color: #a6abff;
+  color: var(--focus);
   font: var(--type-2xs) var(--font-mono);
 }
 
@@ -783,7 +791,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: #a6abff;
+  color: var(--focus);
   font-family: var(--font-mono);
   font-size: var(--type-2xs);
   letter-spacing: 0.09em;
@@ -893,7 +901,7 @@ a {
   aspect-ratio: 1;
   place-items: center;
   background: rgba(166, 171, 255, 0.09);
-  color: #a6abff;
+  color: var(--focus);
   transform: translateY(-50%);
 }
 
@@ -962,7 +970,7 @@ a {
 }
 
 .site-header__create-proofs small {
-  color: #a6abff;
+  color: var(--focus);
   font: var(--type-2xs) var(--font-mono);
 }
 
@@ -972,7 +980,7 @@ a {
   min-width: 17rem;
   padding: 0.65rem 3.2rem 0.65rem 1rem;
   align-content: center;
-  background: #a6abff;
+  background: var(--focus);
   color: #0b0b0e;
   font-size: var(--type-s);
   font-weight: 750;
@@ -1645,7 +1653,7 @@ a {
 .project-card__view {
   position: absolute;
   z-index: 2;
-  color: #f6f1e7;
+  color: var(--text);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.1em;
@@ -3548,7 +3556,7 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 999px;
   background: rgba(5, 5, 7, 0.54);
-  color: rgba(255, 255, 255, 0.74);
+  color: rgba(255, 255, 255, 0.96);
   font-family: var(--font-mono);
   font-size: var(--type-2xs);
   letter-spacing: 0.08em;
@@ -4317,7 +4325,7 @@ a {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: #a6abff;
+    color: var(--focus);
     font: var(--type-2xs) var(--font-mono);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -4547,7 +4555,7 @@ a {
   }
 
   body {
-    font-size: 0.96rem;
+    font-size: var(--type-s);
   }
 
   .section,
@@ -5603,7 +5611,7 @@ a {
   grid-template-columns: auto minmax(5rem, 0.45fr) auto auto;
   align-items: center;
   gap: 0.8rem;
-  color: rgba(244, 239, 228, 0.54);
+  color: rgba(244, 239, 228, 0.72);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.06em;
@@ -5798,7 +5806,7 @@ a {
   gap: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid currentColor;
-  color: rgba(244, 239, 228, 0.52);
+  color: rgba(244, 239, 228, 0.72);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.1em;
@@ -6038,7 +6046,7 @@ a {
 }
 
 .work-runway__index {
-  color: rgba(9, 9, 11, 0.52);
+  color: rgba(9, 9, 11, 0.72);
 }
 
 .work-runway__heading h2 em {
@@ -6108,7 +6116,7 @@ a {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  color: rgba(9, 9, 11, 0.5);
+  color: rgba(9, 9, 11, 0.72);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.06em;
@@ -6116,7 +6124,7 @@ a {
 
 .work-runway__copy > div:nth-child(2) > p:first-child {
   margin-bottom: 0.65rem;
-  color: rgba(9, 9, 11, 0.54);
+  color: rgba(9, 9, 11, 0.72);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.08em;
@@ -6247,7 +6255,7 @@ a {
 .idea-router__console > label {
   display: block;
   margin-bottom: 1rem;
-  color: rgba(244, 239, 228, 0.52);
+  color: rgba(244, 239, 228, 0.72);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.09em;
@@ -6330,7 +6338,7 @@ a {
 }
 
 .idea-router__result span {
-  color: rgba(244, 239, 228, 0.5);
+  color: rgba(244, 239, 228, 0.72);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.08em;
@@ -6356,7 +6364,7 @@ a {
   align-items: center;
   gap: 0.5rem;
   padding-bottom: 0.35rem;
-  border-bottom: 1px solid rgba(244, 239, 228, 0.5);
+  border-bottom: 1px solid rgba(244, 239, 228, 0.72);
   color: inherit;
 }
 
@@ -6379,7 +6387,7 @@ a {
 }
 
 .kx-method__topline {
-  color: rgba(9, 9, 11, 0.48);
+  color: rgba(9, 9, 11, 0.72);
 }
 
 .kx-method__heading {
@@ -6440,6 +6448,53 @@ a {
   font-size: var(--type-l);
 }
 
+/* Bands that keep one palette regardless of the active theme carry that
+   palette's tokens locally, so shared components nested inside them stay
+   legible in both themes instead of inheriting the opposite ink. */
+.manifesto,
+.lab-window__core,
+.work-runway,
+.kx-method,
+.home-finale {
+  --text: #101013;
+  --text-soft: #514d47;
+  --text-faint: #625a51;
+  --border: rgba(11, 11, 13, 0.14);
+  --border-strong: rgba(11, 11, 13, 0.32);
+  --canvas: #f1ede3;
+  --surface: #e8e2d7;
+  --surface-raised: #ffffff;
+  --blue: #3e46ee;
+  --blue-bright: #2f37d4;
+  --focus: #3038e6;
+  --gold: #725723;
+  --success: #19684b;
+  --danger: #a03646;
+}
+
+.studio-story,
+.lab-window,
+.kx-cinematic,
+.kx-static,
+.worlds,
+.idea-router,
+.kx-practice {
+  --text: #f3efe5;
+  --text-soft: #b6b1a8;
+  --text-faint: #8e8a84;
+  --border: rgba(243, 239, 229, 0.16);
+  --border-strong: rgba(243, 239, 229, 0.34);
+  --canvas: #09090b;
+  --surface: #111115;
+  --surface-raised: #17171c;
+  --blue: #5961ff;
+  --blue-bright: #7780ff;
+  --focus: #aeb3ff;
+  --gold: #b69a64;
+  --success: #58d5a7;
+  --danger: #ff7d91;
+}
+
 .kx-practice {
   position: relative;
   display: grid;
@@ -6449,6 +6504,7 @@ a {
   background: #0a0a0d;
   color: #f4efe4;
 }
+
 
 .kx-practice__architecture {
   position: relative;
@@ -6469,7 +6525,7 @@ a {
   display: block;
   padding-bottom: clamp(1rem, 2vw, 1.8rem);
   border-bottom: 1px solid rgba(244, 239, 228, 0.16);
-  color: rgba(244, 239, 228, 0.48);
+  color: rgba(244, 239, 228, 0.72);
   font-size: clamp(2.6rem, 6vw, 7.4rem);
   font-weight: 510;
   letter-spacing: -0.07em;

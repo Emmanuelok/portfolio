@@ -465,7 +465,7 @@
 }
 
 .workspaceInstrument > header > span {
-  color: #a6abff;
+  color: var(--focus);
 }
 
 .workspaceInstrumentBody {
@@ -568,7 +568,7 @@
 }
 
 .workspaceInstrument > footer strong {
-  color: #62d8ad;
+  color: var(--success);
   font-weight: 560;
 }
 

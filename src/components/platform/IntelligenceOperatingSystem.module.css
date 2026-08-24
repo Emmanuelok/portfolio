@@ -347,7 +347,7 @@
 .phaseTrack button[data-active="true"] { background: color-mix(in srgb, var(--blue) 8%, transparent); }
 .phaseTrack button[data-active="true"]::after { transform: scaleX(1); }
 .phaseTrack small { color: var(--blue-bright); font-family: var(--font-mono); font-size: var(--type-xs); }
-.phaseTrack strong { font-size: clamp(0.85rem, 1.25vw, 1.1rem); }
+.phaseTrack strong { font-size: clamp(var(--type-2xs), 1.25vw, 1.1rem); }
 .phaseTrack span { color: var(--text-faint); font-size: var(--type-xs); line-height: 1.35; }
 .phaseAction { padding: 0.8rem 1rem; border-top: 1px solid var(--border); }
 .phaseAction > span,

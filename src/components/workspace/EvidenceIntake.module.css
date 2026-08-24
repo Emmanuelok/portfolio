@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: #62d8ad;
+  color: var(--success);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   letter-spacing: 0.09em;
@@ -101,15 +101,15 @@
 
 .modeChooser input:checked + span,
 .modeChooser input:focus-visible + span {
-  border-color: #7b83ff;
-  background: color-mix(in srgb, #7b83ff 10%, transparent);
+  border-color: var(--blue-bright);
+  background: color-mix(in srgb, var(--blue-bright) 10%, transparent);
   color: var(--text);
 }
 
 .modeChooser svg {
   width: 1rem;
   grid-row: span 2;
-  color: #a6abff;
+  color: var(--focus);
 }
 
 .modeChooser strong {
@@ -120,7 +120,7 @@
 .fields label > span,
 .textField > span,
 .urlField > span {
-  color: var(--text-faint);
+  color: var(--text-soft);
   font-size: var(--type-xs);
 }
 
@@ -160,7 +160,7 @@
 .textField > small,
 .urlField > small {
   justify-self: end;
-  color: var(--text-faint);
+  color: var(--text-soft);
   font-size: var(--type-2xs);
 }
 
@@ -170,15 +170,15 @@
   align-items: center;
   gap: 0.9rem;
   padding: 1rem;
-  border: 1px dashed color-mix(in srgb, #7b83ff 58%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--blue-bright) 58%, transparent);
   border-radius: var(--radius-s);
-  background: color-mix(in srgb, #7b83ff 7%, transparent);
+  background: color-mix(in srgb, var(--blue-bright) 7%, transparent);
   cursor: pointer;
 }
 
 .fileDrop > svg {
   width: 1.5rem;
-  color: #a6abff;
+  color: var(--focus);
 }
 
 .fileDrop > span {
@@ -191,7 +191,7 @@
 }
 
 .fileDrop small {
-  color: var(--text-faint);
+  color: var(--text-soft);
   font-size: var(--type-2xs);
   line-height: 1.5;
 }
@@ -209,9 +209,9 @@
   align-items: center;
   gap: 0.8rem 1rem;
   padding: 0.9rem;
-  border: 1px solid color-mix(in srgb, #62d8ad 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
   border-radius: var(--radius-s);
-  background: color-mix(in srgb, #62d8ad 6%, transparent);
+  background: color-mix(in srgb, var(--success) 6%, transparent);
 }
 
 .governance > div,
@@ -223,7 +223,7 @@
 
 .governance svg {
   width: 0.95rem;
-  color: #62d8ad;
+  color: var(--success);
 }
 
 .governance span {
@@ -237,20 +237,20 @@
 
 .governance small,
 .governance p {
-  color: var(--text-faint);
+  color: var(--text-soft);
   font-size: var(--type-2xs);
 }
 
 .governance progress {
   width: 100%;
-  accent-color: #62d8ad;
+  accent-color: var(--success);
 }
 
 .governance > p {
   grid-column: 1 / -1;
   margin: 0;
   padding-top: 0.6rem;
-  border-top: 1px solid color-mix(in srgb, #62d8ad 18%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--success) 18%, transparent);
 }
 
 .actions {
@@ -270,8 +270,8 @@
   min-height: 3rem;
   padding: 0.65rem 1rem;
   border-radius: var(--radius-s);
-  background: #62d8ad;
-  color: #07120f;
+  background: var(--success);
+  color: var(--canvas);
   cursor: pointer;
   font-size: var(--type-s);
   font-weight: 740;
